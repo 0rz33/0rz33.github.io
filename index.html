@@ -152,682 +152,6 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/10/01/sqlmap/">
-                sqlmap
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-10-01</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>文章</p>
-<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    http://www.vuln.cn/1992<br />
-</h3>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    sqlmap简介
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap支持五种不同的注入模式：
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        4、联合查询注入，可以使用union的情况下的注入。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        5、堆查询注入，可以同时执行多条语句的执行时的注入。
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    sqlmap支持的数据库有
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    检测注入
-</h2>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    基本格式
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -u "http://www.vuln.cn/post.php?id=1"
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    默认使用level1检测全部数据库类型
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    跟随302跳转
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
-当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
-目的就是：要追踪到错误信息。
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    cookie注入
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    当程序有防get注入的时候，可以使用cookie注入<br />
-sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    从post数据包中注入
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    可以使用burpsuite或者temperdata等工具来抓取post包
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    注入成功后
-</h2>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    获取数据库基本信息
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    查询有哪些数据库
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    查询test数据库中有哪些表
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    查询test数据库中admin表有哪些字段
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    dump出字段username与password中的数据
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    其他命令参考下面
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    从数据库中搜索字段
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
-在dedecms数据库中搜索字段admin或者password。
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    读取与写入文件
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    首先找需要网站的物理路径，其次需要有可写或可读权限。
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    --file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
---file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
---file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
-#示例：<br />
-sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    使用shell命令：
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
-接下来指定网站可写目录：<br />
-“E:\php\htdocs\dvwa”
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    #注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    sqlmap详细命令：
-</h2>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --is-dba 当前用户权限（是否为root权限）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --dbs 所有数据库
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --current-db 网站当前数据库
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --users 所有数据库用户
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --current-user 当前数据库用户
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --random-agent 构造随机user-agent
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --passwords 数据库密码
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
-    </li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    ——————————————————————————————————
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Options（选项）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --version 显示程序的版本号并退出
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -h, --help 显示此帮助消息并退出
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -v VERBOSE 详细级别：0-6（默认为1）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        保存进度继续跑：
-    </li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
-<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Target（目标）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    以下至少需要设置其中一个选项，设置目标URL。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -d DIRECT 直接连接到数据库。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -u URL, --url=URL 目标URL。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -l LIST 从Burp或WebScarab代理的日志中解析目标。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -r REQUESTFILE 从一个文件中载入HTTP请求。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -g GOOGLEDORK 处理Google dork的结果作为目标URL。
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -c CONFIGFILE 从INI配置文件中加载选项。
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Request（请求）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以用来指定如何连接到目标URL。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --data=DATA 通过POST发送的数据字符串
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --cookie=COOKIE HTTP Cookie头
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --cookie-urlencode URL 编码生成的cookie注入
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --drop-set-cookie 忽略响应的Set - Cookie头信息
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --user-agent=AGENT 指定 HTTP User - Agent头
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --random-agent 使用随机选定的HTTP User - Agent头
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --referer=REFERER 指定 HTTP Referer头
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --headers=HEADERS 换行分开，加入其他的HTTP头
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --auth-cert=ACERT HTTP认证证书（key_file，cert_file）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --proxy=PROXY 使用HTTP代理连接到目标URL
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --ignore-proxy 忽略系统默认的HTTP代理
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --retries=RETRIES 连接超时后重新连接的时间（默认3）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --safe-url=SAFURL 在测试过程中经常访问的url地址
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Enumeration（枚举）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
-您自己的SQL语句。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -b, --banner 检索数据库管理系统的标识
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --current-user 检索数据库管理系统当前用户
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --current-db 检索数据库管理系统当前数据库
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --is-dba 检测DBMS当前用户是否DBA
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --users 枚举数据库管理系统用户
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --passwords 枚举数据库管理系统用户密码哈希
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --privileges 枚举数据库管理系统用户的权限
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --roles 枚举数据库管理系统用户的角色
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --dbs 枚举数据库管理系统数据库
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -D DBname 要进行枚举的指定数据库名
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --tables 枚举的DBMS数据库中的表
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --columns 枚举DBMS数据库表列
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --dump 转储数据库管理系统的数据库中的表项
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --dump-all 转储所有的DBMS数据库表中的条目
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --search 搜索列（S），表（S）和/或数据库名称（S）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -C COL 要进行枚举的数据库列
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -U USER 用来进行枚举的数据库用户
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --exclude-sysdbs 枚举表时排除系统数据库
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --start=LIMITSTART 第一个查询输出进入检索
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --stop=LIMITSTOP 最后查询的输出进入检索
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --first=FIRSTCHAR 第一个查询输出字的字符检索
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --last=LASTCHAR 最后查询的输出字字符检索
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --sql-query=QUERY 要执行的SQL语句
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --sql-shell 提示交互式SQL的shell
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Optimization（优化）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可用于优化SqlMap的性能。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -o 开启所有优化开关
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --predict-output 预测常见的查询输出
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --keep-alive 使用持久的HTTP（S）连接
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --null-connection 从没有实际的HTTP响应体中检索页面长度
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Injection（注入）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -p TESTPARAMETER 可测试的参数（S）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --dbms=DBMS 强制后端的DBMS为此值
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --os=OS 强制后端的DBMS操作系统为这个值
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --prefix=PREFIX 注入payload字符串前缀
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --suffix=SUFFIX 注入payload字符串后缀
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --tamper=TAMPER 使用给定的脚本（S）篡改注入数据
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Detection（检测）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --level=LEVEL 执行测试的等级（1-5，默认为1）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --risk=RISK 执行测试的风险（0-3，默认为1）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --string=STRING 查询时有效时在页面匹配字符串
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --regexp=REGEXP 查询时有效时在页面匹配正则表达式
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --text-only 仅基于在文本内容比较网页
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Techniques（技巧）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可用于调整具体的SQL注入测试。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --technique=TECH SQL注入技术测试（默认BEUST）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --union-cols=UCOLS 定列范围用于测试UNION查询注入
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --union-char=UCHAR 用于暴力猜解列数的字符
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Fingerprint（指纹）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -f, --fingerprint 执行检查广泛的DBMS版本指纹
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Brute force（蛮力）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以被用来运行蛮力检查。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --common-tables 检查存在共同表
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --common-columns 检查存在共同列
-    </li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    User-defined function injection（用户自定义函数注入）：<br />
-这些选项可以用来创建用户自定义函数。
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    --udf-inject 注入用户自定义函数<br />
---shared-lib=SHLIB 共享库的本地路径
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    File system access（访问文件系统）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以被用来访问后端数据库管理系统的底层文件系统。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --file-read=RFILE 从后端的数据库管理系统文件系统读取文件
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Operating system access（操作系统访问）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以用于访问后端数据库管理系统的底层操作系统。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --os-cmd=OSCMD 执行操作系统命令
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --os-shell 交互式的操作系统的shell
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --os-pwn 获取一个OOB shell，meterpreter或VNC
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --os-bof 存储过程缓冲区溢出利用
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --priv-esc 数据库进程用户权限提升
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --msf-path=MSFPATH Metasploit Framework本地的安装路径
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --tmp-path=TMPPATH 远程临时文件目录的绝对路径
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Windows注册表访问：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以被用来访问后端数据库管理系统Windows注册表。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --reg-read 读一个Windows注册表项值
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --reg-add 写一个Windows注册表项值数据
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --reg-del 删除Windows注册表键值
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --reg-key=REGKEY Windows注册表键
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --reg-value=REGVAL Windows注册表项值
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --reg-data=REGDATA Windows注册表键值数据
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --reg-type=REGTYPE Windows注册表项值类型
-    </li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    这些选项可以用来设置一些一般的工作参数。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        -s SESSIONFILE 保存和恢复检索会话文件的所有数据
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --flush-session 刷新当前目标的会话文件
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --fresh-queries 忽略在会话文件中存储的查询结果
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --eta 显示每个输出的预计到达时间
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --update 更新SqlMap
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --save file保存选项到INI配置文件
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --batch 从不询问用户输入，使用所有默认配置。
-    </li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-    Miscellaneous（杂项）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --beep 发现SQL注入时提醒
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --check-payload IDS对注入payloads的检测测试
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --cleanup SqlMap具体的UDF和表清理DBMS
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --forms 对目标URL的解析和测试形式
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --page-rank Google dork结果显示网页排名（PR）
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --parse-errors 从响应页面解析数据库管理系统的错误消息
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --replicate 复制转储的数据到一个sqlite3数据库
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
-    </li>
-    <li style="list-style:square;margin-left:15px;color:#666666;">
-        --wizard 给初级用户的简单向导界面
-    </li>
-</ul>
-
-<p>
-    sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
-</p>
-<p>
-    sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
-</p>
-
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
             <a href="/2024/10/01/thinkpkp/">
                 thinkpkp
             </a>
@@ -925,6 +249,173 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 <p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
 <p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
 <p>compment标签<br>（组件问题）</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/10/01/android/">
+                android初探
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-10-01</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/android/">android</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="安卓学习"><a href="#安卓学习" class="headerlink" title="安卓学习"></a>安卓学习</h2><h3 id="安卓流程"><a href="#安卓流程" class="headerlink" title="安卓流程"></a>安卓流程</h3><p>1 启动活动 根据 此目录来定</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity android:name=<span class="string">&quot;.MainActivity&quot;</span>&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=<span class="string">&quot;android.intent.action.MAIN&quot;</span> /&gt;</span><br><span class="line">        &lt;category android:name=<span class="string">&quot;android.intent.category.LAUNCHER&quot;</span> /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+
+<p>2 活动生命周期</p>
+<p>MainActivity 的生命周期方法依次被调用：<br>    onCreate(): 初始化。<br>    onStart(): 准备显示。<br>    onResume(): 变为可交互状态。<br>用户与活动交互后，可能会触发其他活动的启动。</p>
+<p>4 导航<br>在 MainActivity 中，可以通过 Intent 启动其他活动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = new Intent(this, SecondActivity.class);</span><br><span class="line">startActivity(intent);</span><br></pre></td></tr></table></figure>
+
+<p>5 其他组件</p>
+<p>应用还可以包含其他组件，如 Service（用于后台任务）、BroadcastReceiver（处理广播）和 ContentProvider（数据共享）</p>
+<p>6 退出应用</p>
+<p>当活动关闭或用户手动退出时，应用的进程可能会被系统终止。此时，onPause()、onStop() 和 onDestroy() 方法依次被调用。</p>
+<p>整个流程可以概括为：用户启动应用 → 系统加载启动活动 → 进入活动生命周期 → 用户交互并导航到其他活动 → 退出应用。理解这一流程有助于你设计用户体验和管理应用状态。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/10/01/docker-basic/">
+                docker
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-10-01</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="docker"><a href="#docker" class="headerlink" title="docker"></a>docker</h2><h3 id="docker-更新"><a href="#docker-更新" class="headerlink" title="docker 更新"></a>docker 更新</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://blog.laoda.de/archives/docker-issues</span><br></pre></td></tr></table></figure>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/10/01/freebuf/">
+                Freebuf文章
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-10-01</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/409007.html">waf检测工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/408474.html">渗透一次经历</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/408378.html">CVE-2023-20073漏洞复现</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/408443.html">Sliver源码分析 | 初始化以及脚手架</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/endpoint/408554.html">Tenda-FH1201多处命令注入漏洞分析和复现</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/news/409087.html">“李鬼”软件暗设后门，对抗杀软侵蚀系统</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/408592.html">github </a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/408462.html">渗透思路</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/409220.html">RetrievIR：专为事件响应设计的Windows设备安全取证收集工具（powershell）</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/news/408450.html">LianSpy：针对俄罗斯用户的新Android间谍软件</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/409006.html">如何自动解包由NSIS基础封装程序保护的恶意样本</a></p>
+<p><a target="_blank" rel="noopener" href="https://godbolt.org/">反向编译</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/rainerzufalldererste/windows_x64_shellcode_template">创造shellcode</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/container/409775.html">基于LocalStack+CloudGoat搭建本地AWS云靶场</a></p>
+<p><a target="_blank" rel="noopener" href="https://pastebin.com/faq">敏感数据交互</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/409242.html">Monocle：一款基于LLM的二进制文件自然语言搜索工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410216.html">十款超好用数据安全工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/409048.html">深度解析 | 内存马的威胁与全面防御策略</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/410236.html">通过杀软 avast 及 no-defender 工具分析 Windows 防护机制</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/409600.html">HVV前沿 | 积木报表组件（Jeecg-Boot）权限绕过漏洞分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/410065.html">XXL-JOB漏洞分析与利用</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/410443.html">GL-iNet 路由器 CVE-2024-39226 漏洞分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Vxer-Lee/Hack_Tools">hacker TOOls</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/defense/409407.html">攻防演练 | 某医院内网遨游</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/410256.html">Apache Log4j2 RCE命令执行漏洞分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/denghongcai/forsaken-mail?tab=readme-ov-file">即时邮箱</a></p>
+<p><a target="_blank" rel="noopener" href="https://freerainbowtables.com/">彩虹表</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/defense/409919.html">基于源代码泄露的安全渗透测试</a></p>
+<p><a target="_blank" rel="noopener" href="http://routerpwn.com/">各大路由器的漏洞</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/paper/409990.html">两个影响WPS Office的任意代码执行漏洞分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/zhzyker/exphub">exp 利用漏洞</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/defense/410543.html">2024观安杯CTF全题目writeup</a><br><a target="_blank" rel="noopener" href="https://github.com/raddyfiy/CTF_Archives/tree/main/2024isg%E8%A7%82%E5%AE%89%E6%9D%AF">waf检测工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410463.html">Amoco：一款针对二进制源码的安全分析工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/neopoints/411030.html">渗透面试</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/410346.html">从蓝队流量角度分析Shiro-550反序列化漏洞</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410475.html">Arkime：一款大规模数据包捕获和索引数据库系统</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/410495.html">JAVA安全</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410478.html">如何使用CODASM编码Payload并降低熵值</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/410490.html">HTB-Infiltrator：一文带你走进域渗透</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/410882.html">伪装“黑神话悟空修改器”传播木马的活动分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/410647.html">网络空间的“边水往事”？针对华语黑产及用户进行攻击的 APT-K-UN3 活动分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/410346.html">从蓝队流量角度分析Shiro-550反序列化漏洞</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/410507.html">内存马第三弹——Controller内存马 Java</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410497.html">如何使用MyJWT测试你的JWT是否存在安全问题</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/410636.html">某医疗单位渗透服务日常分享</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410498.html">Maryam：一款模块化多功能OSINT数据收集工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/paper/410754.html">DarkHotel APT 组织 Observer 木马攻击分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/411135.html">JAVA 安全 | 深入分析 Runtime.exec 命令执行底层</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/410764.html">猫鼠游戏： KaijiK病毒入侵溯源分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410500.html">PatrOwl：一款开源可扩展的安全协调运营平台</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/409953.html">eladmin (文件上传+文件删除)(cve-2024-7458)</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/409618.html">RapidCMS 几个常见漏洞(审计)</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/410569.html">sysdig-inspect：一款用于容器故障排除和安全调查的开源工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/endpoint/411444.html">brida和frida练习hook逆向技术【中】</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/411461.html">初识Java Agent 内存马</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/411772.html">Minderbinder：一款基于eBPF的进程安全测试工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/410898.html">Apache OFBiz SSRF to RCE(CVE-2024-45507) 漏洞分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/411006.html">活跃的RansomHub勒索攻击组织情况分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/411344.html">恶意Bot流量识别分析实践</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/411773.html">IPA：一款交互式PDF安全分析与审计工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/411778.html">如何使用SCCMSecrets识别SCCM策略中潜在的安全问题</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/412020.html">DnsDiag：一款针对DNS的故障排除和安全审计工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/411296.html">深度解析内网横向移动及防御策略</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/411225.html">深度学习后门攻击分析与实现（一）</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/411778.html">如何使用SCCMSecrets识别SCCM策略中潜在的安全问题</a></p>
 
         </div>
     
@@ -1094,239 +585,6 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/10/01/mysql-MyISAM-InnoDB/">
-                Mysql-MyISAM与InnoDB对比及用法
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-10-01</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#1">MyISAM 和 InnoDB区别</a></li>
-<li><a href="#2">事务的四大特征 (ACID)</a></li>
-<li><a href="#3">锁的重要性</a></li>
-</ul>
-<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="1">MyISAM 与 InnoDB 对比</h3>
-
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>InnoDB</th>
-<th>MyISAM</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>事务支持</td>
-<td>支持事务，ACID 兼容</td>
-<td>不支持事务</td>
-</tr>
-<tr>
-<td>锁机制</td>
-<td>行级锁，高并发性能优越</td>
-<td>表级锁，低并发性能</td>
-</tr>
-<tr>
-<td>数据完整性</td>
-<td>支持外键和崩溃恢复</td>
-<td>不支持外键和崩溃恢复</td>
-</tr>
-<tr>
-<td>读写性能</td>
-<td>适合高并发写操作，性能稳定</td>
-<td>适合读密集操作，性能高</td>
-</tr>
-<tr>
-<td>全文索引</td>
-<td>支持（MySQL 5.6+）</td>
-<td>原生支持</td>
-</tr>
-<tr>
-<td>恢复机制</td>
-<td>崩溃后自动恢复数据</td>
-<td>需要手动修复</td>
-</tr>
-<tr>
-<td>磁盘空间使用</td>
-<td>相对占用更多内存和磁盘空间</td>
-<td>占用较少内存和磁盘空间</td>
-</tr>
-<tr>
-<td>适用场景</td>
-<td>高并发、事务处理、数据安全性高的应用</td>
-<td>读多写少的应用，数据分析和归档</td>
-</tr>
-</tbody></table>
-<h3 id="关于数据插入错误时进行数据回滚-配合后端try-catch"><a href="#关于数据插入错误时进行数据回滚-配合后端try-catch" class="headerlink" title="关于数据插入错误时进行数据回滚 - 配合后端try catch"></a>关于数据插入错误时进行数据回滚 - 配合后端try catch</h3><h5 id="1-mysql-默认为把需要的table-转成InnoDB"><a href="#1-mysql-默认为把需要的table-转成InnoDB" class="headerlink" title="1.mysql 默认为把需要的table 转成InnoDB"></a>1.mysql 默认为把需要的table 转成InnoDB</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table tag engine=innodb;</span><br></pre></td></tr></table></figure>
-
-<h5 id="2-查看事务"><a href="#2-查看事务" class="headerlink" title="2.查看事务"></a>2.查看事务</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_trx\G;</span><br></pre></td></tr></table></figure>
-
-<h5 id="3-mysql事务基本逻辑"><a href="#3-mysql事务基本逻辑" class="headerlink" title="3.mysql事务基本逻辑"></a>3.mysql事务基本逻辑</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 开启事务</span><br><span class="line">begin;  <span class="comment"># 或者下面的语句  </span></span><br><span class="line">start transaction;</span><br><span class="line"></span><br><span class="line">-- 写需求逻辑</span><br><span class="line"></span><br><span class="line">-- 事务回滚(回滚到之前的状态,并关闭事务)</span><br><span class="line">rollback;  <span class="comment"># 回滚 + 关闭</span></span><br><span class="line"></span><br><span class="line">-- 事务提交(将修改提交,并关闭事务)</span><br><span class="line">commit;    <span class="comment"># 提交 + 关闭</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="4-配合mysql事务"><a href="#4-配合mysql事务" class="headerlink" title="4.配合mysql事务"></a>4.配合mysql事务</h5><p>例子与thinkphp为例</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 启动事务</span><br><span class="line">Db::startTrans();</span><br><span class="line">try &#123;</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;find(1);</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;delete(1);</span><br><span class="line">    // 提交事务</span><br><span class="line">    Db::commit();</span><br><span class="line">&#125; catch (\Exception <span class="variable">$e</span>) &#123;</span><br><span class="line">    // 回滚事务</span><br><span class="line">    Db::rollback();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="2">事务隔离级别</h3>
-
-<h4 id="ACID四种隔离界别："><a href="#ACID四种隔离界别：" class="headerlink" title="ACID四种隔离界别："></a>ACID四种隔离界别：</h4><ul>
-<li>Read Uncommit (读取未提交内容)</li>
-<li>Read Commit (读取提交内容)</li>
-<li>Repeatable Read (可重复读)</li>
-<li>Serializable (可串行化)</li>
-</ul>
-<h5 id="1-查看数据库版本"><a href="#1-查看数据库版本" class="headerlink" title="1.查看数据库版本"></a>1.查看数据库版本</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> version();</span><br></pre></td></tr></table></figure>
-
-<h5 id="2-查看隔离级别"><a href="#2-查看隔离级别" class="headerlink" title="2.查看隔离级别"></a>2.查看隔离级别</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- MySQL8.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@transaction_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.transaction_isolation;</span><br><span class="line"> </span><br><span class="line">-- MySQL5.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@tx_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.tx_isolation;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="锁奥义"><a href="#锁奥义" class="headerlink" title="锁奥义"></a><h3 id="3">锁奥义</h3></h3><blockquote>
-<p>查看当前出现的锁</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_locks\G;</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show status like <span class="string">&#x27;innodb_row_lock_%&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<h5 id="1-互斥锁与自旋锁"><a href="#1-互斥锁与自旋锁" class="headerlink" title="1.互斥锁与自旋锁"></a>1.互斥锁与自旋锁</h5><ul>
-<li><p><code>互斥锁</code>加锁失败后，线程会释放 CPU ，给其他线程；</p>
-<p>  互斥锁是一种「独占锁」，比如当线程 A 加锁成功后，此时互斥锁已经被线程 A 独占了，只要线程 A 没有释放手中的锁，线程 B 加锁就会失败，于是就会释放 CPU 让给其他线程，既然线程 B 释放掉了 CPU，自然线程 B 加锁的代码就会被阻塞。</p>
-</li>
-</ul>
-<p><img src="/images/%E4%BA%92%E6%96%A5%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="互斥锁"></p>
-<ul>
-<li><p><code>自旋锁</code>加锁失败后，线程会忙等待，直到它拿到锁；</p>
-<p>  自旋锁是通过 CPU 提供的 CAS 函数（Compare And Swap），在「用户态」完成加锁和解锁操作，不会主动产生线程上下文切换，所以相比互斥锁来说，会快一些，开销也小一些。</p>
-<p>  一般加锁的过程，包含两个步骤：</p>
-<p>  第一步，查看锁的状态，如果锁是空闲的，则执行第二步；<br>  第二步，将锁设置为当前线程持有；</p>
-<p>  CAS 函数就把这两个步骤合并成一条硬件级指令，形成原子指令，这样就保证了这两个步骤是不可分割的，要么一次性执行完两个步骤，要么两个步骤都不执行</p>
-<p>  使用自旋锁的时候，当发生多线程竞争锁的情况，加锁失败的线程会「忙等待」，直到它拿到锁。这里的「忙等待」可以用 while 循环等待实现，不过最好是使用 CPU 提供的 PAUSE 指令来实现「忙等待」，因为可以减少循环等待时的耗电量</p>
-<p>  自旋锁是最比较简单的一种锁，一直自旋，利用 CPU 周期，直到锁可用。需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU。</p>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>互斥锁</th>
-<th>自旋锁</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>性能开销成本</td>
-<td>当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</td>
-<td>需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU</td>
-</tr>
-</tbody></table>
-<h5 id="2-读写锁：读和写还有优先级区分"><a href="#2-读写锁：读和写还有优先级区分" class="headerlink" title="2.读写锁：读和写还有优先级区分"></a>2.读写锁：读和写还有优先级区分</h5><p>由「读锁」和「写锁」两部分构成，如果只读取共享资源用「读锁」加锁，如果要修改共享资源则用「写锁」加锁</p>
-<p>工作原理：<br>当写锁没有被线程持有时，多个线程可以并发地持有读锁，但是当写锁被线程持有后，其他线程获取读锁和写锁的操作都会阻塞</p>
-<blockquote>
-<p><code>读优先锁</code></p>
-</blockquote>
-<p><img src="/images/%E8%AF%BB%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="读优先锁"></p>
-<blockquote>
-<p><code>写优先锁</code></p>
-</blockquote>
-<p><img src="/images/%E5%86%99%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="写优先锁"></p>
-<blockquote>
-<p>但是这两种都会造成线程“饥饿”的问题，比如</p>
-<ul>
-<li>读优先锁：一直有读线程获取读锁，那么写线程将永远获取不到，造成写线程“饥饿”。 </li>
-<li>写优先锁：如果⼀直有写线程获取写锁，读线程也会被「饿死」。</li>
-</ul>
-</blockquote>
-<p>所以我们可以搞一个公平读写锁<br>公平读写锁⽐较简单的⼀种⽅式是：⽤队列把获取锁的线程排队，不管是写线程还是读线程都按照先进先出的原则加锁即可，这样读线程仍然可以并发，也不会出现「饥饿」的现象。</p>
-<h5 id="3-乐观锁与悲观锁"><a href="#3-乐观锁与悲观锁" class="headerlink" title="3.乐观锁与悲观锁"></a>3.乐观锁与悲观锁</h5><p>前面提到的互斥锁、自旋锁、读写锁，都是属于悲观锁。</p>
-<blockquote>
-<ul>
-<li><p>悲观锁：认为多线程同时修改共享资源的概率⽐较⾼，于是很容易出现冲突，所以访问共享资源前，先要上锁。</p>
-</li>
-<li><p>前⾯提到的互斥锁、⾃旋锁、读写锁，都是属于悲观锁。</p>
-</li>
-<li><p>乐观锁：假定冲突的概率很低，它的⼯作⽅式是：先修改完共享资源，再验证这段时间内有没有发⽣冲突，如果没有其他线程在修改资源，那么操作完成，如果发现有其他线程已经修改过这个资源，就放弃本次操作。另外虽然叫锁，但是乐观锁全程并没有加锁，所以它也叫⽆锁编程。</p>
-</li>
-</ul>
-</blockquote>
-<p>一般会使用版本号机制或CAS算法实现</p>
-<h5 id="4-解决死锁问题"><a href="#4-解决死锁问题" class="headerlink" title="4.解决死锁问题"></a>4.解决死锁问题</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">show processlist; <span class="comment"># 只列出前100条</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#如果是root帐号，你能看到所有用户的当前连接。如果是其它普通帐号，只能看到自己占用的连接</span></span><br><span class="line">show full processlist</span><br><span class="line"></span><br><span class="line"><span class="built_in">kill</span> [<span class="built_in">id</span>] <span class="comment"># 杀进程</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">show status; <span class="comment"># 查看状态</span></span><br><span class="line"></span><br><span class="line">show status like <span class="string">&#x27;%下面变量%&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Aborted_clients <span class="comment"># 由于客户没有正确关闭连接已经死掉，已经放弃的连接数量。</span></span><br><span class="line">Aborted_connects <span class="comment"># 尝试已经失败的MySQL服务器的连接的次数。</span></span><br><span class="line">Connections <span class="comment"># 试图连接MySQL服务器的次数。</span></span><br><span class="line">Created_tmp_tables <span class="comment"># 当执行语句时，已经被创造了的隐含临时表的数量。</span></span><br><span class="line">Delayed_insert_threads <span class="comment"># 正在使用的延迟插入处理器线程的数量。</span></span><br><span class="line">Delayed_writes <span class="comment"># 用INSERT DELAYED写入的行数。</span></span><br><span class="line">Delayed_errors <span class="comment"># 用INSERT DELAYED写入的发生某些错误(可能重复键值)的行数。</span></span><br><span class="line">Flush_commands <span class="comment"># 执行FLUSH命令的次数。</span></span><br><span class="line">Handler_delete <span class="comment"># 请求从一张表中删除行的次数。</span></span><br><span class="line">Handler_read_first <span class="comment"># 请求读入表中第一行的次数。</span></span><br><span class="line">Handler_read_key <span class="comment"># 请求数字基于键读行。</span></span><br><span class="line">Handler_read_next <span class="comment"># 请求读入基于一个键的一行的次数。</span></span><br><span class="line">Handler_read_rnd <span class="comment"># 请求读入基于一个固定位置的一行的次数。</span></span><br><span class="line">Handler_update <span class="comment"># 请求更新表中一行的次数。</span></span><br><span class="line">Handler_write <span class="comment"># 请求向表中插入一行的次数。&lt;</span></span><br><span class="line">Key_blocks_used <span class="comment"># 用于关键字缓存的块的数量。</span></span><br><span class="line">Key_read_requests <span class="comment"># 请求从缓存读入一个键值的次数。</span></span><br><span class="line">Key_reads <span class="comment"># 从磁盘物理读入一个键值的次数。</span></span><br><span class="line">Key_write_requests <span class="comment"># 请求将一个关键字块写入缓存次数。</span></span><br><span class="line">Key_writes <span class="comment"># 将一个键值块物理写入磁盘的次数。</span></span><br><span class="line">Max_used_connections <span class="comment"># 同时使用的连接的最大数目。</span></span><br><span class="line">Not_flushed_key_blocks <span class="comment"># 在键缓存中已经改变但是还没被清空到磁盘上的键块</span></span><br><span class="line">Not_flushed_delayed_rows <span class="comment"># 在INSERT DELAY队列中等待写入的行的数量。</span></span><br><span class="line">Open_tables <span class="comment"># 打开表的数量。</span></span><br><span class="line">Open_files <span class="comment"># 打开文件的数量。</span></span><br><span class="line">Open_streams <span class="comment"># 打开流的数量(主要用于日志记载）</span></span><br><span class="line">Opened_tables <span class="comment"># 已经打开的表的数量。</span></span><br><span class="line">Questions <span class="comment"># 发往服务器的查询的数量。</span></span><br><span class="line">Slow_queries <span class="comment"># 要花超过long_query_time时间的查询数量。</span></span><br><span class="line">Threads_connected <span class="comment"># 当前打开的连接的数量。</span></span><br><span class="line">Threads_running <span class="comment"># 不在睡眠的线程数量。</span></span><br><span class="line">Uptime <span class="comment"># 服务器工作了多少秒。</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/10/01/mysql-migrate-main-sub/">
-                Mysql-数据迁移-主从
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-10-01</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
-<p>首先把 mysq.ini 配置打开</p>
-</blockquote>
-<ul>
-<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
-</li>
-<li><p>重启数据库 并可启用 secure_file_priv</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure></li>
-</ul>
-<blockquote>
-<p>bash脚本 并进行数据提取  -(数据导出)</p>
-<blockquote>
-<p> export_data.sh</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>python脚本 数据批量插入 -(数据插入)</p>
-<blockquote>
-<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1369,10 +627,6 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         <ul>
             
             <li>
-                <a class="footer-post" href="/2024/10/01/sqlmap/">sqlmap</a>
-            </li>
-            
-            <li>
                 <a class="footer-post" href="/2024/10/01/thinkpkp/">thinkpkp</a>
             </li>
             
@@ -1382,6 +636,10 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             
             <li>
                 <a class="footer-post" href="/2024/10/01/vue2vsvue3/">vue2 对比 vue3</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/10/01/android/">android初探</a>
             </li>
             
         </ul>
@@ -1399,15 +657,15 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/docker/">docker</a>
-        </li>
-        
-        <li>
             <a class="footer-post" href="/categories/blog/">blog</a>
         </li>
         
         <li>
             <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/k8s/">k8s</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/docker/">docker</a>
         </li>
         
     </ul>
