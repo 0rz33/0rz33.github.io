@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="#!/usr/bin/env node
+/*
+批量更新修改时间
+博客自动更新文章的修改时间
+*/
+
+console.log(&#39;脚本开始运行..&#39;);
+var fs = require(&#34;fs&#34;); //请求文件系统
+var file = &#34;./txt&#34;; //设置读取和写入的文件，当前目录下的tes">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="0rz33"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="website" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Hamburger Icon-->
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2024/10/01/updateFileTime/">
+                Untitled
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-10-01</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        #!/usr/bin/env node
+/*
+批量更新修改时间
+博客自动更新文章的修改时间
+*/
+
+console.log('脚本开始运行..');
+var fs = require("fs"); //请求文件系统
+var file = "./txt"; //设置读取和写入的文件，当前目录下的test文件
+var RegExp=/(updated:\s*)((\d{2}(([02468][048])|([13579][26]))[\-\/\s]?((((0?[13578])|(1[02]))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(3[01])))|(((0?[469])|(11))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(30)))|(0?2[\-\/\s]?((0?[1-9])|([1-2][0-9])))))|(\d{2}(([02468][1235679])|([13579][01345789]))[\-\/\s]?((((0?[13578])|(1[02]))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(3[01])))|(((0?[469])|(11))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(30)))|(0?2[\-\/\s]?((0?[1-9])|(1[0-9])|(2[0-8]))))))(\s((([0-1][0-9])|(2?[0-3]))\:([0-5]?[0-9])((\s)|(\:([0-5]?[0-9])))))/g;
+
+fs.readdir("./",function(err,files){
+	var len=files.length;
+	var file=null;
+	for(var i=0;i<len;i++){
+		file=files[i];
+		//console.log("读取文件：",file);
+		if(file.indexOf(".md")>-1){
+			console.log("正在处理文件：",file);
+			writeFileTime(file,fs);
+		}
+	}
+});
+
+/*
+file:读取时间的文件以及写入内容的文件
+fs: 文件系统
+*/
+function writeFileTime(file,fs){
+	fs.readFile(file, 'utf8',function(err, data) { //读取文件内容
+		if (err) return console.log("读取文件内容错误：",err);
+		//console.log("文件"+file+"的内容：",data);
+		if(RegExp.test(data)){ //如果匹配到`updated`字段
+			fs.stat(file,function(err, stats) { //读取文件信息，创建时间等
+				if (err) return console.log("读取文件信息错误：",err);
+				var updateds=data.match(RegExp);
+				//console.log("updated数组:",updateds);
+				if(updateds.length>1) console.log("文件"+file+"匹配到多处update字段");
+				var updated=updateds[0].replace("updated: ","").replace(/-/g,"/");  //时间格式化为2018/01/29 21:33:30
+				//console.log("updated:",updated);
+				if(new Date(stats.mtime).getTime()-new Date(Date.parse(updated))>1000*60*5){ // 只要修改时间和文章内updated时间差大于1000毫秒*60*5=5分钟就触发更新
+					var result= data.replace(RegExp,"updated: "+getFormatDate(stats.mtime)); //替换更新时间
+					fs.writeFile(file, result, 'utf8',function(err) { //写入新的文件内容
+						if (err) return console.log("写文件错误：",err);
+						fs.utimes(file,new Date(stats.atime),new Date(stats.mtime),function(err){  //还原访问时间和修改时间
+							if (err) return console.log("修改时间失败：",err);
+							console.log(file,"成功更新时间");
+						});
+					});
+				}
+			});
+		}	
+	});
+}
+
+/*
+ timeStr:时间，格式可为："September 16,2016 14:15:05、
+ "September 16,2016"、"2016/09/16 14:15:05"、"2016/09/16"、
+ '2014-04-23T18:55:49'和毫秒
+ dateSeparator：年、月、日之间的分隔符，默认为"-"，
+ timeSeparator：时、分、秒之间的分隔符，默认为":"
+ */
+function getFormatDate(timeStr, dateSeparator, timeSeparator) {
+    dateSeparator = dateSeparator ? dateSeparator : "-";
+    timeSeparator = timeSeparator ? timeSeparator : ":";
+    var date = new Date(timeStr),
+            year = date.getFullYear(),// 获取完整的年份(4位,1970)
+            month = date.getMonth(),// 获取月份(0-11,0代表1月,用的时候记得加上1)
+            day = date.getDate(),// 获取日(1-31)
+            hour = date.getHours(),// 获取小时数(0-23)
+            minute = date.getMinutes(),// 获取分钟数(0-59)
+            seconds = date.getSeconds(),// 获取秒数(0-59)
+            Y = year + dateSeparator,
+            M = ((month + 1) > 9 ? (month + 1) : ('0' + (month + 1))) + dateSeparator,
+            D = (day > 9 ? day : ('0' + day)) + ' ',
+            h = (hour > 9 ? hour : ('0' + hour)) + timeSeparator,
+            m = (minute > 9 ? minute : ('0' + minute)) + timeSeparator,
+            s = (seconds > 9 ? seconds : ('0' + seconds)),
+            formatDate = Y + M + D + h + m + s;
+    return formatDate;
+}
+    </div>
+
+    
+
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None.
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2024/10/01/updateFileTime/">Untitled</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/09/30/mysql-MyISAM-InnoDB/">Mysql-MyISAM与InnoDB对比及用法</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/09/30/mysql-migrate-main-sub/">Mysql-数据迁移-主从</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/09/30/raspberry-pi/">Raspberry Pi 树莓派</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/android/">android</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/blog/">blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/k8s/">k8s</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/docker/">docker</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="mailto:test@example.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-envelope-o"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

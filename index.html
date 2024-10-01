@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="0rz33"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="website" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Hamburger Icon-->
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+            <h1 id="main-title" class="title">0rz33</h1>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/10/01/updateFileTime/">
+                Untitled
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-10-01</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            #!/usr/bin/env node
+/*
+批量更新修改时间
+博客自动更新文章的修改时间
+*/
+
+console.log('脚本开始运行..');
+var fs = require("fs"); //请求文件系统
+var file = "./txt"; //设置读取和写入的文件，当前目录下的test文件
+var RegExp=/(updated:\s*)((\d{2}(([02468][048])|([13579][26]))[\-\/\s]?((((0?[13578])|(1[02]))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(3[01])))|(((0?[469])|(11))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(30)))|(0?2[\-\/\s]?((0?[1-9])|([1-2][0-9])))))|(\d{2}(([02468][1235679])|([13579][01345789]))[\-\/\s]?((((0?[13578])|(1[02]))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(3[01])))|(((0?[469])|(11))[\-\/\s]?((0?[1-9])|([1-2][0-9])|(30)))|(0?2[\-\/\s]?((0?[1-9])|(1[0-9])|(2[0-8]))))))(\s((([0-1][0-9])|(2?[0-3]))\:([0-5]?[0-9])((\s)|(\:([0-5]?[0-9])))))/g;
+
+fs.readdir("./",function(err,files){
+	var len=files.length;
+	var file=null;
+	for(var i=0;i<len;i++){
+		file=files[i];
+		//console.log("读取文件：",file);
+		if(file.indexOf(".md")>-1){
+			console.log("正在处理文件：",file);
+			writeFileTime(file,fs);
+		}
+	}
+});
+
+/*
+file:读取时间的文件以及写入内容的文件
+fs: 文件系统
+*/
+function writeFileTime(file,fs){
+	fs.readFile(file, 'utf8',function(err, data) { //读取文件内容
+		if (err) return console.log("读取文件内容错误：",err);
+		//console.log("文件"+file+"的内容：",data);
+		if(RegExp.test(data)){ //如果匹配到`updated`字段
+			fs.stat(file,function(err, stats) { //读取文件信息，创建时间等
+				if (err) return console.log("读取文件信息错误：",err);
+				var updateds=data.match(RegExp);
+				//console.log("updated数组:",updateds);
+				if(updateds.length>1) console.log("文件"+file+"匹配到多处update字段");
+				var updated=updateds[0].replace("updated: ","").replace(/-/g,"/");  //时间格式化为2018/01/29 21:33:30
+				//console.log("updated:",updated);
+				if(new Date(stats.mtime).getTime()-new Date(Date.parse(updated))>1000*60*5){ // 只要修改时间和文章内updated时间差大于1000毫秒*60*5=5分钟就触发更新
+					var result= data.replace(RegExp,"updated: "+getFormatDate(stats.mtime)); //替换更新时间
+					fs.writeFile(file, result, 'utf8',function(err) { //写入新的文件内容
+						if (err) return console.log("写文件错误：",err);
+						fs.utimes(file,new Date(stats.atime),new Date(stats.mtime),function(err){  //还原访问时间和修改时间
+							if (err) return console.log("修改时间失败：",err);
+							console.log(file,"成功更新时间");
+						});
+					});
+				}
+			});
+		}	
+	});
+}
+
+/*
+ timeStr:时间，格式可为："September 16,2016 14:15:05、
+ "September 16,2016"、"2016/09/16 14:15:05"、"2016/09/16"、
+ '2014-04-23T18:55:49'和毫秒
+ dateSeparator：年、月、日之间的分隔符，默认为"-"，
+ timeSeparator：时、分、秒之间的分隔符，默认为":"
+ */
+function getFormatDate(timeStr, dateSeparator, timeSeparator) {
+    dateSeparator = dateSeparator ? dateSeparator : "-";
+    timeSeparator = timeSeparator ? timeSeparator : ":";
+    var date = new Date(timeStr),
+            year = date.getFullYear(),// 获取完整的年份(4位,1970)
+            month = date.getMonth(),// 获取月份(0-11,0代表1月,用的时候记得加上1)
+            day = date.getDate(),// 获取日(1-31)
+            hour = date.getHours(),// 获取小时数(0-23)
+            minute = date.getMinutes(),// 获取分钟数(0-59)
+            seconds = date.getSeconds(),// 获取秒数(0-59)
+            Y = year + dateSeparator,
+            M = ((month + 1) > 9 ? (month + 1) : ('0' + (month + 1))) + dateSeparator,
+            D = (day > 9 ? day : ('0' + day)) + ' ',
+            h = (hour > 9 ? hour : ('0' + hour)) + timeSeparator,
+            m = (minute > 9 ? minute : ('0' + minute)) + timeSeparator,
+            s = (seconds > 9 ? seconds : ('0' + seconds)),
+            formatDate = Y + M + D + h + m + s;
+    return formatDate;
+}
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/30/mysql-MyISAM-InnoDB/">
+                Mysql-MyISAM与InnoDB对比及用法
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-30</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#1">MyISAM 和 InnoDB区别</a></li>
+<li><a href="#2">事务的四大特征 (ACID)</a></li>
+<li><a href="#3">锁的重要性</a></li>
+</ul>
+<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="1">MyISAM 与 InnoDB 对比</h3>
+
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>InnoDB</th>
+<th>MyISAM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>事务支持</td>
+<td>支持事务，ACID 兼容</td>
+<td>不支持事务</td>
+</tr>
+<tr>
+<td>锁机制</td>
+<td>行级锁，高并发性能优越</td>
+<td>表级锁，低并发性能</td>
+</tr>
+<tr>
+<td>数据完整性</td>
+<td>支持外键和崩溃恢复</td>
+<td>不支持外键和崩溃恢复</td>
+</tr>
+<tr>
+<td>读写性能</td>
+<td>适合高并发写操作，性能稳定</td>
+<td>适合读密集操作，性能高</td>
+</tr>
+<tr>
+<td>全文索引</td>
+<td>支持（MySQL 5.6+）</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td>恢复机制</td>
+<td>崩溃后自动恢复数据</td>
+<td>需要手动修复</td>
+</tr>
+<tr>
+<td>磁盘空间使用</td>
+<td>相对占用更多内存和磁盘空间</td>
+<td>占用较少内存和磁盘空间</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>高并发、事务处理、数据安全性高的应用</td>
+<td>读多写少的应用，数据分析和归档</td>
+</tr>
+</tbody></table>
+<h3 id="关于数据插入错误时进行数据回滚-配合后端try-catch"><a href="#关于数据插入错误时进行数据回滚-配合后端try-catch" class="headerlink" title="关于数据插入错误时进行数据回滚 - 配合后端try catch"></a>关于数据插入错误时进行数据回滚 - 配合后端try catch</h3><h5 id="1-mysql-默认为把需要的table-转成InnoDB"><a href="#1-mysql-默认为把需要的table-转成InnoDB" class="headerlink" title="1.mysql 默认为把需要的table 转成InnoDB"></a>1.mysql 默认为把需要的table 转成InnoDB</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table tag engine=innodb;</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-查看事务"><a href="#2-查看事务" class="headerlink" title="2.查看事务"></a>2.查看事务</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_trx\G;</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-mysql事务基本逻辑"><a href="#3-mysql事务基本逻辑" class="headerlink" title="3.mysql事务基本逻辑"></a>3.mysql事务基本逻辑</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 开启事务</span><br><span class="line">begin;  <span class="comment"># 或者下面的语句  </span></span><br><span class="line">start transaction;</span><br><span class="line"></span><br><span class="line">-- 写需求逻辑</span><br><span class="line"></span><br><span class="line">-- 事务回滚(回滚到之前的状态,并关闭事务)</span><br><span class="line">rollback;  <span class="comment"># 回滚 + 关闭</span></span><br><span class="line"></span><br><span class="line">-- 事务提交(将修改提交,并关闭事务)</span><br><span class="line">commit;    <span class="comment"># 提交 + 关闭</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="4-配合mysql事务"><a href="#4-配合mysql事务" class="headerlink" title="4.配合mysql事务"></a>4.配合mysql事务</h5><p>例子与thinkphp为例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 启动事务</span><br><span class="line">Db::startTrans();</span><br><span class="line">try &#123;</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;find(1);</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;delete(1);</span><br><span class="line">    // 提交事务</span><br><span class="line">    Db::commit();</span><br><span class="line">&#125; catch (\Exception <span class="variable">$e</span>) &#123;</span><br><span class="line">    // 回滚事务</span><br><span class="line">    Db::rollback();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="2">事务隔离级别</h3>
+
+<h4 id="ACID四种隔离界别："><a href="#ACID四种隔离界别：" class="headerlink" title="ACID四种隔离界别："></a>ACID四种隔离界别：</h4><ul>
+<li>Read Uncommit (读取未提交内容)</li>
+<li>Read Commit (读取提交内容)</li>
+<li>Repeatable Read (可重复读)</li>
+<li>Serializable (可串行化)</li>
+</ul>
+<h5 id="1-查看数据库版本"><a href="#1-查看数据库版本" class="headerlink" title="1.查看数据库版本"></a>1.查看数据库版本</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> version();</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-查看隔离级别"><a href="#2-查看隔离级别" class="headerlink" title="2.查看隔离级别"></a>2.查看隔离级别</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- MySQL8.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@transaction_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.transaction_isolation;</span><br><span class="line"> </span><br><span class="line">-- MySQL5.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@tx_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.tx_isolation;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="锁奥义"><a href="#锁奥义" class="headerlink" title="锁奥义"></a><h3 id="3">锁奥义</h3></h3><blockquote>
+<p>查看当前出现的锁</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_locks\G;</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show status like <span class="string">&#x27;innodb_row_lock_%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h5 id="1-互斥锁与自旋锁"><a href="#1-互斥锁与自旋锁" class="headerlink" title="1.互斥锁与自旋锁"></a>1.互斥锁与自旋锁</h5><ul>
+<li><p><code>互斥锁</code>加锁失败后，线程会释放 CPU ，给其他线程；</p>
+<p>  互斥锁是一种「独占锁」，比如当线程 A 加锁成功后，此时互斥锁已经被线程 A 独占了，只要线程 A 没有释放手中的锁，线程 B 加锁就会失败，于是就会释放 CPU 让给其他线程，既然线程 B 释放掉了 CPU，自然线程 B 加锁的代码就会被阻塞。</p>
+</li>
+</ul>
+<p><img src="/images/%E4%BA%92%E6%96%A5%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="互斥锁"></p>
+<ul>
+<li><p><code>自旋锁</code>加锁失败后，线程会忙等待，直到它拿到锁；</p>
+<p>  自旋锁是通过 CPU 提供的 CAS 函数（Compare And Swap），在「用户态」完成加锁和解锁操作，不会主动产生线程上下文切换，所以相比互斥锁来说，会快一些，开销也小一些。</p>
+<p>  一般加锁的过程，包含两个步骤：</p>
+<p>  第一步，查看锁的状态，如果锁是空闲的，则执行第二步；<br>  第二步，将锁设置为当前线程持有；</p>
+<p>  CAS 函数就把这两个步骤合并成一条硬件级指令，形成原子指令，这样就保证了这两个步骤是不可分割的，要么一次性执行完两个步骤，要么两个步骤都不执行</p>
+<p>  使用自旋锁的时候，当发生多线程竞争锁的情况，加锁失败的线程会「忙等待」，直到它拿到锁。这里的「忙等待」可以用 while 循环等待实现，不过最好是使用 CPU 提供的 PAUSE 指令来实现「忙等待」，因为可以减少循环等待时的耗电量</p>
+<p>  自旋锁是最比较简单的一种锁，一直自旋，利用 CPU 周期，直到锁可用。需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU。</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>互斥锁</th>
+<th>自旋锁</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>性能开销成本</td>
+<td>当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</td>
+<td>需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU</td>
+</tr>
+</tbody></table>
+<h5 id="2-读写锁：读和写还有优先级区分"><a href="#2-读写锁：读和写还有优先级区分" class="headerlink" title="2.读写锁：读和写还有优先级区分"></a>2.读写锁：读和写还有优先级区分</h5><p>由「读锁」和「写锁」两部分构成，如果只读取共享资源用「读锁」加锁，如果要修改共享资源则用「写锁」加锁</p>
+<p>工作原理：<br>当写锁没有被线程持有时，多个线程可以并发地持有读锁，但是当写锁被线程持有后，其他线程获取读锁和写锁的操作都会阻塞</p>
+<blockquote>
+<p><code>读优先锁</code></p>
+</blockquote>
+<p><img src="/images/%E8%AF%BB%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="读优先锁"></p>
+<blockquote>
+<p><code>写优先锁</code></p>
+</blockquote>
+<p><img src="/images/%E5%86%99%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="写优先锁"></p>
+<blockquote>
+<p>但是这两种都会造成线程“饥饿”的问题，比如</p>
+<ul>
+<li>读优先锁：一直有读线程获取读锁，那么写线程将永远获取不到，造成写线程“饥饿”。 </li>
+<li>写优先锁：如果⼀直有写线程获取写锁，读线程也会被「饿死」。</li>
+</ul>
+</blockquote>
+<p>所以我们可以搞一个公平读写锁<br>公平读写锁⽐较简单的⼀种⽅式是：⽤队列把获取锁的线程排队，不管是写线程还是读线程都按照先进先出的原则加锁即可，这样读线程仍然可以并发，也不会出现「饥饿」的现象。</p>
+<h5 id="3-乐观锁与悲观锁"><a href="#3-乐观锁与悲观锁" class="headerlink" title="3.乐观锁与悲观锁"></a>3.乐观锁与悲观锁</h5><p>前面提到的互斥锁、自旋锁、读写锁，都是属于悲观锁。</p>
+<blockquote>
+<ul>
+<li><p>悲观锁：认为多线程同时修改共享资源的概率⽐较⾼，于是很容易出现冲突，所以访问共享资源前，先要上锁。</p>
+</li>
+<li><p>前⾯提到的互斥锁、⾃旋锁、读写锁，都是属于悲观锁。</p>
+</li>
+<li><p>乐观锁：假定冲突的概率很低，它的⼯作⽅式是：先修改完共享资源，再验证这段时间内有没有发⽣冲突，如果没有其他线程在修改资源，那么操作完成，如果发现有其他线程已经修改过这个资源，就放弃本次操作。另外虽然叫锁，但是乐观锁全程并没有加锁，所以它也叫⽆锁编程。</p>
+</li>
+</ul>
+</blockquote>
+<p>一般会使用版本号机制或CAS算法实现</p>
+<h5 id="4-解决死锁问题"><a href="#4-解决死锁问题" class="headerlink" title="4.解决死锁问题"></a>4.解决死锁问题</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">show processlist; <span class="comment"># 只列出前100条</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#如果是root帐号，你能看到所有用户的当前连接。如果是其它普通帐号，只能看到自己占用的连接</span></span><br><span class="line">show full processlist</span><br><span class="line"></span><br><span class="line"><span class="built_in">kill</span> [<span class="built_in">id</span>] <span class="comment"># 杀进程</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">show status; <span class="comment"># 查看状态</span></span><br><span class="line"></span><br><span class="line">show status like <span class="string">&#x27;%下面变量%&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Aborted_clients <span class="comment"># 由于客户没有正确关闭连接已经死掉，已经放弃的连接数量。</span></span><br><span class="line">Aborted_connects <span class="comment"># 尝试已经失败的MySQL服务器的连接的次数。</span></span><br><span class="line">Connections <span class="comment"># 试图连接MySQL服务器的次数。</span></span><br><span class="line">Created_tmp_tables <span class="comment"># 当执行语句时，已经被创造了的隐含临时表的数量。</span></span><br><span class="line">Delayed_insert_threads <span class="comment"># 正在使用的延迟插入处理器线程的数量。</span></span><br><span class="line">Delayed_writes <span class="comment"># 用INSERT DELAYED写入的行数。</span></span><br><span class="line">Delayed_errors <span class="comment"># 用INSERT DELAYED写入的发生某些错误(可能重复键值)的行数。</span></span><br><span class="line">Flush_commands <span class="comment"># 执行FLUSH命令的次数。</span></span><br><span class="line">Handler_delete <span class="comment"># 请求从一张表中删除行的次数。</span></span><br><span class="line">Handler_read_first <span class="comment"># 请求读入表中第一行的次数。</span></span><br><span class="line">Handler_read_key <span class="comment"># 请求数字基于键读行。</span></span><br><span class="line">Handler_read_next <span class="comment"># 请求读入基于一个键的一行的次数。</span></span><br><span class="line">Handler_read_rnd <span class="comment"># 请求读入基于一个固定位置的一行的次数。</span></span><br><span class="line">Handler_update <span class="comment"># 请求更新表中一行的次数。</span></span><br><span class="line">Handler_write <span class="comment"># 请求向表中插入一行的次数。&lt;</span></span><br><span class="line">Key_blocks_used <span class="comment"># 用于关键字缓存的块的数量。</span></span><br><span class="line">Key_read_requests <span class="comment"># 请求从缓存读入一个键值的次数。</span></span><br><span class="line">Key_reads <span class="comment"># 从磁盘物理读入一个键值的次数。</span></span><br><span class="line">Key_write_requests <span class="comment"># 请求将一个关键字块写入缓存次数。</span></span><br><span class="line">Key_writes <span class="comment"># 将一个键值块物理写入磁盘的次数。</span></span><br><span class="line">Max_used_connections <span class="comment"># 同时使用的连接的最大数目。</span></span><br><span class="line">Not_flushed_key_blocks <span class="comment"># 在键缓存中已经改变但是还没被清空到磁盘上的键块</span></span><br><span class="line">Not_flushed_delayed_rows <span class="comment"># 在INSERT DELAY队列中等待写入的行的数量。</span></span><br><span class="line">Open_tables <span class="comment"># 打开表的数量。</span></span><br><span class="line">Open_files <span class="comment"># 打开文件的数量。</span></span><br><span class="line">Open_streams <span class="comment"># 打开流的数量(主要用于日志记载）</span></span><br><span class="line">Opened_tables <span class="comment"># 已经打开的表的数量。</span></span><br><span class="line">Questions <span class="comment"># 发往服务器的查询的数量。</span></span><br><span class="line">Slow_queries <span class="comment"># 要花超过long_query_time时间的查询数量。</span></span><br><span class="line">Threads_connected <span class="comment"># 当前打开的连接的数量。</span></span><br><span class="line">Threads_running <span class="comment"># 不在睡眠的线程数量。</span></span><br><span class="line">Uptime <span class="comment"># 服务器工作了多少秒。</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/30/mysql-migrate-main-sub/">
+                Mysql-数据迁移-主从
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-30</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
+<p>首先把 mysq.ini 配置打开</p>
+</blockquote>
+<ul>
+<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
+</li>
+<li><p>重启数据库 并可启用 secure_file_priv</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure></li>
+</ul>
+<blockquote>
+<p>bash脚本 并进行数据提取  -(数据导出)</p>
+<blockquote>
+<p> export_data.sh</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>python脚本 数据批量插入 -(数据插入)</p>
+<blockquote>
+<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/30/raspberry-pi/">
+                Raspberry Pi 树莓派
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-30</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/单片机/">单片机</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
+<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
+<p>树莓派系统连接原理</p>
+<blockquote>
+<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
+</blockquote>
+</blockquote>
+<ul>
+<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
+</li>
+<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>开机启动树莓派即可连接WIFI</p>
+</li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/30/k8s-basic/">
+                k8s
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-30</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="docker"><a href="#docker" class="headerlink" title="docker"></a>docker</h2><h3 id="docker-更新"><a href="#docker-更新" class="headerlink" title="docker 更新"></a>docker 更新</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://blog.laoda.de/archives/docker-issues</span><br></pre></td></tr></table></figure>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/30/lang-version/">
+                语言版本控制管理
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-30</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/研发工具/">研发工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="语言版本控制管理"><a href="#语言版本控制管理" class="headerlink" title="语言版本控制管理"></a>语言版本控制管理</h2><h3 id="nodejs-nvm"><a href="#nodejs-nvm" class="headerlink" title="nodejs -&gt; nvm"></a>nodejs -&gt; nvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nvm list available  <span class="comment"># 显示所有可下载的版本</span></span><br><span class="line"></span><br><span class="line">nvm install 11.13.0 <span class="comment"># 安装11.13.0版本</span></span><br><span class="line"></span><br><span class="line">nvm use 11.13.0 <span class="comment"># 使用当前版本</span></span><br></pre></td></tr></table></figure>
+<p>提示！~查看npm包是否有了</p>
+<h3 id="python-pyvm"><a href="#python-pyvm" class="headerlink" title="python -&gt; pyvm"></a>python -&gt; pyvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="docker-版本管理-开发更方便"><a href="#docker-版本管理-开发更方便" class="headerlink" title="docker 版本管理 开发更方便"></a>docker 版本管理 开发更方便</h3><blockquote>
+<p>golang</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>java</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>php</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/29/mysql-migrate/">
+                Mysql-数据迁移-基础篇
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-29</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
+<p>首先把 mysq.ini 配置打开</p>
+</blockquote>
+<ul>
+<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
+</li>
+<li><p>重启数据库 并可启用 secure_file_priv</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure></li>
+</ul>
+<blockquote>
+<p>bash脚本 并进行数据提取  -(数据导出)</p>
+<blockquote>
+<p> export_data.sh</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>python脚本 数据批量插入 -(数据插入)</p>
+<blockquote>
+<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/29/hexo/">
+                hexo
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-29</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/blog/">blog</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>hexo + github 自动部署，解决index.html不更新问题</p>
+<h2 id="hexo-github-自动部署"><a href="#hexo-github-自动部署" class="headerlink" title="hexo + github 自动部署"></a>hexo + github 自动部署</h2><h3 id="创建-Hexo-项目-（ndoejs环境）"><a href="#创建-Hexo-项目-（ndoejs环境）" class="headerlink" title="创建 Hexo 项目 （ndoejs环境）"></a>创建 Hexo 项目 （ndoejs环境）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> blog</span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init</span><br><span class="line">hexo s //预览blog</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建-username-github-io-仓库"><a href="#创建-username-github-io-仓库" class="headerlink" title="创建 {username}.github.io 仓库"></a>创建 {username}.github.io 仓库</h3><ul>
+<li>创建个人访问令牌（Personal Access Token） – blog项目</li>
+</ul>
+<p>1 点击右上角头像 -&gt; 打开 Settings -&gt; 左边栏滚到最后找到 Develop Setting 打开，如图<br><img src="/images/personal-access-token.png"></p>
+<p>2 找到 Personal Access Token 点击 Tokens（classic） -&gt; 选择 Generate new token (classic) ，如图<br><img src="/images/personal-access-tokens-click.png"></p>
+<p>3 给令牌起个名字并且勾选红框中的 repo 的访问权限，然后点击生成 token（注意： 确保复制并安全地保存这个令牌。GitHub 不会再次显示这个令牌，所以这是你唯一的机会复制它），如图<br><img src="/images/new-personal-access-token-1.png"></p>
+<p>4 将生成的 PAT 添加到你的博客源代码仓库的 Secrets，名字填入 PERSONAL_TOKEN 后面会用到这个变量名，如图<br><img src="/images/personal-access-secret.png"></p>
+<ul>
+<li>创建.github&#x2F;workflow 自动化部署 – blog项目 page.yml</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy Hexo to GitHub Pages</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - main <span class="comment"># 或你使用的默认分支名称</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line"></span><br><span class="line">    steps:</span><br><span class="line">      - name: Checkout blog <span class="built_in">source</span></span><br><span class="line">        uses: actions/checkout@v4  <span class="comment">#git升级为v4 这样可以解决index.html不更新问题</span></span><br><span class="line">        with:</span><br><span class="line">          submodules: recursive</span><br><span class="line"></span><br><span class="line">      - name: Set up Node.js</span><br><span class="line">        uses: actions/setup-node@v1</span><br><span class="line">        with:</span><br><span class="line">          node-version: <span class="string">&quot;21&quot;</span> <span class="comment"># 设置 Node.js 版本</span></span><br><span class="line"></span><br><span class="line">      - name: Cache dependencies</span><br><span class="line">        uses: actions/cache@v2</span><br><span class="line">        with:</span><br><span class="line">          path: node_modules</span><br><span class="line">          key: <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-<span class="variable">$&#123;&#123; hashFiles(&#x27;**/package-lock.json&#x27;) &#125;</span>&#125;</span><br><span class="line">          restore-keys: |</span><br><span class="line">            <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-</span><br><span class="line"></span><br><span class="line">      - name: Install dependencies</span><br><span class="line">        run: npm install</span><br><span class="line"></span><br><span class="line">      - name: Install Hexo CLI</span><br><span class="line">        run: npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line">      - name: Generate static pages</span><br><span class="line">        run: hexo clean &amp;&amp; hexo generate --output ./public</span><br><span class="line"></span><br><span class="line">      - name: Deploy to GitHub Pages</span><br><span class="line">        uses: peaceiris/actions-gh-pages@v3</span><br><span class="line">        with:</span><br><span class="line">          personal_token: <span class="variable">$&#123;&#123; secrets.PERSONAL_TOKEN &#125;</span>&#125;</span><br><span class="line">          publish_dir: ./public</span><br><span class="line">          external_repository: 0rz33/0rz33.github.io <span class="comment"># 更改为你的 GitHub Pages 仓库, username 是你的用户名</span></span><br><span class="line">          publish_branch: main <span class="comment"># GitHub Pages 分支  </span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="username-github-io-page页面设置"><a href="#username-github-io-page页面设置" class="headerlink" title="{username}.github.io page页面设置"></a>{username}.github.io page页面设置</h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/28/vue-big-file-upload/">
+                vue2 大文件上传component(做成组件)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/研发/">研发</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
+<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
+<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
+
+<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/09/28/thinkpkp/">
+                thinkpkp
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-09-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/研发/">研发</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="thinkpkp-讨论"><a href="#thinkpkp-讨论" class="headerlink" title="thinkpkp 讨论"></a>thinkpkp 讨论</h2><h3 id="thinkphp-6以上适用命令"><a href="#thinkphp-6以上适用命令" class="headerlink" title="thinkphp 6以上适用命令"></a>thinkphp 6以上适用命令</h3><ul>
+<li>创建单例<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer create-project topthink/think</span><br></pre></td></tr></table></figure></li>
+<li>创建多例<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-multi-app</span><br></pre></td></tr></table></figure></li>
+<li>创建两个模型<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php think build admin</span><br><span class="line">php think build api</span><br></pre></td></tr></table></figure></li>
+<li>创建多层试图<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-view</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+        </section>
+    </div>
+</div>
+
+
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="wrap-pagination">
+                <a class="disabled" href="/">
+                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                </a>
+                <a class="" href="/page/2/">
+                    <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None.
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2024/10/01/updateFileTime/">Untitled</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/09/30/mysql-MyISAM-InnoDB/">Mysql-MyISAM与InnoDB对比及用法</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/09/30/mysql-migrate-main-sub/">Mysql-数据迁移-主从</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/09/30/raspberry-pi/">Raspberry Pi 树莓派</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/android/">android</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/blog/">blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/k8s/">k8s</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/docker/">docker</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="mailto:test@example.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-envelope-o"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
