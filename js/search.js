@@ -90,10 +90,10 @@ var searchFunc = function (path, search_id, content_id) {
                 // highlight all keywords
                 keywords.forEach(function (keyword) {
                   var regS = new RegExp(keyword, "gi");
-                  match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                  match_content = match_content.replace(regS, "<em>" + keyword + "</em>");
                 });
   
-                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                str += "<p>" + match_content + "...</p>"
               }
               str += "</li>";
             }
