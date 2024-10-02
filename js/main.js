@@ -1,6 +1,7 @@
 var alphaDust = function () {
 
     var _menuOn = false;
+    var _searchOn = false;
 
     function initPostHeader() {
         $('.main .post').each(function () {
@@ -26,6 +27,8 @@ var alphaDust = function () {
         TweenLite.to('.menu-bg', 1, {opacity: '0.92'});
         TweenMax.staggerTo('.menu-item', 0.5, {opacity: 1}, 0.3);
         _menuOn = true;
+        _searchOn = false;
+        
 
         $('.menu-bg').hover(function () {
             $('nav a').toggleClass('menu-close-hover');
@@ -40,6 +43,7 @@ var alphaDust = function () {
         TweenLite.to('.menu-container', 0.5, {padding: '0 100px'});
         $('.menu-item').css({opacity: 0});
         _menuOn = false;
+        _searchOn = false;
     }
 
     function initMenu() {
@@ -59,6 +63,48 @@ var alphaDust = function () {
         });
     }
 
+    function _searchShow(){
+        $('search a').addClass('menu-active');
+        $('.search-bg').show();
+        TweenLite.to('.search-container', 1, {padding: '0 40px'});
+        TweenLite.to('.search-bg', 1, {opacity: '0.92'});
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        _searchOn = true;
+        _menuOn = false;
+        
+
+        $('.search-bg').hover(function () {
+            $('search a').toggleClass('menu-close-hover');
+        });
+    }
+
+    function _searchHide() {
+        $('search a').removeClass('menu-active');
+        TweenLite.to('.search-bg', 0.5, {opacity: '0', onComplete: function () {
+            $('.search-bg').hide();
+        }});
+        TweenLite.to('.search-container', 0.5, {padding: '0 100px'});
+        _searchOn = false;
+        _menuOn = false;
+    }
+
+    function initSearch() {
+        $('search a').click(function () {
+            if(_searchOn) {
+                _searchHide();
+            } else {
+                _searchShow();
+            }
+        });
+
+        $('.menu-bg').click(function (e) {
+            if(_searchOn && e.target === this) {
+                _menuHide();
+            }
+        });
+    }
+
     function displayArchives() {
         $('.archive-post').css({opacity: 0});
         TweenMax.staggerTo('.archive-post', 0.4, {opacity: 1}, 0.15);
@@ -67,6 +113,7 @@ var alphaDust = function () {
     return {
         initPostHeader: initPostHeader,
         initMenu: initMenu,
+        initSearch: initSearch,
         displayArchives: displayArchives
     };
 }();
@@ -75,5 +122,6 @@ var alphaDust = function () {
 $(document).ready(function () {
     alphaDust.initPostHeader();
     alphaDust.initMenu();
+    alphaDust.initSearch();
     alphaDust.displayArchives();
 });
