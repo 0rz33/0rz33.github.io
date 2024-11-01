@@ -21,6 +21,10 @@ var alphaDust = function () {
 
     function _menuShow () {
         $('nav a').addClass('menu-active');
+        $('search a').hide();
+        TweenLite.to('.search-bg', 0.5, {opacity: '0', onComplete: function () {
+            $('.search-bg').hide();
+        }});
         $('.menu-bg').show();
         $('.menu-item').css({opacity: 0});
         TweenLite.to('.menu-container', 1, {padding: '0 40px'});
@@ -37,6 +41,7 @@ var alphaDust = function () {
 
     function _menuHide() {
         $('nav a').removeClass('menu-active');
+        $('search a').show();
         TweenLite.to('.menu-bg', 0.5, {opacity: '0', onComplete: function () {
             $('.menu-bg').hide();
         }});
@@ -65,6 +70,7 @@ var alphaDust = function () {
 
     function _searchShow(){
         $('search a').addClass('menu-active');
+        $('nav a').hide();
         $('.search-bg').show();
         TweenLite.to('.search-container', 1, {padding: '0 40px'});
         TweenLite.to('.search-bg', 1, {opacity: '0.92'});
@@ -81,6 +87,7 @@ var alphaDust = function () {
 
     function _searchHide() {
         $('search a').removeClass('menu-active');
+        $('nav a').show();
         TweenLite.to('.search-bg', 0.5, {opacity: '0', onComplete: function () {
             $('.search-bg').hide();
         }});
