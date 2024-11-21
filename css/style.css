@@ -465,6 +465,7 @@ section.main .post .content .video-container embed {
 }
 .search-bg .search-container .alpha-search #local-search-result {
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 .search-bg .search-container .alpha-search #local-search-result #local-search-close {
   font-size: 22.5px;
@@ -472,18 +473,25 @@ section.main .post .content .video-container embed {
   color: #d7ecff;
 }
 .search-bg .search-container .alpha-search #local-search-result ul {
-  overflow-y: auto;
-  overflow-y: hidden;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 .search-bg .search-container .alpha-search #local-search-result ul li {
-  list-style-type: none;
+  display: inline-block;
+  text-overflow: clip;
   padding: 5px;
 }
 .search-bg .search-container .alpha-search #local-search-result ul li a {
   font-family: "Orbitron", sans-serif;
   border-bottom: none;
   text-shadow: 0 0 1px #fff, 0 0 5px #fff, 0 0 15px #222;
+}
+.search-bg .search-container .alpha-search #local-search-result ul li p {
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 .search-bg .search-container .alpha-search #local-search-result ul li p em {
   color: #d7ecff;
