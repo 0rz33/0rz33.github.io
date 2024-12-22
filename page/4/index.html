@@ -169,8 +169,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/k8s-basic/">
-                K8S
+            <a href="/2024/12/22/burp-suite/">
+                Burp Suite
             </a>
         </h1>
         <div class="post-info">
@@ -180,7 +180,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/运维/">运维</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -188,53 +188,22 @@
 
     
         <div class="content">
-            <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><ul>
-<li>复制控制器（Replication Controller，RC）</li>
-<li>副本集（Replica Set，RS）</li>
-<li>部署(Deployment)</li>
-<li>服务（Service）</li>
-<li>任务（Job）</li>
-<li>存储卷（Volume） 持久存储卷（Persistent Volume，PV）持久存储卷声明（Persistent Volume Claim，PVC）</li>
-<li>节点（Node）</li>
-<li>用户帐户（User Account）服务帐户（Service Account）名字空间（Namespace）</li>
-</ul>
-<h3 id="Deployment-Service-Pod-之间的关系"><a href="#Deployment-Service-Pod-之间的关系" class="headerlink" title="Deployment Service Pod 之间的关系"></a>Deployment Service Pod 之间的关系</h3><ul>
-<li>Deployment 是 k8s 中用来管理一组 Pod 副本的控制器。它定义了应用的期望状态，例如应该运行多少个 Pod 副本以及使用的容器镜像<ul>
-<li>管理 Pod 的创建、删除和更新。</li>
-<li>支持回滚到以前的版本。</li>
-<li>提供滚动更新机制，以无中断地部署新版本。</li>
-</ul>
+            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>Burp Suite是一款集成化的渗透测试工具，包含了很多功能，可以帮助我们快速完成对web应用程序的渗透测试和攻击。Burp Suite是由Java语言编写，因为Java是可以跨平台的，所以Burp Suite也是跨平台的，支持windows、linux、mac。</p>
+<h3 id="安装pro（Mac）"><a href="#安装pro（Mac）" class="headerlink" title="安装pro（Mac）"></a>安装pro（Mac）</h3><ul>
+<li><p><a href="/source/BurpLoaderKeygen.jar">下载注册机&amp;启动器二合一版本</a></p>
 </li>
-<li>Pod 是 k8s 中最小的可部署单元，通常由一个或多个容器组成。Pod 共享存储和网络资源，并指定容器的运行方式。<ul>
-<li>承载应用程序的运行时环境。</li>
-<li>提供共享存储卷和网络地址。</li>
-</ul>
+<li><p><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases">官网下载地址：</a><br><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsx">Intel版本</a><br><a target="_blank" rel="noopener" href="https://portswigger-cdn.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsArm64">M1版本</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入burpsuite Pro.app里的Contents</span></span><br><span class="line"><span class="built_in">cd</span> /Applications/Burp Suite Professional.app/Contents</span><br><span class="line"></span><br><span class="line"><span class="comment">## 编辑vmoptions.txt 追加内容</span></span><br><span class="line">--add-opens=java.base/java.lang=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED</span><br><span class="line">-javaagent:BurpLoaderKeygen.jar</span><br><span class="line">-noverify</span><br><span class="line"></span><br><span class="line"><span class="comment">## 启动器BurpLoaderKeygen.jar移动到当前app目录</span></span><br></pre></td></tr></table></figure>
 </li>
-<li>Service 是 k8s 中的一个抽象层，用于定义一组 Pod 的网络服务。它为一组 Pod 提供负载均衡和服务发现功能。<ul>
-<li>为 Pod 提供一个稳定的网络端点（IP 地址或 DNS 名称），即使 Pod 重启或被替换也保持不变。</li>
-<li>通过标签选择器匹配一组 Pod，并在这些 Pod 之间进行负载均衡。</li>
-</ul>
+<li><p>双击运行BurpLoaderKeygen.jar</p>
+</li>
+<li><p>运行&#96;</p>
 </li>
 </ul>
-<p>关系</p>
-<ul>
-<li>Deployment -&gt; Pod：Deployment 管理一组 Pod 的生命周期，确保始终有指定数量的 Pod 副本在运行。</li>
-<li>Service -&gt; Pod：Service 使用标签选择器来匹配 Pod，并为这些 Pod 提供负载均衡和服务发现功能。即使 Pod 被重新调度或替换，Service 仍然可以确保请求被路由到正确的 Pod。</li>
-</ul>
-<h3 id="StatefulSet和Deployment的区别"><a href="#StatefulSet和Deployment的区别" class="headerlink" title="StatefulSet和Deployment的区别"></a>StatefulSet和Deployment的区别</h3><p>“Deployment用于部署无状态服务，StatefulSet用来部署有状态服务”</p>
-<h3 id="查看状态"><a href="#查看状态" class="headerlink" title="查看状态"></a>查看状态</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://blog.laoda.de/archives/docker-issues</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java&quot;</span> <span class="string">&quot;--add-opens=java.desktop/javax.swing=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/java.lang=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED&quot;</span> <span class="string">&quot;-javaagent:/Applications/BurpLoaderKeygen.jar&quot;</span> <span class="string">&quot;-noverify&quot;</span> <span class="string">&quot;-jar&quot;</span> <span class="string">&quot;/Applications/Burp Suite Professional.app/Contents/Resources/app/burpsuite_pro.jar&quot;</span></span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">## 进入pod 容器里面</span></span><br><span class="line">kubectl <span class="built_in">exec</span> -it zk-5959d76d9b-xbmmw -n work  -- /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除 pod </span></span><br><span class="line">delete pod zk-5959d76d9b-zsvxf -n work</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="存储方案-文件挂在"><a href="#存储方案-文件挂在" class="headerlink" title="存储方案 (文件挂在)"></a>存储方案 (文件挂在)</h3><ul>
-<li>pv 持久卷 (PersistentVolume) 和一半volume一样</li>
-<li>pvc 持久卷申领（PersistentVolumeClaim) 消耗pv资源，以来pv</li>
-<li>StorageClass</li>
-</ul>
-<p>helm</p>
-<p>排错</p>
+<h3 id="代理"><a href="#代理" class="headerlink" title="代理"></a>代理</h3><p>cacert.der</p>
+<h3 id="功能介绍"><a href="#功能介绍" class="headerlink" title="功能介绍"></a>功能介绍</h3><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p><a target="_blank" rel="noopener" href="https://t0data.gitbooks.io/burpsuite/content/chapter7.html">https://t0data.gitbooks.io/burpsuite/content/chapter7.html</a></p>
 
         </div>
     
@@ -246,8 +215,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/lang-version/">
-                语言版本控制管理
+            <a href="/2024/12/22/darkweb/">
+                darkweb
             </a>
         </h1>
         <div class="post-info">
@@ -256,33 +225,16 @@
             
             
             
-                <span class="category">
-                    <a href="/categories/研发工具/">研发工具</a>
-                </span>
-            
         </div>
     </div>
 
     
         <div class="content">
-            <h2 id="语言版本控制管理"><a href="#语言版本控制管理" class="headerlink" title="语言版本控制管理"></a>语言版本控制管理</h2><h3 id="nodejs-nvm"><a href="#nodejs-nvm" class="headerlink" title="nodejs -&gt; nvm"></a>nodejs -&gt; nvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nvm list available  <span class="comment"># 显示所有可下载的版本</span></span><br><span class="line"></span><br><span class="line">nvm install 11.13.0 <span class="comment"># 安装11.13.0版本</span></span><br><span class="line"></span><br><span class="line">nvm use 11.13.0 <span class="comment"># 使用当前版本</span></span><br></pre></td></tr></table></figure>
-<p>提示！~查看npm包是否有了</p>
-<h3 id="python-pyvm"><a href="#python-pyvm" class="headerlink" title="python -&gt; pyvm"></a>python -&gt; pyvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+            <p>文章</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><p><a target="_blank" rel="noopener" href="http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/">搜索工具</a></p>
+<p><a target="_blank" rel="noopener" href="http://weapon5dj7fwz2zaqa22fqeaqrauclim5kfvecegphrvxeywxoa3wuid.onion/shop.php">黑市交易</a></p>
+<p><a target="_blank" rel="noopener" href="https://onion666.com/">暗网交易中心</a></p>
 
-<h3 id="docker-版本管理-开发更方便"><a href="#docker-版本管理-开发更方便" class="headerlink" title="docker 版本管理 开发更方便"></a>docker 版本管理 开发更方便</h3><blockquote>
-<p>golang</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>java</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>php</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
         </div>
     
 
@@ -330,6 +282,10 @@
         <ul>
             
             <li>
+                <a class="footer-post" href="/2024/12/22/php-interview/">PHP 面试题</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2024/12/22/raspberry-pi/">Raspberry Pi 树莓派</a>
             </li>
             
@@ -339,10 +295,6 @@
             
             <li>
                 <a class="footer-post" href="/2024/12/22/springboot/">Springboot</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2024/12/22/sqlmap/">SQLMAP</a>
             </li>
             
         </ul>
