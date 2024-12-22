@@ -169,8 +169,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/burp-suite/">
-                Burp Suite
+            <a href="/2024/12/22/golang-interview/">
+                GOLANG 面试题
             </a>
         </h1>
         <div class="post-info">
@@ -180,7 +180,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
+                    <a href="/categories/面试/">面试</a>
                 </span>
             
         </div>
@@ -188,22 +188,130 @@
 
     
         <div class="content">
-            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>Burp Suite是一款集成化的渗透测试工具，包含了很多功能，可以帮助我们快速完成对web应用程序的渗透测试和攻击。Burp Suite是由Java语言编写，因为Java是可以跨平台的，所以Burp Suite也是跨平台的，支持windows、linux、mac。</p>
-<h3 id="安装pro（Mac）"><a href="#安装pro（Mac）" class="headerlink" title="安装pro（Mac）"></a>安装pro（Mac）</h3><ul>
-<li><p><a href="/source/BurpLoaderKeygen.jar">下载注册机&amp;启动器二合一版本</a></p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases">官网下载地址：</a><br><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsx">Intel版本</a><br><a target="_blank" rel="noopener" href="https://portswigger-cdn.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsArm64">M1版本</a></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入burpsuite Pro.app里的Contents</span></span><br><span class="line"><span class="built_in">cd</span> /Applications/Burp Suite Professional.app/Contents</span><br><span class="line"></span><br><span class="line"><span class="comment">## 编辑vmoptions.txt 追加内容</span></span><br><span class="line">--add-opens=java.base/java.lang=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED</span><br><span class="line">-javaagent:BurpLoaderKeygen.jar</span><br><span class="line">-noverify</span><br><span class="line"></span><br><span class="line"><span class="comment">## 启动器BurpLoaderKeygen.jar移动到当前app目录</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>双击运行BurpLoaderKeygen.jar</p>
-</li>
-<li><p>运行&#96;</p>
-</li>
+            <ul>
+<li><a href="#1">基础</a><ul>
+<li><a href="#1.1">进程、线程、Goroutine(协程)区别</a></li>
+<li><a href="#1.2">make和new区别</a></li>
+<li><a href="#1.3">数组和切片区别</a></li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java&quot;</span> <span class="string">&quot;--add-opens=java.desktop/javax.swing=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/java.lang=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED&quot;</span> <span class="string">&quot;-javaagent:/Applications/BurpLoaderKeygen.jar&quot;</span> <span class="string">&quot;-noverify&quot;</span> <span class="string">&quot;-jar&quot;</span> <span class="string">&quot;/Applications/Burp Suite Professional.app/Contents/Resources/app/burpsuite_pro.jar&quot;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><a href="#2">GMP协程调度器</a><ul>
+<li><a href="#2.1">调度器策略</a></li>
+<li><a href="#2.2">调度器的生命周期</a></li>
+</ul>
+</li>
+<li><a href="#3">并发 sync</a><ul>
+<li><a href="#3.1">通道 - channel</a></li>
+<li><a href="#3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</a></li>
+<li><a href="#3.3">并发Map - sync.Map</a></li>
+<li><a href="#3.4">线程池 - sync.Pool</a></li>
+</ul>
+</li>
+<li><a href="#4">内存</a><ul>
+<li><a href="#4.1">CG</a></li>
+</ul>
+</li>
+<li><a href="#4">微服务之间通信方式 rpc Grpc http</a></li>
+</ul>
+<h3 id="1">基础</h3>
 
-<h3 id="代理"><a href="#代理" class="headerlink" title="代理"></a>代理</h3><p>cacert.der</p>
-<h3 id="功能介绍"><a href="#功能介绍" class="headerlink" title="功能介绍"></a>功能介绍</h3><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p><a target="_blank" rel="noopener" href="https://t0data.gitbooks.io/burpsuite/content/chapter7.html">https://t0data.gitbooks.io/burpsuite/content/chapter7.html</a></p>
+
+<p><a href="">锁系列</a></p>
+<h4 id="1.1"> 进程、线程、Goroutine(协程)区别 </h4>
+
+<ul>
+<li><em><strong>进程</strong></em> - 直观点说，保存在硬盘上的程序运行之后，会在内存空间里形成一个独立的内存体，这个内存体有自己独立的地址空间，有自己的堆，上级挂靠单位是操作系统。</li>
+<li><em><strong>线程</strong></em> - 轻量级进程（LightWeight Process，LWP），是操作系统调度（CPU调度）执行的最小单位。</li>
+<li><em><strong>协程</strong></em> - 比线程更轻量级的存在，协程完全由程序控制</li>
+</ul>
+<h4 id="1.2">make和new区别 </h4>
+
+<ul>
+<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
+<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
+<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
+</ul>
+<h4 id="1.3">数组和切片区别 </h4>
+
+<ul>
+<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
+<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
+</ul>
+<h3 id="2">GMP协程调度器</h3>
+
+<blockquote>
+<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
+<ul>
+<li>G：goroutine协程，基于协程建立的用户态线程</li>
+<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
+<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
+</ul>
+</blockquote>
+<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
+<h4 id="2.1"> 调度器策略 </h4>
+
+<ul>
+<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
+<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,<br><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</li>
+<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
+<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
+</ul>
+<h4 id="2.2"> 调度器的生命周期</h4> 
+
+<blockquote>
+<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
+<p>M0（跟进程数量绑定，一比一）：</p>
+<ul>
+<li>启动程序后编号为0的主线程</li>
+<li>在全局变量runtime.m0中，不需要在heap上分配</li>
+<li>负责执行初始化操作和启动第一个G</li>
+<li>启动第一个G之后，M0就和其他的M一样了</li>
+</ul>
+<p>G0（每个M都会有一个G0）：</p>
+<ul>
+<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
+<li>G0仅用于负责调度G</li>
+<li>G0不指向任何可执行的函数</li>
+<li>每个M都会有一个自己的G0</li>
+<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
+</ul>
+<p>M0和G0都是放在全局空间的</p>
+</blockquote>
+<h3 id="3">并发 sync</h3>
+
+<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
+<h4 id="3.1">通道 - channel</h4>
+
+<p>每个通道都有一个锁和一个读写队列，当多个协程同时向通道写入数据或者从通道读取数据时，只有一个协程能够获取到锁进行读写操作，其他协程则会被阻塞直到获得锁</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// 发送方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      ch &lt;- 1</span><br><span class="line">   &#125;()</span><br><span class="line">   // 接收方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      num := &lt;-ch</span><br><span class="line">      fmt.Println(num)</span><br><span class="line">   &#125;()</span><br></pre></td></tr></table></figure>
+
+<p>channel 死锁的场景和原因浅析<br>锁死场景</p>
+<ul>
+<li>没有缓冲区的时候，单协程内通道同时写和读</li>
+<li>无缓冲区的时候，通道输入数据早于接收方的协程开启</li>
+<li>没有数据的channel里拿数据引起的死锁</li>
+</ul>
+<p>解决方案</p>
+<ul>
+<li>做缓冲通道 -》 缓冲通道可以用cap()测试出来</li>
+<li>解决多值发送死锁 循环接收</li>
+</ul>
+<h4 id="3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
+
+<ul>
+<li>Mutex只允许一个goroutine同时获得锁，适用于需要频繁修改共享资源的场景；</li>
+<li>RWMutex允许多个goroutine同时获得读锁，但只允许一个goroutine获得写锁，适用于需要频繁读取共享资源的场景</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7313048102776455206">https://juejin.cn/post/7313048102776455206</a></p>
+<h4 id="3.3">并发Map - sync.Map</h4>
+
+
+
+
+<h4 id="3.4">线程池 - sync.Pool</h4>
+
+
+<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
 
         </div>
     
@@ -215,8 +323,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/darkweb/">
-                darkweb
+            <a href="/2024/12/22/hexo/">
+                hexo
             </a>
         </h1>
         <div class="post-info">
@@ -225,16 +333,32 @@
             
             
             
+                <span class="category">
+                    <a href="/categories/Blog/">Blog</a>
+                </span>
+            
         </div>
     </div>
 
     
         <div class="content">
-            <p>文章</p>
-<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><p><a target="_blank" rel="noopener" href="http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/">搜索工具</a></p>
-<p><a target="_blank" rel="noopener" href="http://weapon5dj7fwz2zaqa22fqeaqrauclim5kfvecegphrvxeywxoa3wuid.onion/shop.php">黑市交易</a></p>
-<p><a target="_blank" rel="noopener" href="https://onion666.com/">暗网交易中心</a></p>
+            <p>hexo + github 自动部署，解决index.html不更新问题</p>
+<h2 id="hexo-github-自动部署"><a href="#hexo-github-自动部署" class="headerlink" title="hexo + github 自动部署"></a>hexo + github 自动部署</h2><h3 id="创建-Hexo-项目-（ndoejs环境）"><a href="#创建-Hexo-项目-（ndoejs环境）" class="headerlink" title="创建 Hexo 项目 （ndoejs环境）"></a>创建 Hexo 项目 （ndoejs环境）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> blog</span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init</span><br><span class="line">hexo s //预览blog</span><br></pre></td></tr></table></figure>
 
+<h3 id="创建-username-github-io-仓库"><a href="#创建-username-github-io-仓库" class="headerlink" title="创建 {username}.github.io 仓库"></a>创建 {username}.github.io 仓库</h3><ul>
+<li>创建个人访问令牌（Personal Access Token） – blog项目</li>
+</ul>
+<p>1 点击右上角头像 -&gt; 打开 Settings -&gt; 左边栏滚到最后找到 Develop Setting 打开，如图<br><img src="/images/personal-access-token.png"></p>
+<p>2 找到 Personal Access Token 点击 Tokens（classic） -&gt; 选择 Generate new token (classic) ，如图<br><img src="/images/personal-access-tokens-click.png"></p>
+<p>3 给令牌起个名字并且勾选红框中的 repo 的访问权限，然后点击生成 token（注意： 确保复制并安全地保存这个令牌。GitHub 不会再次显示这个令牌，所以这是你唯一的机会复制它），如图<br><img src="/images/new-personal-access-token-1.png"></p>
+<p>4 将生成的 PAT 添加到你的博客源代码仓库的 Secrets，名字填入 PERSONAL_TOKEN 后面会用到这个变量名，如图<br><img src="/images/personal-access-secret.png"></p>
+<ul>
+<li>创建.github&#x2F;workflow 自动化部署 – blog项目 page.yml</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy Hexo to GitHub Pages</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - main <span class="comment"># 或你使用的默认分支名称</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line"></span><br><span class="line">    steps:</span><br><span class="line">      - name: Checkout blog <span class="built_in">source</span></span><br><span class="line">        uses: actions/checkout@v4  <span class="comment">#git升级为v4 这样可以解决index.html不更新问题</span></span><br><span class="line">        with:</span><br><span class="line">          submodules: recursive</span><br><span class="line"></span><br><span class="line">      - name: Set up Node.js</span><br><span class="line">        uses: actions/setup-node@v1</span><br><span class="line">        with:</span><br><span class="line">          node-version: <span class="string">&quot;21&quot;</span> <span class="comment"># 设置 Node.js 版本</span></span><br><span class="line"></span><br><span class="line">      - name: Cache dependencies</span><br><span class="line">        uses: actions/cache@v2</span><br><span class="line">        with:</span><br><span class="line">          path: node_modules</span><br><span class="line">          key: <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-<span class="variable">$&#123;&#123; hashFiles(&#x27;**/package-lock.json&#x27;) &#125;</span>&#125;</span><br><span class="line">          restore-keys: |</span><br><span class="line">            <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-</span><br><span class="line"></span><br><span class="line">      - name: Install dependencies</span><br><span class="line">        run: npm install</span><br><span class="line"></span><br><span class="line">      - name: Install Hexo CLI</span><br><span class="line">        run: npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line">      - name: Generate static pages</span><br><span class="line">        run: hexo clean &amp;&amp; hexo generate --output ./public</span><br><span class="line"></span><br><span class="line">      - name: Deploy to GitHub Pages</span><br><span class="line">        uses: peaceiris/actions-gh-pages@v3</span><br><span class="line">        with:</span><br><span class="line">          personal_token: <span class="variable">$&#123;&#123; secrets.PERSONAL_TOKEN &#125;</span>&#125;</span><br><span class="line">          publish_dir: ./public</span><br><span class="line">          external_repository: 0rz33/0rz33.github.io <span class="comment"># 更改为你的 GitHub Pages 仓库, username 是你的用户名</span></span><br><span class="line">          publish_branch: main <span class="comment"># GitHub Pages 分支  </span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="username-github-io-page页面设置"><a href="#username-github-io-page页面设置" class="headerlink" title="{username}.github.io page页面设置"></a>{username}.github.io page页面设置</h3>
         </div>
     
 
@@ -282,19 +406,19 @@
         <ul>
             
             <li>
+                <a class="footer-post" href="/2024/12/22/ops-basic/">运维琐碎</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/12/22/pantesting-Intranet/">内网渗透</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/12/22/pantesting-getinfo/">信息收集</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2024/12/22/php-interview/">PHP 面试题</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2024/12/22/raspberry-pi/">Raspberry Pi 树莓派</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2024/12/22/shell/">Bash</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2024/12/22/springboot/">Springboot</a>
             </li>
             
         </ul>
