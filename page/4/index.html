@@ -169,8 +169,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/mysql-MyISAM-InnoDB/">
-                Mysql-MyISAM与InnoDB对比及用法
+            <a href="/2024/12/22/burp-suite/">
+                Burp Suite
             </a>
         </h1>
         <div class="post-info">
@@ -180,7 +180,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -188,157 +188,23 @@
 
     
         <div class="content">
-            <ul>
-<li><a href="#1">MyISAM 和 InnoDB区别</a></li>
-<li><a href="#2">事务的四大特征 (ACID)</a></li>
-<li><a href="#3">锁的重要性</a></li>
-</ul>
-<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="1">MyISAM 与 InnoDB 对比</h3>
-
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>InnoDB</th>
-<th>MyISAM</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>事务支持</td>
-<td>支持事务，ACID 兼容</td>
-<td>不支持事务</td>
-</tr>
-<tr>
-<td>锁机制</td>
-<td>行级锁，高并发性能优越</td>
-<td>表级锁，低并发性能</td>
-</tr>
-<tr>
-<td>数据完整性</td>
-<td>支持外键和崩溃恢复</td>
-<td>不支持外键和崩溃恢复</td>
-</tr>
-<tr>
-<td>读写性能</td>
-<td>适合高并发写操作，性能稳定</td>
-<td>适合读密集操作，性能高</td>
-</tr>
-<tr>
-<td>全文索引</td>
-<td>支持（MySQL 5.6+）</td>
-<td>原生支持</td>
-</tr>
-<tr>
-<td>恢复机制</td>
-<td>崩溃后自动恢复数据</td>
-<td>需要手动修复</td>
-</tr>
-<tr>
-<td>磁盘空间使用</td>
-<td>相对占用更多内存和磁盘空间</td>
-<td>占用较少内存和磁盘空间</td>
-</tr>
-<tr>
-<td>适用场景</td>
-<td>高并发、事务处理、数据安全性高的应用</td>
-<td>读多写少的应用，数据分析和归档</td>
-</tr>
-</tbody></table>
-<h3 id="关于数据插入错误时进行数据回滚-配合后端try-catch"><a href="#关于数据插入错误时进行数据回滚-配合后端try-catch" class="headerlink" title="关于数据插入错误时进行数据回滚 - 配合后端try catch"></a>关于数据插入错误时进行数据回滚 - 配合后端try catch</h3><h5 id="1-mysql-默认为把需要的table-转成InnoDB"><a href="#1-mysql-默认为把需要的table-转成InnoDB" class="headerlink" title="1.mysql 默认为把需要的table 转成InnoDB"></a>1.mysql 默认为把需要的table 转成InnoDB</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table tag engine=innodb;</span><br></pre></td></tr></table></figure>
-
-<h5 id="2-查看事务"><a href="#2-查看事务" class="headerlink" title="2.查看事务"></a>2.查看事务</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_trx\G;</span><br></pre></td></tr></table></figure>
-
-<h5 id="3-mysql事务基本逻辑"><a href="#3-mysql事务基本逻辑" class="headerlink" title="3.mysql事务基本逻辑"></a>3.mysql事务基本逻辑</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 开启事务</span><br><span class="line">begin;  <span class="comment"># 或者下面的语句  </span></span><br><span class="line">start transaction;</span><br><span class="line"></span><br><span class="line">-- 写需求逻辑</span><br><span class="line"></span><br><span class="line">-- 事务回滚(回滚到之前的状态,并关闭事务)</span><br><span class="line">rollback;  <span class="comment"># 回滚 + 关闭</span></span><br><span class="line"></span><br><span class="line">-- 事务提交(将修改提交,并关闭事务)</span><br><span class="line">commit;    <span class="comment"># 提交 + 关闭</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="4-配合mysql事务"><a href="#4-配合mysql事务" class="headerlink" title="4.配合mysql事务"></a>4.配合mysql事务</h5><p>例子与thinkphp为例</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 启动事务</span><br><span class="line">Db::startTrans();</span><br><span class="line">try &#123;</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;find(1);</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;delete(1);</span><br><span class="line">    // 提交事务</span><br><span class="line">    Db::commit();</span><br><span class="line">&#125; catch (\Exception <span class="variable">$e</span>) &#123;</span><br><span class="line">    // 回滚事务</span><br><span class="line">    Db::rollback();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="2">事务隔离级别</h3>
-
-<h4 id="ACID四种隔离界别："><a href="#ACID四种隔离界别：" class="headerlink" title="ACID四种隔离界别："></a>ACID四种隔离界别：</h4><ul>
-<li>Read Uncommit (读取未提交内容)</li>
-<li>Read Commit (读取提交内容)</li>
-<li>Repeatable Read (可重复读)</li>
-<li>Serializable (可串行化)</li>
-</ul>
-<h5 id="1-查看数据库版本"><a href="#1-查看数据库版本" class="headerlink" title="1.查看数据库版本"></a>1.查看数据库版本</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> version();</span><br></pre></td></tr></table></figure>
-
-<h5 id="2-查看隔离级别"><a href="#2-查看隔离级别" class="headerlink" title="2.查看隔离级别"></a>2.查看隔离级别</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- MySQL8.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@transaction_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.transaction_isolation;</span><br><span class="line"> </span><br><span class="line">-- MySQL5.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@tx_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.tx_isolation;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="锁奥义"><a href="#锁奥义" class="headerlink" title="锁奥义"></a><h3 id="3">锁奥义</h3></h3><blockquote>
-<p>查看当前出现的锁</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_locks\G;</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show status like <span class="string">&#x27;innodb_row_lock_%&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<h5 id="1-互斥锁与自旋锁"><a href="#1-互斥锁与自旋锁" class="headerlink" title="1.互斥锁与自旋锁"></a>1.互斥锁与自旋锁</h5><ul>
-<li><p><code>互斥锁</code>加锁失败后，线程会释放 CPU ，给其他线程；</p>
-<p>  互斥锁是一种「独占锁」，比如当线程 A 加锁成功后，此时互斥锁已经被线程 A 独占了，只要线程 A 没有释放手中的锁，线程 B 加锁就会失败，于是就会释放 CPU 让给其他线程，既然线程 B 释放掉了 CPU，自然线程 B 加锁的代码就会被阻塞。</p>
+            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>Burp Suite是一款集成化的渗透测试工具，包含了很多功能，可以帮助我们快速完成对web应用程序的渗透测试和攻击。Burp Suite是由Java语言编写，因为Java是可以跨平台的，所以Burp Suite也是跨平台的，支持windows、linux、mac。</p>
+<h3 id="安装pro（Mac）"><a href="#安装pro（Mac）" class="headerlink" title="安装pro（Mac）"></a>安装pro（Mac）</h3><ul>
+<li><p><a href="/source/BurpLoaderKeygen.jar">下载注册机&amp;启动器二合一版本</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases">官网下载地址：</a><br><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsx">Intel版本</a><br><a target="_blank" rel="noopener" href="https://portswigger-cdn.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsArm64">M1版本</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入burpsuite Pro.app里的Contents</span></span><br><span class="line"><span class="built_in">cd</span> /Applications/Burp Suite Professional.app/Contents</span><br><span class="line"></span><br><span class="line"><span class="comment">## 编辑vmoptions.txt 追加内容</span></span><br><span class="line">--add-opens=java.base/java.lang=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED</span><br><span class="line">-javaagent:BurpLoaderKeygen.jar</span><br><span class="line">-noverify</span><br><span class="line"></span><br><span class="line"><span class="comment">## 启动器BurpLoaderKeygen.jar移动到当前app目录</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>双击运行BurpLoaderKeygen.jar</p>
+</li>
+<li><p>运行&#96;</p>
 </li>
 </ul>
-<p><img src="/images/%E4%BA%92%E6%96%A5%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="互斥锁"></p>
-<ul>
-<li><p><code>自旋锁</code>加锁失败后，线程会忙等待，直到它拿到锁；</p>
-<p>  自旋锁是通过 CPU 提供的 CAS 函数（Compare And Swap），在「用户态」完成加锁和解锁操作，不会主动产生线程上下文切换，所以相比互斥锁来说，会快一些，开销也小一些。</p>
-<p>  一般加锁的过程，包含两个步骤：</p>
-<p>  第一步，查看锁的状态，如果锁是空闲的，则执行第二步；<br>  第二步，将锁设置为当前线程持有；</p>
-<p>  CAS 函数就把这两个步骤合并成一条硬件级指令，形成原子指令，这样就保证了这两个步骤是不可分割的，要么一次性执行完两个步骤，要么两个步骤都不执行</p>
-<p>  使用自旋锁的时候，当发生多线程竞争锁的情况，加锁失败的线程会「忙等待」，直到它拿到锁。这里的「忙等待」可以用 while 循环等待实现，不过最好是使用 CPU 提供的 PAUSE 指令来实现「忙等待」，因为可以减少循环等待时的耗电量</p>
-<p>  自旋锁是最比较简单的一种锁，一直自旋，利用 CPU 周期，直到锁可用。需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU。</p>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>互斥锁</th>
-<th>自旋锁</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>性能开销成本</td>
-<td>当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</td>
-<td>需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU</td>
-</tr>
-</tbody></table>
-<h5 id="2-读写锁：读和写还有优先级区分"><a href="#2-读写锁：读和写还有优先级区分" class="headerlink" title="2.读写锁：读和写还有优先级区分"></a>2.读写锁：读和写还有优先级区分</h5><p>由「读锁」和「写锁」两部分构成，如果只读取共享资源用「读锁」加锁，如果要修改共享资源则用「写锁」加锁</p>
-<p>工作原理：<br>当写锁没有被线程持有时，多个线程可以并发地持有读锁，但是当写锁被线程持有后，其他线程获取读锁和写锁的操作都会阻塞</p>
-<blockquote>
-<p><code>读优先锁</code></p>
-</blockquote>
-<p><img src="/images/%E8%AF%BB%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="读优先锁"></p>
-<blockquote>
-<p><code>写优先锁</code></p>
-</blockquote>
-<p><img src="/images/%E5%86%99%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="写优先锁"></p>
-<blockquote>
-<p>但是这两种都会造成线程“饥饿”的问题，比如</p>
-<ul>
-<li>读优先锁：一直有读线程获取读锁，那么写线程将永远获取不到，造成写线程“饥饿”。 </li>
-<li>写优先锁：如果⼀直有写线程获取写锁，读线程也会被「饿死」。</li>
-</ul>
-</blockquote>
-<p>所以我们可以搞一个公平读写锁<br>公平读写锁⽐较简单的⼀种⽅式是：⽤队列把获取锁的线程排队，不管是写线程还是读线程都按照先进先出的原则加锁即可，这样读线程仍然可以并发，也不会出现「饥饿」的现象。</p>
-<h5 id="3-乐观锁与悲观锁"><a href="#3-乐观锁与悲观锁" class="headerlink" title="3.乐观锁与悲观锁"></a>3.乐观锁与悲观锁</h5><p>前面提到的互斥锁、自旋锁、读写锁，都是属于悲观锁。</p>
-<blockquote>
-<ul>
-<li><p>悲观锁：认为多线程同时修改共享资源的概率⽐较⾼，于是很容易出现冲突，所以访问共享资源前，先要上锁。</p>
-</li>
-<li><p>前⾯提到的互斥锁、⾃旋锁、读写锁，都是属于悲观锁。</p>
-</li>
-<li><p>乐观锁：假定冲突的概率很低，它的⼯作⽅式是：先修改完共享资源，再验证这段时间内有没有发⽣冲突，如果没有其他线程在修改资源，那么操作完成，如果发现有其他线程已经修改过这个资源，就放弃本次操作。另外虽然叫锁，但是乐观锁全程并没有加锁，所以它也叫⽆锁编程。</p>
-</li>
-</ul>
-</blockquote>
-<p>一般会使用版本号机制或CAS算法实现</p>
-<h5 id="4-解决死锁问题"><a href="#4-解决死锁问题" class="headerlink" title="4.解决死锁问题"></a>4.解决死锁问题</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">show processlist; <span class="comment"># 只列出前100条</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#如果是root帐号，你能看到所有用户的当前连接。如果是其它普通帐号，只能看到自己占用的连接</span></span><br><span class="line">show full processlist</span><br><span class="line"></span><br><span class="line"><span class="built_in">kill</span> [<span class="built_in">id</span>] <span class="comment"># 杀进程</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java&quot;</span> <span class="string">&quot;--add-opens=java.desktop/javax.swing=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/java.lang=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED&quot;</span> <span class="string">&quot;-javaagent:/Applications/BurpLoaderKeygen.jar&quot;</span> <span class="string">&quot;-noverify&quot;</span> <span class="string">&quot;-jar&quot;</span> <span class="string">&quot;/Applications/Burp Suite Professional.app/Contents/Resources/app/burpsuite_pro.jar&quot;</span></span><br></pre></td></tr></table></figure>
 
+<h3 id="代理"><a href="#代理" class="headerlink" title="代理"></a>代理</h3><p>cacert.der</p>
+<h3 id="功能介绍"><a href="#功能介绍" class="headerlink" title="功能介绍"></a>功能介绍</h3><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p><a target="_blank" rel="noopener" href="https://t0data.gitbooks.io/burpsuite/content/chapter7.html">https://t0data.gitbooks.io/burpsuite/content/chapter7.html</a></p>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">show status; <span class="comment"># 查看状态</span></span><br><span class="line"></span><br><span class="line">show status like <span class="string">&#x27;%下面变量%&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Aborted_clients <span class="comment"># 由于客户没有正确关闭连接已经死掉，已经放弃的连接数量。</span></span><br><span class="line">Aborted_connects <span class="comment"># 尝试已经失败的MySQL服务器的连接的次数。</span></span><br><span class="line">Connections <span class="comment"># 试图连接MySQL服务器的次数。</span></span><br><span class="line">Created_tmp_tables <span class="comment"># 当执行语句时，已经被创造了的隐含临时表的数量。</span></span><br><span class="line">Delayed_insert_threads <span class="comment"># 正在使用的延迟插入处理器线程的数量。</span></span><br><span class="line">Delayed_writes <span class="comment"># 用INSERT DELAYED写入的行数。</span></span><br><span class="line">Delayed_errors <span class="comment"># 用INSERT DELAYED写入的发生某些错误(可能重复键值)的行数。</span></span><br><span class="line">Flush_commands <span class="comment"># 执行FLUSH命令的次数。</span></span><br><span class="line">Handler_delete <span class="comment"># 请求从一张表中删除行的次数。</span></span><br><span class="line">Handler_read_first <span class="comment"># 请求读入表中第一行的次数。</span></span><br><span class="line">Handler_read_key <span class="comment"># 请求数字基于键读行。</span></span><br><span class="line">Handler_read_next <span class="comment"># 请求读入基于一个键的一行的次数。</span></span><br><span class="line">Handler_read_rnd <span class="comment"># 请求读入基于一个固定位置的一行的次数。</span></span><br><span class="line">Handler_update <span class="comment"># 请求更新表中一行的次数。</span></span><br><span class="line">Handler_write <span class="comment"># 请求向表中插入一行的次数。&lt;</span></span><br><span class="line">Key_blocks_used <span class="comment"># 用于关键字缓存的块的数量。</span></span><br><span class="line">Key_read_requests <span class="comment"># 请求从缓存读入一个键值的次数。</span></span><br><span class="line">Key_reads <span class="comment"># 从磁盘物理读入一个键值的次数。</span></span><br><span class="line">Key_write_requests <span class="comment"># 请求将一个关键字块写入缓存次数。</span></span><br><span class="line">Key_writes <span class="comment"># 将一个键值块物理写入磁盘的次数。</span></span><br><span class="line">Max_used_connections <span class="comment"># 同时使用的连接的最大数目。</span></span><br><span class="line">Not_flushed_key_blocks <span class="comment"># 在键缓存中已经改变但是还没被清空到磁盘上的键块</span></span><br><span class="line">Not_flushed_delayed_rows <span class="comment"># 在INSERT DELAY队列中等待写入的行的数量。</span></span><br><span class="line">Open_tables <span class="comment"># 打开表的数量。</span></span><br><span class="line">Open_files <span class="comment"># 打开文件的数量。</span></span><br><span class="line">Open_streams <span class="comment"># 打开流的数量(主要用于日志记载）</span></span><br><span class="line">Opened_tables <span class="comment"># 已经打开的表的数量。</span></span><br><span class="line">Questions <span class="comment"># 发往服务器的查询的数量。</span></span><br><span class="line">Slow_queries <span class="comment"># 要花超过long_query_time时间的查询数量。</span></span><br><span class="line">Threads_connected <span class="comment"># 当前打开的连接的数量。</span></span><br><span class="line">Threads_running <span class="comment"># 不在睡眠的线程数量。</span></span><br><span class="line">Uptime <span class="comment"># 服务器工作了多少秒。</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
         </div>
     
 
@@ -349,8 +215,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/android/">
-                Android初探
+            <a href="/2024/12/22/darkweb/">
+                darkweb
             </a>
         </h1>
         <div class="post-info">
@@ -359,29 +225,15 @@
             
             
             
-                <span class="category">
-                    <a href="/categories/Android/">Android</a>
-                </span>
-            
         </div>
     </div>
 
     
         <div class="content">
             <p>文章</p>
-<h2 id="安卓学习"><a href="#安卓学习" class="headerlink" title="安卓学习"></a>安卓学习</h2><h3 id="安卓流程"><a href="#安卓流程" class="headerlink" title="安卓流程"></a>安卓流程</h3><p>1 启动活动 根据 此目录来定</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity android:name=<span class="string">&quot;.MainActivity&quot;</span>&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=<span class="string">&quot;android.intent.action.MAIN&quot;</span> /&gt;</span><br><span class="line">        &lt;category android:name=<span class="string">&quot;android.intent.category.LAUNCHER&quot;</span> /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
-
-<p>2 活动生命周期</p>
-<p>MainActivity 的生命周期方法依次被调用：<br>    onCreate(): 初始化。<br>    onStart(): 准备显示。<br>    onResume(): 变为可交互状态。<br>用户与活动交互后，可能会触发其他活动的启动。</p>
-<p>4 导航<br>在 MainActivity 中，可以通过 Intent 启动其他活动</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = new Intent(this, SecondActivity.class);</span><br><span class="line">startActivity(intent);</span><br></pre></td></tr></table></figure>
-
-<p>5 其他组件</p>
-<p>应用还可以包含其他组件，如 Service（用于后台任务）、BroadcastReceiver（处理广播）和 ContentProvider（数据共享）</p>
-<p>6 退出应用</p>
-<p>当活动关闭或用户手动退出时，应用的进程可能会被系统终止。此时，onPause()、onStop() 和 onDestroy() 方法依次被调用。</p>
-<p>整个流程可以概括为：用户启动应用 → 系统加载启动活动 → 进入活动生命周期 → 用户交互并导航到其他活动 → 退出应用。理解这一流程有助于你设计用户体验和管理应用状态。</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><p><a target="_blank" rel="noopener" href="http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/">搜索工具</a></p>
+<p><a target="_blank" rel="noopener" href="http://weapon5dj7fwz2zaqa22fqeaqrauclim5kfvecegphrvxeywxoa3wuid.onion/shop.php">黑市交易</a></p>
+<p><a target="_blank" rel="noopener" href="https://onion666.com/">暗网交易中心</a></p>
 
         </div>
     
@@ -430,19 +282,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/thinkpkp/">thinkpkp</a>
+                <a class="footer-post" href="/2024/12/22/php-interview/">PHP 面试题</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/vue-big-file-upload/">vue2 大文件上传component(做成组件)</a>
+                <a class="footer-post" href="/2024/12/22/raspberry-pi/">Raspberry Pi 树莓派</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/vue2vsvue3/">vue2 对比 vue3</a>
+                <a class="footer-post" href="/2024/12/22/shell/">Bash</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/wireshark/">Wireshark</a>
+                <a class="footer-post" href="/2024/12/22/springboot/">Springboot</a>
             </li>
             
         </ul>
