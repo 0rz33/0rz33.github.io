@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="基本概念
+复制控制器（Replication Controller，RC）
+副本集（Replica Set，RS）
+部署(Deployment)
+服务（Service）
+任务（Job）
+存储卷（Volume） 持久存储卷（Persistent Volume，PV）持久存储卷声明（Persistent">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="K8S"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>K8S - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2024/12/22/k8s-basic/">
+                K8S
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-12-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><ul>
+<li>复制控制器（Replication Controller，RC）</li>
+<li>副本集（Replica Set，RS）</li>
+<li>部署(Deployment)</li>
+<li>服务（Service）</li>
+<li>任务（Job）</li>
+<li>存储卷（Volume） 持久存储卷（Persistent Volume，PV）持久存储卷声明（Persistent Volume Claim，PVC）</li>
+<li>节点（Node）</li>
+<li>用户帐户（User Account）服务帐户（Service Account）名字空间（Namespace）</li>
+</ul>
+<h3 id="Deployment-Service-Pod-之间的关系"><a href="#Deployment-Service-Pod-之间的关系" class="headerlink" title="Deployment Service Pod 之间的关系"></a>Deployment Service Pod 之间的关系</h3><ul>
+<li>Deployment 是 k8s 中用来管理一组 Pod 副本的控制器。它定义了应用的期望状态，例如应该运行多少个 Pod 副本以及使用的容器镜像<ul>
+<li>管理 Pod 的创建、删除和更新。</li>
+<li>支持回滚到以前的版本。</li>
+<li>提供滚动更新机制，以无中断地部署新版本。</li>
+</ul>
+</li>
+<li>Pod 是 k8s 中最小的可部署单元，通常由一个或多个容器组成。Pod 共享存储和网络资源，并指定容器的运行方式。<ul>
+<li>承载应用程序的运行时环境。</li>
+<li>提供共享存储卷和网络地址。</li>
+</ul>
+</li>
+<li>Service 是 k8s 中的一个抽象层，用于定义一组 Pod 的网络服务。它为一组 Pod 提供负载均衡和服务发现功能。<ul>
+<li>为 Pod 提供一个稳定的网络端点（IP 地址或 DNS 名称），即使 Pod 重启或被替换也保持不变。</li>
+<li>通过标签选择器匹配一组 Pod，并在这些 Pod 之间进行负载均衡。</li>
+</ul>
+</li>
+</ul>
+<p>关系</p>
+<ul>
+<li>Deployment -&gt; Pod：Deployment 管理一组 Pod 的生命周期，确保始终有指定数量的 Pod 副本在运行。</li>
+<li>Service -&gt; Pod：Service 使用标签选择器来匹配 Pod，并为这些 Pod 提供负载均衡和服务发现功能。即使 Pod 被重新调度或替换，Service 仍然可以确保请求被路由到正确的 Pod。</li>
+</ul>
+<h3 id="StatefulSet和Deployment的区别"><a href="#StatefulSet和Deployment的区别" class="headerlink" title="StatefulSet和Deployment的区别"></a>StatefulSet和Deployment的区别</h3><p>“Deployment用于部署无状态服务，StatefulSet用来部署有状态服务”</p>
+<h3 id="查看状态"><a href="#查看状态" class="headerlink" title="查看状态"></a>查看状态</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://blog.laoda.de/archives/docker-issues</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">## 进入pod 容器里面</span></span><br><span class="line">kubectl <span class="built_in">exec</span> -it zk-5959d76d9b-xbmmw -n work  -- /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除 pod </span></span><br><span class="line">delete pod zk-5959d76d9b-zsvxf -n work</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="存储方案-文件挂在"><a href="#存储方案-文件挂在" class="headerlink" title="存储方案 (文件挂在)"></a>存储方案 (文件挂在)</h3><ul>
+<li>pv 持久卷 (PersistentVolume) 和一半volume一样</li>
+<li>pvc 持久卷申领（PersistentVolumeClaim) 消耗pv资源，以来pv</li>
+<li>StorageClass</li>
+</ul>
+<p>helm</p>
+<p>排错</p>
+
+    </div>
+
+    
+
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2024/12/22/mysql-migrate-main-sub/">Mysql-数据迁移-主从</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/12/22/mysql-migrate/">Mysql-数据迁移-基础篇</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/12/22/mysql/">Mysql-basic</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2024/12/22/natcat/">Natcat</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/Android/">Android</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E6%B8%97%E9%80%8F/web%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/">web测试工具</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%BF%90%E7%BB%B4/Docker/">Docker</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

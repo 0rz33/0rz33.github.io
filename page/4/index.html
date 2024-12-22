@@ -68,17 +68,6 @@
 
     <!-- Google Analytics -->
     
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-        ga('create', 'G-KS4SES60S0', 'auto');
-        ga('send', 'pageview');
-
-    </script>
-
 
 
 <meta name="generator" content="Hexo 7.3.0"></head>
@@ -180,18 +169,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/20/git/">
-                Git总结
+            <a href="/2024/12/22/metasploit/">
+                MetaSploit Framwork(MSF)
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-20</span>
+                <span class="date">2024-12-22</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/研发工具/">研发工具</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -199,22 +188,23 @@
 
     
         <div class="content">
-            <p>文章</p>
-<h2 id="团队合作需要"><a href="#团队合作需要" class="headerlink" title="团队合作需要"></a>团队合作需要</h2><h3 id="分支在开发中的更新状态-配置"><a href="#分支在开发中的更新状态-配置" class="headerlink" title="分支在开发中的更新状态 [配置]"></a>分支在开发中的更新状态 [配置]</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git config pull.rebase <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">git config pull.rebase <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">git config pull.ff only</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><h3 id="模块划分"><a href="#模块划分" class="headerlink" title="模块划分"></a>模块划分</h3><ul>
+<li>辅 助 模 块 (Auxiliary，扫描器)，扫描主机系统，寻找可用漏洞；</li>
+<li>渗透攻击模块 (Exploits)，选择并配置一个漏洞利用模块；</li>
+<li>攻击载荷模块 (Payloads)，选择并配置一个攻击载荷模块；</li>
+<li>后渗透攻击模块 (Post)，用于内网渗透的各种操作；</li>
+<li>编 码 器 模 块 (Encoders)，选择编码技术，绕过杀软（或其他免杀方式）；</li>
+</ul>
+<h3 id="渗透步骤（exploit）"><a href="#渗透步骤（exploit）" class="headerlink" title="渗透步骤（exploit）"></a>渗透步骤（exploit）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search xxx		<span class="comment">## 搜索某个漏洞</span></span><br><span class="line">use xxx			<span class="comment">## 使用某个漏洞利用模块</span></span><br><span class="line">show options    	<span class="comment">## 查看配置选项</span></span><br><span class="line"><span class="built_in">set</span> payload		<span class="comment">## 配置攻击载荷</span></span><br><span class="line">exploit			<span class="comment">## 执行渗透攻击</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="本地分支-操作"><a href="#本地分支-操作" class="headerlink" title="本地分支 [操作]"></a>本地分支 [操作]</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看本地分支</span></span><br><span class="line">git branch -l</span><br><span class="line"></span><br><span class="line"><span class="comment">## log</span></span><br><span class="line">git <span class="built_in">log</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除本地分支</span></span><br><span class="line">git branch -d localBranchName</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h3 id="远程分支-操作"><a href="#远程分支-操作" class="headerlink" title="远程分支 [操作]"></a>远程分支 [操作]</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看远程分支</span></span><br><span class="line">git branch </span><br><span class="line"></span><br><span class="line"><span class="comment">## 远程拉去分支</span></span><br><span class="line">git fetch origin debug/tian</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除远程分支</span></span><br><span class="line">git push origin --delete remoteBranchName</span><br></pre></td></tr></table></figure>
-
-<h3 id="分支开发中-操作"><a href="#分支开发中-操作" class="headerlink" title="分支开发中 [操作]"></a>分支开发中 [操作]</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 保存改动</span></span><br><span class="line">git stash</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查看所有stash</span></span><br><span class="line">git stash list</span><br><span class="line"></span><br><span class="line"><span class="comment">## 恢复最新stash</span></span><br><span class="line">git stash pop</span><br><span class="line"></span><br><span class="line"><span class="comment">## 恢复特定stash 恢复第一个stash</span></span><br><span class="line">git stash apply stash@&#123;0&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">##  清空</span></span><br><span class="line">git stash clear</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除特定stash 恢复第一个stash</span></span><br><span class="line">git stash drop stash@&#123;2&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="删除git信息"><a href="#删除git信息" class="headerlink" title="删除git信息"></a>删除git信息</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">rm</span> -rf .git/</span><br></pre></td></tr></table></figure>
-
-<h3 id="开发分支遇到开发总分支更新代码-问题"><a href="#开发分支遇到开发总分支更新代码-问题" class="headerlink" title="开发分支遇到开发总分支更新代码 [问题]"></a>开发分支遇到开发总分支更新代码 [问题]</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 保存改动</span></span><br><span class="line">git stash</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查看所有stash</span></span><br><span class="line">git stash list</span><br><span class="line"></span><br><span class="line"><span class="comment">## 强制更新状态</span></span><br><span class="line">git pull --rebase origin dev-cody</span><br><span class="line"></span><br><span class="line"><span class="comment">## 恢复最新stash</span></span><br><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
-
-<h3 id="代码污染回退-问题"><a href="#代码污染回退-问题" class="headerlink" title="代码污染回退 [问题]"></a>代码污染回退 [问题]</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## log</span></span><br><span class="line">git <span class="built_in">log</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 强制回退版本</span></span><br><span class="line">git reset --hard XXXXXX</span><br></pre></td></tr></table></figure>
+<h3 id="参数摘要"><a href="#参数摘要" class="headerlink" title="参数摘要"></a>参数摘要</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">reload_all		<span class="comment">#从目录重载所有模块。导入模块也需要用到此命令。</span></span><br><span class="line">back	<span class="comment">#后退命令，移出当前上下文，用于模块切换</span></span><br><span class="line">info	<span class="comment">#目标和模块详细信息</span></span><br><span class="line">check	<span class="comment">#检查目标是否受某个漏洞影响</span></span><br><span class="line"></span><br><span class="line">sessions		<span class="comment">#会话管理</span></span><br><span class="line">sessions -l		<span class="comment">#列出所有会话</span></span><br><span class="line">sessions -K		<span class="comment">#终止所有会话</span></span><br><span class="line">sessions -i <span class="built_in">id</span>	<span class="comment">#进入某个会话</span></span><br><span class="line">sessions -v		<span class="comment">#以详细模式列出会话</span></span><br><span class="line">sessions -u		<span class="comment">#在许多平台上将shell升级到meterpreter会话</span></span><br><span class="line"></span><br><span class="line">show options	<span class="comment">#显示可选选项</span></span><br><span class="line">	 auxiliary	<span class="comment">#显示所有辅助模块</span></span><br><span class="line">	 exploits	<span class="comment">#显示所有漏洞利用模块</span></span><br><span class="line">	 payloads	<span class="comment">#显示所有有效载荷</span></span><br><span class="line">	 targets	<span class="comment">#显示所有可用目标</span></span><br><span class="line">	 advanced	<span class="comment">#显示更多高级选项</span></span><br><span class="line">	 encoders	<span class="comment">#显示可用编码器列表</span></span><br><span class="line">	 </span><br><span class="line"><span class="built_in">unset</span> [Module Options]    <span class="comment">#清除Module Options</span></span><br></pre></td></tr></table></figure>
 
 
+<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
 
+<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
+
+<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a><br><a target="_blank" rel="noopener" href="https://sh1yan.top/2019/07/28/MSF-Command-Notes/">https://sh1yan.top/2019/07/28/MSF-Command-Notes/</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/LyShark/p/12189163.html">https://www.cnblogs.com/LyShark/p/12189163.html</a><br><a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/tools/metasploit.html">https://wiki.wgpsec.org/knowledge/tools/metasploit.html</a></p>
 
         </div>
     
@@ -226,18 +216,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/20/golang-interview/">
-                GOLANG 面试题
+            <a href="/2024/12/22/mysql-MyISAM-InnoDB/">
+                Mysql-MyISAM与InnoDB对比及用法
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-20</span>
+                <span class="date">2024-12-22</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/面试/">面试</a>
+                    <a href="/categories/数据库/">数据库</a>
                 </span>
             
         </div>
@@ -246,96 +236,156 @@
     
         <div class="content">
             <ul>
-<li><a href="#1">基础</a><ul>
-<li><a href="#1.1">进程、线程、Goroutine(协程)区别</a></li>
-<li><a href="#1.2">make和new区别</a></li>
-<li><a href="#1.3">数组和切片区别</a></li>
+<li><a href="#1">MyISAM 和 InnoDB区别</a></li>
+<li><a href="#2">事务的四大特征 (ACID)</a></li>
+<li><a href="#3">锁的重要性</a></li>
 </ul>
+<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="1">MyISAM 与 InnoDB 对比</h3>
+
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>InnoDB</th>
+<th>MyISAM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>事务支持</td>
+<td>支持事务，ACID 兼容</td>
+<td>不支持事务</td>
+</tr>
+<tr>
+<td>锁机制</td>
+<td>行级锁，高并发性能优越</td>
+<td>表级锁，低并发性能</td>
+</tr>
+<tr>
+<td>数据完整性</td>
+<td>支持外键和崩溃恢复</td>
+<td>不支持外键和崩溃恢复</td>
+</tr>
+<tr>
+<td>读写性能</td>
+<td>适合高并发写操作，性能稳定</td>
+<td>适合读密集操作，性能高</td>
+</tr>
+<tr>
+<td>全文索引</td>
+<td>支持（MySQL 5.6+）</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td>恢复机制</td>
+<td>崩溃后自动恢复数据</td>
+<td>需要手动修复</td>
+</tr>
+<tr>
+<td>磁盘空间使用</td>
+<td>相对占用更多内存和磁盘空间</td>
+<td>占用较少内存和磁盘空间</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>高并发、事务处理、数据安全性高的应用</td>
+<td>读多写少的应用，数据分析和归档</td>
+</tr>
+</tbody></table>
+<h3 id="关于数据插入错误时进行数据回滚-配合后端try-catch"><a href="#关于数据插入错误时进行数据回滚-配合后端try-catch" class="headerlink" title="关于数据插入错误时进行数据回滚 - 配合后端try catch"></a>关于数据插入错误时进行数据回滚 - 配合后端try catch</h3><h5 id="1-mysql-默认为把需要的table-转成InnoDB"><a href="#1-mysql-默认为把需要的table-转成InnoDB" class="headerlink" title="1.mysql 默认为把需要的table 转成InnoDB"></a>1.mysql 默认为把需要的table 转成InnoDB</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table tag engine=innodb;</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-查看事务"><a href="#2-查看事务" class="headerlink" title="2.查看事务"></a>2.查看事务</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_trx\G;</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-mysql事务基本逻辑"><a href="#3-mysql事务基本逻辑" class="headerlink" title="3.mysql事务基本逻辑"></a>3.mysql事务基本逻辑</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 开启事务</span><br><span class="line">begin;  <span class="comment"># 或者下面的语句  </span></span><br><span class="line">start transaction;</span><br><span class="line"></span><br><span class="line">-- 写需求逻辑</span><br><span class="line"></span><br><span class="line">-- 事务回滚(回滚到之前的状态,并关闭事务)</span><br><span class="line">rollback;  <span class="comment"># 回滚 + 关闭</span></span><br><span class="line"></span><br><span class="line">-- 事务提交(将修改提交,并关闭事务)</span><br><span class="line">commit;    <span class="comment"># 提交 + 关闭</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="4-配合mysql事务"><a href="#4-配合mysql事务" class="headerlink" title="4.配合mysql事务"></a>4.配合mysql事务</h5><p>例子与thinkphp为例</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 启动事务</span><br><span class="line">Db::startTrans();</span><br><span class="line">try &#123;</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;find(1);</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;delete(1);</span><br><span class="line">    // 提交事务</span><br><span class="line">    Db::commit();</span><br><span class="line">&#125; catch (\Exception <span class="variable">$e</span>) &#123;</span><br><span class="line">    // 回滚事务</span><br><span class="line">    Db::rollback();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="2">事务隔离级别</h3>
+
+<h4 id="ACID四种隔离界别："><a href="#ACID四种隔离界别：" class="headerlink" title="ACID四种隔离界别："></a>ACID四种隔离界别：</h4><ul>
+<li>Read Uncommit (读取未提交内容)</li>
+<li>Read Commit (读取提交内容)</li>
+<li>Repeatable Read (可重复读)</li>
+<li>Serializable (可串行化)</li>
+</ul>
+<h5 id="1-查看数据库版本"><a href="#1-查看数据库版本" class="headerlink" title="1.查看数据库版本"></a>1.查看数据库版本</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> version();</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-查看隔离级别"><a href="#2-查看隔离级别" class="headerlink" title="2.查看隔离级别"></a>2.查看隔离级别</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- MySQL8.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@transaction_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.transaction_isolation;</span><br><span class="line"> </span><br><span class="line">-- MySQL5.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@tx_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.tx_isolation;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="锁奥义"><a href="#锁奥义" class="headerlink" title="锁奥义"></a><h3 id="3">锁奥义</h3></h3><blockquote>
+<p>查看当前出现的锁</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_locks\G;</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show status like <span class="string">&#x27;innodb_row_lock_%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h5 id="1-互斥锁与自旋锁"><a href="#1-互斥锁与自旋锁" class="headerlink" title="1.互斥锁与自旋锁"></a>1.互斥锁与自旋锁</h5><ul>
+<li><p><code>互斥锁</code>加锁失败后，线程会释放 CPU ，给其他线程；</p>
+<p>  互斥锁是一种「独占锁」，比如当线程 A 加锁成功后，此时互斥锁已经被线程 A 独占了，只要线程 A 没有释放手中的锁，线程 B 加锁就会失败，于是就会释放 CPU 让给其他线程，既然线程 B 释放掉了 CPU，自然线程 B 加锁的代码就会被阻塞。</p>
 </li>
-<li><a href="#2">GMP协程调度器</a><ul>
-<li><a href="#2.1">调度器策略</a></li>
-<li><a href="#2.2">调度器的生命周期</a></li>
 </ul>
-</li>
-<li><a href="#3">并发</a><ul>
-<li><a href="#3.1">通道 - channel</a></li>
-<li><a href="#2.2">map</a></li>
-<li><a href="#2.3">锁</a></li>
-</ul>
-</li>
-<li><a href="#4">内存</a><ul>
-<li><a href="#4.1">CG</a></li>
-</ul>
-</li>
-<li><a href="#4">微服务之间通信方式 rpc Grpc http</a></li>
-</ul>
-<h3 id="1">基础</h3>
-
-<h3 id="3">并发 sync</h3>
-
-<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
-<h4 id="3.1">通道 - channel</h4>
-<h4 id="3.2">并发Map - sync.Map</h4>
-<h4 id="3.2">线程池 - sync.Pool</h4>
-
-<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
-<h4 id="3.3">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
-
-<p><a href="">锁系列</a></p>
-<h4 id="1.2">make和new区别 </h4>
-
+<p><img src="/images/%E4%BA%92%E6%96%A5%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="互斥锁"></p>
 <ul>
-<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
-<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
-<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
+<li><p><code>自旋锁</code>加锁失败后，线程会忙等待，直到它拿到锁；</p>
+<p>  自旋锁是通过 CPU 提供的 CAS 函数（Compare And Swap），在「用户态」完成加锁和解锁操作，不会主动产生线程上下文切换，所以相比互斥锁来说，会快一些，开销也小一些。</p>
+<p>  一般加锁的过程，包含两个步骤：</p>
+<p>  第一步，查看锁的状态，如果锁是空闲的，则执行第二步；<br>  第二步，将锁设置为当前线程持有；</p>
+<p>  CAS 函数就把这两个步骤合并成一条硬件级指令，形成原子指令，这样就保证了这两个步骤是不可分割的，要么一次性执行完两个步骤，要么两个步骤都不执行</p>
+<p>  使用自旋锁的时候，当发生多线程竞争锁的情况，加锁失败的线程会「忙等待」，直到它拿到锁。这里的「忙等待」可以用 while 循环等待实现，不过最好是使用 CPU 提供的 PAUSE 指令来实现「忙等待」，因为可以减少循环等待时的耗电量</p>
+<p>  自旋锁是最比较简单的一种锁，一直自旋，利用 CPU 周期，直到锁可用。需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU。</p>
+</li>
 </ul>
-<h4 id="1.3">数组和切片区别 </h4>
-
-<ul>
-<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
-<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
-</ul>
-<h3 id="2">GMP协程调度器</h3>
-
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>互斥锁</th>
+<th>自旋锁</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>性能开销成本</td>
+<td>当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</td>
+<td>需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU</td>
+</tr>
+</tbody></table>
+<h5 id="2-读写锁：读和写还有优先级区分"><a href="#2-读写锁：读和写还有优先级区分" class="headerlink" title="2.读写锁：读和写还有优先级区分"></a>2.读写锁：读和写还有优先级区分</h5><p>由「读锁」和「写锁」两部分构成，如果只读取共享资源用「读锁」加锁，如果要修改共享资源则用「写锁」加锁</p>
+<p>工作原理：<br>当写锁没有被线程持有时，多个线程可以并发地持有读锁，但是当写锁被线程持有后，其他线程获取读锁和写锁的操作都会阻塞</p>
 <blockquote>
-<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
+<p><code>读优先锁</code></p>
+</blockquote>
+<p><img src="/images/%E8%AF%BB%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="读优先锁"></p>
+<blockquote>
+<p><code>写优先锁</code></p>
+</blockquote>
+<p><img src="/images/%E5%86%99%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="写优先锁"></p>
+<blockquote>
+<p>但是这两种都会造成线程“饥饿”的问题，比如</p>
 <ul>
-<li>G：goroutine协程，基于协程建立的用户态线程</li>
-<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
-<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
+<li>读优先锁：一直有读线程获取读锁，那么写线程将永远获取不到，造成写线程“饥饿”。 </li>
+<li>写优先锁：如果⼀直有写线程获取写锁，读线程也会被「饿死」。</li>
 </ul>
 </blockquote>
-<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
-<h4 id="2.1"> 调度器策略 </h4>
-
-<ul>
-<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
-<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,<br><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</li>
-<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
-<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
-</ul>
-<h4 id="2.2"> 调度器的生命周期</h4> 
-
+<p>所以我们可以搞一个公平读写锁<br>公平读写锁⽐较简单的⼀种⽅式是：⽤队列把获取锁的线程排队，不管是写线程还是读线程都按照先进先出的原则加锁即可，这样读线程仍然可以并发，也不会出现「饥饿」的现象。</p>
+<h5 id="3-乐观锁与悲观锁"><a href="#3-乐观锁与悲观锁" class="headerlink" title="3.乐观锁与悲观锁"></a>3.乐观锁与悲观锁</h5><p>前面提到的互斥锁、自旋锁、读写锁，都是属于悲观锁。</p>
 <blockquote>
-<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
-<p>M0（跟进程数量绑定，一比一）：</p>
 <ul>
-<li>启动程序后编号为0的主线程</li>
-<li>在全局变量runtime.m0中，不需要在heap上分配</li>
-<li>负责执行初始化操作和启动第一个G</li>
-<li>启动第一个G之后，M0就和其他的M一样了</li>
+<li><p>悲观锁：认为多线程同时修改共享资源的概率⽐较⾼，于是很容易出现冲突，所以访问共享资源前，先要上锁。</p>
+</li>
+<li><p>前⾯提到的互斥锁、⾃旋锁、读写锁，都是属于悲观锁。</p>
+</li>
+<li><p>乐观锁：假定冲突的概率很低，它的⼯作⽅式是：先修改完共享资源，再验证这段时间内有没有发⽣冲突，如果没有其他线程在修改资源，那么操作完成，如果发现有其他线程已经修改过这个资源，就放弃本次操作。另外虽然叫锁，但是乐观锁全程并没有加锁，所以它也叫⽆锁编程。</p>
+</li>
 </ul>
-<p>G0（每个M都会有一个G0）：</p>
-<ul>
-<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
-<li>G0仅用于负责调度G</li>
-<li>G0不指向任何可执行的函数</li>
-<li>每个M都会有一个自己的G0</li>
-<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
-</ul>
-<p>M0和G0都是放在全局空间的</p>
 </blockquote>
+<p>一般会使用版本号机制或CAS算法实现</p>
+<h5 id="4-解决死锁问题"><a href="#4-解决死锁问题" class="headerlink" title="4.解决死锁问题"></a>4.解决死锁问题</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">show processlist; <span class="comment"># 只列出前100条</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#如果是root帐号，你能看到所有用户的当前连接。如果是其它普通帐号，只能看到自己占用的连接</span></span><br><span class="line">show full processlist</span><br><span class="line"></span><br><span class="line"><span class="built_in">kill</span> [<span class="built_in">id</span>] <span class="comment"># 杀进程</span></span><br></pre></td></tr></table></figure>
 
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">show status; <span class="comment"># 查看状态</span></span><br><span class="line"></span><br><span class="line">show status like <span class="string">&#x27;%下面变量%&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Aborted_clients <span class="comment"># 由于客户没有正确关闭连接已经死掉，已经放弃的连接数量。</span></span><br><span class="line">Aborted_connects <span class="comment"># 尝试已经失败的MySQL服务器的连接的次数。</span></span><br><span class="line">Connections <span class="comment"># 试图连接MySQL服务器的次数。</span></span><br><span class="line">Created_tmp_tables <span class="comment"># 当执行语句时，已经被创造了的隐含临时表的数量。</span></span><br><span class="line">Delayed_insert_threads <span class="comment"># 正在使用的延迟插入处理器线程的数量。</span></span><br><span class="line">Delayed_writes <span class="comment"># 用INSERT DELAYED写入的行数。</span></span><br><span class="line">Delayed_errors <span class="comment"># 用INSERT DELAYED写入的发生某些错误(可能重复键值)的行数。</span></span><br><span class="line">Flush_commands <span class="comment"># 执行FLUSH命令的次数。</span></span><br><span class="line">Handler_delete <span class="comment"># 请求从一张表中删除行的次数。</span></span><br><span class="line">Handler_read_first <span class="comment"># 请求读入表中第一行的次数。</span></span><br><span class="line">Handler_read_key <span class="comment"># 请求数字基于键读行。</span></span><br><span class="line">Handler_read_next <span class="comment"># 请求读入基于一个键的一行的次数。</span></span><br><span class="line">Handler_read_rnd <span class="comment"># 请求读入基于一个固定位置的一行的次数。</span></span><br><span class="line">Handler_update <span class="comment"># 请求更新表中一行的次数。</span></span><br><span class="line">Handler_write <span class="comment"># 请求向表中插入一行的次数。&lt;</span></span><br><span class="line">Key_blocks_used <span class="comment"># 用于关键字缓存的块的数量。</span></span><br><span class="line">Key_read_requests <span class="comment"># 请求从缓存读入一个键值的次数。</span></span><br><span class="line">Key_reads <span class="comment"># 从磁盘物理读入一个键值的次数。</span></span><br><span class="line">Key_write_requests <span class="comment"># 请求将一个关键字块写入缓存次数。</span></span><br><span class="line">Key_writes <span class="comment"># 将一个键值块物理写入磁盘的次数。</span></span><br><span class="line">Max_used_connections <span class="comment"># 同时使用的连接的最大数目。</span></span><br><span class="line">Not_flushed_key_blocks <span class="comment"># 在键缓存中已经改变但是还没被清空到磁盘上的键块</span></span><br><span class="line">Not_flushed_delayed_rows <span class="comment"># 在INSERT DELAY队列中等待写入的行的数量。</span></span><br><span class="line">Open_tables <span class="comment"># 打开表的数量。</span></span><br><span class="line">Open_files <span class="comment"># 打开文件的数量。</span></span><br><span class="line">Open_streams <span class="comment"># 打开流的数量(主要用于日志记载）</span></span><br><span class="line">Opened_tables <span class="comment"># 已经打开的表的数量。</span></span><br><span class="line">Questions <span class="comment"># 发往服务器的查询的数量。</span></span><br><span class="line">Slow_queries <span class="comment"># 要花超过long_query_time时间的查询数量。</span></span><br><span class="line">Threads_connected <span class="comment"># 当前打开的连接的数量。</span></span><br><span class="line">Threads_running <span class="comment"># 不在睡眠的线程数量。</span></span><br><span class="line">Uptime <span class="comment"># 服务器工作了多少秒。</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
         </div>
     
 
@@ -383,19 +433,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2024/12/20/php-interview/">PHP 面试题</a>
+                <a class="footer-post" href="/2024/12/22/mysql-migrate-main-sub/">Mysql-数据迁移-主从</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/20/raspberry-pi/">Raspberry Pi 树莓派</a>
+                <a class="footer-post" href="/2024/12/22/mysql-migrate/">Mysql-数据迁移-基础篇</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/20/shell/">Bash</a>
+                <a class="footer-post" href="/2024/12/22/mysql/">Mysql-basic</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/20/springboot/">Springboot</a>
+                <a class="footer-post" href="/2024/12/22/natcat/">Natcat</a>
             </li>
             
         </ul>
@@ -487,7 +537,7 @@
                     
                     
                     <li class="list-inline-item">
-                        <a target="_blank" rel="noopener" href="https://www.behance.net/HRyingjie">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
                             <span class="footer-icon-container">
                                 <i class="fa fa-behance"></i>
                             </span>
@@ -540,12 +590,6 @@
 <!-- Custom JavaScript -->
 
 <script src="/js/main.js"></script>
-
-
-<!-- Searching -->
-<script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-
-<script src="/js/search.js"></script>
 
 
 <!-- Disqus Comments -->

@@ -75,7 +75,6 @@ var alphaDust = function () {
         TweenLite.to('.search-container', 1, {padding: '0 40px'});
         TweenLite.to('.search-bg', 1, {opacity: '0.92'});
         var path = "/search.xml";
-        searchFunc(path, 'local-search-input', 'local-search-result');
         _searchOn = true;
         _menuOn = false;
         
