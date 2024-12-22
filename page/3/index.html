@@ -169,312 +169,6 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/mysql/">
-                Mysql-basic
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>文章</p>
-<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><h3 id="常用mysql语句"><a href="#常用mysql语句" class="headerlink" title="常用mysql语句"></a>常用mysql语句</h3><ul>
-<li><p>添加字段</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE <span class="built_in">users</span></span><br><span class="line">ADD COLUMN username VARCHAR(255);</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>所有字段更新</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UPDATE  <span class="built_in">users</span> SET role_id=<span class="string">&quot;1&quot;</span>;</span><br><span class="line"><span class="comment">##更新部分字段</span></span><br><span class="line"><span class="built_in">where</span> XXX</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>批量替换   旧的 -》新的</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UPDATE your_table</span><br><span class="line">SET your_column = REPLACE(your_column, <span class="string">&#x27;http://107.148.73.24:83/uploads/tool/202409/&#x27;</span>, <span class="string">&#x27;http://aaa.com/uploads/tool/202409/&#x27;</span>);</span><br></pre></td></tr></table></figure></li>
-</ul>
-<h3 id="mysql-删除重复记录-去重"><a href="#mysql-删除重复记录-去重" class="headerlink" title="mysql 删除重复记录 去重"></a>mysql 删除重复记录 去重</h3><p>peopleId 去重</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">DELETE </span><br><span class="line">FROM </span><br><span class="line">    people </span><br><span class="line">WHERE </span><br><span class="line">    peopleId IN (</span><br><span class="line">		SELECT	</span><br><span class="line">            peopleId </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY </span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">	)</span><br><span class="line">AND </span><br><span class="line">    rowid </span><br><span class="line">    NOT IN ( </span><br><span class="line">        SELECT </span><br><span class="line">            min(rowid) </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY	</span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DELETE</span><br><span class="line">FROM</span><br><span class="line">	user</span><br><span class="line">WHERE</span><br><span class="line">	<span class="built_in">id</span> NOT IN (</span><br><span class="line">SELECT <span class="built_in">id</span> FROM (</span><br><span class="line">		SELECT</span><br><span class="line">			MAX(<span class="built_in">id</span>) AS <span class="built_in">id</span></span><br><span class="line">		FROM</span><br><span class="line">			user</span><br><span class="line">		GROUP BY</span><br><span class="line">			username</span><br><span class="line">	) AS d</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="数据二进制备份-binlog"><a href="#数据二进制备份-binlog" class="headerlink" title="数据二进制备份 binlog"></a>数据二进制备份 binlog</h3><p> binlog，也称为二进制日志，记录对数据发生或潜在发生更改的SQL语句，并以二进制的形式保存在磁盘中，可以用来查看数据库的变更历史（具体的时间点所有的SQL操作）、数据库增量备份和恢复（增量备份和基于时间点的恢复）、Mysql的复制（主主数据库的复制、主从数据库的复制）。</p>
-<ul>
-<li><p>查看是否开启binlog</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like <span class="string">&#x27;%bin%&#x27;</span>  </span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>开启binlog<br>只需要打开mysql的配置文件my.ini（也可能是my.cnf），找到log-bin</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log-bin=mysql-bin </span><br></pre></td></tr></table></figure>
-</li>
-<li><p>mysqlbinlog 导入二进制binlog文件</p>
-</li>
-</ul>
-<h3 id="数据备份"><a href="#数据备份" class="headerlink" title="数据备份"></a>数据备份</h3><p>mysqldump 只适用于数据备份 选择性的（加条件）数据不能使用<br>只能用 excel 进行 数据插入</p>
-<ul>
-<li><p>选择性导出 (加条件)<br>mysqldump -u root -p heitang post –where&#x3D;”id &gt; 14192” &gt; post.sql</p>
-<ul>
-<li>{heitang} 数据库名</li>
-<li>{post} table</li>
-<li>–where&#x3D;”id &gt; 14192” 条件</li>
-<li>post.sql 导出sql</li>
-</ul>
-</li>
-<li><p>excel<br>SELECT name, age, email INTO OUTFILE ‘&#x2F;path&#x2F;to&#x2F;output.csv’<br>FIELDS TERMINATED BY ‘,’<br>ENCLOSED BY ‘“‘<br>LINES TERMINATED BY ‘\n’<br>FROM users;</p>
-</li>
-<li><p>数据误update 数据没了</p>
-</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/12/22/nmap/">
-                NMAP
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id=""><a href="#" class="headerlink" title=""></a></h2><h3 id="快速扫描"><a href="#快速扫描" class="headerlink" title="快速扫描"></a>快速扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##  默认发送一个arp的ping数据包 默认1-10000端口</span></span><br><span class="line">nmap 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 多个目标</span></span><br><span class="line">nmap 192.168.9.167 192.168.9.168 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口扫描 3389 20-200端口</span></span><br><span class="line">nmap -p 3389，20-200 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描除了指定ip外（192.168.9.168）或者txt</span></span><br><span class="line">nmap 192.168.9.1/24 -exclude 192.168.9.168</span><br><span class="line">nmap 192.168.9.1/24 -excludefile XXX.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 显示扫描 所有主机列表</span></span><br><span class="line">nmap -sL 192.168.9.1/24 </span><br></pre></td></tr></table></figure>
-
-<h3 id="特殊扫描"><a href="#特殊扫描" class="headerlink" title="特殊扫描"></a>特殊扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 类似于win/linxu ping方式扫描</span></span><br><span class="line">nmap -sP 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## SYN 不会再目标主机上产生任何日志记录</span></span><br><span class="line">nmap -sT 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## UDP </span></span><br><span class="line">nmap -sD 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## FIN标志</span></span><br><span class="line">nmap -sF 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## version 版本扫描</span></span><br><span class="line">nmap -sV 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS 操作系统探测</span></span><br><span class="line">nmap -O 192.168.1.1-255</span><br></pre></td></tr></table></figure>
-
-<h3 id="扫描格式"><a href="#扫描格式" class="headerlink" title="扫描格式"></a>扫描格式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## —T 设置时间</span></span><br><span class="line"><span class="comment"># 0 paranoid 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 1 sneakys 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 2 polite 降低扫描速度减少带宽和目标主机资源</span></span><br><span class="line"><span class="comment"># 3 normal 默认</span></span><br><span class="line"><span class="comment"># 4 aggressive 用户在网速极高的守候可用于快速扫描</span></span><br><span class="line"><span class="comment"># 5 nsane 特别快的网络为获取速度愿意牺牲准确性</span></span><br><span class="line">nmap -sS —T&lt;0-5&gt; 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 网段格式</span></span><br><span class="line"><span class="comment"># CIDR 子网掩码</span></span><br><span class="line"><span class="comment"># /24 C段  192.168.1.0/24 == 192.168.1.1 - 192.168.1.255</span></span><br><span class="line"><span class="comment"># /16 B段  192.168.1.0/16 == 192.168.1.1 - 192.1.255.255</span></span><br><span class="line"><span class="comment"># /8 A段  192.168.1.0/8 == 192.168.1.1 - 192.255.255.255</span></span><br><span class="line">nmap -sP 192.168.1.0/24</span><br><span class="line"></span><br><span class="line"><span class="comment">## 从文件中读取扫描IP列表</span></span><br><span class="line">$ <span class="built_in">cat</span> gg.txt</span><br><span class="line">192.168.1.1</span><br><span class="line">192.168.1.2</span><br><span class="line"></span><br><span class="line">nmap -iL gg.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 路由跟踪</span></span><br><span class="line">nmap -traceroute www.baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS版本探测</span></span><br><span class="line">nmap -A 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 混合扫描</span></span><br><span class="line">nmap -vv -p 100,3306,5000-5100 -O -traceroute 192.168.1.1</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
-
-<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
-
-<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/12/22/natcat/">
-                Natcat
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>nc是netcat的简写，有着网络界的瑞士军刀美誉。因为它短小精悍、功能实用，被设计为一个简单、可靠的网络工具。 </p>
-<ul>
-<li>端口扫描工具， </li>
-<li>安全工具， </li>
-<li>监测工具， </li>
-<li>甚至可以做为一个简单的 TCP 代理</li>
-</ul>
-<h2 id="NC"><a href="#NC" class="headerlink" title="NC"></a>NC</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h2 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h2><ul>
-<li>正向连接 - 机器开放端口并可以主动连接目标机器端口 远程桌面、web服务、ssh、telnet等等都是正向连接</li>
-<li>反向连接 - 攻击者指定服务端，受害者主机主动连接攻击者的服务端程序</li>
-</ul>
-<p>反弹shell的方式有很多，那具体要用哪种方式还需要根据目标主机的环境来确定，比如目标主机上如果安装有netcat，那我们就可以利用netcat反弹shell，如果具有python环境，那我们可以利用python反弹shell。如果具有php环境，那我们可以利用php反弹shell。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/12/22/ollama/">
-                Ollama
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/AI/">AI</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p><code>Ollama</code> 是一个基于 Go 语言开发的简单易用的本地大语言模型运行框架。<br>适用于macOS，Linux，Window，也可使用Docker</p>
-<p>模型管理 ：</p>
-<ul>
-<li><code>ollama list</code> 显示模型列表。</li>
-<li><code>ollama show</code> 显示模型的信息</li>
-<li><code>ollama pull</code> 拉取模型</li>
-<li><code>ollama push</code> 推送模型</li>
-<li><code>ollama cp</code>   拷贝一个模型</li>
-<li><code>ollama rm</code>   删除一个模型</li>
-<li><code>ollama run</code>  运行一个模型</li>
-</ul>
-<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h3 id="下载并使用模型"><a href="#下载并使用模型" class="headerlink" title="下载并使用模型"></a>下载并使用模型</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ollama pull llama3.2 <span class="comment">#下载模型</span></span><br><span class="line">ollama run llama3.2 <span class="comment">#运行模型</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="WebUI-可视化交互"><a href="#WebUI-可视化交互" class="headerlink" title="WebUI 可视化交互"></a><a href="git">WebUI 可视化交互</a></h3><h2 id="微调-改进接近ChatGPT"><a href="#微调-改进接近ChatGPT" class="headerlink" title="微调 - 改进接近ChatGPT"></a>微调 - 改进接近ChatGPT</h2><blockquote>
-<p>本机微调<br>docker 微调</p>
-</blockquote>
-<p>芯片训练（GPU CPU NPU）<br>mac m1 比较特殊 用的是mps来进行训练</p>
-<ul>
-<li><p><a target="_blank" rel="noopener" href="https://github.com/0rz33/LLAMA-Factory">llama_factory安装</a></p>
-</li>
-<li><p>llama_factory 运行 </p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入llama_factory docker exec</span></span><br><span class="line">llamafactory-cli <span class="built_in">help</span>  <span class="comment">## 显示帮助信息。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## LLaMA Board 可视化微调</span></span><br><span class="line">llamafactory-cli webui</span><br></pre></td></tr></table></figure></li>
-<li><p>训练模型</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 一般会到huggingface里面注册账户 进行训练</span></span><br><span class="line"><span class="comment">## 里面有很多大容量数据 可以提供训练</span></span><br><span class="line"><span class="comment">## 训练前先登录</span></span><br><span class="line">login </span><br></pre></td></tr></table></figure>
-</li>
-<li><p>申请数据接口和模型<br><img src="/images/llama-factory-access.png"></p>
-</li>
-<li><p>开始训练模型<br><img src="/images/llama-factory-training-1.png"><br><img src="/images/llama-factory-training-2.png"><br><img src="/images/llama-factory-training-3.png"><br><img src="/images/llama-factory-training-4.png"></p>
-</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://www.53ai.com/news/qianyanjishu/2015.html">https://www.53ai.com/news/qianyanjishu/2015.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/shanren/p/18251730">https://www.cnblogs.com/shanren/p/18251730</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/12/22/android/">
-                Android初探
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Android/">Android</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>文章</p>
-<h2 id="安卓学习"><a href="#安卓学习" class="headerlink" title="安卓学习"></a>安卓学习</h2><h3 id="安卓流程"><a href="#安卓流程" class="headerlink" title="安卓流程"></a>安卓流程</h3><p>1 启动活动 根据 此目录来定</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity android:name=<span class="string">&quot;.MainActivity&quot;</span>&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=<span class="string">&quot;android.intent.action.MAIN&quot;</span> /&gt;</span><br><span class="line">        &lt;category android:name=<span class="string">&quot;android.intent.category.LAUNCHER&quot;</span> /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
-
-<p>2 活动生命周期</p>
-<p>MainActivity 的生命周期方法依次被调用：<br>    onCreate(): 初始化。<br>    onStart(): 准备显示。<br>    onResume(): 变为可交互状态。<br>用户与活动交互后，可能会触发其他活动的启动。</p>
-<p>4 导航<br>在 MainActivity 中，可以通过 Intent 启动其他活动</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = new Intent(this, SecondActivity.class);</span><br><span class="line">startActivity(intent);</span><br></pre></td></tr></table></figure>
-
-<p>5 其他组件</p>
-<p>应用还可以包含其他组件，如 Service（用于后台任务）、BroadcastReceiver（处理广播）和 ContentProvider（数据共享）</p>
-<p>6 退出应用</p>
-<p>当活动关闭或用户手动退出时，应用的进程可能会被系统终止。此时，onPause()、onStop() 和 onDestroy() 方法依次被调用。</p>
-<p>整个流程可以概括为：用户启动应用 → 系统加载启动活动 → 进入活动生命周期 → 用户交互并导航到其他活动 → 退出应用。理解这一流程有助于你设计用户体验和管理应用状态。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/12/22/burp-suite/">
-                Burp Suite
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p>Burp Suite是一款集成化的渗透测试工具，包含了很多功能，可以帮助我们快速完成对web应用程序的渗透测试和攻击。Burp Suite是由Java语言编写，因为Java是可以跨平台的，所以Burp Suite也是跨平台的，支持windows、linux、mac。</p>
-<h3 id="安装pro（Mac）"><a href="#安装pro（Mac）" class="headerlink" title="安装pro（Mac）"></a>安装pro（Mac）</h3><ul>
-<li><p><a href="/source/BurpLoaderKeygen.jar">下载注册机&amp;启动器二合一版本</a></p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases">官网下载地址：</a><br><a target="_blank" rel="noopener" href="https://portswigger.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsx">Intel版本</a><br><a target="_blank" rel="noopener" href="https://portswigger-cdn.net/burp/releases/download?product=pro&version=2023.10.2.1&type=MacOsArm64">M1版本</a></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入burpsuite Pro.app里的Contents</span></span><br><span class="line"><span class="built_in">cd</span> /Applications/Burp Suite Professional.app/Contents</span><br><span class="line"></span><br><span class="line"><span class="comment">## 编辑vmoptions.txt 追加内容</span></span><br><span class="line">--add-opens=java.base/java.lang=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED</span><br><span class="line">--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED</span><br><span class="line">-javaagent:BurpLoaderKeygen.jar</span><br><span class="line">-noverify</span><br><span class="line"></span><br><span class="line"><span class="comment">## 启动器BurpLoaderKeygen.jar移动到当前app目录</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>双击运行BurpLoaderKeygen.jar</p>
-</li>
-<li><p>运行&#96;</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java&quot;</span> <span class="string">&quot;--add-opens=java.desktop/javax.swing=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/java.lang=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED&quot;</span> <span class="string">&quot;--add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED&quot;</span> <span class="string">&quot;-javaagent:/Applications/BurpLoaderKeygen.jar&quot;</span> <span class="string">&quot;-noverify&quot;</span> <span class="string">&quot;-jar&quot;</span> <span class="string">&quot;/Applications/Burp Suite Professional.app/Contents/Resources/app/burpsuite_pro.jar&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="代理"><a href="#代理" class="headerlink" title="代理"></a>代理</h3><p>cacert.der</p>
-<h3 id="功能介绍"><a href="#功能介绍" class="headerlink" title="功能介绍"></a>功能介绍</h3><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p><a target="_blank" rel="noopener" href="https://t0data.gitbooks.io/burpsuite/content/chapter7.html">https://t0data.gitbooks.io/burpsuite/content/chapter7.html</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
             <a href="/2024/12/22/darkweb/">
                 darkweb
             </a>
@@ -780,6 +474,557 @@
 
 </div>
             
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/12/22/golang-interview/">
+                GOLANG 面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-12-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#1">基础</a><ul>
+<li><a href="#1.1">进程、线程、Goroutine(协程)区别</a></li>
+<li><a href="#1.2">make和new区别</a></li>
+<li><a href="#1.3">数组和切片区别</a></li>
+</ul>
+</li>
+<li><a href="#2">GMP协程调度器</a><ul>
+<li><a href="#2.1">调度器策略</a></li>
+<li><a href="#2.2">调度器的生命周期</a></li>
+</ul>
+</li>
+<li><a href="#3">并发 sync</a><ul>
+<li><a href="#3.1">通道 - channel</a></li>
+<li><a href="#3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</a></li>
+<li><a href="#3.3">并发Map - sync.Map</a></li>
+<li><a href="#3.4">线程池 - sync.Pool</a></li>
+</ul>
+</li>
+<li><a href="#4">内存</a><ul>
+<li><a href="#4.1">CG</a></li>
+</ul>
+</li>
+<li><a href="#4">微服务之间通信方式 rpc Grpc http</a></li>
+</ul>
+<h3 id="1">基础</h3>
+
+
+<p><a href="">锁系列</a></p>
+<h4 id="1.1"> 进程、线程、Goroutine(协程)区别 </h4>
+
+<ul>
+<li><em><strong>进程</strong></em> - 直观点说，保存在硬盘上的程序运行之后，会在内存空间里形成一个独立的内存体，这个内存体有自己独立的地址空间，有自己的堆，上级挂靠单位是操作系统。</li>
+<li><em><strong>线程</strong></em> - 轻量级进程（LightWeight Process，LWP），是操作系统调度（CPU调度）执行的最小单位。</li>
+<li><em><strong>协程</strong></em> - 比线程更轻量级的存在，协程完全由程序控制</li>
+</ul>
+<h4 id="1.2">make和new区别 </h4>
+
+<ul>
+<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
+<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
+<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
+</ul>
+<h4 id="1.3">数组和切片区别 </h4>
+
+<ul>
+<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
+<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
+</ul>
+<h3 id="2">GMP协程调度器</h3>
+
+<blockquote>
+<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
+<ul>
+<li>G：goroutine协程，基于协程建立的用户态线程</li>
+<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
+<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
+</ul>
+</blockquote>
+<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
+<h4 id="2.1"> 调度器策略 </h4>
+
+<ul>
+<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
+<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,<br><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</li>
+<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
+<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
+</ul>
+<h4 id="2.2"> 调度器的生命周期</h4> 
+
+<blockquote>
+<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
+<p>M0（跟进程数量绑定，一比一）：</p>
+<ul>
+<li>启动程序后编号为0的主线程</li>
+<li>在全局变量runtime.m0中，不需要在heap上分配</li>
+<li>负责执行初始化操作和启动第一个G</li>
+<li>启动第一个G之后，M0就和其他的M一样了</li>
+</ul>
+<p>G0（每个M都会有一个G0）：</p>
+<ul>
+<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
+<li>G0仅用于负责调度G</li>
+<li>G0不指向任何可执行的函数</li>
+<li>每个M都会有一个自己的G0</li>
+<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
+</ul>
+<p>M0和G0都是放在全局空间的</p>
+</blockquote>
+<h3 id="3">并发 sync</h3>
+
+<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
+<h4 id="3.1">通道 - channel</h4>
+
+<p>每个通道都有一个锁和一个读写队列，当多个协程同时向通道写入数据或者从通道读取数据时，只有一个协程能够获取到锁进行读写操作，其他协程则会被阻塞直到获得锁</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// 发送方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      ch &lt;- 1</span><br><span class="line">   &#125;()</span><br><span class="line">   // 接收方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      num := &lt;-ch</span><br><span class="line">      fmt.Println(num)</span><br><span class="line">   &#125;()</span><br></pre></td></tr></table></figure>
+
+<p>channel 死锁的场景和原因浅析<br>锁死场景</p>
+<ul>
+<li>没有缓冲区的时候，单协程内通道同时写和读</li>
+<li>无缓冲区的时候，通道输入数据早于接收方的协程开启</li>
+<li>没有数据的channel里拿数据引起的死锁</li>
+</ul>
+<p>解决方案</p>
+<ul>
+<li>做缓冲通道 -》 缓冲通道可以用cap()测试出来</li>
+<li>解决多值发送死锁 循环接收</li>
+</ul>
+<h4 id="3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
+
+<ul>
+<li>Mutex只允许一个goroutine同时获得锁，适用于需要频繁修改共享资源的场景；</li>
+<li>RWMutex允许多个goroutine同时获得读锁，但只允许一个goroutine获得写锁，适用于需要频繁读取共享资源的场景</li>
+</ul>
+<h4 id="3.3">并发Map - sync.Map</h4>
+
+
+
+
+<h4 id="3.4">线程池 - sync.Pool</h4>
+
+
+<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/12/22/hexo/">
+                hexo
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-12-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Blog/">Blog</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>hexo + github 自动部署，解决index.html不更新问题</p>
+<h2 id="hexo-github-自动部署"><a href="#hexo-github-自动部署" class="headerlink" title="hexo + github 自动部署"></a>hexo + github 自动部署</h2><h3 id="创建-Hexo-项目-（ndoejs环境）"><a href="#创建-Hexo-项目-（ndoejs环境）" class="headerlink" title="创建 Hexo 项目 （ndoejs环境）"></a>创建 Hexo 项目 （ndoejs环境）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> blog</span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init</span><br><span class="line">hexo s //预览blog</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建-username-github-io-仓库"><a href="#创建-username-github-io-仓库" class="headerlink" title="创建 {username}.github.io 仓库"></a>创建 {username}.github.io 仓库</h3><ul>
+<li>创建个人访问令牌（Personal Access Token） – blog项目</li>
+</ul>
+<p>1 点击右上角头像 -&gt; 打开 Settings -&gt; 左边栏滚到最后找到 Develop Setting 打开，如图<br><img src="/images/personal-access-token.png"></p>
+<p>2 找到 Personal Access Token 点击 Tokens（classic） -&gt; 选择 Generate new token (classic) ，如图<br><img src="/images/personal-access-tokens-click.png"></p>
+<p>3 给令牌起个名字并且勾选红框中的 repo 的访问权限，然后点击生成 token（注意： 确保复制并安全地保存这个令牌。GitHub 不会再次显示这个令牌，所以这是你唯一的机会复制它），如图<br><img src="/images/new-personal-access-token-1.png"></p>
+<p>4 将生成的 PAT 添加到你的博客源代码仓库的 Secrets，名字填入 PERSONAL_TOKEN 后面会用到这个变量名，如图<br><img src="/images/personal-access-secret.png"></p>
+<ul>
+<li>创建.github&#x2F;workflow 自动化部署 – blog项目 page.yml</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy Hexo to GitHub Pages</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - main <span class="comment"># 或你使用的默认分支名称</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line"></span><br><span class="line">    steps:</span><br><span class="line">      - name: Checkout blog <span class="built_in">source</span></span><br><span class="line">        uses: actions/checkout@v4  <span class="comment">#git升级为v4 这样可以解决index.html不更新问题</span></span><br><span class="line">        with:</span><br><span class="line">          submodules: recursive</span><br><span class="line"></span><br><span class="line">      - name: Set up Node.js</span><br><span class="line">        uses: actions/setup-node@v1</span><br><span class="line">        with:</span><br><span class="line">          node-version: <span class="string">&quot;21&quot;</span> <span class="comment"># 设置 Node.js 版本</span></span><br><span class="line"></span><br><span class="line">      - name: Cache dependencies</span><br><span class="line">        uses: actions/cache@v2</span><br><span class="line">        with:</span><br><span class="line">          path: node_modules</span><br><span class="line">          key: <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-<span class="variable">$&#123;&#123; hashFiles(&#x27;**/package-lock.json&#x27;) &#125;</span>&#125;</span><br><span class="line">          restore-keys: |</span><br><span class="line">            <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-</span><br><span class="line"></span><br><span class="line">      - name: Install dependencies</span><br><span class="line">        run: npm install</span><br><span class="line"></span><br><span class="line">      - name: Install Hexo CLI</span><br><span class="line">        run: npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line">      - name: Generate static pages</span><br><span class="line">        run: hexo clean &amp;&amp; hexo generate --output ./public</span><br><span class="line"></span><br><span class="line">      - name: Deploy to GitHub Pages</span><br><span class="line">        uses: peaceiris/actions-gh-pages@v3</span><br><span class="line">        with:</span><br><span class="line">          personal_token: <span class="variable">$&#123;&#123; secrets.PERSONAL_TOKEN &#125;</span>&#125;</span><br><span class="line">          publish_dir: ./public</span><br><span class="line">          external_repository: 0rz33/0rz33.github.io <span class="comment"># 更改为你的 GitHub Pages 仓库, username 是你的用户名</span></span><br><span class="line">          publish_branch: main <span class="comment"># GitHub Pages 分支  </span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="username-github-io-page页面设置"><a href="#username-github-io-page页面设置" class="headerlink" title="{username}.github.io page页面设置"></a>{username}.github.io page页面设置</h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/12/22/java-interview/">
+                JAVA 面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-12-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>四种幂等性解决方案？<br>straem</p>
+<ul>
+<li><a href="#1">基础</a><ul>
+<li><a href="#1.1">JVM、JDK、JRE三者关系</a></li>
+<li><a href="#1.2">final、finally、finalize 的区别</a></li>
+<li><a href="#1.3">深拷贝和浅拷贝的区别</a></li>
+<li><a href="#1.3">BIO、NIO、AIO 之间的区别</a></li>
+<li><a href="#1.3">泛型，类型擦除，常用的通配符</a></li>
+<li><a href="#1.3">loC，DI，AOP</a></li>
+</ul>
+</li>
+<li><a href="#2">集合框架</a><ul>
+<li><a href="#2.1">ArrayList 和 LinkedList 的区别</a></li>
+<li><a href="#2.2">TreeMap 和 HashMap 的区别</a></li>
+</ul>
+</li>
+<li><a href="#3">并发</a><ul>
+<li><a href="#3.1">并行跟并发区别</a></li>
+<li><a href="#2.2">sleep和wait的区别</a></li>
+<li><a href="#2.3"></a></li>
+</ul>
+</li>
+<li><a href="#4">内存</a><ul>
+<li><a href="#4.1">CG</a></li>
+</ul>
+</li>
+<li><a href="#4">微服务之间通信方式 rpc Grpc http</a></li>
+</ul>
+<h3 id="1">基础</h3>
+
+<h3 id="3">并发 sync</h3>
+
+<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
+<h4 id="3.1">通道 - channel</h4>
+<h4 id="3.2">并发Map - sync.Map</h4>
+<h4 id="3.2">线程池 - sync.Pool</h4>
+
+<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
+<h4 id="3.3">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
+
+<p><a href="">锁系列</a></p>
+<h4 id="1.2">make和new区别 </h4>
+
+<ul>
+<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
+<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
+<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
+</ul>
+<h4 id="1.3">数组和切片区别 </h4>
+
+<ul>
+<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
+<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
+</ul>
+<h3 id="2">GMP协程调度器</h3>
+
+<blockquote>
+<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
+<ul>
+<li>G：goroutine协程，基于协程建立的用户态线程</li>
+<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
+<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
+</ul>
+</blockquote>
+<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
+<h4 id="2.1"> 调度器策略 </h4>
+
+<ul>
+<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
+<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,<br><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</li>
+<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
+<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
+</ul>
+<h4 id="2.2"> 调度器的生命周期</h4> 
+
+<blockquote>
+<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
+<p>M0（跟进程数量绑定，一比一）：</p>
+<ul>
+<li>启动程序后编号为0的主线程</li>
+<li>在全局变量runtime.m0中，不需要在heap上分配</li>
+<li>负责执行初始化操作和启动第一个G</li>
+<li>启动第一个G之后，M0就和其他的M一样了</li>
+</ul>
+<p>G0（每个M都会有一个G0）：</p>
+<ul>
+<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
+<li>G0仅用于负责调度G</li>
+<li>G0不指向任何可执行的函数</li>
+<li>每个M都会有一个自己的G0</li>
+<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
+</ul>
+<p>M0和G0都是放在全局空间的</p>
+</blockquote>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/12/22/k8s-basic/">
+                K8S
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-12-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><ul>
+<li>复制控制器（Replication Controller，RC）</li>
+<li>副本集（Replica Set，RS）</li>
+<li>部署(Deployment)</li>
+<li>服务（Service）</li>
+<li>任务（Job）</li>
+<li>存储卷（Volume） 持久存储卷（Persistent Volume，PV）持久存储卷声明（Persistent Volume Claim，PVC）</li>
+<li>节点（Node）</li>
+<li>用户帐户（User Account）服务帐户（Service Account）名字空间（Namespace）</li>
+</ul>
+<h3 id="Deployment-Service-Pod-之间的关系"><a href="#Deployment-Service-Pod-之间的关系" class="headerlink" title="Deployment Service Pod 之间的关系"></a>Deployment Service Pod 之间的关系</h3><ul>
+<li>Deployment 是 k8s 中用来管理一组 Pod 副本的控制器。它定义了应用的期望状态，例如应该运行多少个 Pod 副本以及使用的容器镜像<ul>
+<li>管理 Pod 的创建、删除和更新。</li>
+<li>支持回滚到以前的版本。</li>
+<li>提供滚动更新机制，以无中断地部署新版本。</li>
+</ul>
+</li>
+<li>Pod 是 k8s 中最小的可部署单元，通常由一个或多个容器组成。Pod 共享存储和网络资源，并指定容器的运行方式。<ul>
+<li>承载应用程序的运行时环境。</li>
+<li>提供共享存储卷和网络地址。</li>
+</ul>
+</li>
+<li>Service 是 k8s 中的一个抽象层，用于定义一组 Pod 的网络服务。它为一组 Pod 提供负载均衡和服务发现功能。<ul>
+<li>为 Pod 提供一个稳定的网络端点（IP 地址或 DNS 名称），即使 Pod 重启或被替换也保持不变。</li>
+<li>通过标签选择器匹配一组 Pod，并在这些 Pod 之间进行负载均衡。</li>
+</ul>
+</li>
+</ul>
+<p>关系</p>
+<ul>
+<li>Deployment -&gt; Pod：Deployment 管理一组 Pod 的生命周期，确保始终有指定数量的 Pod 副本在运行。</li>
+<li>Service -&gt; Pod：Service 使用标签选择器来匹配 Pod，并为这些 Pod 提供负载均衡和服务发现功能。即使 Pod 被重新调度或替换，Service 仍然可以确保请求被路由到正确的 Pod。</li>
+</ul>
+<h3 id="StatefulSet和Deployment的区别"><a href="#StatefulSet和Deployment的区别" class="headerlink" title="StatefulSet和Deployment的区别"></a>StatefulSet和Deployment的区别</h3><p>“Deployment用于部署无状态服务，StatefulSet用来部署有状态服务”</p>
+<h3 id="查看状态"><a href="#查看状态" class="headerlink" title="查看状态"></a>查看状态</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://blog.laoda.de/archives/docker-issues</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">## 进入pod 容器里面</span></span><br><span class="line">kubectl <span class="built_in">exec</span> -it zk-5959d76d9b-xbmmw -n work  -- /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除 pod </span></span><br><span class="line">delete pod zk-5959d76d9b-zsvxf -n work</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="存储方案-文件挂在"><a href="#存储方案-文件挂在" class="headerlink" title="存储方案 (文件挂在)"></a>存储方案 (文件挂在)</h3><ul>
+<li>pv 持久卷 (PersistentVolume) 和一半volume一样</li>
+<li>pvc 持久卷申领（PersistentVolumeClaim) 消耗pv资源，以来pv</li>
+<li>StorageClass</li>
+</ul>
+<p>helm</p>
+<p>排错</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/12/22/lang-version/">
+                语言版本控制管理
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-12-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/研发工具/">研发工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="语言版本控制管理"><a href="#语言版本控制管理" class="headerlink" title="语言版本控制管理"></a>语言版本控制管理</h2><h3 id="nodejs-nvm"><a href="#nodejs-nvm" class="headerlink" title="nodejs -&gt; nvm"></a>nodejs -&gt; nvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nvm list available  <span class="comment"># 显示所有可下载的版本</span></span><br><span class="line"></span><br><span class="line">nvm install 11.13.0 <span class="comment"># 安装11.13.0版本</span></span><br><span class="line"></span><br><span class="line">nvm use 11.13.0 <span class="comment"># 使用当前版本</span></span><br></pre></td></tr></table></figure>
+<p>提示！~查看npm包是否有了</p>
+<h3 id="python-pyvm"><a href="#python-pyvm" class="headerlink" title="python -&gt; pyvm"></a>python -&gt; pyvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="docker-版本管理-开发更方便"><a href="#docker-版本管理-开发更方便" class="headerlink" title="docker 版本管理 开发更方便"></a>docker 版本管理 开发更方便</h3><blockquote>
+<p>golang</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>java</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>php</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2024/12/22/linux/">
+                Linux
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2024-12-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#1">系统管理及ICP资源管理 (uname hostnamectl getconf uname sar arch date ipcs ulimit)</a></li>
+<li><a href="#2">文件及目录管理 (cat less tail find grep sed awk)</a></li>
+<li><a href="#3">管道 |</a></li>
+<li><a href="#4">远程拷贝 (scp tar zip unzip gzip gunzip bzip bunzip)</a></li>
+<li><a href="#5">磁盘管理 (df du)</a></li>
+<li><a href="#6">进程管理 (ps top pgrep kill lsof pmap)</a></li>
+<li><a href="#7">性能监控 (top sar free watch)</a></li>
+<li><a href="#8">网络工具 (netstat lsof route ping host wget sftp scp)</a></li>
+<li><a href="#9">用户管理 (useradd passwd userdel usermod chmod chown .bashrc .bash_profile)</a></li>
+<li><a href="#10">防火墙 ()</a></li>
+</ul>
+<h2 id="Linux-常用基本命令"><a href="#Linux-常用基本命令" class="headerlink" title="Linux 常用基本命令"></a>Linux 常用基本命令</h2><h3 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h3><h4 id="1">系统管理及ICP资源管理</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看 Linux内核 版本命令</span></span><br><span class="line"><span class="built_in">cat</span> /proc/version</span><br><span class="line"><span class="built_in">uname</span> -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 Linux系统 版本的命令</span></span><br><span class="line">lsb_release -a  <span class="comment"># RedHat、SUSE、Debian…等发行版</span></span><br><span class="line"><span class="built_in">cat</span> /etc/redhat-release <span class="comment"># 只适合Redhat系的Linux</span></span><br><span class="line"><span class="built_in">cat</span> /etc/issue <span class="comment"># 此命令也适用于所有的Linux发行版</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">hostnamectl</span><br><span class="line">hostnamectl | grep -i kernel</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扩展</span></span><br><span class="line"><span class="comment"># 查看 CUP信息  包括型号 主频 内核等等</span></span><br><span class="line"><span class="built_in">cat</span> /proc/cpuinfo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看CPU的核的个数:</span></span><br><span class="line"><span class="built_in">cat</span> /proc/cpuinfo | grep processor | <span class="built_in">wc</span> -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看内存信息</span></span><br><span class="line"><span class="built_in">cat</span> /proc/meminfo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看CUP架构</span></span><br><span class="line">getconf LONG_BIT</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示架构</span></span><br><span class="line"><span class="built_in">arch</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ICP资源管理 ###</span></span><br><span class="line"><span class="comment">#查看系统使用的IPC资源</span></span><br><span class="line">ipcs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看系统使用的IPC共享内存资源</span></span><br><span class="line">ipcs -m</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看系统使用的IPC队列资源</span></span><br><span class="line">ipcs -q</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看系统使用的IPC信号量资源</span></span><br><span class="line">ipcs -s</span><br><span class="line"></span><br><span class="line"><span class="comment"># 应用示例：查看IPC资源被谁占用</span></span><br><span class="line"><span class="comment"># 有个IPCKEY：51036 ，需要查询其是否被占用；</span></span><br><span class="line"><span class="comment"># 首先通过计算器将其转为十六进制:</span></span><br><span class="line"><span class="comment">#     51036 -&gt; c75c</span></span><br><span class="line"><span class="comment"># 如果知道是被共享内存占用</span></span><br><span class="line">ipcs -m | grep c75c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果不确定，则直接查找</span></span><br><span class="line">ipcs | grep c75c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示当前所有的系统资源limit 信息</span></span><br><span class="line"><span class="built_in">ulimit</span> – a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 对生成的 core 文件的大小不进行限制</span></span><br><span class="line"><span class="built_in">ulimit</span> – c unlimited</span><br></pre></td></tr></table></figure>
+
+<h4 id="2">文件及目录管理</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">### 查看小文件 ###</span></span><br><span class="line"><span class="comment"># 小文档查看</span></span><br><span class="line"><span class="built_in">cat</span> [文件]</span><br><span class="line"><span class="comment"># 浏览文件</span></span><br><span class="line">less [文件]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 查看大文件 ###</span></span><br><span class="line"><span class="built_in">tail</span></span><br><span class="line"><span class="built_in">tail</span> -f [文件]</span><br><span class="line"><span class="comment"># 显示最后20行信息</span></span><br><span class="line"><span class="built_in">tail</span> -n 20 [文件]</span><br><span class="line"><span class="built_in">tail</span> -n -20 [文件]</span><br><span class="line"><span class="comment"># 显示从20行到末尾</span></span><br><span class="line"><span class="built_in">tail</span> -n +20 [文件]</span><br><span class="line"></span><br><span class="line"><span class="comment">### find 文件名查找 ###</span></span><br><span class="line"><span class="comment"># find [搜索路径] -name [文件名关键词]</span></span><br><span class="line">find / -name <span class="string">&quot;passw&quot;</span></span><br><span class="line">find / -name <span class="string">&quot;fi*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找txt和pdf文件</span></span><br><span class="line">find . \( -name <span class="string">&quot;*.txt&quot;</span> -o -name <span class="string">&quot;*.pdf&quot;</span> \) -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 正则方式查找.txt和pdf</span></span><br><span class="line">find . -regex  <span class="string">&quot;.*\(\.txt|\.pdf\)$&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询7天前被访问过的所有文件</span></span><br><span class="line">find . -atime +7 <span class="built_in">type</span> f -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按权限查找</span></span><br><span class="line">find . -<span class="built_in">type</span> f -perm 644 -<span class="built_in">print</span> //找具有可执行权限的所有文件</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按用户查找</span></span><br><span class="line">find . -<span class="built_in">type</span> f -user weber -<span class="built_in">print</span>// 找用户weber所拥有的文件</span><br><span class="line"></span><br><span class="line"><span class="comment">### grep 文件内容查找 ###</span></span><br><span class="line"><span class="comment"># grep -参数 查找范围</span></span><br><span class="line"><span class="comment"># 参数</span></span><br><span class="line"><span class="comment"># -n 显示所有结果显示行号 number</span></span><br><span class="line"><span class="comment"># -R 递归查找目录下的所有文件</span></span><br><span class="line"></span><br><span class="line">grep aries /etc</span><br><span class="line">grep aries /etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="comment"># grep输出以0作为结尾符的文件名（-z）</span></span><br><span class="line">grep <span class="string">&quot;test&quot;</span> file* -lZ| xargs -0 <span class="built_in">rm</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 综合应用：将日志中的所有带where条件的sql查找查找出来</span></span><br><span class="line"><span class="built_in">cat</span> LOG.* | <span class="built_in">tr</span> a-z A-Z | grep <span class="string">&quot;FROM &quot;</span> | grep <span class="string">&quot;WHERE&quot;</span> &gt; b</span><br><span class="line"></span><br><span class="line"><span class="comment">### sed 文本替换利器 ###</span></span><br><span class="line"><span class="comment"># 首处替换</span></span><br><span class="line">sed <span class="string">&#x27;s/text/replace_text/&#x27;</span> file   //替换每一行的第一处匹配的text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 全局替换</span></span><br><span class="line">sed <span class="string">&#x27;s/text/replace_text/g&#x27;</span> file</span><br><span class="line"></span><br><span class="line"><span class="comment">### awk 数据流处理工具 ###</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 文件链接 ###</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="3">管道</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 语法 - 命令1的输出结果，作为命令2的输入</span></span><br><span class="line"></span><br><span class="line">命令1 | 命令2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 例子</span></span><br><span class="line"><span class="comment"># 查找aries用户</span></span><br><span class="line"><span class="built_in">cat</span> /etc/passwd | grep -n <span class="string">&quot;baizhi&quot;</span></span><br><span class="line"><span class="comment"># 查找aires组</span></span><br><span class="line"><span class="built_in">cat</span> /etc/group | grep -n <span class="string">&quot;baizhi&quot;</span></span><br><span class="line"><span class="comment"># 查找sshd进程</span></span><br><span class="line">ps -aux | grep sshd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连续使用管道意味着第一个命令的输出会作为 第二个命令的输入，第二个命令的输出又会作为第三个命令的输入，依此类推</span></span><br><span class="line"></span><br><span class="line">rpm –qa | grep licq</span><br><span class="line"><span class="comment"># 管道将rpm -qa命令的输出（包括系统中所有安装的RPM包）作为grep命令的输入，从而列出带有licq字符的RPM包来</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> /etc/passwd | grep /bin/bash | <span class="built_in">wc</span> -l</span><br><span class="line"><span class="comment"># 这条命令使用了两个管道，利用第一个管道将cat命令（显示passwd文件的内容）的输出送给grep命令，grep命令找出含有“/bin /bash”的所有行；第二个管道将grep的输出送给wc命令，wc命令统计出输入中的行数。这个命令的功能在于找出系统中有多少个用户使用bash。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> -v record.log | grep AAA | grep -v BBB | <span class="built_in">wc</span> -l</span><br><span class="line"><span class="comment"># 查找record.log中包含AAA，但不包含BBB的记录的总数:</span></span><br></pre></td></tr></table></figure>
+<p>管道命令与重定向区别<br>区别是：</p>
+<ul>
+<li>左边的命令应该有标准输出 | 右边的命令应该接受标准输入<br>左边的命令应该有标准输出 &gt; 右边只能是文件<br>左边的命令应该需要标准输入 &lt; 右边只能是文件</li>
+<li>管道触发两个子进程执行”|”两边的程序；而重定向是在一个进程内执行<br>这些都是网上总结很多的，其实只要多加清楚用法，也一定有自己的一份不同描述。</li>
+</ul>
+<h4 id="4">远程拷贝</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">scp -r [local_folder] [remote_username]@[remote_ip]:[remote_folder]</span><br><span class="line">scp -r [local_folder] [remote_ip]:[remote_folder]</span><br><span class="line"><span class="comment"># 第1个指定了用户名，命令执行后需要输入用户密码； 第2个没有指定用户名，命令执行后需要输入用户名和密码；</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝 - 远处文件-&gt;本地目录</span></span><br><span class="line">scp root@10.6.159.147:/opt/soft/demo.tar /opt/soft/</span><br><span class="line"><span class="comment"># 说明： 从10.6.159.147机器上的/opt/soft/的目录中下载demo.tar 文件到本地/opt/soft/目录中</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝 - 远处-&gt;本地</span></span><br><span class="line">scp -r root@10.6.159.147:/opt/soft/test /opt/soft/</span><br><span class="line"><span class="comment"># 说明： 从10.6.159.147机器上的/opt/soft/中下载test目录到本地的/opt/soft/目录来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 上传 - 本地文件-&gt;远程机器指定目录</span></span><br><span class="line">scp /opt/soft/demo.tar root@10.6.159.147:/opt/soft/scptest</span><br><span class="line"><span class="comment"># 说明： 复制本地opt/soft/目录下的文件demo.tar 到远程机器10.6.159.147的opt/soft/scptest目录</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 上传 - 本地目录-&gt;远程机器指定目录</span></span><br><span class="line">scp -r /opt/soft/test root@10.6.159.147:/opt/soft/scptest</span><br><span class="line"><span class="comment"># 说明： 上传本地目录 /opt/soft/test到远程机器10.6.159.147上/opt/soft/scptest的目录中</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/linux%E6%96%87%E4%BB%B6%E6%89%93%E5%8C%85.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">###############</span></span><br><span class="line"><span class="comment">### tar打包 ###</span></span><br><span class="line"><span class="comment">###############</span></span><br><span class="line"><span class="comment"># tar [选项] [打包tar] [源目录文件]</span></span><br><span class="line">tar -cvf config.xml.tar config.xml </span><br><span class="line"></span><br><span class="line"><span class="comment">###############</span></span><br><span class="line"><span class="comment">### tar解压 ###</span></span><br><span class="line"><span class="comment">###############</span></span><br><span class="line"><span class="comment"># tar [选项] [压缩包] [目录文件] / 不加C 就当前目录</span></span><br><span class="line">tar -xvf config.xml.tar -C /tmp </span><br><span class="line"></span><br><span class="line"><span class="comment">################</span></span><br><span class="line"><span class="comment">### .tar.bz2 ###</span></span><br><span class="line"><span class="comment">################</span></span><br><span class="line"><span class="comment"># -z：压缩和解压缩 &quot;.tar.gz&quot; 格式；</span></span><br><span class="line"><span class="comment">## &quot;.tar.gz&quot; 格式 - 打包</span></span><br><span class="line">tar -zcvf tmp.tar.gz /tmp/ </span><br><span class="line"></span><br><span class="line"><span class="comment">## &quot;.tar.gz&quot; 格式 - 解压</span></span><br><span class="line">tar -zxvf tmp.tar.gz </span><br><span class="line"></span><br><span class="line"><span class="comment">###############</span></span><br><span class="line"><span class="comment">###.tar.bz2 ###</span></span><br><span class="line"><span class="comment">###############</span></span><br><span class="line"><span class="comment"># -j：压缩和解压缩 &quot;.tar.bz2&quot;格式。</span></span><br><span class="line"><span class="comment">## &quot;.tar.bz2&quot; 格式 - 打包</span></span><br><span class="line">tar -jcvf tmp.tar.bz2 /tmp/ </span><br><span class="line"><span class="comment">## &quot;.tar.gz&quot; 格式 - 解压</span></span><br><span class="line">tar -jxvf tmp.tar.bz2 </span><br><span class="line"></span><br><span class="line"><span class="comment">################</span></span><br><span class="line"><span class="comment">### zip-压缩 ###</span></span><br><span class="line"><span class="comment">###############</span></span><br><span class="line"><span class="comment">## zip [选项] 压缩包名 源文件或源目录列表</span></span><br><span class="line">zip ana.zip anaconda-ks.cfg</span><br><span class="line"></span><br><span class="line"><span class="comment">## 压缩 - 多个文件 test.zip</span></span><br><span class="line">zip test.zip install.log install.log.syslog</span><br><span class="line"></span><br><span class="line"><span class="comment">## 压缩 - 目录 需要使用“-r”选项</span></span><br><span class="line">zip -r dir1.zip dir1   </span><br><span class="line"></span><br><span class="line"><span class="comment">################</span></span><br><span class="line"><span class="comment">### unzip-解压 ###</span></span><br><span class="line"><span class="comment">################</span></span><br><span class="line"><span class="comment">## unzip [选项] 压缩包名</span></span><br><span class="line">unzip dir1.zip</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解压 - 把压缩包解压到指定位置</span></span><br><span class="line">unzip -d /tmp/ ana.zip</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#################</span></span><br><span class="line"><span class="comment">### gzip 压缩 ###</span></span><br><span class="line"><span class="comment">#################</span></span><br><span class="line"><span class="comment"># 只压缩 不打包成集合</span></span><br><span class="line"><span class="comment"># 默认压缩 不保留源文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## gzip [选项] 源文件</span></span><br><span class="line">gzip install.log</span><br><span class="line"></span><br><span class="line"><span class="comment">## 压缩 - 保留源文件压缩</span></span><br><span class="line"><span class="comment"># 使用-c选项，但是不让压缩数据输出到屏幕上，而是重定向到压缩文件中，这样可以缩文件的同时不删除源文件</span></span><br><span class="line">gzip -c anaconda-ks.cfg &gt;anaconda-ks.cfg.gz</span><br><span class="line"></span><br><span class="line"><span class="comment">###################</span></span><br><span class="line"><span class="comment">### gunzip 解压 ###</span></span><br><span class="line"><span class="comment">##################</span></span><br><span class="line"><span class="comment">## gunzip [选项] 文件</span></span><br><span class="line">gunzip install.log.gz</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 打包 - 要想解压缩&quot;.gz&quot;格式，还可以使用 &quot;gzip -d&quot;命令</span></span><br><span class="line">gzip -d anaconda-ks.cfg.gz</span><br><span class="line"><span class="comment">## 解压 - 缩目录下的内容，则需使用 &quot;-r&quot; 选项</span></span><br><span class="line">gunzip -r <span class="built_in">test</span>/</span><br><span class="line"><span class="comment">## 如果我们压缩的是一个纯文本文件，则可以直接使用 zcat 命令在不解压缩的情况下查看这个文本文件中的内容</span></span><br><span class="line">zcat anaconda-ks.cfg.gz</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#################</span></span><br><span class="line"><span class="comment">### bzip2压缩 ###</span></span><br><span class="line"><span class="comment">################</span></span><br><span class="line"><span class="comment">## bzip2 [选项] 源文件</span></span><br><span class="line"><span class="comment">## 压缩 - 成&quot;.bz2&quot;格式，此压缩命令会在压缩的同时删除源文件。</span></span><br><span class="line">bzip2 anaconda-ks.cfg</span><br><span class="line"></span><br><span class="line"><span class="comment"># 压缩 - 同时保留源文件</span></span><br><span class="line">bzip2 -k install.log.syslog</span><br><span class="line"></span><br><span class="line"><span class="comment">## 打包</span></span><br><span class="line"><span class="comment">## bunzip2 [选项] 源文件</span></span><br><span class="line">bunzip2 anaconda-ks.cfg.bz2</span><br><span class="line"></span><br><span class="line"><span class="comment">#################</span></span><br><span class="line"><span class="comment">### bzip2解压 ###</span></span><br><span class="line"><span class="comment">################</span></span><br><span class="line"><span class="comment"># - &quot;.bz2&quot; 格式也可以使用 &quot;bzip2 -d 压缩包&quot; 命令来进行解压缩</span></span><br><span class="line">bzip2 -d install.log.syslog.bz2</span><br><span class="line"><span class="comment">## 和 &quot;.gz&quot; 格式一样，&quot;.bz2&quot; 格式压缩的纯文本文件也可以不解压缩直接查看，使用的命令是 bzcat</span></span><br><span class="line">bzcat install.log.syslog.bz2</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="5">磁盘管理</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="built_in">df</span> -h <span class="comment"># 查看磁盘空间</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">du</span> -sh <span class="comment"># 查看当前目录所占空间大小</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="6">进程管理</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看正在运行进程</span></span><br><span class="line">ps -ef</span><br><span class="line"></span><br><span class="line"><span class="comment"># 静态查看系统进程</span></span><br><span class="line">ps -aux</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询归属于用户colin115的进程</span></span><br><span class="line">ps -ef | grep colin115</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询进程ID（适合只记得部分进程字段）</span></span><br><span class="line"><span class="comment"># pgrep [查找进程]</span></span><br><span class="line">pgrep  -l re <span class="comment">#查询进程名中含有re的进程</span></span><br><span class="line"></span><br><span class="line">ps -ajx <span class="comment"># 以完整的格式显示所有的进程</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时查看系统进程</span></span><br><span class="line">top</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭进程</span></span><br><span class="line"><span class="built_in">kill</span> [进程<span class="built_in">id</span>]</span><br><span class="line"><span class="built_in">kill</span> -9 [进程<span class="built_in">id</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看端口占用的进程状态</span></span><br><span class="line">lsof -i:3306</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询init进程当前打开的文件</span></span><br><span class="line">lsof -c init</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询指定的进程ID(23295)打开的文件</span></span><br><span class="line">lsof -p 23295</span><br><span class="line"></span><br><span class="line"><span class="comment"># pmap，来输出进程内存的状况，可以用来分析线程堆栈</span></span><br><span class="line">pmap [PID]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将用户colin115下的所有进程名以av_开头的进程终止</span></span><br><span class="line">ps -u colin115 |  awk <span class="string">&#x27;/av_/ &#123;print &quot;kill -9 &quot; $1&#125;&#x27;</span> | sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将用户colin115下所有进程名中包含HOST的进程终止</span></span><br><span class="line">ps -fe| grep colin115|grep HOST |awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span> | xargs <span class="built_in">kill</span> -9</span><br></pre></td></tr></table></figure>
+
+<h4 id="7">性能监控</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看CPU使用率</span></span><br><span class="line">sar -u</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看CPU平均负载</span></span><br><span class="line">sar -q 1 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># sar指定-r之后，可查看内存使用状况</span></span><br><span class="line">sar -r 1 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看内存使用量</span></span><br><span class="line">free -m</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看页面交换发生状况 页面发生交换时，服务器的吞吐量会大幅下降；服务器状况不良时，如果怀疑因为内存不足而导致了页面交换的发生，可以使用sar -W这个命令来确认是否发生了大量的交换</span></span><br><span class="line">sar -W 1 3</span><br><span class="line"></span><br><span class="line"><span class="comment"># linux下有 vmstat、Unix系统有prstat</span></span><br><span class="line"><span class="comment"># 查看cpu、内存、使用情况： vmstat n m （n 为监控频率、m为监控次数）</span></span><br><span class="line">vmstat 1 3</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用watch 工具监控变化 当需要持续的监控应用的某个数据变化时，watch工具能满足要求； 执行watch命令后，会进入到一个界面，输出当前被监控的数据，一旦数据变化，便会高亮显示变化情况；</span></span><br><span class="line"><span class="comment"># 操作redis时，监控内存变化</span></span><br><span class="line">watch -d -n 1 <span class="string">&#x27;./redis-cli info | grep memory&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="8">网络工具</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 查询网络服务和端口 ###</span></span><br><span class="line"><span class="comment"># 列出所有端口</span></span><br><span class="line">netstat -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有 tcp 端口</span></span><br><span class="line">netstat -at</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有有监听的服务状态</span></span><br><span class="line">netstat -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用netstat工具查询端口</span></span><br><span class="line">netstat -antp | grep 6379</span><br><span class="line"></span><br><span class="line"><span class="comment">### 网络路由 ###</span></span><br><span class="line"><span class="comment"># 查看路由状态</span></span><br><span class="line">route -n</span><br><span class="line"></span><br><span class="line"><span class="comment">### ping包到地址IP ###</span></span><br><span class="line">ping IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### 探测前往地址IP的路由路径 ###</span></span><br><span class="line">traceroute IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### DNS查询，寻找域名domain对应的IP ###</span></span><br><span class="line">host domain</span><br><span class="line"></span><br><span class="line"><span class="comment">### 反向DNS查询 ###</span></span><br><span class="line">host IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### ssh 222端口 ###</span></span><br><span class="line">ssh -p 222 ID@host</span><br><span class="line"></span><br><span class="line"><span class="comment">### ftp/sftp文件传输 ###</span></span><br><span class="line">sftp ID@host</span><br><span class="line"></span><br><span class="line"><span class="comment"># 登陆服务器host，ID为用户名。sftp登陆后，可以使用下面的命令进一步操作：</span></span><br><span class="line">get filename <span class="comment"># 下载文件</span></span><br><span class="line">put filename <span class="comment"># 上传文件</span></span><br><span class="line"><span class="built_in">ls</span> <span class="comment"># 列出host上当前路径的所有文件</span></span><br><span class="line"><span class="built_in">cd</span> <span class="comment"># 在host上更改当前路径</span></span><br><span class="line">lls <span class="comment"># 列出本地主机上当前路径的所有文件</span></span><br><span class="line">lcd <span class="comment"># 在本地主机更改当前路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### lftp同步文件夹(类似rsync工具) ###</span></span><br><span class="line">lftp -u user:pass host</span><br><span class="line">lftp user@host:~&gt; mirror -n</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h4 id="9">用户管理</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 用户 ###</span></span><br><span class="line"><span class="comment"># 添加用户</span></span><br><span class="line">useradd -m username <span class="comment"># 该命令为用户创建相应的帐号和用户目录/home/username</span></span><br><span class="line">passwd username <span class="comment"># 密码以交互方式创建</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除用户</span></span><br><span class="line">userdel -r username</span><br><span class="line"></span><br><span class="line"><span class="comment"># 切换账户</span></span><br><span class="line">su userB</span><br><span class="line"></span><br><span class="line"><span class="comment">### 用户的组 ###</span></span><br><span class="line"><span class="comment"># 查看当前用户所属的组</span></span><br><span class="line"><span class="built_in">groups</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 一个用户可以属于多个组，将用户加入到组</span></span><br><span class="line">usermod -G groupNmame username</span><br><span class="line"></span><br><span class="line"><span class="comment"># 变更用户所属的根组(将用加入到新的组，并从原有的组中除去）</span></span><br><span class="line">usermod -g groupName username</span><br><span class="line"></span><br><span class="line"><span class="comment"># 系统的所有用户及所有组信息分别记录在两个文件中：/etc/passwd , /etc/group 默认情况下这两个文件对所有用户可读</span></span><br><span class="line"><span class="comment"># 查看所有用户及权限</span></span><br><span class="line">more /etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看所有的用户组及权限</span></span><br><span class="line">more /etc/group</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 用户权限 ###</span></span><br><span class="line">[/home/weber#]<span class="built_in">ls</span> -l /etc/group</span><br><span class="line">-rwxrw-r-- colin king 725 2013-11-12 15:37 /home/colin/a</span><br><span class="line"></span><br><span class="line">-rwx [文件拥有者] 表示这个文件对文件拥有者colin这个用户可读写、可执行；</span><br><span class="line">rw- [所在的组] 对colin所在的组（king）可读可写；</span><br><span class="line">r-- [其他用户] 对其它用户只可读；</span><br><span class="line"></span><br><span class="line"><span class="comment">### 使用chmod命令更改文件的读写权限，更改读写权限有两种方法，一种是字母方式，一种是数字方式</span></span><br><span class="line"><span class="comment">## 字母方式:</span></span><br><span class="line"><span class="built_in">chmod</span> userMark(+|-)PermissionsMark</span><br><span class="line"><span class="comment"># userMark取值：</span></span><br><span class="line"><span class="comment"># u：用户</span></span><br><span class="line"><span class="comment"># g：组</span></span><br><span class="line"><span class="comment"># o：其它用户</span></span><br><span class="line"><span class="comment"># a：所有用户</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># PermissionsMark取值：</span></span><br><span class="line"><span class="comment"># r: 读</span></span><br><span class="line"><span class="comment"># w：写</span></span><br><span class="line"><span class="comment"># x：执行</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">chmod</span> a+x main         对 [所有用户] 给文件main增加可执行权限</span><br><span class="line"><span class="built_in">chmod</span> g+w blogs        对 [组用户] 给文件blogs增加可写权限</span><br><span class="line"></span><br><span class="line"><span class="comment">## 数字方式：</span></span><br><span class="line"><span class="comment"># 4(读)</span></span><br><span class="line"><span class="comment"># 2(写)</span></span><br><span class="line"><span class="comment"># 1(执行)</span></span><br><span class="line"><span class="comment"># 6(4+2)代表有读写权</span></span><br><span class="line"><span class="comment"># 7(4+2+1)有读、写和执行的权限</span></span><br><span class="line"><span class="built_in">chmod</span> 740 main     将main的用户权限设置为rwxr-----</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更改文件或目录的拥有者</span></span><br><span class="line"><span class="built_in">chown</span> username dirOrFile</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用-R选项递归更改该目下所有文件的拥有者</span></span><br><span class="line"><span class="built_in">chown</span> -R weber server/</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 环境变量 ###</span></span><br><span class="line"><span class="comment"># /etc/profile，/etc/bashrc 是系统全局环境变量设定、</span></span><br><span class="line"><span class="comment"># ~/.profile，~/.bashrc用户目录下的私有环境变量设定</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>当登入系统获得一个shell进程时，其读取环境设置脚本分为三步:</p>
+<p>首先读入的是全局环境变量设置文件<code>/etc/profile</code>，然后根据其内容读取额外的文档，如<code>/etc/profile.d</code>和<code>/etc/inputrc</code><br>读取当前登录用户Home目录下的文件<code>~ /.bash_profile</code>，其次读取<code>~ /.bash_login</code>，最后读取<code>~ /.profile</code>，这三个文档设定基本上是一样的，读取有优先关系<br>读取<code>~ /.bashrc</code><br><code>~ /.profile</code>与<code>~ /.bashrc</code>的区别:</p>
+<p>这两者都具有个性化定制功能<br><code>~ /.profile</code>可以设定本用户专有的路径，环境变量，等，它只能登入的时候执行一次<br><code>~ /.bashrc</code>也是某用户专有设定文档，可以设定路径，命令别名，每次shell script的执行都会使用它一次</p>
+<h4 id="10">防火墙</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+<p>引用 ： <a target="_blank" rel="noopener" href="https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html">https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html</a></p>
+
+        </div>
+    
+
+</div>
+            
         </section>
     </div>
 </div>
@@ -822,19 +1067,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/ops-basic/">运维琐碎</a>
+                <a class="footer-post" href="/2024/12/22/shell/">Bash</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/pantesting-Intranet/">内网渗透</a>
+                <a class="footer-post" href="/2024/12/22/springboot/">Springboot</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/pantesting-getinfo/">信息收集</a>
+                <a class="footer-post" href="/2024/12/22/sqlmap/">SQLMAP</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/php-interview/">PHP 面试题</a>
+                <a class="footer-post" href="/2024/12/22/thinkpkp/">thinkpkp</a>
             </li>
             
         </ul>

@@ -169,8 +169,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/golang-interview/">
-                GOLANG 面试题
+            <a href="/2024/12/22/metasploit/">
+                MetaSploit Framwork(MSF)
             </a>
         </h1>
         <div class="post-info">
@@ -180,7 +180,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/面试/">面试</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -188,130 +188,23 @@
 
     
         <div class="content">
-            <ul>
-<li><a href="#1">基础</a><ul>
-<li><a href="#1.1">进程、线程、Goroutine(协程)区别</a></li>
-<li><a href="#1.2">make和new区别</a></li>
-<li><a href="#1.3">数组和切片区别</a></li>
+            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><h3 id="模块划分"><a href="#模块划分" class="headerlink" title="模块划分"></a>模块划分</h3><ul>
+<li>辅 助 模 块 (Auxiliary，扫描器)，扫描主机系统，寻找可用漏洞；</li>
+<li>渗透攻击模块 (Exploits)，选择并配置一个漏洞利用模块；</li>
+<li>攻击载荷模块 (Payloads)，选择并配置一个攻击载荷模块；</li>
+<li>后渗透攻击模块 (Post)，用于内网渗透的各种操作；</li>
+<li>编 码 器 模 块 (Encoders)，选择编码技术，绕过杀软（或其他免杀方式）；</li>
 </ul>
-</li>
-<li><a href="#2">GMP协程调度器</a><ul>
-<li><a href="#2.1">调度器策略</a></li>
-<li><a href="#2.2">调度器的生命周期</a></li>
-</ul>
-</li>
-<li><a href="#3">并发 sync</a><ul>
-<li><a href="#3.1">通道 - channel</a></li>
-<li><a href="#3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</a></li>
-<li><a href="#3.3">并发Map - sync.Map</a></li>
-<li><a href="#3.4">线程池 - sync.Pool</a></li>
-</ul>
-</li>
-<li><a href="#4">内存</a><ul>
-<li><a href="#4.1">CG</a></li>
-</ul>
-</li>
-<li><a href="#4">微服务之间通信方式 rpc Grpc http</a></li>
-</ul>
-<h3 id="1">基础</h3>
+<h3 id="渗透步骤（exploit）"><a href="#渗透步骤（exploit）" class="headerlink" title="渗透步骤（exploit）"></a>渗透步骤（exploit）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search xxx		<span class="comment">## 搜索某个漏洞</span></span><br><span class="line">use xxx			<span class="comment">## 使用某个漏洞利用模块</span></span><br><span class="line">show options    	<span class="comment">## 查看配置选项</span></span><br><span class="line"><span class="built_in">set</span> payload		<span class="comment">## 配置攻击载荷</span></span><br><span class="line">exploit			<span class="comment">## 执行渗透攻击</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="参数摘要"><a href="#参数摘要" class="headerlink" title="参数摘要"></a>参数摘要</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">reload_all		<span class="comment">#从目录重载所有模块。导入模块也需要用到此命令。</span></span><br><span class="line">back	<span class="comment">#后退命令，移出当前上下文，用于模块切换</span></span><br><span class="line">info	<span class="comment">#目标和模块详细信息</span></span><br><span class="line">check	<span class="comment">#检查目标是否受某个漏洞影响</span></span><br><span class="line"></span><br><span class="line">sessions		<span class="comment">#会话管理</span></span><br><span class="line">sessions -l		<span class="comment">#列出所有会话</span></span><br><span class="line">sessions -K		<span class="comment">#终止所有会话</span></span><br><span class="line">sessions -i <span class="built_in">id</span>	<span class="comment">#进入某个会话</span></span><br><span class="line">sessions -v		<span class="comment">#以详细模式列出会话</span></span><br><span class="line">sessions -u		<span class="comment">#在许多平台上将shell升级到meterpreter会话</span></span><br><span class="line"></span><br><span class="line">show options	<span class="comment">#显示可选选项</span></span><br><span class="line">	 auxiliary	<span class="comment">#显示所有辅助模块</span></span><br><span class="line">	 exploits	<span class="comment">#显示所有漏洞利用模块</span></span><br><span class="line">	 payloads	<span class="comment">#显示所有有效载荷</span></span><br><span class="line">	 targets	<span class="comment">#显示所有可用目标</span></span><br><span class="line">	 advanced	<span class="comment">#显示更多高级选项</span></span><br><span class="line">	 encoders	<span class="comment">#显示可用编码器列表</span></span><br><span class="line">	 </span><br><span class="line"><span class="built_in">unset</span> [Module Options]    <span class="comment">#清除Module Options</span></span><br></pre></td></tr></table></figure>
 
 
-<p><a href="">锁系列</a></p>
-<h4 id="1.1"> 进程、线程、Goroutine(协程)区别 </h4>
+<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li><em><strong>进程</strong></em> - 直观点说，保存在硬盘上的程序运行之后，会在内存空间里形成一个独立的内存体，这个内存体有自己独立的地址空间，有自己的堆，上级挂靠单位是操作系统。</li>
-<li><em><strong>线程</strong></em> - 轻量级进程（LightWeight Process，LWP），是操作系统调度（CPU调度）执行的最小单位。</li>
-<li><em><strong>协程</strong></em> - 比线程更轻量级的存在，协程完全由程序控制</li>
-</ul>
-<h4 id="1.2">make和new区别 </h4>
+<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
-<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
-<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
-</ul>
-<h4 id="1.3">数组和切片区别 </h4>
-
-<ul>
-<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
-<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
-</ul>
-<h3 id="2">GMP协程调度器</h3>
-
-<blockquote>
-<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
-<ul>
-<li>G：goroutine协程，基于协程建立的用户态线程</li>
-<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
-<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
-</ul>
-</blockquote>
-<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
-<h4 id="2.1"> 调度器策略 </h4>
-
-<ul>
-<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
-<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,<br><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</li>
-<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
-<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
-</ul>
-<h4 id="2.2"> 调度器的生命周期</h4> 
-
-<blockquote>
-<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
-<p>M0（跟进程数量绑定，一比一）：</p>
-<ul>
-<li>启动程序后编号为0的主线程</li>
-<li>在全局变量runtime.m0中，不需要在heap上分配</li>
-<li>负责执行初始化操作和启动第一个G</li>
-<li>启动第一个G之后，M0就和其他的M一样了</li>
-</ul>
-<p>G0（每个M都会有一个G0）：</p>
-<ul>
-<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
-<li>G0仅用于负责调度G</li>
-<li>G0不指向任何可执行的函数</li>
-<li>每个M都会有一个自己的G0</li>
-<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
-</ul>
-<p>M0和G0都是放在全局空间的</p>
-</blockquote>
-<h3 id="3">并发 sync</h3>
-
-<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
-<h4 id="3.1">通道 - channel</h4>
-
-<p>每个通道都有一个锁和一个读写队列，当多个协程同时向通道写入数据或者从通道读取数据时，只有一个协程能够获取到锁进行读写操作，其他协程则会被阻塞直到获得锁</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// 发送方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      ch &lt;- 1</span><br><span class="line">   &#125;()</span><br><span class="line">   // 接收方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      num := &lt;-ch</span><br><span class="line">      fmt.Println(num)</span><br><span class="line">   &#125;()</span><br></pre></td></tr></table></figure>
-
-<p>channel 死锁的场景和原因浅析<br>锁死场景</p>
-<ul>
-<li>没有缓冲区的时候，单协程内通道同时写和读</li>
-<li>无缓冲区的时候，通道输入数据早于接收方的协程开启</li>
-<li>没有数据的channel里拿数据引起的死锁</li>
-</ul>
-<p>解决方案</p>
-<ul>
-<li>做缓冲通道 -》 缓冲通道可以用cap()测试出来</li>
-<li>解决多值发送死锁 循环接收</li>
-</ul>
-<h4 id="3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
-
-<ul>
-<li>Mutex只允许一个goroutine同时获得锁，适用于需要频繁修改共享资源的场景；</li>
-<li>RWMutex允许多个goroutine同时获得读锁，但只允许一个goroutine获得写锁，适用于需要频繁读取共享资源的场景</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7313048102776455206">https://juejin.cn/post/7313048102776455206</a></p>
-<h4 id="3.3">并发Map - sync.Map</h4>
-
-
-
-
-<h4 id="3.4">线程池 - sync.Pool</h4>
-
-
-<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
+<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a><br><a target="_blank" rel="noopener" href="https://sh1yan.top/2019/07/28/MSF-Command-Notes/">https://sh1yan.top/2019/07/28/MSF-Command-Notes/</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/LyShark/p/12189163.html">https://www.cnblogs.com/LyShark/p/12189163.html</a><br><a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/tools/metasploit.html">https://wiki.wgpsec.org/knowledge/tools/metasploit.html</a></p>
 
         </div>
     
@@ -323,8 +216,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/22/hexo/">
-                hexo
+            <a href="/2024/12/22/android/">
+                Android初探
             </a>
         </h1>
         <div class="post-info">
@@ -334,7 +227,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/Blog/">Blog</a>
+                    <a href="/categories/Android/">Android</a>
                 </span>
             
         </div>
@@ -342,23 +235,21 @@
 
     
         <div class="content">
-            <p>hexo + github 自动部署，解决index.html不更新问题</p>
-<h2 id="hexo-github-自动部署"><a href="#hexo-github-自动部署" class="headerlink" title="hexo + github 自动部署"></a>hexo + github 自动部署</h2><h3 id="创建-Hexo-项目-（ndoejs环境）"><a href="#创建-Hexo-项目-（ndoejs环境）" class="headerlink" title="创建 Hexo 项目 （ndoejs环境）"></a>创建 Hexo 项目 （ndoejs环境）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> blog</span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init</span><br><span class="line">hexo s //预览blog</span><br></pre></td></tr></table></figure>
+            <p>文章</p>
+<h2 id="安卓学习"><a href="#安卓学习" class="headerlink" title="安卓学习"></a>安卓学习</h2><h3 id="安卓流程"><a href="#安卓流程" class="headerlink" title="安卓流程"></a>安卓流程</h3><p>1 启动活动 根据 此目录来定</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity android:name=<span class="string">&quot;.MainActivity&quot;</span>&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=<span class="string">&quot;android.intent.action.MAIN&quot;</span> /&gt;</span><br><span class="line">        &lt;category android:name=<span class="string">&quot;android.intent.category.LAUNCHER&quot;</span> /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
 
-<h3 id="创建-username-github-io-仓库"><a href="#创建-username-github-io-仓库" class="headerlink" title="创建 {username}.github.io 仓库"></a>创建 {username}.github.io 仓库</h3><ul>
-<li>创建个人访问令牌（Personal Access Token） – blog项目</li>
-</ul>
-<p>1 点击右上角头像 -&gt; 打开 Settings -&gt; 左边栏滚到最后找到 Develop Setting 打开，如图<br><img src="/images/personal-access-token.png"></p>
-<p>2 找到 Personal Access Token 点击 Tokens（classic） -&gt; 选择 Generate new token (classic) ，如图<br><img src="/images/personal-access-tokens-click.png"></p>
-<p>3 给令牌起个名字并且勾选红框中的 repo 的访问权限，然后点击生成 token（注意： 确保复制并安全地保存这个令牌。GitHub 不会再次显示这个令牌，所以这是你唯一的机会复制它），如图<br><img src="/images/new-personal-access-token-1.png"></p>
-<p>4 将生成的 PAT 添加到你的博客源代码仓库的 Secrets，名字填入 PERSONAL_TOKEN 后面会用到这个变量名，如图<br><img src="/images/personal-access-secret.png"></p>
-<ul>
-<li>创建.github&#x2F;workflow 自动化部署 – blog项目 page.yml</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy Hexo to GitHub Pages</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - main <span class="comment"># 或你使用的默认分支名称</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line"></span><br><span class="line">    steps:</span><br><span class="line">      - name: Checkout blog <span class="built_in">source</span></span><br><span class="line">        uses: actions/checkout@v4  <span class="comment">#git升级为v4 这样可以解决index.html不更新问题</span></span><br><span class="line">        with:</span><br><span class="line">          submodules: recursive</span><br><span class="line"></span><br><span class="line">      - name: Set up Node.js</span><br><span class="line">        uses: actions/setup-node@v1</span><br><span class="line">        with:</span><br><span class="line">          node-version: <span class="string">&quot;21&quot;</span> <span class="comment"># 设置 Node.js 版本</span></span><br><span class="line"></span><br><span class="line">      - name: Cache dependencies</span><br><span class="line">        uses: actions/cache@v2</span><br><span class="line">        with:</span><br><span class="line">          path: node_modules</span><br><span class="line">          key: <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-<span class="variable">$&#123;&#123; hashFiles(&#x27;**/package-lock.json&#x27;) &#125;</span>&#125;</span><br><span class="line">          restore-keys: |</span><br><span class="line">            <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-</span><br><span class="line"></span><br><span class="line">      - name: Install dependencies</span><br><span class="line">        run: npm install</span><br><span class="line"></span><br><span class="line">      - name: Install Hexo CLI</span><br><span class="line">        run: npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line">      - name: Generate static pages</span><br><span class="line">        run: hexo clean &amp;&amp; hexo generate --output ./public</span><br><span class="line"></span><br><span class="line">      - name: Deploy to GitHub Pages</span><br><span class="line">        uses: peaceiris/actions-gh-pages@v3</span><br><span class="line">        with:</span><br><span class="line">          personal_token: <span class="variable">$&#123;&#123; secrets.PERSONAL_TOKEN &#125;</span>&#125;</span><br><span class="line">          publish_dir: ./public</span><br><span class="line">          external_repository: 0rz33/0rz33.github.io <span class="comment"># 更改为你的 GitHub Pages 仓库, username 是你的用户名</span></span><br><span class="line">          publish_branch: main <span class="comment"># GitHub Pages 分支  </span></span><br></pre></td></tr></table></figure>
+<p>2 活动生命周期</p>
+<p>MainActivity 的生命周期方法依次被调用：<br>    onCreate(): 初始化。<br>    onStart(): 准备显示。<br>    onResume(): 变为可交互状态。<br>用户与活动交互后，可能会触发其他活动的启动。</p>
+<p>4 导航<br>在 MainActivity 中，可以通过 Intent 启动其他活动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = new Intent(this, SecondActivity.class);</span><br><span class="line">startActivity(intent);</span><br></pre></td></tr></table></figure>
 
+<p>5 其他组件</p>
+<p>应用还可以包含其他组件，如 Service（用于后台任务）、BroadcastReceiver（处理广播）和 ContentProvider（数据共享）</p>
+<p>6 退出应用</p>
+<p>当活动关闭或用户手动退出时，应用的进程可能会被系统终止。此时，onPause()、onStop() 和 onDestroy() 方法依次被调用。</p>
+<p>整个流程可以概括为：用户启动应用 → 系统加载启动活动 → 进入活动生命周期 → 用户交互并导航到其他活动 → 退出应用。理解这一流程有助于你设计用户体验和管理应用状态。</p>
 
-<h3 id="username-github-io-page页面设置"><a href="#username-github-io-page页面设置" class="headerlink" title="{username}.github.io page页面设置"></a>{username}.github.io page页面设置</h3>
         </div>
     
 
@@ -406,19 +297,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/ops-basic/">运维琐碎</a>
+                <a class="footer-post" href="/2024/12/22/shell/">Bash</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/pantesting-Intranet/">内网渗透</a>
+                <a class="footer-post" href="/2024/12/22/springboot/">Springboot</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/pantesting-getinfo/">信息收集</a>
+                <a class="footer-post" href="/2024/12/22/sqlmap/">SQLMAP</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2024/12/22/php-interview/">PHP 面试题</a>
+                <a class="footer-post" href="/2024/12/22/thinkpkp/">thinkpkp</a>
             </li>
             
         </ul>
