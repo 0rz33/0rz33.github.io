@@ -169,13 +169,47 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/10/vue2vsvue3/">
+            <a href="/2025/01/16/vue-big-file-upload/">
+                vue2 大文件上传component(做成组件)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-01-16</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
+<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
+<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
+
+<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/01/16/vue2vsvue3/">
                 vue2 对比 vue3
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-10</span>
+                <span class="date">2025-01-16</span>
             
             
             
@@ -248,13 +282,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/10/wireshark/">
+            <a href="/2025/01/16/wireshark/">
                 Wireshark
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-10</span>
+                <span class="date">2025-01-16</span>
             
             
             
@@ -281,319 +315,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/10/hexo/">
-                hexo
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-01-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Blog/">Blog</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>hexo + github 自动部署，解决index.html不更新问题</p>
-<h2 id="hexo-github-自动部署"><a href="#hexo-github-自动部署" class="headerlink" title="hexo + github 自动部署"></a>hexo + github 自动部署</h2><h3 id="创建-Hexo-项目-（ndoejs环境）"><a href="#创建-Hexo-项目-（ndoejs环境）" class="headerlink" title="创建 Hexo 项目 （ndoejs环境）"></a>创建 Hexo 项目 （ndoejs环境）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> blog</span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init</span><br><span class="line">hexo s //预览blog</span><br></pre></td></tr></table></figure>
-
-<h3 id="创建-username-github-io-仓库"><a href="#创建-username-github-io-仓库" class="headerlink" title="创建 {username}.github.io 仓库"></a>创建 {username}.github.io 仓库</h3><ul>
-<li>创建个人访问令牌（Personal Access Token） – blog项目</li>
-</ul>
-<p>1 点击右上角头像 -&gt; 打开 Settings -&gt; 左边栏滚到最后找到 Develop Setting 打开，如图<br><img src="/images/personal-access-token.png"></p>
-<p>2 找到 Personal Access Token 点击 Tokens（classic） -&gt; 选择 Generate new token (classic) ，如图<br><img src="/images/personal-access-tokens-click.png"></p>
-<p>3 给令牌起个名字并且勾选红框中的 repo 的访问权限，然后点击生成 token（注意： 确保复制并安全地保存这个令牌。GitHub 不会再次显示这个令牌，所以这是你唯一的机会复制它），如图<br><img src="/images/new-personal-access-token-1.png"></p>
-<p>4 将生成的 PAT 添加到你的博客源代码仓库的 Secrets，名字填入 PERSONAL_TOKEN 后面会用到这个变量名，如图<br><img src="/images/personal-access-secret.png"></p>
-<ul>
-<li>创建.github&#x2F;workflow 自动化部署 – blog项目 page.yml</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy Hexo to GitHub Pages</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - main <span class="comment"># 或你使用的默认分支名称</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line"></span><br><span class="line">    steps:</span><br><span class="line">      - name: Checkout blog <span class="built_in">source</span></span><br><span class="line">        uses: actions/checkout@v4  <span class="comment">#git升级为v4 这样可以解决index.html不更新问题</span></span><br><span class="line">        with:</span><br><span class="line">          submodules: recursive</span><br><span class="line"></span><br><span class="line">      - name: Set up Node.js</span><br><span class="line">        uses: actions/setup-node@v1</span><br><span class="line">        with:</span><br><span class="line">          node-version: <span class="string">&quot;21&quot;</span> <span class="comment"># 设置 Node.js 版本</span></span><br><span class="line"></span><br><span class="line">      - name: Cache dependencies</span><br><span class="line">        uses: actions/cache@v2</span><br><span class="line">        with:</span><br><span class="line">          path: node_modules</span><br><span class="line">          key: <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-<span class="variable">$&#123;&#123; hashFiles(&#x27;**/package-lock.json&#x27;) &#125;</span>&#125;</span><br><span class="line">          restore-keys: |</span><br><span class="line">            <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-</span><br><span class="line"></span><br><span class="line">      - name: Install dependencies</span><br><span class="line">        run: npm install</span><br><span class="line"></span><br><span class="line">      - name: Install Hexo CLI</span><br><span class="line">        run: npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line">      - name: Generate static pages</span><br><span class="line">        run: hexo clean &amp;&amp; hexo generate --output ./public</span><br><span class="line"></span><br><span class="line">      - name: Deploy to GitHub Pages</span><br><span class="line">        uses: peaceiris/actions-gh-pages@v3</span><br><span class="line">        with:</span><br><span class="line">          personal_token: <span class="variable">$&#123;&#123; secrets.PERSONAL_TOKEN &#125;</span>&#125;</span><br><span class="line">          publish_dir: ./public</span><br><span class="line">          external_repository: 0rz33/0rz33.github.io <span class="comment"># 更改为你的 GitHub Pages 仓库, username 是你的用户名</span></span><br><span class="line">          publish_branch: main <span class="comment"># GitHub Pages 分支  </span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="username-github-io-page页面设置"><a href="#username-github-io-page页面设置" class="headerlink" title="{username}.github.io page页面设置"></a>{username}.github.io page页面设置</h3>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/01/10/java-interview/">
-                Java 面试题
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-01-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/面试/">面试</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>四种幂等性解决方案？<br>straem</p>
-<ul>
-<li><a href="#1">基础</a><ul>
-<li><a href="#1.1">JVM、JDK、JRE三者关系</a></li>
-<li><a href="#1.2">final、finally、finalize 的区别</a></li>
-<li><a href="#1.3">深拷贝和浅拷贝的区别</a></li>
-<li><a href="#1.3">BIO、NIO、AIO 之间的区别</a></li>
-<li><a href="#1.3">泛型，类型擦除，常用的通配符</a></li>
-<li><a href="#1.3">loC，DI，AOP</a></li>
-</ul>
-</li>
-<li><a href="#2">集合框架</a><ul>
-<li><a href="#2.1">ArrayList 和 LinkedList 的区别</a></li>
-<li><a href="#2.2">TreeMap 和 HashMap 的区别</a></li>
-</ul>
-</li>
-<li><a href="#3">并发</a><ul>
-<li><a href="#3.1">并行跟并发区别</a></li>
-<li><a href="#2.2">sleep和wait的区别</a></li>
-<li><a href="#2.3"></a></li>
-</ul>
-</li>
-<li><a href="#4">内存</a><ul>
-<li><a href="#4.1">CG</a></li>
-</ul>
-</li>
-<li><a href="#4">微服务之间通信方式 rpc Grpc http</a></li>
-</ul>
-<h3 id="1">基础</h3>
-
-<h3 id="3">并发 sync</h3>
-
-<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
-<h4 id="3.1">通道 - channel</h4>
-<h4 id="3.2">并发Map - sync.Map</h4>
-<h4 id="3.2">线程池 - sync.Pool</h4>
-
-<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
-<h4 id="3.3">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
-
-<p><a href="">锁系列</a></p>
-<h4 id="1.2">make和new区别 </h4>
-
-<ul>
-<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
-<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
-<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
-</ul>
-<h4 id="1.3">数组和切片区别 </h4>
-
-<ul>
-<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
-<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
-</ul>
-<h3 id="2">GMP协程调度器</h3>
-
-<blockquote>
-<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
-<ul>
-<li>G：goroutine协程，基于协程建立的用户态线程</li>
-<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
-<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
-</ul>
-</blockquote>
-<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
-<h4 id="2.1"> 调度器策略 </h4>
-
-<ul>
-<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
-<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,<br><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</li>
-<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
-<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
-</ul>
-<h4 id="2.2"> 调度器的生命周期</h4> 
-
-<blockquote>
-<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
-<p>M0（跟进程数量绑定，一比一）：</p>
-<ul>
-<li>启动程序后编号为0的主线程</li>
-<li>在全局变量runtime.m0中，不需要在heap上分配</li>
-<li>负责执行初始化操作和启动第一个G</li>
-<li>启动第一个G之后，M0就和其他的M一样了</li>
-</ul>
-<p>G0（每个M都会有一个G0）：</p>
-<ul>
-<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
-<li>G0仅用于负责调度G</li>
-<li>G0不指向任何可执行的函数</li>
-<li>每个M都会有一个自己的G0</li>
-<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
-</ul>
-<p>M0和G0都是放在全局空间的</p>
-</blockquote>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/01/10/k8s-basic/">
-                K8S
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-01-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/运维/">运维</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p><img src="/images/k8s-flow.png" alt="k8s 流程"></p>
-<ul>
-<li>复制控制器（Replication Controller，RC）</li>
-<li>副本集（Replica Set，RS）</li>
-<li>部署(Deployment)</li>
-<li>服务（Service）</li>
-<li>任务（Job）</li>
-<li>存储卷（Volume） 持久存储卷（Persistent Volume，PV）持久存储卷声明（Persistent Volume Claim，PVC）</li>
-<li>节点（Node）</li>
-<li>用户帐户（User Account）服务帐户（Service Account）名字空间（Namespace）</li>
-</ul>
-<h3 id="Deployment-Service-Pod-之间的关系"><a href="#Deployment-Service-Pod-之间的关系" class="headerlink" title="Deployment Service Pod 之间的关系"></a>Deployment Service Pod 之间的关系</h3><ul>
-<li>Deployment 是 k8s 中用来管理一组 Pod 副本的控制器。它定义了应用的期望状态，例如应该运行多少个 Pod 副本以及使用的容器镜像<ul>
-<li>管理 Pod 的创建、删除和更新。</li>
-<li>支持回滚到以前的版本。</li>
-<li>提供滚动更新机制，以无中断地部署新版本。</li>
-</ul>
-</li>
-<li>Pod 是 k8s 中最小的可部署单元，通常由一个或多个容器组成。Pod 共享存储和网络资源，并指定容器的运行方式。<ul>
-<li>承载应用程序的运行时环境。</li>
-<li>提供共享存储卷和网络地址。</li>
-</ul>
-</li>
-<li>Service 是 k8s 中的一个抽象层，用于定义一组 Pod 的网络服务。它为一组 Pod 提供负载均衡和服务发现功能。<ul>
-<li>为 Pod 提供一个稳定的网络端点（IP 地址或 DNS 名称），即使 Pod 重启或被替换也保持不变。</li>
-<li>通过标签选择器匹配一组 Pod，并在这些 Pod 之间进行负载均衡。</li>
-</ul>
-</li>
-</ul>
-<p>关系</p>
-<ul>
-<li>Deployment -&gt; Pod：Deployment 管理一组 Pod 的生命周期，确保始终有指定数量的 Pod 副本在运行。</li>
-<li>Service -&gt; Pod：Service 使用标签选择器来匹配 Pod，并为这些 Pod 提供负载均衡和服务发现功能。即使 Pod 被重新调度或替换，Service 仍然可以确保请求被路由到正确的 Pod。</li>
-</ul>
-<h3 id="StatefulSet和Deployment的区别"><a href="#StatefulSet和Deployment的区别" class="headerlink" title="StatefulSet和Deployment的区别"></a>StatefulSet和Deployment的区别</h3><p>“Deployment用于部署无状态服务，StatefulSet用来部署有状态服务”</p>
-<h3 id="查看状态"><a href="#查看状态" class="headerlink" title="查看状态"></a>查看状态</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://blog.laoda.de/archives/docker-issues</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">## 进入pod 容器里面</span></span><br><span class="line">kubectl <span class="built_in">exec</span> -it zk-5959d76d9b-xbmmw -n work  -- /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除 pod </span></span><br><span class="line">delete pod zk-5959d76d9b-zsvxf -n work</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="部署流程"><a href="#部署流程" class="headerlink" title="部署流程"></a>部署流程</h3><pre class="mermaid">sequenceDiagram
-    participant Alice
-    participant Bob
-    Alice->>John: Hello John, how are you?
-    loop Healthcheck
-        John->>John: Fight against hypochondria
-    end
-    Note right of John: Rational thoughts <br/>prevail!
-    John-->>Alice: Great!
-    John->>Bob: How about you?
-    Bob-->>John: Jolly good!</pre>
-
-
-<h3 id="存储方案-文件挂在"><a href="#存储方案-文件挂在" class="headerlink" title="存储方案 (文件挂在)"></a>存储方案 (文件挂在)</h3><ul>
-<li>pv 持久卷 (PersistentVolume) 和一半volume一样</li>
-<li>pvc 持久卷申领（PersistentVolumeClaim) 消耗pv资源，以来pv</li>
-<li>StorageClass</li>
-</ul>
-<p>helm</p>
-<p>排错</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/01/10/lang-version/">
-                语言版本控制管理
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-01-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/研发工具/">研发工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="语言版本控制管理"><a href="#语言版本控制管理" class="headerlink" title="语言版本控制管理"></a>语言版本控制管理</h2><h3 id="nodejs-nvm"><a href="#nodejs-nvm" class="headerlink" title="nodejs -&gt; nvm"></a>nodejs -&gt; nvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nvm list available  <span class="comment"># Windows</span></span><br><span class="line">nvm ls-remote <span class="comment"># linux 显示所有可下载的版本</span></span><br><span class="line"></span><br><span class="line">nvm install 11.13.0 <span class="comment"># 安装11.13.0版本</span></span><br><span class="line"></span><br><span class="line">nvm use 11.13.0 <span class="comment"># 使用当前版本</span></span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>提示！~查看npm包是否有了</p>
-</blockquote>
-<h3 id="python-pyvm"><a href="#python-pyvm" class="headerlink" title="python -&gt; pyvm"></a>python -&gt; pyvm</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="docker-版本管理-开发更方便"><a href="#docker-版本管理-开发更方便" class="headerlink" title="docker 版本管理 开发更方便"></a>docker 版本管理 开发更方便</h3><blockquote>
-<p>golang</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>java</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p><a href="">php-多版本多项目管理-docker-composer</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/01/10/linux/">
+            <a href="/2025/01/16/linux/">
                 Linux命令
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-10</span>
+                <span class="date">2025-01-16</span>
             
             
             
@@ -608,23 +336,104 @@
         <div class="content">
             <ul>
 <li><a href="#1">系统管理及ICP资源管理 (uname hostnamectl getconf uname sar arch date ipcs ulimit)</a></li>
-<li><a href="#2">文件及目录管理 (cat less tail find grep sed awk)</a></li>
+<li><a href="#2">文件及目录管理 (cat less tail find grep sed awk rmdir ln which locate tail dmesg journalctl rsync)</a></li>
 <li><a href="#3">管道 |</a></li>
 <li><a href="#4">远程拷贝 (scp tar zip unzip gzip gunzip bzip bunzip)</a></li>
-<li><a href="#5">磁盘管理 (df du)</a></li>
-<li><a href="#6">进程管理 (ps top pgrep kill lsof pmap)</a></li>
+<li><a href="#5">磁盘管理 (df du fdisk mount)</a></li>
+<li><a href="#6">进程管理 (ps top pgrep kill lsof pmap bg ctrl+z ctrl+c &amp; jobs nohup)</a></li>
 <li><a href="#7">性能监控 (top sar free watch)</a></li>
-<li><a href="#8">网络工具 (netstat lsof route ping host wget sftp scp)</a></li>
+<li><a href="#8">网络工具 (netstat lsof route ping host wget sftp scp traceroute ss arp)</a></li>
 <li><a href="#9">用户管理 (useradd passwd userdel usermod chmod chown .bashrc .bash_profile)</a></li>
 <li><a href="#10">防火墙 ()</a></li>
 </ul>
-<h2 id="Linux-常用基本命令"><a href="#Linux-常用基本命令" class="headerlink" title="Linux 常用基本命令"></a>Linux 常用基本命令</h2><h3 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h3><h4 id="1">系统管理及ICP资源管理</h4>
+<p>time计时</p>
+<h2 id="Linux-常用基本命令"><a href="#Linux-常用基本命令" class="headerlink" title="Linux 常用基本命令"></a>Linux 常用基本命令</h2><h3 id="Linux目录"><a href="#Linux目录" class="headerlink" title="Linux目录"></a>Linux目录</h3><table>
+<thead>
+<tr>
+<th>目录路径</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&#x2F;bin</td>
+<td>二进制可执行文件的目录所在 例如 openssl就是在这个文件下</td>
+</tr>
+<tr>
+<td>｜ &#x2F;etc ｜ 系统管理和配置文件 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;etc&#x2F;rc.d ｜ 启动的配置文件和脚本 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;home ｜ 用户的主目录 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;lib ｜ 标准设计程序，是动态链接共享库 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;sbin ｜ 超级管理员命令 这里存放的是系统管理员使用的管理程序 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;tmp ｜ 公共存放的临时文件目录 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;root ｜ 系统管理员的主目录 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;mnt ｜ 系统提供这个目录是让用户临时挂载的文件系统 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;lost+found ｜ 这个目录平时是空，系统非正常关键而留下 没有保存的文件就在这里 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;proc ｜ 虚拟的目录，是系统内存的映射，可以直接访问这个目录来获取系统信息 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;var ｜ 某些大文件的溢出区，比方说各种服务器的日志文件 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;var&#x2F;log ｜系统⽇志⽂件。 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;usr ｜ 最庞大的目录，要用到的应用程序和文件几乎都在这个目录 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;usr&#x2F;bin ｜ 众多的应用程序 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;usr&#x2F;sbin ｜ 超级用户的一些管理程序 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;opt ｜ 软件包目录，⽤户安装的可选应⽤软件⼀般放在此处，不会影响系统默认的软件结构 ｜</td>
+<td></td>
+</tr>
+<tr>
+<td>｜&#x2F;sys ｜ 虚拟⽂件系统⽬录，⽤于存放系统硬件信息，提供系统与硬件设备之间的接⼝ ｜</td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h3><h4 id="1">系统管理及ICP资源管理</h4>
 
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看 Linux内核 版本命令</span></span><br><span class="line"><span class="built_in">cat</span> /proc/version</span><br><span class="line"><span class="built_in">uname</span> -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 Linux系统 版本的命令</span></span><br><span class="line">lsb_release -a  <span class="comment"># RedHat、SUSE、Debian…等发行版</span></span><br><span class="line"><span class="built_in">cat</span> /etc/redhat-release <span class="comment"># 只适合Redhat系的Linux</span></span><br><span class="line"><span class="built_in">cat</span> /etc/issue <span class="comment"># 此命令也适用于所有的Linux发行版</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">hostnamectl</span><br><span class="line">hostnamectl | grep -i kernel</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扩展</span></span><br><span class="line"><span class="comment"># 查看 CUP信息  包括型号 主频 内核等等</span></span><br><span class="line"><span class="built_in">cat</span> /proc/cpuinfo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看CPU的核的个数:</span></span><br><span class="line"><span class="built_in">cat</span> /proc/cpuinfo | grep processor | <span class="built_in">wc</span> -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看内存信息</span></span><br><span class="line"><span class="built_in">cat</span> /proc/meminfo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看CUP架构</span></span><br><span class="line">getconf LONG_BIT</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示架构</span></span><br><span class="line"><span class="built_in">arch</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ICP资源管理 ###</span></span><br><span class="line"><span class="comment">#查看系统使用的IPC资源</span></span><br><span class="line">ipcs</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看系统使用的IPC共享内存资源</span></span><br><span class="line">ipcs -m</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看系统使用的IPC队列资源</span></span><br><span class="line">ipcs -q</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看系统使用的IPC信号量资源</span></span><br><span class="line">ipcs -s</span><br><span class="line"></span><br><span class="line"><span class="comment"># 应用示例：查看IPC资源被谁占用</span></span><br><span class="line"><span class="comment"># 有个IPCKEY：51036 ，需要查询其是否被占用；</span></span><br><span class="line"><span class="comment"># 首先通过计算器将其转为十六进制:</span></span><br><span class="line"><span class="comment">#     51036 -&gt; c75c</span></span><br><span class="line"><span class="comment"># 如果知道是被共享内存占用</span></span><br><span class="line">ipcs -m | grep c75c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果不确定，则直接查找</span></span><br><span class="line">ipcs | grep c75c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示当前所有的系统资源limit 信息</span></span><br><span class="line"><span class="built_in">ulimit</span> – a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 对生成的 core 文件的大小不进行限制</span></span><br><span class="line"><span class="built_in">ulimit</span> – c unlimited</span><br></pre></td></tr></table></figure>
 
 <h4 id="2">文件及目录管理</h4>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">### 查看小文件 ###</span></span><br><span class="line"><span class="comment"># 小文档查看</span></span><br><span class="line"><span class="built_in">cat</span> [文件]</span><br><span class="line"><span class="comment"># 浏览文件</span></span><br><span class="line">less [文件]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 查看大文件 ###</span></span><br><span class="line"><span class="built_in">tail</span></span><br><span class="line"><span class="built_in">tail</span> -f [文件]</span><br><span class="line"><span class="comment"># 显示最后20行信息</span></span><br><span class="line"><span class="built_in">tail</span> -n 20 [文件]</span><br><span class="line"><span class="built_in">tail</span> -n -20 [文件]</span><br><span class="line"><span class="comment"># 显示从20行到末尾</span></span><br><span class="line"><span class="built_in">tail</span> -n +20 [文件]</span><br><span class="line"></span><br><span class="line"><span class="comment">### find 文件名查找 ###</span></span><br><span class="line"><span class="comment"># find [搜索路径] -name [文件名关键词]</span></span><br><span class="line">find / -name <span class="string">&quot;passw&quot;</span></span><br><span class="line">find / -name <span class="string">&quot;fi*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找txt和pdf文件</span></span><br><span class="line">find . \( -name <span class="string">&quot;*.txt&quot;</span> -o -name <span class="string">&quot;*.pdf&quot;</span> \) -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 正则方式查找.txt和pdf</span></span><br><span class="line">find . -regex  <span class="string">&quot;.*\(\.txt|\.pdf\)$&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询7天前被访问过的所有文件</span></span><br><span class="line">find . -atime +7 <span class="built_in">type</span> f -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按权限查找</span></span><br><span class="line">find . -<span class="built_in">type</span> f -perm 644 -<span class="built_in">print</span> //找具有可执行权限的所有文件</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按用户查找</span></span><br><span class="line">find . -<span class="built_in">type</span> f -user weber -<span class="built_in">print</span>// 找用户weber所拥有的文件</span><br><span class="line"></span><br><span class="line"><span class="comment">### grep 文件内容查找 ###</span></span><br><span class="line"><span class="comment"># grep -参数 查找范围</span></span><br><span class="line"><span class="comment"># 参数</span></span><br><span class="line"><span class="comment"># -n 显示所有结果显示行号 number</span></span><br><span class="line"><span class="comment"># -R 递归查找目录下的所有文件</span></span><br><span class="line"></span><br><span class="line">grep aries /etc</span><br><span class="line">grep aries /etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="comment"># grep输出以0作为结尾符的文件名（-z）</span></span><br><span class="line">grep <span class="string">&quot;test&quot;</span> file* -lZ| xargs -0 <span class="built_in">rm</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 综合应用：将日志中的所有带where条件的sql查找查找出来</span></span><br><span class="line"><span class="built_in">cat</span> LOG.* | <span class="built_in">tr</span> a-z A-Z | grep <span class="string">&quot;FROM &quot;</span> | grep <span class="string">&quot;WHERE&quot;</span> &gt; b</span><br><span class="line"></span><br><span class="line"><span class="comment">### sed 文本替换利器 ###</span></span><br><span class="line"><span class="comment"># 首处替换</span></span><br><span class="line">sed <span class="string">&#x27;s/text/replace_text/&#x27;</span> file   //替换每一行的第一处匹配的text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 全局替换</span></span><br><span class="line">sed <span class="string">&#x27;s/text/replace_text/g&#x27;</span> file</span><br><span class="line"></span><br><span class="line"><span class="comment">### awk 数据流处理工具 ###</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 文件链接 ###</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">### 查看小文件 ###</span></span><br><span class="line"><span class="comment"># 小文档查看</span></span><br><span class="line"><span class="built_in">cat</span> [文件]</span><br><span class="line"><span class="comment"># 浏览文件</span></span><br><span class="line">less [文件]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 查看大文件 ###</span></span><br><span class="line"><span class="built_in">tail</span></span><br><span class="line"><span class="built_in">tail</span> -f [文件]</span><br><span class="line"><span class="comment"># 显示最后20行信息</span></span><br><span class="line"><span class="built_in">tail</span> -n 20 [文件]</span><br><span class="line"><span class="built_in">tail</span> -n -20 [文件]</span><br><span class="line"><span class="comment"># 显示从20行到末尾</span></span><br><span class="line"><span class="built_in">tail</span> -n +20 [文件]</span><br><span class="line"></span><br><span class="line"><span class="comment">### find 文件名查找 ###</span></span><br><span class="line"><span class="comment"># find [搜索路径] -name [文件名关键词]</span></span><br><span class="line">find / -name <span class="string">&quot;passw&quot;</span></span><br><span class="line">find / -name <span class="string">&quot;fi*&quot;</span> <span class="comment">## 区分大小写</span></span><br><span class="line">find / -iname <span class="string">&quot;fi*&quot;</span> <span class="comment">## 不区分大小写</span></span><br><span class="line"><span class="comment"># 支持通配符 `*`、`?`和`[]`</span></span><br><span class="line"><span class="string">&quot;*.log&quot;</span>,<span class="string">&quot;file?.txt&quot;</span>,<span class="string">&quot;file[0-9].txt&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找txt和pdf文件</span></span><br><span class="line">find . \( -name <span class="string">&quot;*.txt&quot;</span> -o -name <span class="string">&quot;*.pdf&quot;</span> \) -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 正则方式查找.txt和pdf</span></span><br><span class="line">find . -regex  <span class="string">&quot;.*\(\.txt|\.pdf\)$&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询7天前被访问过的所有文件</span></span><br><span class="line">find . -atime +7 <span class="built_in">type</span> f -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按权限查找</span></span><br><span class="line">find . -<span class="built_in">type</span> f -perm 644 -<span class="built_in">print</span> //找具有可执行权限的所有文件</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按用户查找</span></span><br><span class="line">find . -<span class="built_in">type</span> f -user weber -<span class="built_in">print</span>// 找用户weber所拥有的文件</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按大小搜索</span></span><br><span class="line">find . -size xxx</span><br><span class="line"></span><br><span class="line"><span class="comment">### grep 文件内容查找 ###</span></span><br><span class="line"><span class="comment"># grep -参数 查找范围</span></span><br><span class="line"><span class="comment"># 参数</span></span><br><span class="line"><span class="comment"># -n 显示所有结果显示行号 number</span></span><br><span class="line"><span class="comment"># -R 递归查找目录下的所有文件</span></span><br><span class="line"></span><br><span class="line">grep aries /etc</span><br><span class="line">grep aries /etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="comment"># grep输出以0作为结尾符的文件名（-z）</span></span><br><span class="line">grep <span class="string">&quot;test&quot;</span> file* -lZ| xargs -0 <span class="built_in">rm</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 综合应用：将日志中的所有带where条件的sql查找查找出来</span></span><br><span class="line"><span class="built_in">cat</span> LOG.* | <span class="built_in">tr</span> a-z A-Z | grep <span class="string">&quot;FROM &quot;</span> | grep <span class="string">&quot;WHERE&quot;</span> &gt; b</span><br><span class="line"></span><br><span class="line"><span class="comment">### sed 文本替换利器 ###</span></span><br><span class="line"><span class="comment"># 首处替换</span></span><br><span class="line">sed <span class="string">&#x27;s/text/replace_text/&#x27;</span> file   //替换每一行的第一处匹配的text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 全局替换</span></span><br><span class="line">sed <span class="string">&#x27;s/text/replace_text/g&#x27;</span> file</span><br><span class="line"></span><br><span class="line"><span class="comment">### awk 数据流处理工具 ###</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### rmdir 删除空目录 ###</span></span><br><span class="line"><span class="built_in">rmdir</span> newfile</span><br><span class="line"></span><br><span class="line"><span class="comment">### 文件链接 ###</span></span><br><span class="line"><span class="comment">##  软链接 ##</span></span><br><span class="line"><span class="built_in">ln</span> -s original.txt symlink.txt <span class="comment">## 创建指向 original.txt 的符号链接（软链接） symlink.txt</span></span><br><span class="line"><span class="comment">##  硬链接 ##</span></span><br><span class="line"><span class="built_in">ln</span> ~/offsec123.txt hardlink.txt <span class="comment">## 创建 offsec123.txt ⽂件的硬链接 hardlink.txt </span></span><br><span class="line"></span><br><span class="line"><span class="comment">### 文件搜索 ###</span></span><br><span class="line"><span class="built_in">which</span> mysql</span><br><span class="line"></span><br><span class="line">locate XX.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">### 系统日志 ###</span></span><br><span class="line"><span class="comment">## 日志⽂件 ##</span></span><br><span class="line"><span class="built_in">tail</span> -3 /var/log/auth.log <span class="comment">## 查看 auth.log ⽂件中的最后三⾏记录。</span></span><br><span class="line"><span class="comment">## ⼆进制⽇志 ##</span></span><br><span class="line"><span class="built_in">who</span> /var/log/wtmp | <span class="built_in">tail</span> -5 <span class="comment">## 查看最近五个⽤户登录记录。</span></span><br><span class="line">dmesg <span class="comment">## 查看系统启动和内核⽇志。</span></span><br><span class="line"><span class="comment">## systemd⽇志 ##</span></span><br><span class="line">journalctl <span class="comment">## 查看 systemd 系统⽇志。</span></span><br></pre></td></tr></table></figure>
 
 <h4 id="3">管道</h4>
 
@@ -643,19 +452,19 @@
 
 <h4 id="5">磁盘管理</h4>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="built_in">df</span> -h <span class="comment"># 查看磁盘空间</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">du</span> -sh <span class="comment"># 查看当前目录所占空间大小</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="built_in">df</span> -h <span class="comment"># 查看磁盘空间</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">df</span> -hT <span class="comment"># 显示⽂件系统的磁盘使⽤情况， -h ⼈性化显示， -T 显示⽂件系统类型。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">du</span> -sh <span class="comment"># 查看当前目录所占空间大小</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">du</span> ./* -hsc <span class="comment"># 递归查看⽬录中每个⽂件或⽂件夹的⼤⼩。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 查看磁盘分区 ##</span></span><br><span class="line">fdisk -l <span class="comment"># 列出所有分区信息。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 挂载分区 ##</span></span><br><span class="line">mount /dev/sdb1 /mnt/usb <span class="comment"># 挂载设备 /dev/sdb1 到 /mnt/usb ⽬录。</span></span><br></pre></td></tr></table></figure>
 
 <h4 id="6">进程管理</h4>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看正在运行进程</span></span><br><span class="line">ps -ef</span><br><span class="line"></span><br><span class="line"><span class="comment"># 静态查看系统进程</span></span><br><span class="line">ps -aux</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询归属于用户colin115的进程</span></span><br><span class="line">ps -ef | grep colin115</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询进程ID（适合只记得部分进程字段）</span></span><br><span class="line"><span class="comment"># pgrep [查找进程]</span></span><br><span class="line">pgrep  -l re <span class="comment">#查询进程名中含有re的进程</span></span><br><span class="line"></span><br><span class="line">ps -ajx <span class="comment"># 以完整的格式显示所有的进程</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时查看系统进程</span></span><br><span class="line">top</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭进程</span></span><br><span class="line"><span class="built_in">kill</span> [进程<span class="built_in">id</span>]</span><br><span class="line"><span class="built_in">kill</span> -9 [进程<span class="built_in">id</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看端口占用的进程状态</span></span><br><span class="line">lsof -i:3306</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询init进程当前打开的文件</span></span><br><span class="line">lsof -c init</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询指定的进程ID(23295)打开的文件</span></span><br><span class="line">lsof -p 23295</span><br><span class="line"></span><br><span class="line"><span class="comment"># pmap，来输出进程内存的状况，可以用来分析线程堆栈</span></span><br><span class="line">pmap [PID]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将用户colin115下的所有进程名以av_开头的进程终止</span></span><br><span class="line">ps -u colin115 |  awk <span class="string">&#x27;/av_/ &#123;print &quot;kill -9 &quot; $1&#125;&#x27;</span> | sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将用户colin115下所有进程名中包含HOST的进程终止</span></span><br><span class="line">ps -fe| grep colin115|grep HOST |awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span> | xargs <span class="built_in">kill</span> -9</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看正在运行进程</span></span><br><span class="line">ps -ef</span><br><span class="line"></span><br><span class="line"><span class="comment"># 静态查看系统进程</span></span><br><span class="line">ps -aux</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询归属于用户colin115的进程</span></span><br><span class="line">ps -ef | grep colin115</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询进程ID（适合只记得部分进程字段）</span></span><br><span class="line"><span class="comment"># pgrep [查找进程]</span></span><br><span class="line">pgrep  -l re <span class="comment">#查询进程名中含有re的进程</span></span><br><span class="line"></span><br><span class="line">ps -ajx <span class="comment"># 以完整的格式显示所有的进程</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时查看系统进程</span></span><br><span class="line">top</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭进程</span></span><br><span class="line"><span class="built_in">kill</span> [进程<span class="built_in">id</span>]</span><br><span class="line"><span class="comment"># 强制杀死进程</span></span><br><span class="line"><span class="built_in">kill</span> -9 [进程<span class="built_in">id</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看端口占用的进程状态</span></span><br><span class="line">lsof -i:3306</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询init进程当前打开的文件</span></span><br><span class="line">lsof -c init</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询指定的进程ID(23295)打开的文件</span></span><br><span class="line">lsof -p 23295</span><br><span class="line"></span><br><span class="line"><span class="comment"># pmap，来输出进程内存的状况，可以用来分析线程堆栈</span></span><br><span class="line">pmap [PID]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将用户colin115下的所有进程名以av_开头的进程终止</span></span><br><span class="line">ps -u colin115 |  awk <span class="string">&#x27;/av_/ &#123;print &quot;kill -9 &quot; $1&#125;&#x27;</span> | sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将用户colin115下所有进程名中包含HOST的进程终止</span></span><br><span class="line">ps -fe| grep colin115|grep HOST |awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span> | xargs <span class="built_in">kill</span> -9</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在命令末尾加上 &amp; 符号，就可以让程序在后台运行</span></span><br><span class="line">./test.sh &amp;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果程序正在前台运行，可以使用 Ctrl+z 选项把程序暂停 然后用 bg %[number] 命令把这个程序放到后台运行，摁Ctrl+z，然后在最后一行加上bg %number</span></span><br><span class="line"><span class="built_in">bg</span> %1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将后台中的命令调至前台继续运行。如果后台中有多个命令，可以用fg %jobnumber（是命令编号，不是进程号）将选中的命令调出。</span></span><br><span class="line"><span class="built_in">fg</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前有多少在后台运行的命令</span></span><br><span class="line"><span class="comment"># 对于所有运行的程序，我们可以用jobs –l 指令查看</span></span><br><span class="line"><span class="built_in">jobs</span> -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果让程序始终在后台执行，即使关闭当前的终端也执行（之前的&amp;做不到），这时候需要nohup。该命令可以在你退出帐户/关闭终端之后继续运行相应的进程。关闭中断后，在另一个终端jobs已经无法看到后台跑得程序了，此时利用ps（进程查看命令）</span></span><br><span class="line"><span class="built_in">nohup</span> ./test.sh &amp;</span><br></pre></td></tr></table></figure>
 
 <h4 id="7">性能监控</h4>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看CPU使用率</span></span><br><span class="line">sar -u</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看CPU平均负载</span></span><br><span class="line">sar -q 1 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># sar指定-r之后，可查看内存使用状况</span></span><br><span class="line">sar -r 1 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看内存使用量</span></span><br><span class="line">free -m</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看页面交换发生状况 页面发生交换时，服务器的吞吐量会大幅下降；服务器状况不良时，如果怀疑因为内存不足而导致了页面交换的发生，可以使用sar -W这个命令来确认是否发生了大量的交换</span></span><br><span class="line">sar -W 1 3</span><br><span class="line"></span><br><span class="line"><span class="comment"># linux下有 vmstat、Unix系统有prstat</span></span><br><span class="line"><span class="comment"># 查看cpu、内存、使用情况： vmstat n m （n 为监控频率、m为监控次数）</span></span><br><span class="line">vmstat 1 3</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用watch 工具监控变化 当需要持续的监控应用的某个数据变化时，watch工具能满足要求； 执行watch命令后，会进入到一个界面，输出当前被监控的数据，一旦数据变化，便会高亮显示变化情况；</span></span><br><span class="line"><span class="comment"># 操作redis时，监控内存变化</span></span><br><span class="line">watch -d -n 1 <span class="string">&#x27;./redis-cli info | grep memory&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看CPU使用率</span></span><br><span class="line">sar -u</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看CPU平均负载</span></span><br><span class="line">sar -q 1 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># sar指定-r之后，可查看内存使用状况</span></span><br><span class="line">sar -r 1 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看内存使用量</span></span><br><span class="line">free -m</span><br><span class="line"><span class="comment"># 显示内存和交换分区的使⽤情况</span></span><br><span class="line">free -h</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看页面交换发生状况 页面发生交换时，服务器的吞吐量会大幅下降；服务器状况不良时，如果怀疑因为内存不足而导致了页面交换的发生，可以使用sar -W这个命令来确认是否发生了大量的交换</span></span><br><span class="line">sar -W 1 3</span><br><span class="line"></span><br><span class="line"><span class="comment"># linux下有 vmstat、Unix系统有prstat</span></span><br><span class="line"><span class="comment"># 查看cpu、内存、使用情况： vmstat n m （n 为监控频率、m为监控次数）</span></span><br><span class="line">vmstat 1 3</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用watch 工具监控变化 当需要持续的监控应用的某个数据变化时，watch工具能满足要求； 执行watch命令后，会进入到一个界面，输出当前被监控的数据，一旦数据变化，便会高亮显示变化情况；</span></span><br><span class="line"><span class="comment"># 操作redis时，监控内存变化</span></span><br><span class="line">watch -d -n 1 <span class="string">&#x27;./redis-cli info | grep memory&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <h4 id="8">网络工具</h4>
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 查询网络服务和端口 ###</span></span><br><span class="line"><span class="comment"># 列出所有端口</span></span><br><span class="line">netstat -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有 tcp 端口</span></span><br><span class="line">netstat -at</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有有监听的服务状态</span></span><br><span class="line">netstat -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用netstat工具查询端口</span></span><br><span class="line">netstat -antp | grep 6379</span><br><span class="line"></span><br><span class="line"><span class="comment">### 网络路由 ###</span></span><br><span class="line"><span class="comment"># 查看路由状态</span></span><br><span class="line">route -n</span><br><span class="line"></span><br><span class="line"><span class="comment">### ping包到地址IP ###</span></span><br><span class="line">ping IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### 探测前往地址IP的路由路径 ###</span></span><br><span class="line">traceroute IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### DNS查询，寻找域名domain对应的IP ###</span></span><br><span class="line">host domain</span><br><span class="line"></span><br><span class="line"><span class="comment">### 反向DNS查询 ###</span></span><br><span class="line">host IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### ssh 222端口 ###</span></span><br><span class="line">ssh -p 222 ID@host</span><br><span class="line"></span><br><span class="line"><span class="comment">### ftp/sftp文件传输 ###</span></span><br><span class="line">sftp ID@host</span><br><span class="line"></span><br><span class="line"><span class="comment"># 登陆服务器host，ID为用户名。sftp登陆后，可以使用下面的命令进一步操作：</span></span><br><span class="line">get filename <span class="comment"># 下载文件</span></span><br><span class="line">put filename <span class="comment"># 上传文件</span></span><br><span class="line"><span class="built_in">ls</span> <span class="comment"># 列出host上当前路径的所有文件</span></span><br><span class="line"><span class="built_in">cd</span> <span class="comment"># 在host上更改当前路径</span></span><br><span class="line">lls <span class="comment"># 列出本地主机上当前路径的所有文件</span></span><br><span class="line">lcd <span class="comment"># 在本地主机更改当前路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### lftp同步文件夹(类似rsync工具) ###</span></span><br><span class="line">lftp -u user:pass host</span><br><span class="line">lftp user@host:~&gt; mirror -n</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 查询网络服务和端口 ###</span></span><br><span class="line"><span class="comment"># 列出所有端口</span></span><br><span class="line">netstat -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有 tcp 端口</span></span><br><span class="line">netstat -at</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有有监听的服务状态</span></span><br><span class="line">netstat -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用netstat工具查询端口</span></span><br><span class="line">netstat -antp | grep 6379</span><br><span class="line"></span><br><span class="line">netstat -natup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 是 netstat 的替代⼯具，性能更⾼。</span></span><br><span class="line">ss -natup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 ARP 缓存表中的⼆层地址信息。</span></span><br><span class="line">arp -en</span><br><span class="line"></span><br><span class="line"><span class="comment">### 网络路由 ###</span></span><br><span class="line"><span class="comment"># 查看路由状态</span></span><br><span class="line">route -n</span><br><span class="line"></span><br><span class="line"><span class="comment">### ping包到地址IP ###</span></span><br><span class="line">ping IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### 探测前往地址IP的路由路径 ###</span></span><br><span class="line">traceroute IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### DNS查询，寻找域名domain对应的IP ###</span></span><br><span class="line">host domain</span><br><span class="line"></span><br><span class="line"><span class="comment">### 反向DNS查询 ###</span></span><br><span class="line">host IP</span><br><span class="line"></span><br><span class="line"><span class="comment">### ssh 222端口 ###</span></span><br><span class="line">ssh -p 222 ID@host</span><br><span class="line"></span><br><span class="line"><span class="comment">### ftp/sftp文件传输 ###</span></span><br><span class="line">sftp ID@host</span><br><span class="line"></span><br><span class="line"><span class="comment"># 登陆服务器host，ID为用户名。sftp登陆后，可以使用下面的命令进一步操作：</span></span><br><span class="line">get filename <span class="comment"># 下载文件</span></span><br><span class="line">put filename <span class="comment"># 上传文件</span></span><br><span class="line"><span class="built_in">ls</span> <span class="comment"># 列出host上当前路径的所有文件</span></span><br><span class="line"><span class="built_in">cd</span> <span class="comment"># 在host上更改当前路径</span></span><br><span class="line">lls <span class="comment"># 列出本地主机上当前路径的所有文件</span></span><br><span class="line">lcd <span class="comment"># 在本地主机更改当前路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### lftp同步文件夹(类似rsync工具) ###</span></span><br><span class="line">lftp -u user:pass host</span><br><span class="line">lftp user@host:~&gt; mirror -n</span><br><span class="line"></span><br><span class="line"><span class="comment">## 同步⽂件或⽬录，适合备份和⼤规模⽂件传输。</span></span><br><span class="line">rsync -avzh</span><br></pre></td></tr></table></figure>
 
 
 <h4 id="9">用户管理</h4>
@@ -691,13 +500,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/10/metasploit/">
+            <a href="/2025/01/16/metasploit/">
                 MetaSploit Framwork(MSF)
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-10</span>
+                <span class="date">2025-01-16</span>
             
             
             
@@ -738,13 +547,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/10/mongodb/">
+            <a href="/2025/01/16/mongodb/">
                 MongoDB
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-10</span>
+                <span class="date">2025-01-16</span>
             
             
             
@@ -852,9 +661,17 @@
 <li>通配符索引(Wildcard Index)</li>
 <li>2dsphere索引(2dsphere Indexes)</li>
 </ul>
-<h2 id="批量更新"><a href="#批量更新" class="headerlink" title="批量更新"></a>批量更新</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">db.getCollection(<span class="string">&quot;post&quot;</span>).updateMany(&#123; <span class="variable">$set</span>: &#123;</span><br><span class="line">        click: 0,</span><br><span class="line">        favorite: 0,</span><br><span class="line">        love: 0,</span><br><span class="line">        notlove:0</span><br><span class="line">    &#125; </span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 批量更新 click, favorite, love, notlove</span></span><br><span class="line">db.getCollection(<span class="string">&quot;post&quot;</span>).updateMany(&#123; <span class="variable">$set</span>: &#123;</span><br><span class="line">        click: 0,</span><br><span class="line">        favorite: 0,</span><br><span class="line">        love: 0,</span><br><span class="line">        notlove:0</span><br><span class="line">    &#125; </span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查询age字段不存在并且批量更新为1</span></span><br><span class="line">db.getCollection(<span class="string">&quot;users&quot;</span>).updateMany(</span><br><span class="line">    &#123; age: &#123; <span class="variable">$exists</span>: <span class="literal">false</span> &#125; &#125;, </span><br><span class="line">    &#123; <span class="variable">$set</span>: &#123; age: 18 &#125; &#125; </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
+<h3 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h3><ul>
+<li><p>导入 - 多集合</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span> </span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span> </span><br><span class="line">DATABASE=<span class="string">&quot;&quot;</span> </span><br><span class="line">FOLDER_PATH=<span class="string">&quot;/data/db/backup_dev_20250115&quot;</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历文件夹 </span></span><br><span class="line"><span class="keyword">for</span> DIR <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$FOLDER_PATH</span>&quot;</span>/*/; <span class="keyword">do</span> </span><br><span class="line">	COLLECTION_NAME=$(<span class="built_in">basename</span> <span class="string">&quot;<span class="variable">$DIR</span>&quot;</span>) </span><br><span class="line">	mongorestore --db <span class="variable">$COLLECTION_NAME</span> <span class="variable">$DIR</span>  -j 100</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;所有文件导入完成！&quot;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>备份-多集合</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/data/db/dbback&quot;</span>        <span class="comment"># 备份存储目录</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span>           <span class="comment"># MongoDB 主机</span></span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span>               <span class="comment"># MongoDB 端口</span></span><br><span class="line">PJ=<span class="string">&quot;dev&quot;</span>                        <span class="comment"># 项目名称</span></span><br><span class="line">DATE=$(<span class="built_in">date</span> +%Y%m%d)             <span class="comment"># 当前日期，格式为 YYYYMMDD</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_.log&quot;</span>  <span class="comment"># 日志文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 要排除的集合（可以根据需要修改）</span></span><br><span class="line">EXCLUDE_COLLECTIONS=(<span class="string">&quot;app_log&quot;</span> <span class="string">&quot;comics_history&quot;</span> <span class="string">&quot;movie_history&quot;</span> <span class="string">&quot;novel_history&quot;</span> <span class="string">&quot;post_history&quot;</span>)  <span class="comment"># 这里列出所有需要排除的集合</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拼接排除集合的参数</span></span><br><span class="line">EXCLUDE_PARAMS=<span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">for</span> collection <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;EXCLUDE_COLLECTIONS[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">    EXCLUDE_PARAMS=<span class="string">&quot;<span class="variable">$EXCLUDE_PARAMS</span> --excludeCollection=<span class="variable">$collection</span>&quot;</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取所有数据库的列表，并排除 local 数据库</span></span><br><span class="line">DATABASES=“”</span><br><span class="line"><span class="comment"># 检查mongo命令是否存在并获取版本信息 </span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">command</span> -v mongo &amp;&gt; /dev/null; <span class="keyword">then</span> </span><br><span class="line">    DATABASES=$(mongo --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --quiet --<span class="built_in">eval</span> <span class="string">&quot;db.adminCommand(&#x27;listDatabases&#x27;).databases.map(function(d) &#123; return d.name; &#125;).filter(function(name) &#123; return name != &#x27;local&#x27;; &#125;).join(&#x27; &#x27;);&quot;</span>)</span><br><span class="line"><span class="keyword">elif</span> <span class="built_in">command</span> -v mongosh &amp;&gt; /dev/null; <span class="keyword">then</span> </span><br><span class="line">    DATABASES=$(mongosh --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --quiet --<span class="built_in">eval</span> <span class="string">&quot;db.adminCommand(&#x27;listDatabases&#x27;).databases.map(function(d) &#123; return d.name; &#125;).filter(function(name) &#123; return name != &#x27;local&#x27;; &#125;).join(&#x27; &#x27;);&quot;</span>)</span><br><span class="line"><span class="keyword">else</span> </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;MongoDB未安装或未在PATH中找到。&quot;</span> </span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份目标文件夹</span></span><br><span class="line">BACKUP_PATH=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志记录函数</span></span><br><span class="line"><span class="function"><span class="title">log_msg</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(date +&#x27;%Y-%m-%d %H:%M:%S&#x27;)</span> - <span class="variable">$1</span>&quot;</span> | <span class="built_in">tee</span> -a <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历所有数据库进行备份</span></span><br><span class="line"><span class="keyword">for</span> DB_NAME <span class="keyword">in</span> <span class="variable">$DATABASES</span>; <span class="keyword">do</span></span><br><span class="line">    log_msg <span class="string">&quot;开始备份数据库 <span class="variable">$DB_NAME</span>...&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 执行备份</span></span><br><span class="line">    mongodump --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --db <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span> --out <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span> <span class="variable">$EXCLUDE_PARAMS</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">        log_msg <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 备份成功！&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        log_msg <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 备份失败！&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建压缩包并删除备份文件夹</span></span><br><span class="line">log_msg <span class="string">&quot;开始创建压缩包...&quot;</span></span><br><span class="line">tar -zcvf <span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>.tar.gz&quot;</span> -C <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"><span class="built_in">rm</span> -rf <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除7天前的备份</span></span><br><span class="line">log_msg <span class="string">&quot;删除超过7天的旧备份...&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> f -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*.tar.gz&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -f &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> d -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -rf &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">log_msg <span class="string">&quot;备份完成，过期备份清理完成！&quot;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
 <p>聚合</p>
+<p>mongodb 副本集的主的选举–优先级设置</p>
 <p>分片<br>复制集</p>
 
         </div>
@@ -867,13 +684,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/10/mysql-MyISAM-InnoDB/">
+            <a href="/2025/01/16/mysql-MyISAM-InnoDB/">
                 Mysql-MyISAM与InnoDB对比及用法
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-10</span>
+                <span class="date">2025-01-16</span>
             
             
             
@@ -1042,6 +859,184 @@
 
 </div>
             
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/01/16/mysql-migrate-main-sub/">
+                Mysql-数据迁移-主从
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-01-16</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
+<p>首先把 mysq.ini 配置打开</p>
+</blockquote>
+<ul>
+<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
+</li>
+<li><p>重启数据库 并可启用 secure_file_priv</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure></li>
+</ul>
+<blockquote>
+<p>bash脚本 并进行数据提取  -(数据导出)</p>
+<blockquote>
+<p> export_data.sh</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>python脚本 数据批量插入 -(数据插入)</p>
+<blockquote>
+<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/01/16/mysql-migrate/">
+                Mysql-数据迁移-基础篇
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-01-16</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
+<p>首先把 mysq.ini 配置打开</p>
+</blockquote>
+<ul>
+<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
+</li>
+<li><p>重启数据库 并可启用 secure_file_priv</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure></li>
+</ul>
+<blockquote>
+<p>bash脚本 并进行数据提取  -(数据导出)</p>
+<blockquote>
+<p> export_data.sh</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>python脚本 数据批量插入 -(数据插入)</p>
+<blockquote>
+<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/01/16/mysql/">
+                Mysql-basic
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-01-16</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><h3 id="常用mysql语句"><a href="#常用mysql语句" class="headerlink" title="常用mysql语句"></a>常用mysql语句</h3><ul>
+<li><p>添加字段</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE <span class="built_in">users</span></span><br><span class="line">ADD COLUMN username VARCHAR(255);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>所有字段更新</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UPDATE  <span class="built_in">users</span> SET role_id=<span class="string">&quot;1&quot;</span>;</span><br><span class="line"><span class="comment">##更新部分字段</span></span><br><span class="line"><span class="built_in">where</span> XXX</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>批量替换   旧的 -》新的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UPDATE your_table</span><br><span class="line">SET your_column = REPLACE(your_column, <span class="string">&#x27;http://107.148.73.24:83/uploads/tool/202409/&#x27;</span>, <span class="string">&#x27;http://aaa.com/uploads/tool/202409/&#x27;</span>);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="mysql-删除重复记录-去重"><a href="#mysql-删除重复记录-去重" class="headerlink" title="mysql 删除重复记录 去重"></a>mysql 删除重复记录 去重</h3><p>peopleId 去重</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">DELETE </span><br><span class="line">FROM </span><br><span class="line">    people </span><br><span class="line">WHERE </span><br><span class="line">    peopleId IN (</span><br><span class="line">		SELECT	</span><br><span class="line">            peopleId </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY </span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">	)</span><br><span class="line">AND </span><br><span class="line">    rowid </span><br><span class="line">    NOT IN ( </span><br><span class="line">        SELECT </span><br><span class="line">            min(rowid) </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY	</span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DELETE</span><br><span class="line">FROM</span><br><span class="line">	user</span><br><span class="line">WHERE</span><br><span class="line">	<span class="built_in">id</span> NOT IN (</span><br><span class="line">SELECT <span class="built_in">id</span> FROM (</span><br><span class="line">		SELECT</span><br><span class="line">			MAX(<span class="built_in">id</span>) AS <span class="built_in">id</span></span><br><span class="line">		FROM</span><br><span class="line">			user</span><br><span class="line">		GROUP BY</span><br><span class="line">			username</span><br><span class="line">	) AS d</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据二进制备份-binlog"><a href="#数据二进制备份-binlog" class="headerlink" title="数据二进制备份 binlog"></a>数据二进制备份 binlog</h3><p> binlog，也称为二进制日志，记录对数据发生或潜在发生更改的SQL语句，并以二进制的形式保存在磁盘中，可以用来查看数据库的变更历史（具体的时间点所有的SQL操作）、数据库增量备份和恢复（增量备份和基于时间点的恢复）、Mysql的复制（主主数据库的复制、主从数据库的复制）。</p>
+<ul>
+<li><p>查看是否开启binlog</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like <span class="string">&#x27;%bin%&#x27;</span>  </span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>开启binlog<br>只需要打开mysql的配置文件my.ini（也可能是my.cnf），找到log-bin</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log-bin=mysql-bin </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>mysqlbinlog 导入二进制binlog文件</p>
+</li>
+</ul>
+<h3 id="数据备份"><a href="#数据备份" class="headerlink" title="数据备份"></a>数据备份</h3><p>mysqldump 只适用于数据备份 选择性的（加条件）数据不能使用<br>只能用 excel 进行 数据插入</p>
+<ul>
+<li><p>选择性导出 (加条件)<br>mysqldump -u root -p heitang post –where&#x3D;”id &gt; 14192” &gt; post.sql</p>
+<ul>
+<li>{heitang} 数据库名</li>
+<li>{post} table</li>
+<li>–where&#x3D;”id &gt; 14192” 条件</li>
+<li>post.sql 导出sql</li>
+</ul>
+</li>
+<li><p>excel<br>SELECT name, age, email INTO OUTFILE ‘&#x2F;path&#x2F;to&#x2F;output.csv’<br>FIELDS TERMINATED BY ‘,’<br>ENCLOSED BY ‘“‘<br>LINES TERMINATED BY ‘\n’<br>FROM users;</p>
+</li>
+<li><p>数据误update 数据没了</p>
+</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
         </section>
     </div>
 </div>
@@ -1084,19 +1079,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/01/10/pantesting-getinfo/">信息收集</a>
+                <a class="footer-post" href="/2025/01/16/pantesting-interview/">渗透 面试题</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/10/php-interview/">PHP 面试题</a>
+                <a class="footer-post" href="/2025/01/16/php-interview/">PHP 面试题</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/10/php-structure/">PHP框架</a>
+                <a class="footer-post" href="/2025/01/16/php-structure/">PHP框架</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/10/raspberry-pi/">Raspberry Pi 树莓派</a>
+                <a class="footer-post" href="/2025/01/16/raspberry-pi/">Raspberry Pi 树莓派</a>
             </li>
             
         </ul>
@@ -1118,11 +1113,11 @@
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/AI/">AI</a>
+            <a class="footer-post" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a>
         </li>
         
     </ul>
