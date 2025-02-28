@@ -133,7 +133,6 @@
                 </form>
                 <div id="local-search-result">
                 </div>
-                <p class='no-result'>No results found </p> 
             </div>
         </div>
     </div>
@@ -181,269 +180,6 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/02/28/raspberry-pi/">
-                Raspberry Pi 树莓派
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-02-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/单片机/">单片机</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
-<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
-<p>树莓派系统连接原理</p>
-<blockquote>
-<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
-</blockquote>
-</blockquote>
-<ul>
-<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
-</li>
-<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li><p>开机启动树莓派即可连接WIFI</p>
-</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/02/28/redis/">
-                Redis
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-02-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/02/28/shell/">
-                Shell
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-02-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
-<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
-<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
-</ul>
-<blockquote>
-<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
-</blockquote>
-<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
-
-<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
-<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
-<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
-<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/02/28/social-engineering/">
-                社工库工具
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-02-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>国外情报专家最常用的OSINT工具</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
-<ul>
-<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/02/28/software-structure/">
-                软件架构演变
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-02-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/架构/">架构</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
-<ul>
-<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
-<li>Chrome: Webkit内核 -&gt; Blink内核</li>
-<li>火狐: Gecko内核</li>
-<li>Safari: Webkit内核</li>
-<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
-</ul>
-<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
-<p><img src="/images/single-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
-<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
-</ul>
-<p><em><strong>缺点:</strong></em></p>
-<ul>
-<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
-<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
-</ul>
-<p><em><strong>基本框架：</strong></em></p>
-<ul>
-<li>前端 - angular jq 模版引擎ecshop(smart)</li>
-<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
-</ul>
-<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
-<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
-<p><img src="/images/mult-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
-<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
-</ul>
-<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
-<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
-<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
-<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
-<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
-<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
-<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
-<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
-<p><img src="/images/SSO-software-structure.png"></p>
-<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
-<p><img src="/images/OAuth-software-structure.png"></p>
-<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
-<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
-<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
-<p><img src="/images/micro-software-structure.png"></p>
-<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
-<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
-<p>优点:</p>
-<ul>
-<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
-<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
-<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
-</ul>
-<p>缺点: </p>
-<ul>
-<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
-<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
-</ul>
-<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
             <a href="/2025/02/28/springboot/">
                 Springboot
             </a>
@@ -475,8 +211,533 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/02/28/k8s-basic/">
-                K8S
+            <a href="/2025/02/28/mysql/">
+                Mysql-basic
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><h3 id="常用mysql语句"><a href="#常用mysql语句" class="headerlink" title="常用mysql语句"></a>常用mysql语句</h3><ul>
+<li><p>添加字段</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE <span class="built_in">users</span></span><br><span class="line">ADD COLUMN username VARCHAR(255);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>所有字段更新</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UPDATE  <span class="built_in">users</span> SET role_id=<span class="string">&quot;1&quot;</span>;</span><br><span class="line"><span class="comment">##更新部分字段</span></span><br><span class="line"><span class="built_in">where</span> XXX</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>批量替换   旧的 -》新的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UPDATE your_table</span><br><span class="line">SET your_column = REPLACE(your_column, <span class="string">&#x27;http://107.148.73.24:83/uploads/tool/202409/&#x27;</span>, <span class="string">&#x27;http://aaa.com/uploads/tool/202409/&#x27;</span>);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="mysql-删除重复记录-去重"><a href="#mysql-删除重复记录-去重" class="headerlink" title="mysql 删除重复记录 去重"></a>mysql 删除重复记录 去重</h3><p>peopleId 去重</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">DELETE </span><br><span class="line">FROM </span><br><span class="line">    people </span><br><span class="line">WHERE </span><br><span class="line">    peopleId IN (</span><br><span class="line">		SELECT	</span><br><span class="line">            peopleId </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY </span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">	)</span><br><span class="line">AND </span><br><span class="line">    rowid </span><br><span class="line">    NOT IN ( </span><br><span class="line">        SELECT </span><br><span class="line">            min(rowid) </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY	</span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DELETE</span><br><span class="line">FROM</span><br><span class="line">	user</span><br><span class="line">WHERE</span><br><span class="line">	<span class="built_in">id</span> NOT IN (</span><br><span class="line">SELECT <span class="built_in">id</span> FROM (</span><br><span class="line">		SELECT</span><br><span class="line">			MAX(<span class="built_in">id</span>) AS <span class="built_in">id</span></span><br><span class="line">		FROM</span><br><span class="line">			user</span><br><span class="line">		GROUP BY</span><br><span class="line">			username</span><br><span class="line">	) AS d</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据二进制备份-binlog"><a href="#数据二进制备份-binlog" class="headerlink" title="数据二进制备份 binlog"></a>数据二进制备份 binlog</h3><p> binlog，也称为二进制日志，记录对数据发生或潜在发生更改的SQL语句，并以二进制的形式保存在磁盘中，可以用来查看数据库的变更历史（具体的时间点所有的SQL操作）、数据库增量备份和恢复（增量备份和基于时间点的恢复）、Mysql的复制（主主数据库的复制、主从数据库的复制）。</p>
+<ul>
+<li><p>查看是否开启binlog</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like <span class="string">&#x27;%bin%&#x27;</span>  </span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>开启binlog<br>只需要打开mysql的配置文件my.ini（也可能是my.cnf），找到log-bin</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log-bin=mysql-bin </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>mysqlbinlog 导入二进制binlog文件</p>
+</li>
+</ul>
+<h3 id="数据备份"><a href="#数据备份" class="headerlink" title="数据备份"></a>数据备份</h3><p>mysqldump 只适用于数据备份 选择性的（加条件）数据不能使用<br>只能用 excel 进行 数据插入</p>
+<ul>
+<li><p>选择性导出 (加条件)<br>mysqldump -u root -p heitang post –where&#x3D;”id &gt; 14192” &gt; post.sql</p>
+<ul>
+<li>{heitang} 数据库名</li>
+<li>{post} table</li>
+<li>–where&#x3D;”id &gt; 14192” 条件</li>
+<li>post.sql 导出sql</li>
+</ul>
+</li>
+<li><p>excel<br>SELECT name, age, email INTO OUTFILE ‘&#x2F;path&#x2F;to&#x2F;output.csv’<br>FIELDS TERMINATED BY ‘,’<br>ENCLOSED BY ‘“‘<br>LINES TERMINATED BY ‘\n’<br>FROM users;</p>
+</li>
+<li><p>数据误update 数据没了</p>
+</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/natcat/">
+                Natcat
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>nc是netcat的简写，有着网络界的瑞士军刀美誉。因为它短小精悍、功能实用，被设计为一个简单、可靠的网络工具。 </p>
+<ul>
+<li>端口扫描工具， </li>
+<li>安全工具， </li>
+<li>监测工具， </li>
+<li>甚至可以做为一个简单的 TCP 代理</li>
+</ul>
+<h2 id="NC"><a href="#NC" class="headerlink" title="NC"></a>NC</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h2 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h2><ul>
+<li>正向连接 - 机器开放端口并可以主动连接目标机器端口 远程桌面、web服务、ssh、telnet等等都是正向连接</li>
+<li>反向连接 - 攻击者指定服务端，受害者主机主动连接攻击者的服务端程序</li>
+</ul>
+<p>反弹shell的方式有很多，那具体要用哪种方式还需要根据目标主机的环境来确定，比如目标主机上如果安装有netcat，那我们就可以利用netcat反弹shell，如果具有python环境，那我们可以利用python反弹shell。如果具有php环境，那我们可以利用php反弹shell。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/network-protocal/">
+                网络协议
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/网络协议/">网络协议</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p><img src="/images/network-basic.png" alt="网络协议"></p>
+<p><img src="/images/network-structure.png" alt="网络协议"></p>
+<ul>
+<li><a href="#1">http-协议</a><ul>
+<li><a href="#1.1">结构体</a></li>
+<li><a href="#1.2">请求方法</a></li>
+<li><a href="#1.3">响应状态码</a></li>
+<li><a href="#1.4">响应头部</a></li>
+</ul>
+</li>
+<li><a href="#2">https-协议</a></li>
+<li><a href="#3">DNS</a><ul>
+<li><a href="#3.1">域名解析</a></li>
+<li><a href="#3.2">DNS解析工具</a></li>
+<li><a href="#3.3">什么是DNS劫持</a></li>
+<li><a href="#3.4">什么是DNS污染</a></li>
+<li><a href="#3.5">为什么要DNS流量监控</a></li>
+</ul>
+</li>
+<li><a href="#4">TCP协议</a><ul>
+<li><a href="#4.1">TCP头部格式</a></li>
+<li><a href="#4.2">三次握手与四次挥手</a></li>
+<li><a href="#4.3">SYN攻击</a></li>
+<li><a href="#4.4">KeepAlive</a></li>
+<li><a href="#4.5">TCP和UDP的区别</a></li>
+</ul>
+</li>
+<li><a href="#5">Socket</a></li>
+</ul>
+<h3 id="1">http-协议</h3>
+<h4 id="1.1">结构体</h4>
+
+<p><img src="/images/http-request.png" alt="http请求结构体"></p>
+<p><img src="/images/http-request-demo.png" alt="http请求报文范例"></p>
+<h4 id="1.2">请求方法</h4>
+
+<ul>
+<li>GET</li>
+<li>POST</li>
+<li>HEAD</li>
+<li>DELETE</li>
+<li>OPTIONS</li>
+<li>PUT</li>
+<li>TRACE</li>
+<li>CONNECT</li>
+</ul>
+<h4 id="1.3">请求报文头</h4>
+
+<ul>
+<li>User-Agent : 产生请求的浏览器类型</li>
+<li>Accept : 客户端希望接受的数据类型，比如 Accept：text&#x2F;xml（application&#x2F;json）表示希望接受到的是xml（json）类型</li>
+<li>Content-Type：发送端发送的实体数据的数据类型。比如，Content-Type：text&#x2F;html（application&#x2F;json）表示发送的是html类型。</li>
+<li>Host : 请求的主机名，允许多个域名同处一个IP地址，即虚拟主机</li>
+</ul>
+<h4 id="1.4">响应状态码</h4>
+
+<ul>
+<li>状态代码由服务器发出，以响应客户端对服务器的请求。</li>
+<li>1xx（信息）：收到请求，继续处理</li>
+<li>2xx（成功）：请求已成功接收，理解和接受</li>
+<li>3xx（重定向）：需要采取进一步措施才能完成请求</li>
+<li>4xx（客户端错误）：请求包含错误的语法或无法满足</li>
+<li>5xx（服务器错误）：服务器无法满足明显有效的请求</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki">状态码详情请查阅</a></p>
+<h4 id="1.5">响应头部</h4>
+
+<p>响应头部主要是返回一些服务器的基本信息，以及一些Cookie值等。如上的响应头为:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Date: Sat, 01 Jul 2017 14:51:26 GMT</span><br><span class="line">Server: Apache/2.4.7 (Ubuntu)</span><br><span class="line">Set-Cookie: JSESSIONID=84C993F5E433C4DE9BFBA57150FFC065.ajp13_worker;path=/;HttpOnly</span><br><span class="line">Content-Language: zh-CN</span><br><span class="line">Vary: Accept-Encoding</span><br><span class="line">Content-Encoding: gzip</span><br><span class="line">Content-Length: 7333</span><br><span class="line">Keep-Alive: <span class="built_in">timeout</span>=5, max=100</span><br><span class="line">Connection: Keep-Alive</span><br><span class="line">Content-Type: text/html;charset=UTF-8</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/liujiarui/p/13253246.html">引鉴</a></p>
+</blockquote>
+<h3 id="2">https-协议</h3>
+
+<p><img src="/images/https-ssl.png" alt="http请求报文范例"></p>
+<h3 id="3">DNS</h3>
+
+<blockquote>
+<p>DNS 要解决的是域名和 IP 地址的映射问题</p>
+</blockquote>
+<p><img src="/images/domain-name-structure.png" alt="域名分层结构"></p>
+<p><img src="/images/domain-name-flow.png" alt="DNS解析过程"></p>
+<p>DNS 的查询解析过程分为两种模式：</p>
+<ul>
+<li>迭代 <img src="/images/dns-diedai.png" alt="迭代"></li>
+<li>递归 <img src="/images/dns-digui.png" alt="递归"></li>
+</ul>
+<h4 id="3.1">域名解析</h4>
+
+<ul>
+<li>A 将域名指向一个 IPv4 地址，如 106.55.75.123。 A记录归属地是埃文科技的付费接口，为了防止盗刷，每个用户有查询限制，请节省使用。</li>
+<li>AAAA 将域名指向一个 IPv6 地址，如 2402:4e00:1013:e500:0:9671:f018:4947。同一个主机名可以同时解析到 IPv4(A记录)地址 和 IPv6(AAAA 记录)地址上，当只有IPv4 地址的用户会解析到 IPv4 地址，一般情况下有 IPv6 地址的用户会优先解析到 IPv6 地址。</li>
+<li>CNAME 将域名指向另一个域名地址，与其保持相同解析，如 static.ipw.cn 别名到 static.ipw.cn.cdn.dnsv1.com</li>
+<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#x74;&#x65;&#x73;&#x74;&#64;&#105;&#112;&#x77;&#x2e;&#99;&#110;">&#x74;&#x65;&#x73;&#x74;&#64;&#105;&#112;&#x77;&#x2e;&#99;&#110;</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#x74;&#x65;&#115;&#116;&#x40;&#109;&#97;&#105;&#x6c;&#x2e;&#105;&#x70;&#119;&#46;&#x63;&#110;">&#x74;&#x65;&#115;&#116;&#x40;&#109;&#97;&#105;&#x6c;&#x2e;&#105;&#x70;&#119;&#46;&#x63;&#110;</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
+<li>TXT 附加文本信息，常用于域名所有权验证，如在申请 HTTPS 证书时需要增加记录、</li>
+<li>PTR IP 的反向解析记录，例如 159.75.190.197 反解析到 ipw.cn，一般用于提升自建域名邮件服务器的可信度，可提单找云服务商添加。</li>
+<li>NS 域名的 DNS 服务器地址，例如 ns3.dnsv2.com，推荐 DNSPod.</li>
+</ul>
+<h4 id="3.2">DNS解析工具</h4>
+
+<p><code>dig</code></p>
+<blockquote>
+<p>dig baidu.com</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; baidu.com</span><br><span class="line">;; global options: +cmd</span><br><span class="line">;; Got answer:</span><br><span class="line">;; -&gt;&gt;HEADER&lt;&lt;- <span class="string">opcode: QUERY, status: NOERROR, id: 1675</span></span><br><span class="line"><span class="string">;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 询问 baidu.com 域名的 A 记录</span></span><br><span class="line"><span class="string">;; OPT PSEUDOSECTION:   </span></span><br><span class="line"><span class="string">; EDNS: version: 0, flags:; udp: 512</span></span><br><span class="line"><span class="string">;; QUESTION SECTION:</span></span><br><span class="line"><span class="string">;baidu.com.			IN	A</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## baidu.com. 域名的 A 记录指向了 39.156.66.10 和 110.242.68.66 这两个IP</span></span><br><span class="line"><span class="string">;; ANSWER SECTION:</span></span><br><span class="line"><span class="string">baidu.com.		406	IN	A	39.156.66.10</span></span><br><span class="line"><span class="string">baidu.com.		406	IN	A	110.242.68.66</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 查询耗时，本地DNS地址，查询时间，返回消息包大小</span></span><br><span class="line"><span class="string">;; Query time: 50 msec</span></span><br><span class="line"><span class="string">;; SERVER: 8.8.8.8#53(8.8.8.8)</span></span><br><span class="line"><span class="string">;; WHEN: Tue Dec 31 14:28:42 +07 2024</span></span><br><span class="line"><span class="string">;; MSG SIZE  rcvd: 70</span></span><br><span class="line"><span class="string"></span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<ul>
+<li>dig +short baidu.com   (直接显示DNS寻址结果)</li>
+<li>dig +trace baidu.com   (整个分级查询过程)</li>
+<li>dig @8.8.8.8 baidu.com   (向特定DNS服务器寻址)</li>
+<li>dig ns baidu.com   (ns记录)</li>
+<li>dig a baidu.com   (a记录)</li>
+<li>dig mx baidu.com   (mx记录)</li>
+<li>dig -x 192.30.252.153   (查询PTR记录)</li>
+</ul>
+</blockquote>
+<p><code>host</code> 用于逆向查询，即从IP地址查询域名，等同于dig -x {IP}</p>
+<blockquote>
+<p>host github.com</p>
+</blockquote>
+<p><code>host</code> nslookup 互动式地查询域名记录</p>
+<blockquote>
+<p>nslookup github.com</p>
+</blockquote>
+<p><code>whois</code> 查看域名的注册情况</p>
+<blockquote>
+<p>whois github.com</p>
+</blockquote>
+<h4 id="3.3">什么是DNS劫持</h4>
+
+<p>什么是DNS劫持DNS劫持就是通过劫持了DNS服务器，通过某些手段取得某域名的解析记录控制权，进而修改此域名的解析结果，导致对该域名的访问由原IP地址转入到修改后的指定IP，其结果就是对特定的网址不能访问或访问的是假网址，从而实现窃取资料或者破坏原有正常服务的目的。DNS劫持通过篡改DNS服务器上的数据返回给用户一个错误的查询结果来实现的。</p>
+<blockquote>
+<p>DNS劫持症状：在某些地区的用户在成功连接宽带后，首次打开任何页面都指向ISP提供的“电信互联星空”、“网通黄页广告”等内容页面。还有就是曾经出现过用户访问Google域名的时候出现了百度的网站。这些都属于DNS劫持。</p>
+</blockquote>
+<h4 id="3.4">什么是DNS污染</h4>
+
+<p>DNS污染是一种让一般用户由于得到虚假目标主机IP而不能与其通信的方法，是一种DNS缓存投毒攻击（DNS cache poisoning）。其工作方式是：由于通常的DNS查询没有任何认证机制，而且DNS查询通常基于的UDP是无连接不可靠的协议，因此DNS的查询非常容易被篡改，通过对UDP端口53上的DNS查询进行入侵检测，一经发现与关键词相匹配的请求则立即伪装成目标域名的解析服务器（NS，Name Server）给查询者返回虚假结果。而DNS污染则是发生在用户请求的第一步上，直接从协议上对用户的DNS请求进行干扰。DNS污染症状：目前一些被禁止访问的网站很多就是通过DNS污染来实现的，例如YouTube、Facebook等网站。</p>
+<p>解决方法:</p>
+<ul>
+<li>对于DNS劫持，可以采用使用国外免费公用的DNS服务器解决。例如OpenDNS（208.67.222.222）或GoogleDNS（8.8.8.8）。</li>
+<li>对于DNS污染，可以说，个人用户很难单单靠设置解决，通常可以使用VPN或者域名远程解析的方法解决，但这大多需要购买付费的VPN或SSH等，也可以通过修改Hosts的方法，手动设置域名正确的IP地址。</li>
+</ul>
+<h4 id="3.5">为什么要DNS流量监控</h4>
+
+<p>预示网络中正出现可疑或恶意代码的 DNS 组合查询或流量特征。例如：</p>
+<ol>
+<li>来自伪造源地址的 DNS 查询、或未授权使用且无出口过滤地址的 DNS 查询，若同时观察到异常大的 DNS 查询量或使用 TCP 而非 UDP 进行 DNS 查询，这可能表明网络内存在被感染的主机，受到了 DDoS 攻击。</li>
+<li>异常 DNS 查询可能是针对域名服务器或解析器（根据目标 IP 地址确定）的漏洞攻击的标志。与此同时，这些查询也可能表明网络中有不正常运行的设备。原因可能是恶意软件或未能成功清除恶意软件。</li>
+<li>在很多情况下，DNS 查询要求解析的域名如果是已知的恶意域名，或具有域名生成算法( DGA )（与非法僵尸网络有关）常见特征的域名，或者向未授权使用的解析器发送的查询，都是证明网络中存在被感染主机的有力证据。</li>
+<li>DNS 响应也能显露可疑或恶意数据在网络主机间传播的迹象。例如，DNS 响应的长度或组合特征可以暴露恶意或非法行为。例如，响应消息异常巨大（放大攻击），或响应消息的 Answer Section 或 Additional Section 非常可疑（缓存污染，隐蔽通道）。</li>
+<li>针对自身域名组合的 DNS 响应，如果解析至不同于你发布在授权区域中的 IP 地址，或来自未授权区域主机的域名服务器的响应，或解析为名称错误( NXDOMAIN )的对区域主机名的肯定响应，均表明域名或注册账号可能被劫持或 DNS 响应被篡改。</li>
+<li>来自可疑 IP 地址的 DNS 响应，例如来自分配给宽带接入网络 IP 段的地址、非标准端口上出现的 DNS 流量，异常大量的解析至短生存时间( TTL )域名的响应消息，或异常大量的包含“ name error ”( NXDOMAIN )的响应消息，往往是主机被僵尸网络控制、运行恶意软件或被感染的表现。</li>
+</ol>
+<h3 id="4">TCP协议</h3>
+<h4 id="4.1">TCP头部格式</h4>
+
+
+<p><img src="/images/tcp-header.png" alt="TCP头部格式"></p>
+<ul>
+<li>【端口号】：端口号，用于多路复用或者分解来自（送到）上层的数据；</li>
+<li>【序列号】：在连接建立时由计算机计算出的初始值，通过 SYN 包传给对端主机，每发送一次新的数据包，就累加一次该序列号的大小。用来解决网络包乱序问题；</li>
+<li>【确认应答号】：指下次期望收到的数据的序列号，发送端收到这个确认应答以后可以确认确认应答号-1的数据包已经被正常接收。主要用来解决不丢包的问；</li>
+<li>【标志字段】：<ul>
+<li>【ACK】：用以指示确认字段中的值是有效的，即该报文段包括一个对已被成功接收的报文段的确认；</li>
+<li>【RST】：用以指示连接的强制拆除，当接收到错误连接时会发送RST位置为1的报文；</li>
+<li>【SYN】：用以指示连接的建立，该位为1的报文表示希望建立连接；</li>
+<li>【FIN】：用以指示连接的终止，该位为1的报文表示希望断开连接；</li>
+</ul>
+</li>
+</ul>
+<h4 id="4.2">三次握手与四次挥手</h4>
+
+<p><img src="/images/shakehand3-end4.png" alt="三次握手与四次挥手"></p>
+<p>三次握手</p>
+<ul>
+<li><p><em><strong>第一次握手(SYN&#x3D;1, seq&#x3D;x):</strong></em><br>客户端发送一个 TCP 的 SYN 标志位置1的包，指明客户端打算连接的服务器的端口，以及初始序号 X,保存在包头的序列号(Sequence Number)字段里。<br>发送完毕后，客户端进入 <code>SYN_SEND</code> 状态。</p>
+</li>
+<li><p><em><strong>第二次握手(SYN&#x3D;1, ACK&#x3D;1, seq&#x3D;y, ACKnum&#x3D;x+1):</strong></em><br>服务器发回确认包(ACK)应答。即 SYN 标志位和 ACK 标志位均为1。服务器端选择自己 ISN 序列号，放到 Seq 域里，同时将确认序号(Acknowledgement Number)设置为客户的 ISN 加1，即X+1。 发送完毕后，服务器端进入 <code>SYN_RCVD</code> 状态。</p>
+</li>
+<li><p><em><strong>第三次握手(ACK&#x3D;1，ACKnum&#x3D;y+1):</strong></em><br>客户端再次发送确认包(ACK)，SYN 标志位为0，ACK 标志位为1，并且把服务器发来 ACK 的序号字段+1，放在确定字段中发送给对方，并且在数据段放写ISN的+1<br>发送完毕后，客户端进入 ESTABLISHED 状态，当服务器端接收到这个包时，也进入 <code>ESTABLISHED</code> 状态，TCP 握手结束。</p>
+</li>
+</ul>
+<p>四次挥手</p>
+<ul>
+<li><p><em><strong>第一次挥手(FIN&#x3D;1，seq&#x3D;x):</strong></em><br>假设客户端想要关闭连接，客户端发送一个 FIN 标志位置为1的包，表示自己已经没有数据可以发送了，但是仍然可以接受数据。<br>发送完毕后，客户端进入 <code>FIN_WAIT_1</code> 状态。</p>
+</li>
+<li><p><em><strong>第二次挥手(ACK&#x3D;1，ACKnum&#x3D;x+1):</strong></em><br>服务器端确认客户端的 FIN 包，发送一个确认包，表明自己接受到了客户端关闭连接的请求，但还没有准备好关闭连接。<br>发送完毕后，服务器端进入 <code>CLOSE_WAIT</code> 状态，客户端接收到这个确认包之后，进入 <code>FIN_WAIT_2</code> 状态，等待服务器端关闭连接。</p>
+</li>
+<li><p><em><strong>第三次挥手(FIN&#x3D;1，seq&#x3D;y):</strong></em><br>服务器端准备好关闭连接时，向客户端发送结束连接请求，FIN 置为1。<br>发送完毕后，服务器端进入 <code>LAST_ACK</code> 状态，等待来自客户端的最后一个ACK。</p>
+</li>
+<li><p><em><strong>第四次挥手(ACK&#x3D;1，ACKnum&#x3D;y+1):</strong></em><br>客户端接收到来自服务器端的关闭请求，发送一个确认包，并进入 TIME_WAIT状态，等待可能出现的要求重传的 ACK 包。<br>服务器端接收到这个确认包之后，关闭连接，进入 CLOSED 状态。<br>客户端等待了某个固定时间（两个最大段生命周期，2MSL，2 Maximum Segment Lifetime）之后，没有收到服务器端的 ACK ，认为服务器端已经正常关闭连接，于是自己也关闭连接，进入 CLOSED 状态。</p>
+</li>
+</ul>
+<h4 id="4.3">SYN攻击</h4>
+
+<ul>
+<li><p>什么是 SYN 攻击（SYN Flood）？<br>在三次握手过程中，服务器发送 SYN-ACK 之后，收到客户端的 ACK 之前的 TCP 连接称为半连接(half-open connect)。此时服务器处于 SYN_RCVD 状态。当收到 ACK 后，服务器才能转入 ESTABLISHED 状态.<br>SYN 攻击指的是，攻击客户端在短时间内伪造大量不存在的IP地址，向服务器不断地发送SYN包，服务器回复确认包，并等待客户的确认。由于源地址是不存在的，服务器需要不断的重发直至超时，这些伪造的SYN包将长时间占用未连接队列，正常的SYN请求被丢弃，导致目标系统运行缓慢，严重者会引起网络堵塞甚至系统瘫痪。<br>SYN 攻击是一种典型的 DoS&#x2F;DDoS 攻击。</p>
+</li>
+<li><p>如何检测 SYN 攻击？<br>检测 SYN 攻击非常的方便，当你在服务器上看到大量的半连接状态时，特别是源IP地址是随机的，基本上可以断定这是一次SYN攻击。在 Linux&#x2F;Unix 上可以使用系统自带的 netstats 命令来检测 SYN 攻击。</p>
+</li>
+<li><p>如何防御 SYN 攻击？<br>SYN攻击不能完全被阻止，除非将TCP协议重新设计。我们所做的是尽可能的减轻SYN攻击的危害，常见的防御 SYN 攻击的方法有如下几种：<br>缩短超时（SYN Timeout）时间<br>增加最大半连接数<br>过滤网关防护<br>SYN cookies技术</p>
+</li>
+</ul>
+<h4 id="4.4">KeepAlive</h4>
+TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，交互双方都有可能出现掉电、死机、异常重启等各种意外
+
+<p>TCP KeepAlive 的基本原理是，隔一段时间给连接对端发送一个探测包，如果收到对方回应的 ACK，则认为连接还是存活的，在超过一定重试次数之后还是没有收到对方的回应，则丢弃该 TCP 连接。</p>
+<p><a target="_blank" rel="noopener" href="https://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/">TCP-Keepalive-HOWTO</a> 有对 TCP KeepAlive 特性的详细介绍，有兴趣的同学可以参考。这里主要说一下，TCP KeepAlive 的局限。首先 TCP KeepAlive 监测的方式是发送一个 probe 包，会给网络带来额外的流量，另外 TCP KeepAlive 只能在内核层级监测连接的存活与否，而连接的存活不一定代表服务的可用。例如当一个服务器 CPU 进程服务器占用达到 100%，已经卡死不能响应请求了，此时 TCP KeepAlive 依然会认为连接是存活的。因此 TCP KeepAlive 对于应用层程序的价值是相对较小的。需要做连接保活的应用层程序，例如 QQ，往往会在应用层实现自己的心跳功能。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://hit-alibaba.github.io/interview/basic/network/TCP.html">引鉴</a></p>
+</blockquote>
+<h4 id="4.5">TCP和UDP的区别</h4>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>TCP</th>
+<th>UDP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接性</td>
+<td>面向连接</td>
+<td>无连接</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>可靠</td>
+<td>不可靠</td>
+</tr>
+<tr>
+<td>有序性</td>
+<td>有序</td>
+<td>无序</td>
+</tr>
+<tr>
+<td>有界性</td>
+<td>有界</td>
+<td>无界</td>
+</tr>
+<tr>
+<td>拥塞控制</td>
+<td>有</td>
+<td>无</td>
+</tr>
+<tr>
+<td>传输速度</td>
+<td>慢</td>
+<td>快</td>
+</tr>
+<tr>
+<td>量级</td>
+<td>重量级</td>
+<td>轻量级</td>
+</tr>
+<tr>
+<td>头部大小</td>
+<td>大</td>
+<td>小</td>
+</tr>
+</tbody></table>
+<h3 id="5">Socket</h3>
+
+<p>Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信</p>
+<p><img src="/images/socket-network-model.png" alt="http请求报文范例"></p>
+<p>Socket通信实现步骤解析：</p>
+<ol>
+<li>创建ServerSocket和Socket</li>
+<li>打开连接到的Socket的输入&#x2F;输出流</li>
+<li>按照协议对Socket进行读&#x2F;写操作</li>
+<li>关闭输入输出流，以及Socket</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://pdai.tech/md/develop/protocol/dev-protocol-dns.html#%E4%BB%80%E4%B9%88%E6%98%AFdns%E5%8A%AB%E6%8C%81">引鉴</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/nmap/">
+                NMAP
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Network Mapper，是一款开放源代码的网络探测和安全审核的工具 </p>
+<h3 id="快速扫描"><a href="#快速扫描" class="headerlink" title="快速扫描"></a>快速扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##  默认发送一个arp的ping数据包 默认1-10000端口</span></span><br><span class="line">nmap 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 多个目标</span></span><br><span class="line">nmap 192.168.9.167 192.168.9.168 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口扫描 3389 20-200端口</span></span><br><span class="line">nmap -p 3389，20-200 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描除了指定ip外（192.168.9.168）或者txt</span></span><br><span class="line">nmap 192.168.9.1/24 -exclude 192.168.9.168</span><br><span class="line">nmap 192.168.9.1/24 -excludefile XXX.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 显示扫描 所有主机列表</span></span><br><span class="line">nmap -sL 192.168.9.1/24 </span><br></pre></td></tr></table></figure>
+
+<h3 id="特殊扫描"><a href="#特殊扫描" class="headerlink" title="特殊扫描"></a>特殊扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 类似于win/linxu ping方式扫描</span></span><br><span class="line">nmap -sP 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## SYN 不会再目标主机上产生任何日志记录</span></span><br><span class="line">nmap -sT 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## UDP </span></span><br><span class="line">nmap -sD 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## FIN标志</span></span><br><span class="line">nmap -sF 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## version 版本扫描</span></span><br><span class="line">nmap -sV 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS 操作系统探测</span></span><br><span class="line">nmap -O 192.168.1.1-255</span><br></pre></td></tr></table></figure>
+
+<h3 id="扫描格式"><a href="#扫描格式" class="headerlink" title="扫描格式"></a>扫描格式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## —T 设置时间</span></span><br><span class="line"><span class="comment"># 0 paranoid 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 1 sneakys 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 2 polite 降低扫描速度减少带宽和目标主机资源</span></span><br><span class="line"><span class="comment"># 3 normal 默认</span></span><br><span class="line"><span class="comment"># 4 aggressive 用户在网速极高的守候可用于快速扫描</span></span><br><span class="line"><span class="comment"># 5 nsane 特别快的网络为获取速度愿意牺牲准确性</span></span><br><span class="line">nmap -sS —T&lt;0-5&gt; 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 网段格式</span></span><br><span class="line"><span class="comment"># CIDR 子网掩码</span></span><br><span class="line"><span class="comment"># /24 C段  192.168.1.0/24 == 192.168.1.1 - 192.168.1.255</span></span><br><span class="line"><span class="comment"># /16 B段  192.168.1.0/16 == 192.168.1.1 - 192.1.255.255</span></span><br><span class="line"><span class="comment"># /8 A段  192.168.1.0/8 == 192.168.1.1 - 192.255.255.255</span></span><br><span class="line">nmap -sP 192.168.1.0/24</span><br><span class="line"></span><br><span class="line"><span class="comment">## 从文件中读取扫描IP列表</span></span><br><span class="line">$ <span class="built_in">cat</span> gg.txt</span><br><span class="line">192.168.1.1</span><br><span class="line">192.168.1.2</span><br><span class="line"></span><br><span class="line">nmap -iL gg.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 路由跟踪</span></span><br><span class="line">nmap -traceroute www.baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS版本探测</span></span><br><span class="line">nmap -A 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 混合扫描</span></span><br><span class="line">nmap -vv -p 100,3306,5000-5100 -O -traceroute 192.168.1.1</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
+
+<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/ollama/">
+                Ollama
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p><code>Ollama</code> 是一个基于 Go 语言开发的简单易用的本地大语言模型运行框架。<br>适用于macOS，Linux，Window，也可使用Docker</p>
+<p>模型管理 ：</p>
+<ul>
+<li><code>ollama list</code> 显示模型列表。</li>
+<li><code>ollama show</code> 显示模型的信息</li>
+<li><code>ollama pull</code> 拉取模型</li>
+<li><code>ollama push</code> 推送模型</li>
+<li><code>ollama cp</code>   拷贝一个模型</li>
+<li><code>ollama rm</code>   删除一个模型</li>
+<li><code>ollama run</code>  运行一个模型</li>
+</ul>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h3 id="下载并使用模型"><a href="#下载并使用模型" class="headerlink" title="下载并使用模型"></a>下载并使用模型</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ollama pull llama3.2 <span class="comment">#下载模型</span></span><br><span class="line">ollama run llama3.2 <span class="comment">#运行模型</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="WebUI-可视化交互"><a href="#WebUI-可视化交互" class="headerlink" title="WebUI 可视化交互"></a><a href="git">WebUI 可视化交互</a></h3><h2 id="微调-改进接近ChatGPT"><a href="#微调-改进接近ChatGPT" class="headerlink" title="微调 - 改进接近ChatGPT"></a>微调 - 改进接近ChatGPT</h2><blockquote>
+<p>本机微调<br>docker 微调</p>
+</blockquote>
+<p>芯片训练（GPU CPU NPU）<br>mac m1 比较特殊 用的是mps来进行训练</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/0rz33/LLAMA-Factory">llama_factory安装</a></p>
+</li>
+<li><p>llama_factory 运行 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入llama_factory docker exec</span></span><br><span class="line">llamafactory-cli <span class="built_in">help</span>  <span class="comment">## 显示帮助信息。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## LLaMA Board 可视化微调</span></span><br><span class="line">llamafactory-cli webui</span><br></pre></td></tr></table></figure></li>
+<li><p>训练模型</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 一般会到huggingface里面注册账户 进行训练</span></span><br><span class="line"><span class="comment">## 里面有很多大容量数据 可以提供训练</span></span><br><span class="line"><span class="comment">## 训练前先登录</span></span><br><span class="line">login </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>申请数据接口和模型<br><img src="/images/llama-factory-access.png"></p>
+</li>
+<li><p>开始训练模型<br><img src="/images/llama-factory-training-1.png"><br><img src="/images/llama-factory-training-2.png"><br><img src="/images/llama-factory-training-3.png"><br><img src="/images/llama-factory-training-4.png"></p>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.53ai.com/news/qianyanjishu/2015.html">https://www.53ai.com/news/qianyanjishu/2015.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/shanren/p/18251730">https://www.cnblogs.com/shanren/p/18251730</a></p>
+<p><a target="_blank" rel="noopener" href="https://gitee.com/mirrors/HuatuoGPT">在线医生</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/ops-basic/">
+                Devops
             </a>
         </h1>
         <div class="post-info">
@@ -494,119 +755,15 @@
 
     
         <div class="content">
-            <ul>
-<li><a href="#1">基础</a><ul>
-<li><a href="#1.1">核心组件&#x2F;架构</a></li>
-<li><a href="#1.1">基础概念</a></li>
-<li><a href="#1.1">etcd及其特点&#x2F;适应的场景</a></li>
-<li><a href="#1.2">make和new区别</a></li>
-<li><a href="#1.3">数组和切片区别</a></li>
-</ul>
-</li>
-<li><a href="#2">GMP协程调度器</a></li>
-</ul>
-<p><img src="/images/k8s-structure.png"></p>
-<p>k8s 主要有 Master 节点和工作节点组成。主节点主要对集群做出全局决策(比如调度)，以及检测和响应集群事件(例如资源不足，自动扩缩容)；从节点负责维护运行的 Pod 并进行通信的网络代理。</p>
-<ul>
-<li><p>Mater 节点主要有以下组件：</p>
-<ul>
-<li>kube-apiserver：负责对外暴露 Kubernetes API。</li>
-<li>etcd：作为保存 Kubernetes 所有集群数据的后台数据库。</li>
-<li>kube-scheduler：在适当的时候进行调度决策，让 Pod 在合适的节点上创建运行。</li>
-<li>kube-controller-manager：负责监控调整调整集群的状态，比如故障检测、自动扩展、滚动更新等</li>
-</ul>
-</li>
-<li><p>Node 节点有以下组件：</p>
-<ul>
-<li>kubelet：主要负责执行、监控由调度器分配的 Pod，相当于是 Master 在每个 Node 节点上的代理。保证 Pod 的运行状态与目标状态一致。</li>
-<li>kube-proxy：k8s 在每个节点上的网络代理，负责为 Service 提供集群内部的服务发现和负载均衡。</li>
-</ul>
-</li>
-</ul>
-<h4 id="pod"><a href="#pod" class="headerlink" title="pod"></a>pod</h4><ul>
-<li>探针 <ul>
-<li>liveness</li>
-<li>readiness</li>
-</ul>
-</li>
-<li>生命周期</li>
-</ul>
-<h2 id="Workload-资源调度"><a href="#Workload-资源调度" class="headerlink" title="Workload - 资源调度"></a>Workload - 资源调度</h2><h3 id="StatefulSet-Deployment-DeamonSet的区别"><a href="#StatefulSet-Deployment-DeamonSet的区别" class="headerlink" title="StatefulSet,Deployment,DeamonSet的区别"></a>StatefulSet,Deployment,DeamonSet的区别</h3><ul>
-<li><code>Label</code>标签和<code>selector</code>选择器</li>
-<li><code>Deployment</code> 用于部署无状态服务<ul>
-<li>创建于配置文件解析</li>
-<li>滚动更新</li>
-<li>回滚版本</li>
-<li>更新的暂停和恢复</li>
-</ul>
-</li>
-<li><code>StatefulSet - sts</code> 用来部署有状态服务<ul>
-<li>定义一个有状态服务</li>
-<li>扩容所容于滚动更新</li>
-<li>金丝雀发布</li>
-<li></li>
-</ul>
-</li>
-<li><code>DeamonSet</code> 守护进程与任务(日志 系统健康 系统进程)<ul>
-<li>应用场景</li>
-<li>部署fluent日志</li>
-</ul>
-</li>
-</ul>
-<h2 id="Service-服务发现"><a href="#Service-服务发现" class="headerlink" title="Service - 服务发现"></a>Service - 服务发现</h2><h3 id="Servuce与Ingress区别"><a href="#Servuce与Ingress区别" class="headerlink" title="Servuce与Ingress区别"></a>Servuce与Ingress区别</h3><ul>
-<li><code>Service - svc</code>svc 集群内部互访 <ul>
-<li>service Endpoint pod之间关系</li>
-<li>配置</li>
-<li>访问外部服务</li>
-<li>代理外部域名</li>
-</ul>
-</li>
-<li><code>Ingress</code> 内部暴露给外部<ul>
-<li>路由匹配于虚拟主机匹配</li>
-</ul>
-</li>
-</ul>
-<h2 id="存储与配置管理"><a href="#存储与配置管理" class="headerlink" title="存储与配置管理"></a>存储与配置管理</h2><ul>
-<li><code>ConfigMap</code><br>  * </li>
-<li><code>Secret</code></li>
-<li><code>PersistentVolume - pv</code> 持久卷 和一半volume一样</li>
-<li><code>PersistentVolumeClaim - pvc</code> 持久卷申领 消耗pv资源，以来pv</li>
-<li>StorageClass</code></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入pod 容器里面</span></span><br><span class="line">kubectl <span class="built_in">exec</span> -it zk-5959d76d9b-xbmmw -n work  -- /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment">## rc</span></span><br><span class="line">kubectl delete rc XX</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除 pod </span></span><br><span class="line">delete pod zk-5959d76d9b-zsvxf -n work</span><br><span class="line"></span><br><span class="line"><span class="comment">## svc</span></span><br><span class="line">kubectl delete svc XXX</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="部署流程"><a href="#部署流程" class="headerlink" title="部署流程"></a>部署流程</h3><pre class="mermaid">sequenceDiagram
-    participant Alice
-    participant Bob
-    Alice->>John: Hello John, how are you?
-    loop Healthcheck
-        John->>John: Fight against hypochondria
-    end
-    Note right of John: Rational thoughts <br/>prevail!
-    John-->>Alice: Great!
-    John->>Bob: How about you?
-    Bob-->>John: Jolly good!</pre>
+            <h2 id="Devops之路"><a href="#Devops之路" class="headerlink" title="Devops之路"></a><a target="_blank" rel="noopener" href="https://roadmap.sh/devops">Devops之路</a></h2><h2 id="运维琐碎"><a href="#运维琐碎" class="headerlink" title="运维琐碎"></a>运维琐碎</h2><h3 id="国内访问国外服务器加速BBR-（bbr魔改脚本）"><a href="#国内访问国外服务器加速BBR-（bbr魔改脚本）" class="headerlink" title="国内访问国外服务器加速BBR -（bbr魔改脚本）"></a>国内访问国外服务器加速BBR -（bbr魔改脚本）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://gist.githubusercontent.com/zeruns/a0ec603f20d1b86de6a774a8ba27588f/raw/4f9957ae23f5efb2bb7c57a198ae2cffebfb1c56/tcp.sh</span><br></pre></td></tr></table></figure>
 
 
-<h3 id="存储方案-文件挂在"><a href="#存储方案-文件挂在" class="headerlink" title="存储方案 (文件挂在)"></a>存储方案 (文件挂在)</h3><p>helm</p>
-<h2 id="排错"><a href="#排错" class="headerlink" title="排错"></a>排错</h2><ul>
-<li>kubectl get - 列出资源</li>
-<li>kubectl describe - 显示有关资源的详细信息</li>
-<li>kubectl logs - 打印 Pod 中容器的日志</li>
-<li>kubectl exec - 在 Pod 中的容器上执行命令</li>
-</ul>
+<h3 id="域名重定向"><a href="#域名重定向" class="headerlink" title="域名重定向"></a>域名重定向</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">加cdn ssl 加载证书</span><br><span class="line">网站删除后在添加证书 证书不一致 会造成重定向</span><br><span class="line">cdn回溯？？</span><br></pre></td></tr></table></figure>
 
+<h3 id="nginx-header跨域问题"><a href="#nginx-header跨域问题" class="headerlink" title="nginx - header跨域问题"></a>nginx - header跨域问题</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">关键字大写</span><br><span class="line">在ng上加 </span><br><span class="line">add_header Access-Control-Allow-Headers <span class="string">&#x27;DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,Token&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
-	<div class="row">
-    <embed src="/pdf/k8s-problem-fix.pdf" width="100%" height="550" type="application/pdf">
-	</div>
-
-
-
-
-<h3 id="k8s通过deployment创建pod失败排查"><a href="#k8s通过deployment创建pod失败排查" class="headerlink" title="k8s通过deployment创建pod失败排查"></a>k8s通过deployment创建pod失败排查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看deployment的信息</span></span><br><span class="line">kubectl describe deployment mysql -n db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看pod有啥东西</span></span><br><span class="line">kubectl get pod -n db </span><br><span class="line"><span class="comment"># 如何 还是在PodInitializing就用-c 查看哪个容器问题 -c 容器name</span></span><br><span class="line">kubectl logs &lt;pod-name&gt; -c fix-permissions</span><br></pre></td></tr></table></figure>
-
-<h3 id="k8s通过statefulSet创建pod失败排查"><a href="#k8s通过statefulSet创建pod失败排查" class="headerlink" title="k8s通过statefulSet创建pod失败排查"></a>k8s通过statefulSet创建pod失败排查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 如何 还是在PodInitializing就用-c 查看哪个容器问题 -c 容器name</span></span><br><span class="line">kubectl logs mongo-0  -n db  --all-containers</span><br></pre></td></tr></table></figure>
+<h3 id="session-问题-》CDN"><a href="#session-问题-》CDN" class="headerlink" title="session 问题 -》CDN"></a>session 问题 -》CDN</h3><p>由于Session数据存储在服务器端，而CDN节点是分布式的，<br>因此在多个节点之间共享Session数据时，可能会出现数据不一致的情况。<br>这主要是因为Session数据是基于服务器的，而CDN节点是基于客户端的，<br>因此在不同节点之间进行数据同步时，可能会出现延迟或者丢失的情况。</p>
+<p>解决办法：<br>用redis存储session</p>
 
         </div>
     
@@ -618,8 +775,146 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/02/28/kali/">
-                Kali
+            <a href="/2025/02/28/ops-interview/">
+                运维面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ol>
+<li><p>Linux如何挂载windows下的共享目录？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mount.cifs //IP地址/server /mnt/server -o user=administrator,password=123456</span><br><span class="line"><span class="comment"># linux 下的server需要自己手动建一个 后面的user与pass 是windows主机的账号和密码 注意空格 和逗号</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如何查看http的并发请求数与其TCP连接状态？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;++b[<span class="variable">$NF</span>]&#125;’ END &#123;<span class="keyword">for</span>(a <span class="keyword">in</span> b) <span class="built_in">print</span> a,b[a]&#125;’</span><br><span class="line"></span><br><span class="line"><span class="built_in">ulimit</span> -n <span class="comment"># 查看linux系统打开最大的文件描述符，这里默认1024，不修改这里web服务器修改再大也没用。若要用就修改很几个办法，这里说其中一个：</span></span><br><span class="line">修改/etc/security/limits.conf</span><br><span class="line">* soft nofile 10240</span><br><span class="line">* hard nofile 10240</span><br><span class="line">重启后生效</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如何用tcpdump嗅探80端口的访问看看谁最高？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i eth0 -tnn dst port 80 -c 1000 | awk -F”.” ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>″.”<span class="variable">$2</span>″.”<span class="variable">$3</span>″.”<span class="variable">$4</span>″.”&#125;’ | <span class="built_in">sort</span> |<span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr | head-5</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如何查看&#x2F;var&#x2F;log目录下的文件数？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/log/ -1R | grep “-” | <span class="built_in">wc</span> -l</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如何查看Linux系统每个ip的连接数？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;<span class="built_in">print</span> <span class="variable">$5</span>&#125;’ | awk -F: ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>shell下生成32位随机密码？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /dev/urandom | <span class="built_in">head</span> -1 | <span class="built_in">md5sum</span> | <span class="built_in">head</span> -c 32 &gt;&gt; /pass</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>统计出apache的access.log中访问量最多的5个ip？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> access.log | awk ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -n -r | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure></li>
+<li><p>如何查看二进制文件的内容？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 我们一般通过hexdump命令 来查看二进制文件的内容。</span></span><br><span class="line">hexdump -C XXX(文件名) -C是参数 不同的参数有不同的意义</span><br><span class="line"><span class="comment"># -C 是比较规范的 十六进制和ASCII码显示</span></span><br><span class="line"><span class="comment"># -c 是单字节字符显示</span></span><br><span class="line"><span class="comment"># -b 单字节八进制显示</span></span><br><span class="line"><span class="comment"># -o 是双字节八进制显示</span></span><br><span class="line"><span class="comment"># -d 是双字节十进制显示</span></span><br><span class="line"><span class="comment"># -x 是双字节十六进制显示</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>ps aux 中的VSZ代表什么意思，RSS代表什么意思？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">**VSZ：**虚拟内存集，进程占用的虚拟内存空间。</span><br><span class="line"></span><br><span class="line">**RSS：**物理内存集，进程战用实际物理内存空间。</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如何检测并修复&#x2F;dev&#x2F;hda5？<br><code>fsck</code>用来检查和维护不一致的文件系统。若系统掉电或磁盘发生问题，可利用<code>fsck</code>命令对文件系统进行检查。</p>
+</li>
+<li><p>介绍下Linux系统的开机启动顺序？</p>
+</li>
+</ol>
+<p>加载BIOS–&gt;读取MBR–&gt;Boot Loader–&gt;加载内核–&gt;用户层init一句inittab文件来设定系统运行的等级(一般3或者5，3是多用户命令行，5是界面)–&gt;init进程执行rc.syninit–&gt;启动内核模块–&gt;执行不同级别运行的脚本程序–&gt;执行&#x2F;etc&#x2F;rc.d&#x2F;rc.local(本地运行服务)–&gt;执行&#x2F;bin&#x2F;login，就可以登录了。</p>
+<ol start="12">
+<li><p>符号链接与硬链接的区别？<br>我们可以把符号链接，也就是软连接，当做是 Windows系统里的快捷方式。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 硬链接 就好像是 又复制了一份，举例说明：</span></span><br><span class="line"><span class="built_in">ln</span> 3.txt 4.txt <span class="comment"># 这是硬链接，相当于复制，不可以跨分区，但修改3，4会跟着变，若删除3，4不受任何影响。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ln</span> -s 3.txt 4.txt <span class="comment"># 这是软连接，相当于快捷方式。修改4，3也会跟着变，若删除3，4就坏掉了，不可以用了。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>保存当前磁盘分区的分区表？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dd</span> <span class="comment"># 命令是以个强大的命令，在复制的同时进行转换。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/sda of=./mbr.txt bs=1 count=512</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如何在文本里面进行复制、粘贴，删除行，删除全部，按行查找和按字母查找？</p>
+</li>
+</ol>
+<p>以下操作全部在命令行状态操作，不要在编辑状态操作。<br>在文本里移动到想要复制的行 按 yy 想复制到哪就移动到哪，然后按 <code>P</code> 就粘贴了。<br>删除行 移动到改行 按<code>dd</code>。</p>
+<p>删除全部 <code>dG</code> 这里注意G一定要大写。</p>
+<p>按行查找<code>：90</code> 这样就是找到第90行。</p>
+<p>按字母查找 <code>/path</code> 这样就是 找到path这个单词所在的位置，文本里可能存在多个,多次查找会显示在不同的位置。</p>
+<ol start="15">
+<li><p>手动安装grub？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grub-install /dev/sda</span><br></pre></td></tr></table></figure></li>
+<li><p>修改内核参数？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/sysctl.conf <span class="comment"># 这里修改参数</span></span><br><span class="line">sysctl -p <span class="comment"># 刷新后可用</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在1-39内取随机数？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">expr</span> $[RANDOM%39] +1</span><br><span class="line"><span class="comment"># RANDOM随机数</span></span><br><span class="line"><span class="comment"># %39取余数范围0-38</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>限制apache每秒新建连接数为1，峰值为3？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每秒新建连接数一般都是由防火墙来做，apache本身好像无法设置每秒新建连接数，只能设置最大连接：</span></span><br><span class="line">iptables -A INPUT -d 172.16.100.1 -p tcp –dport 80 -m <span class="built_in">limit</span> –<span class="built_in">limit</span> 1/second -j ACCEPT</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>FTP的主动模式和被动模式</p>
+</li>
+</ol>
+<p>FTP协议有两种工作方式：PORT方式和PASV方式，中文意思为主动式和被动式。</p>
+<p>PORT（主动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，客户端在命令链路上用 PORT 命令告诉服务器：“我打开了XX端口，你过来连接我”。于是服务器从20端口向客户端的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>PASV（被动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，服务器在命令链路上用 PASV 命令告诉客户端：“我打开了XX端口，你过来连接我”。于是客户端向服务器的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>从上面可以看出，两种方式的命令链路连接方法是一样的，而数据链路的建立方法就完全不同。</p>
+<ol start="20">
+<li><p>显示&#x2F;etc&#x2F;inittab中以#开头，且后面跟了一个或者多个空白字符，而后又跟了任意非空白字符的行？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “^#&#123;1,&#125;[^]” /etc/inittab</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>显示&#x2F;etc&#x2F;inittab中包含了：一个数字：(即两个冒号中间一个数字)的行？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “:[0-9]&#123;1&#125;:” /etc/inittab</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>怎么把脚本添加到系统服务里，即用service来调用？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在脚本里加入：</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">chkconfig: 345 85 15</span><br><span class="line">description: httpd</span><br><span class="line"><span class="comment"># 然后保存，chkconfig httpd –add 创建系统服务，现在就可以使用service 来 start or restart。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>写一个脚本，实现批量添加20个用户，用户名为user01-20，密码为user后面跟5个随机字符？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment">#description: useradd</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `<span class="built_in">seq</span> -f”%02g” 1 20`;<span class="keyword">do</span></span><br><span class="line">useradd user<span class="variable">$i</span></span><br><span class="line"><span class="built_in">echo</span> “user<span class="variable">$i</span>-`<span class="built_in">echo</span> <span class="variable">$RANDOM</span>|<span class="built_in">md5sum</span>|<span class="built_in">cut</span> -c 1-5`”|passwd –stdinuser<span class="variable">$i</span> &gt;/dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>写一个脚本，实现判断192.168.1.0&#x2F;24网络里，当前在线的IP有哪些，能ping通则认为在线？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">for</span> ip <span class="keyword">in</span> `<span class="built_in">seq</span> 1 255`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">ping -c 1 192.168.1.<span class="variable">$ip</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> UP</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> DOWN</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;&amp;</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">wait</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>写一个脚本，判断一个指定的脚本是否是语法错误；如果有错误，则提醒用户键入Q或者q无视错误并退出其它任何键可以通过vim打开这个指定的脚本？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> checksh.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="built_in">read</span> -p “please input check script-&gt; ” file</span><br><span class="line"><span class="keyword">if</span> [ -f <span class="variable">$file</span> ]; <span class="keyword">then</span></span><br><span class="line">sh -n <span class="variable">$file</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “You input <span class="variable">$file</span> syntax error,[Type q to <span class="built_in">exit</span> or Type vim to edit]” answer</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$answer</span> <span class="keyword">in</span></span><br><span class="line">q | Q)</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line">vim )</span><br><span class="line">vim <span class="variable">$file</span></span><br><span class="line">;;</span><br><span class="line">*）</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> “<span class="variable">$file</span> not exist”</span><br><span class="line"><span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>写一个脚本，要求如何？</p>
+</li>
+</ol>
+<p>创建一个函数，能接受两个参数：</p>
+<p>1）第一个参数为URL，即可下载的文件；第二个参数为目录，即下载后保存的位置；</p>
+<p>2）如果用户给的目录不存在，则提示用户是否创建；如果创建就继续执行，否则，函数返回一个51的错误值给调用脚本；</p>
+<p>3）如果给的目录存在，则下载文件；下载命令执行结束后测试文件下载成功与否；如果成功，则返回0给调用脚本，否则，返回52给调用脚本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> downfile.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">url=<span class="variable">$1</span></span><br><span class="line"><span class="built_in">dir</span>=<span class="variable">$2</span></span><br><span class="line"><span class="function"><span class="title">download</span></span>()</span><br><span class="line">&#123;</span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span> &gt;&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “<span class="variable">$dir</span> No such file or directory,create?(y/n)” answer</span><br><span class="line"><span class="keyword">if</span> [ “<span class="variable">$answer</span>” == “y” ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span></span><br><span class="line">wget <span class="variable">$url</span> 1&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">return</span> “51”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">return</span> “52”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line">download <span class="variable">$url</span> <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+
+<ol start="27">
+<li>写一个脚本，详细需求如下？<br>1、创建一个函数，可以接受一个磁盘设备路径（如&#x2F;dev&#x2F;sdb）作为参数；在真正开始后面步骤之前提醒用户有危险，并让用户选择是否继续；而后将此磁盘设备上的所有分区清空（提示，使用命令dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;&#x2F;dev&#x2F;sdb bs&#x3D;512 count&#x3D;1实现，注意其中的设备路径不要写错了；</li>
+</ol>
+<p>如果此步骤失败，返回67给主程序；</p>
+<p>接着在此磁盘设备上创建两个主分区，一个大小为100M，一个大小为1G；如果此步骤失败，返回68给主程序；</p>
+<p>格式化此两分区，文件系统类型为ext3；如果此步骤失败，返回69给主程序；</p>
+<p>如果上述过程都正常，返回0给主程序；</p>
+<p>2、调用此函数；并通过接收函数执行的返回值来判断其执行情况，并将信息显示出来。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">local</span> Darray=(`<span class="built_in">ls</span> /dev/sd[a-z]`)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="variable">$&#123;Darray&#125;</span>;<span class="keyword">do</span></span><br><span class="line">[[ “<span class="variable">$i</span>” == “<span class="variable">$1</span>” ]] &amp;&amp; Sd=<span class="variable">$i</span> &amp;&amp;<span class="built_in">break</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">return66</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#当匹配成功，进入选择，告诉用户，是否继续，输错的话进入无限循环，当用户选择Y,则清空目标分区，且跳出while循环</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> :;<span class="keyword">do</span></span><br><span class="line"><span class="built_in">read</span> -p “Warning!!!This operation will clean <span class="variable">$Sd</span> data.Next=y,Quit=n [y|n]:” Choice</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$Choice</span> <span class="keyword">in</span></span><br><span class="line">y)</span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/zero of=<span class="variable">$Sd</span> bs=512 count=1 &amp;&gt; /dev/null &amp;&amp;<span class="built_in">break</span> || <span class="built_in">return</span> 67 ;;</span><br><span class="line">n)</span><br><span class="line"><span class="built_in">exit</span> 88 ;;</span><br><span class="line">*)</span><br><span class="line"><span class="built_in">echo</span> “Invalid choice,please choice again.” ;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#使用echo传递给fdisk进行分区，如果此命令失败，则跳转出去，错误值68，需要注意的是，有时候这个返回值很诡异，笔者之前成功与否都是返回的1，后来重启之后，就好了，如果慎重的话，可以对创建的分区，进行判断，不过就需要使用其他工具截取相关字段了，虽有些小麻烦，但无大碍</span></span><br><span class="line"></span><br><span class="line">echo-e “np1+100Mnp2+1024Mw”|fdisk /dev/sdb&amp;&gt; /dev/null || || <span class="built_in">return</span> 68</span><br><span class="line"></span><br><span class="line"><span class="comment">#格式化之前，让内核重新读取磁盘分区表，值得注意的是，有的系统版本，使用partprobe无效，譬如笔者的环境是rhel5.8，而rhel6.0以后，这个命令就很危险了，而使用partx -a /dev/sdb则效果更好…此项需慎重，如果格式化失败，则告知把失败的分区定义成变量，且跳出函数，并带出错误值69</span></span><br><span class="line"></span><br><span class="line">`partprobe`</span><br><span class="line">Part=`fdisk -l /dev/<span class="variable">$Sd</span>|<span class="built_in">tail</span> -2|<span class="built_in">cut</span> -d” ” -f1`</span><br><span class="line"><span class="keyword">for</span> M <span class="keyword">in</span> <span class="variable">$&#123;Part&#125;</span>;<span class="keyword">do</span></span><br><span class="line">mke2fs -j <span class="variable">$M</span> &amp;&gt; /dev/null &amp;&amp; ErrorPart=<span class="variable">$M</span> &amp;&amp;<span class="built_in">return</span> 69</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">return</span> 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#下面代码，调用函数，接收函数返回值，根据返回值进行判断哪里出错。</span></span><br><span class="line"></span><br><span class="line">Disk_Mod <span class="variable">$1</span></span><br><span class="line">Res=$?</span><br><span class="line">[ <span class="variable">$Res</span>-eq 0 ] &amp;&amp; <span class="built_in">exit</span> 0</span><br><span class="line">[ <span class="variable">$Res</span>-eq 66 ] &amp;&amp; <span class="built_in">echo</span> “Error! Invalid input.”</span><br><span class="line">[ <span class="variable">$Res</span>-eq 67 ] &amp;&amp; <span class="built_in">echo</span> “Error! Command -&gt; <span class="built_in">dd</span> fdisk mke2fs</span><br></pre></td></tr></table></figure>
+
+<ol start="28">
+<li>如何让history命令显示具体时间？<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">HISTTIMEFORMAT=”%Y-%m-%d %H:%M:%S”</span><br><span class="line"><span class="built_in">export</span> HISTTIMEFORMAT</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新开机后会还原，可以写/etc/profile</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://dockerworld.cn/?id=392">https://dockerworld.cn/?id=392</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/martin-huang/p/13606761.html">https://www.cnblogs.com/martin-huang/p/13606761.html</a><br><a target="_blank" rel="noopener" href="https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html">https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2407138">https://cloud.tencent.com/developer/article/2407138</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/pantesting-Intranet/">
+                内网渗透
             </a>
         </h1>
         <div class="post-info">
@@ -637,94 +932,527 @@
 
     
         <div class="content">
-            <p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/420393.html">kali</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/02/28/kerberos/">
-                Kerberos
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-02-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/知/">知</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903955416219661">引用-看完您如果还不明白 Kerberos 原理</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/liugp/p/16468514.html">Kerberos认证原理与环境部署</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/02/28/lang-version/">
-                各类版本控制管理
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-02-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/研发工具/">研发工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="语言版本控制管理"><a href="#语言版本控制管理" class="headerlink" title="语言版本控制管理"></a>语言版本控制管理</h2><h3 id="nodejs-nvm"><a href="#nodejs-nvm" class="headerlink" title="nodejs -&gt; nvm"></a>nodejs -&gt; nvm</h3><blockquote>
-<p>提示前提：必须装nodejs</p>
-</blockquote>
-<h4 id="shell设置"><a href="#shell设置" class="headerlink" title="shell设置"></a>shell设置</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /opt/homebrew/opt/nvm/nvm.sh</span><br></pre></td></tr></table></figure>
-
-<h4 id="一般命令"><a href="#一般命令" class="headerlink" title="一般命令"></a>一般命令</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nvm list available  <span class="comment"># Windows</span></span><br><span class="line">nvm ls-remote <span class="comment"># linux 显示所有可下载的版本</span></span><br><span class="line"></span><br><span class="line">nvm install 11.13.0 <span class="comment"># 安装11.13.0版本</span></span><br><span class="line"></span><br><span class="line">nvm use 11.13.0 <span class="comment"># 使用当前版本</span></span><br></pre></td></tr></table></figure>
+            <h2 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h2><p>内网基础环境分析<br>内网基础环境判断<br>IP、网关、DNS、是否能连通外网、网络连接及端口、本机host文件、机器的代理、是否在域内，域名是什么。</p>
+<p>分析机器所处位置区域<br>DMZ区、办公区、生产区、核心DB等等</p>
+<p>DMZ（Demilitarized Zone，非军事区或隔离区）是网络安全架构中的一种设计，用于增强网络的安全性。它通常指在内部网络和外部网络（如互联网）之间设置的一个中间区域，用于放置公共访问的服务和设备。</p>
+<p>分析机器的角色<br>普通WEB服务器、开发服务器、文件服务器、代理服务器、DNS服务器、数据存储服务器等等</p>
+<p>分析进出口流量是否能连通<br>协议的判断：常见的TCP、DNS、HTTP、ICMP等协议</p>
+<p>端口判断：外网vps做监听，内网机器测试常见端口，常见能出去的端口有 80,8080,443,53,110,123 等。</p>
+<ol>
+<li><p>TCP协议：</p>
 <blockquote>
-<p>提示！~查看npm包是否有了</p>
+<p>vps：nc -lvvp 8888<br>target：nc vps-ip 8888</p>
 </blockquote>
-<h3 id="python-pyenv"><a href="#python-pyenv" class="headerlink" title="python -&gt; pyenv"></a>python -&gt; pyenv</h3><blockquote>
-<p>提示前提：必须装python</p>
+</li>
+<li><p>HTTP协议：</p>
+<blockquote>
+<p>vps：nc -lvvp 80<br>target：curl vps-ip 80</p>
 </blockquote>
-<h4 id="shell设置-1"><a href="#shell设置-1" class="headerlink" title="shell设置"></a>shell设置</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /opt/homebrew/opt/nvm/nvm.sh</span><br></pre></td></tr></table></figure>
-
-<h4 id="一般命令-1"><a href="#一般命令-1" class="headerlink" title="一般命令"></a>一般命令</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">pyenv version</span><br><span class="line">pyenv install --list  <span class="comment"># 查看版本</span></span><br><span class="line"></span><br><span class="line">pyenv install 3.11.0</span><br><span class="line"></span><br><span class="line">pyenv global 3.7.4 <span class="comment"># Python版本全局生效</span></span><br><span class="line"></span><br><span class="line">pyenv <span class="built_in">local</span> 3.7.4 <span class="comment"># 指定的目录下生效，那可以使用pyenv local命令修改</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="golang-gvm"><a href="#golang-gvm" class="headerlink" title="golang -&gt; gvm"></a>golang -&gt; gvm</h3><blockquote>
-<p>提示前提：必须装golang</p>
+</li>
+<li><p>ICMP协议：</p>
+<blockquote>
+<p>vps：tcpdump icmp （tcpdump是一个抓包工具，用于捕获和分析通过网络接口传输的数据包。）<br>target：ping vps-ip<br>ping 命令属于 互联网控制消息协议（ICMP, Internet Control Message Protocol）。</p>
 </blockquote>
-<h4 id="shell设置-2"><a href="#shell设置-2" class="headerlink" title="shell设置"></a>shell设置</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[[ -s <span class="string">&quot;<span class="variable">$HOME</span>/.gvm/scripts/gvm&quot;</span> ]] &amp;&amp; <span class="built_in">source</span> <span class="string">&quot;<span class="variable">$HOME</span>/.gvm/scripts/gvm&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="一般命令-2"><a href="#一般命令-2" class="headerlink" title="一般命令"></a>一般命令</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">go version <span class="comment"># 版本</span></span><br><span class="line">gvm listall <span class="comment"># 查看版本</span></span><br><span class="line"></span><br><span class="line">gvm install go1.21.0 <span class="comment"># 安装1.21.0版本</span></span><br><span class="line"></span><br><span class="line">gvm use go1.21.0 --default <span class="comment"># 使用当前版本</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="java-IDEA-切换版本"><a href="#java-IDEA-切换版本" class="headerlink" title="java -&gt; IDEA (切换版本)"></a>java -&gt; IDEA (切换版本)</h3><h3 id="docker-版本管理-开发更方便"><a href="#docker-版本管理-开发更方便" class="headerlink" title="docker 版本管理 开发更方便"></a>docker 版本管理 开发更方便</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/0rz33/dnmp">php-多版本多项目管理-docker-composer</a><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">http[s]://[你的域名]/72       <span class="comment"># PHP72</span></span><br><span class="line">http[s]://[你的域名]/73       <span class="comment"># PHP73</span></span><br><span class="line">http[s]://[你的域名]/74       <span class="comment"># PHP74</span></span><br><span class="line">http[s]://[你的域名]/80       <span class="comment"># PHP80</span></span><br><span class="line">http[s]://[你的域名]/81       <span class="comment"># PHP81</span></span><br><span class="line">http[s]://[你的域名]/82       <span class="comment"># PHP82</span></span><br><span class="line">http[s]://[你的域名]/83       <span class="comment"># PHP83</span></span><br><span class="line">http[s]://[你的域名]/84       <span class="comment"># PHP84</span></span><br></pre></td></tr></table></figure></li>
+</li>
+<li><p>DNS协议：</p>
+<blockquote>
+<p>vps：nc -u -lvp 53<br>target：nslookup <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a> vps-ip<br>dig @vsp-ip <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a><br>（dig 是一个用于查询 DNS（域名系统）信息的命令行工具，广泛用于网络管理和故障排查，可以获取有关域名的不同类型的 DNS 记录。在Windows系统中不内置，在Linux则有内置）</p>
+</blockquote>
+</li>
+</ol>
+<h4 id="本机的-hosts-文件用于映射主机名（域名）到-IP-地址。"><a href="#本机的-hosts-文件用于映射主机名（域名）到-IP-地址。" class="headerlink" title="本机的 hosts 文件用于映射主机名（域名）到 IP 地址。"></a>本机的 hosts 文件用于映射主机名（域名）到 IP 地址。</h4><ol>
+<li>基本功能<br>域名解析：hosts 文件可以手动指定某个域名对应的 IP 地址，优先于 DNS 服务器的解析结果。<br>本地测试：在开发和测试环境中，可以将域名指向本地 IP 地址（如 127.0.0.1），方便开发者在不影响外部网络的情况下进行测试。</li>
+<li>使用场景<br>屏蔽网站：可以将某些网站的域名指向 0.0.1，从而阻止访问该网站。<br>快速访问：将常用的域名映射到本地 IP 地址，可以加快访问速度，尤其是在 DNS 服务不稳定的情况下。<br>替代 DNS：在没有 DNS 服务的网络中，可以使用 hosts 文件进行简单的域名解析。</li>
+<li>文件位置<br>Windows：通常位于 C:\Windows\System32\drivers\etc\hosts<br>Linux 和 macOS：通常位于 &#x2F;etc&#x2F;hosts</li>
+<li>文件格式<br>hosts 文件的格式较为简单，每行包含一个 IP 地址和一个或多个主机名，例如：<br>127.0.0.1 localhost 192.168.1.10 mylocaldev</li>
+<li>优缺点<br>优点:<br>提高解析速度，减少对 DNS 服务器的依赖。<br>简单易用，适合快速配置。<br>缺点:<br>不易于管理，特别是在需要频繁更改时。<br>在大型网络中，维护 hosts 文件可能变得复杂且不高效。</li>
+</ol>
+<h3 id="本机信息收集"><a href="#本机信息收集" class="headerlink" title="本机信息收集"></a>本机信息收集</h3><p>操作系统、权限、内网IP地址段、杀软、端口、服务、补丁情况、网络环境情况、共享、会话等</p>
+<p>如果是域内主机，那么操作系统、应用软件、补丁、服务、杀软一般都是批量安装的。</p>
+<h3 id="内网网段信息收集"><a href="#内网网段信息收集" class="headerlink" title="内网网段信息收集"></a>内网网段信息收集</h3><p>只有找到不同网段才能进行纵向渗透，否则只能横向渗透</p>
+<p>纵向渗透关注的是权限的提升，从低权限向高权限移动，旨在获取更深层次的控制。<br>横向渗透则是在同一权限层级内扩展访问，旨在访问更多的目标或资源。</p>
+<ol>
+<li>内网网段扫描</li>
+<li>文件共享、FTP连接记录、浏览器访问记录、mstsc连接记录<br>拓展：mstsc 是 Windows 系统中用于远程桌面连接的工具。按 Win + R 输入mstsc即可启动。</li>
+<li>渗透路由器、交换机</li>
+</ol>
+<h3 id="用户信息（用CMD）"><a href="#用户信息（用CMD）" class="headerlink" title="用户信息（用CMD）"></a>用户信息（用CMD）</h3><ul>
+<li>查看本机用户列表：<blockquote>
+<p>net user</p>
+</blockquote>
+</li>
+<li>获取本地管理员信息：<blockquote>
+<p>net localgroup administrators</p>
+</blockquote>
+</li>
+<li>查看当前在线用户：<blockquote>
+<p>quser query user query user || qwinsta</p>
+</blockquote>
+</li>
+<li>查看当前用户在目标系统中的具体权限：<blockquote>
+<p>whoami &#x2F;all</p>
+</blockquote>
+</li>
+<li>查看当前权限：<blockquote>
+<p>whoami &amp;&amp; whoami &#x2F;priv</p>
+</blockquote>
+</li>
+<li>查看当前机器中所有的组名，了解不同组的职能，如 IT、HR、ADMIN、FILE：<blockquote>
+<p>net localgroup</p>
+</blockquote>
+</li>
 </ul>
+<h3 id="系统信息"><a href="#系统信息" class="headerlink" title="系统信息"></a>系统信息</h3><ul>
+<li>查询网络配置信息，进行IP地址段信息收集：<blockquote>
+<p>ipconfig &#x2F;all</p>
+</blockquote>
+</li>
+<li>查询操作系统及软件信息（当然也可以直接运行：systeminfo）：<blockquote>
+<p>systeminfo | findstr &#x2F;B &#x2F;C:”OS 名称” &#x2F;C:”OS 版本” #中文系统</p>
+</blockquote>
+</li>
+<li>查看当前系统版本：<blockquote>
+<p>wmic OS get Caption,CSDVersion,OSArchitecture,Version</p>
+</blockquote>
+</li>
+</ul>
+<p>上面这个命令使用 WMIC 工具来获取 Windows 操作系统的相关信息。具体来说，它的作用是提取以下几个属性：</p>
+<blockquote>
+<p>wmic：调用 Windows Management Instrumentation Command-line 工具。<br>OS：指定要查询的对象类型为操作系统（Operating System）。<br>get：表示获取指定的属性。<br>Caption：操作系统的名称（如 Windows 10）。<br>CSDVersion：操作系统的服务包版本（如 Service Pack 1），如果没有安装服务包则可能为空。<br>OSArchitecture：操作系统的架构（如 32 位或 64 位）。<br>Version：操作系统的版本号（如 10.0.19041）。</p>
+</blockquote>
+<ul>
+<li>查看系统体系结构：<blockquote>
+<p>echo %PROCESSOR_ARCHITECTURE%</p>
+</blockquote>
+</li>
+<li>查询本机服务信息：<blockquote>
+<p>wmic service list brief</p>
+</blockquote>
+</li>
+<li>查看安装的软件的版本、路径等：<blockquote>
+<p>wmic product get name,version powershell “Get-WmiObject -class Win32_Product | Select-Object -Property name, version”</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Windows-内网渗透"><a href="#Windows-内网渗透" class="headerlink" title="Windows 内网渗透"></a>Windows 内网渗透</h2><h3 id="工作组和域"><a href="#工作组和域" class="headerlink" title="工作组和域"></a>工作组和域</h3><p>工作组和域的区别：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw">https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw</a><br>查看本机工作组的方法：右键“此电脑”，找到“域或工作组”，此时便会显示本机工作组。<br>发现在同一个组的计算机方法：开启 “ 网络发现 ”。</p>
+<h3 id="工作组简介"><a href="#工作组简介" class="headerlink" title="工作组简介"></a>工作组简介</h3><p>工作组是最常见最简单最普通的资源管理模式，就是将不同的电脑按功能分别列入不同的组中，以方便管理。</p>
+<p>默认情况下所有计算机都处在名为 WORKGROUP 的工作组中，工作组资源管理模式适合于网络中计算机不多，对管理要求不严格的情况。它的建立步骤简单，使用起来也很好上手。</p>
+<p>大部分中小公司都采取工作组的方式对资源进行权限分配和目录共享相同组中的不同用户通过对方主机的用户名和密码可以査看对方共享的文件夹，默认共享的是 Users 目录。</p>
+<p>不同组的不同用户通过对方主机的用户名和密码也可以査看对方共享的文件夹,工作组并不存在真正的集中管理作用，工作组里的所有计算机都是对等的，也就是没有服务器和客户机之分的。</p>
+<h2 id="Linux-内网渗透"><a href="#Linux-内网渗透" class="headerlink" title="Linux 内网渗透"></a>Linux 内网渗透</h2><h2 id="mac-内网渗透"><a href="#mac-内网渗透" class="headerlink" title="mac 内网渗透"></a>mac 内网渗透</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p>引用 ：<br><a target="_blank" rel="noopener" href="https://github.com/wjl110/MacGosh-Pro">https://github.com/wjl110/MacGosh-Pro</a><br><a target="_blank" rel="noopener" href="https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86">https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86">https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file">https://github.com/r0eXpeR/pentest?tab=readme-ov-file</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254884.html">https://www.freebuf.com/articles/system/254884.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/backlion/p/16850277.html">https://www.cnblogs.com/backlion/p/16850277.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254826.html">https://www.freebuf.com/articles/system/254826.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/177493.html">https://www.freebuf.com/articles/network/177493.html</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus2024/#google_vignette">https://www.ddosi.org/nessus2024/#google_vignette</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus-plugin-pro-3/">https://www.ddosi.org/nessus-plugin-pro-3/</a><br><a target="_blank" rel="noopener" href="https://github.com/Hack-with-Github/Awesome-Hacking">https://github.com/Hack-with-Github/Awesome-Hacking</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/pantesting-getinfo/">
+                信息收集
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>信息收集是指通过各种方式获取所需要的信息，以便我们在后续的渗透过程更好的进行。比如目标站点IP、中间件、脚本语言、端口、邮箱等等。信息收集包含资产收集但不限于资产收集。</p>
+<ul>
+<li><p>主动信息收集<br>通过直接访问网站在网站上进行操作、对网站进行扫描等，这种是有网络流量经过目标服务器的信息收集方式。</p>
+</li>
+<li><p>被动信息收集<br>基于公开的渠道，比如搜索引擎等，在不与目标系统直接交互的情况下获取信息，并且尽量避免留下痕迹。</p>
+</li>
+<li><p><a href="#1">服务器信息</a></p>
+<ul>
+<li><a href="#1.1">域名信息</a><ul>
+<li><a href="#1.1.1">搜索引擎搜索</a></li>
+<li><a href="#1.1.2">子域名查询</a></li>
+<li><a href="#1.1.3">IP域名反查</a></li>
+<li><a href="#1.1.4">CDN</a></li>
+<li><a href="#1.1.5">扫描工具</a></li>
+<li><a href="#1.1.6">域名相关性总结</a></li>
+</ul>
+</li>
+<li><a href="#1.2">端口信息</a><ul>
+<li><a href="#1.2.1">端口扫描</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a href="#2">网站&#x2F;域名信息</a></p>
+<ul>
+<li><a href="#2.1">网络指纹识别</a></li>
+<li><a href="#2.2">网站服务 &#x2F; 容器类型</a></li>
+<li><a href="#2.3">敏感文件及目录探测</a></li>
+<li><a href="#2.4">网站备份文件</a></li>
+<li><a href="#2.5">网站WAF识别</a></li>
+<li><a href="#2.6">Windows主机信息收集</a></li>
+</ul>
+</li>
+<li><p><a href="#3">社会工程学-人员信息</a></p>
+<ul>
+<li><a href="#3.1">企业信息收集</a></li>
+<li><a href="#3.2">人员信息收集</a></li>
+<li><a href="#3.3">钓鱼</a></li>
+<li><a href="#3.4">其他信息</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="1">服务器信息</h3>
+
+<ul>
+<li><p>IP</p>
+<blockquote>
+<p>C段</p>
+</blockquote>
+</li>
+<li><p>线下网络</p>
+<blockquote>
+<p>Wi-Fi</p>
+<ul>
+<li>SSID</li>
+<li>认证信息</li>
+</ul>
+<p>bluetooth</p>
+</blockquote>
+</li>
+<li><p>VPN</p>
+<blockquote>
+<p>厂商<br>登录方式</p>
+</blockquote>
+</li>
+<li><p>邮件网关</p>
+</li>
+<li><p>手机APP</p>
+</li>
+<li><p>小程序后台</p>
+</li>
+<li><p>OA</p>
+</li>
+<li><p>SSO</p>
+</li>
+<li><p>边界网络设备</p>
+</li>
+<li><p>上游运营商</p>
+</li>
+</ul>
+<h4 id="1.1">域名信息</h4>
+
+<h5 id="1.1.1">搜索引擎搜索</h5>
+
+<p>用搜索引擎 搜索相关的域名和子域名 <code>site:[DomainName]</code></p>
+<ul>
+<li>site:<br>限定搜索结果只来自特定网站。<blockquote>
+<p>示例：<code>site:</code>wikipedia.org</p>
+</blockquote>
+</li>
+<li>filetype:<br>查找特定类型的文件。<blockquote>
+<p>示例：<code>filetype:</code>pdf 教学大纲</p>
+</blockquote>
+</li>
+<li>intitle:<br>查找标题中包含特定词语的页面。<blockquote>
+<p>示例：<code>intitle:</code>市场分析</p>
+</blockquote>
+</li>
+<li>inurl:<br>查找URL中包含特定词语的页面。<blockquote>
+<p>示例：<code>inurl:</code>blog</p>
+</blockquote>
+</li>
+<li>related:<br>查找与某个特定网站相似的网站。<blockquote>
+<p>示例：<code>related:</code>example.com</p>
+</blockquote>
+</li>
+<li>OR（要大写）<br>在搜索中使用逻辑“或”，查找包含任一关键词的结果。<blockquote>
+<p>示例：<code>苹果 OR 橙子</code></p>
+</blockquote>
+</li>
+<li>-（短横线）<br>排除某个词语，从搜索结果中剔除特定内容。<blockquote>
+<p>示例：<code>水果 -香蕉</code></p>
+</blockquote>
+</li>
+<li>“ “（引号）<br>精确匹配短语，查找包含确切词组的结果。<blockquote>
+<p>示例：<code>"机器学习入门"</code></p>
+</blockquote>
+</li>
+<li>*（星号）<br>用作通配符，可以替代一个或多个词。<blockquote>
+<p>示例：<code>"我喜欢 * 的电影"</code></p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 返回此目标站点被搜索引擎抓取收录的所有内容</span></span><br><span class="line">site:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回此目标站点被搜索引擎抓取收录的包含此关键词的所有页面</span></span><br><span class="line"><span class="comment">## 此处可以将关键词设定为网站后台，管理后台，密码修改，密码找回等</span></span><br><span class="line">site:www.hao123.com keyword</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回目标站点的地址中包含admin.php的所有页面，可以使用admin.php/manage.php或者其他关键词来寻找关键功能页面 </span></span><br><span class="line">site:www.hao123.com inurl:admin.php</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回所有包含目标站点链接的页面，其中包括其开发人员的个人博客，开发日志，或者开放这个站点的第三方公司，合作伙伴等</span></span><br><span class="line"><span class="built_in">link</span>:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回所有与目标站点”相似”的页面，可能会包含一些通用程序的信息等</span></span><br><span class="line">related:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 搜索出错的页面</span></span><br><span class="line">intitle:<span class="string">&quot;500 Internal Server Error&quot;</span> <span class="string">&quot;server at&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 查找代理服务器</span></span><br><span class="line">inurl:<span class="string">&quot;nph-proxy.cgi&quot;</span> <span class="string">&quot;Start browsing&quot;</span></span><br><span class="line"><span class="comment">## 除了以上的关键字，还有allintile / allinurl / allintext / inanchor / intext / filetype / info / numberange / cache等。</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="1.1.2">第三方查询</h5>
+
+<ul>
+<li><a target="_blank" rel="noopener" href="https://dnsdumpster.com/">子域名查询信息</a></li>
+<li><a href="virustotal.com">全球最大的免费在线查毒网站 virustotal</a></li>
+<li>[威胁信息挖掘](<a target="_blank" rel="noopener" href="https://www.threatminer.org)/">https://www.threatminer.org）</a></li>
+<li><a target="_blank" rel="noopener" href="https://search.censys.io/">联网设备信息的新型搜索引擎</a></li>
+</ul>
+<h5 id="1.1.2">子域名查询</h5>
+
+<ul>
+<li>SSL证书查询<ul>
+<li><a target="_blank" rel="noopener" href="https://crt.sh/">SSL查询网址</a></li>
+</ul>
+</li>
+<li>发现子域名工具<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Threezh1/JSFinder">JS子域名爬取工具</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/shmilylty/OneForAll">强大的子域搜集工具 - OneForAll</a></li>
+<li><a href="">Subdomainsbrute</a></li>
+<li><a target="_blank" rel="noopener" href="https://scan.javasec.cn/">在线爆破子域名</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.3">IP域名反查</h5>
+
+<ul>
+<li>IP反查域名<ul>
+<li><a target="_blank" rel="noopener" href="http://stool.chinaz.com/same">1</a></li>
+<li><a target="_blank" rel="noopener" href="https://tools.ipip.net/ipdomain.php">2</a></li>
+</ul>
+</li>
+<li>域名查询IP<ul>
+<li><a target="_blank" rel="noopener" href="https://ip.tool.chinaz.com/">3</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.4">CDN</h5>
+
+<p>CDN即内容分发网络。CDN是构建在网络之上的内容分发网络，依靠部署在各地的边缘服务器，通过中心平台的负载均衡、内容分发、调度等功能模块，使用户就近获取所需内容，降低网络拥塞，提高用户访问响应速度和命中率。</p>
+<p>通俗来说，就是部署在本地的服务器，里面备用了想要访问的服务器的数据。</p>
+<ul>
+<li>多地ping判断CDN<ul>
+<li><a target="_blank" rel="noopener" href="http://ping.chinaz.com/">1</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.webkaka.com/Ping.aspx">2</a></li>
+</ul>
+</li>
+<li>Mx记录邮件服务<ul>
+<li>将IP输入到ping检测网址里</li>
+</ul>
+</li>
+<li>查询历史DNS记录<ul>
+<li><a target="_blank" rel="noopener" href="https://dnsdb.io/zh-cn">1</a></li>
+<li><a target="_blank" rel="noopener" href="https://securitytrails.com/">2</a></li>
+<li><a target="_blank" rel="noopener" href="https://x.threatbook.cn/">3</a></li>
+</ul>
+</li>
+<li>常见的几个DNS记录类型<ul>
+<li>A记录：将域名指向一个IPV4地址(例如:100.100.100.100)，需要增加A记录；</li>
+<li>NS记录：域名解析服务器记录，如果要将子域名指定某个域名服务器来解析，需要设置NS记录；</li>
+<li>SOA记录： SOA叫做起始授权机构记录，NS用于标识多台域名解析服务器，SOA记录用于在众多NS记录中标记哪一台是主服务器；</li>
+<li>MX记录：建立电子邮箱服务，将指向邮件服务器地址，需要设置MX记录。建立邮箱时，一般会根据邮箱服务商提供的MX记录填写此记录；</li>
+<li>TXT记录：可任意填写，可为空。一般做一些验证记录时会使用此项，如做SPF(反垃圾邮件)记录；</li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.5">扫描工具</h5>
+
+<ul>
+<li>nmap</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/se55i0n/Cwebscanner">Cwebscan</a></li>
+</ul>
+<h5 id="1.1.6">域名相关性总结</h5>
+
+<ul>
+<li>查询域名注册邮箱</li>
+<li>通过域名查询备案号</li>
+<li>通过备案号查询域名</li>
+<li>反查注册邮箱</li>
+<li>反查注册人</li>
+<li>通过注册人查询到的域名在查询邮箱</li>
+<li>通过上一步邮箱去查询域名</li>
+<li>查询以上获取出的域名的子域名</li>
+</ul>
+<h4 id="1.2">端口信息</h4>
+
+<ul>
+<li>端口类型<br>周知端口：众所周知的端口号，范围:0-1023，如80端口是WWW服务<br>动态端口：一般不固定分配某种服务，范围:49152-65535<br>注册端口：范围:1024-49151，用于分配给用户进程或程序</li>
+<li>各种端口介绍<ul>
+<li>FTP (21&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">FTP：文件传输协议，允许用户通过网络上传、下载和管理文件，使用TCP端口20、21。20用于传输数据，21用于传输控制信息。</span><br><span class="line"></span><br><span class="line">FTP 本身并不加密：数据以明文形式传输，容易被窃听。</span><br><span class="line"></span><br><span class="line">(1) ftp基础爆破：owasp 的 Bruter、hydra 以及 msf 中的 ftp 爆破模块。 暴力破解密码 默认用户名密码 anonymous:anonymous</span><br><span class="line"></span><br><span class="line">(2) ftp匿名访问：</span><br><span class="line">用户名: anonymous 密码: 为空或者任意邮箱</span><br><span class="line"></span><br><span class="line">(3) vsftpd后门：vsftpd 2到2.3.4版本存在后门漏洞，通过该漏洞获取root权限</span><br><span class="line"></span><br><span class="line">(4) 嗅探：ftp使用明文传输，使用 Cain 进行渗透。(但是探需要在局域网并需要欺骗或监听网关)</span><br><span class="line"></span><br><span class="line">(5) ftp远程代码溢出。</span><br><span class="line"></span><br><span class="line">(6) ftp跳转攻击。</span><br><span class="line"></span><br><span class="line">FTP跳转攻击:https://blog.csdn.net/mgxcool/article/details/48249473</span><br></pre></td></tr></table></figure></li>
+<li>SSH (22&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SSH:(secure shell)是目前较可靠，专为远程登录会话和其他网络服务提供安全性的协议。</span><br><span class="line"></span><br><span class="line">(1)弱口令，可使用工具hydra，msf中的ssh爆破模块。</span><br><span class="line"></span><br><span class="line">(2)SSH后门</span><br><span class="line"></span><br><span class="line">(3)openssh用户枚举 CVE-2018-15473.</span><br></pre></td></tr></table></figure></li>
+<li>Telent (23&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Telnet 协议是 TCP/IP 协议族中的一员，是Internet远程登录服务的标准协议和主要方式。</span><br><span class="line"></span><br><span class="line">(1) 暴力破解，使用 hydra 或者 msf 中 teInet 模块对其进行破解。</span><br><span class="line"></span><br><span class="line">(2) 在linux系统中一般采用SSH进行远程访问，传输的敏感数据都是经过加密的。而对于windows下的 telnet 来说是脆弱的，因为默认没有经过任何加密就在网络中进行传输。使用cain等嗅探工具可轻松截获远程登录密码。</span><br></pre></td></tr></table></figure></li>
+<li>SMTP (25&#x2F;TCP &amp; 465&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">smtp:邮件协议，在linux中默认开启这个服务，可发送钓鱼邮件</span><br><span class="line"></span><br><span class="line">默认端口:25(smtp)、465(smtps)</span><br><span class="line"></span><br><span class="line">(1)爆破:弱口令，使用hydra</span><br><span class="line"></span><br><span class="line">(2)SMTP 无认证伪造发件人</span><br></pre></td></tr></table></figure></li>
+<li>DNS (53&#x2F;UDP &amp; 53&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">域传送漏洞</span><br><span class="line">DNS劫持</span><br><span class="line">DNS缓存投毒</span><br><span class="line">DNS欺骗</span><br><span class="line">SPF / DMARC Check</span><br><span class="line">DDoS</span><br><span class="line">    DNS Query Flood</span><br><span class="line">    DNS 反弹</span><br><span class="line"></span><br><span class="line">DNS 隧道</span><br></pre></td></tr></table></figure></li>
+<li>DHCP 67 &amp; 68  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">劫持/欺骗</span><br></pre></td></tr></table></figure></li>
+<li>TFTP (69&#x2F;TCP)</li>
+<li>HTTP (80&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">为超文本传输协议(HTTP)开放的端口，主要用于万维网传输信息的协议</span><br><span class="line"></span><br><span class="line">(1) 通常80端口使用中间件漏洞进行攻击，如 llS、apache任意文件读写漏洞、nginx等</span><br><span class="line"></span><br><span class="line">(2) 80端口一般通过web应用程序的常见漏洞进行攻击</span><br></pre></td></tr></table></figure></li>
+<li>Kerberos (88&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">主要用于监听KDC的票据请求</span><br><span class="line">用于进行黄金票据和白银票据的伪造</span><br></pre></td></tr></table></figure></li>
+<li>POP3 (110&#x2F;TCP &amp; 995&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">爆破</span><br></pre></td></tr></table></figure></li>
+<li>RPC (135&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic 服务利用</span><br></pre></td></tr></table></figure></li>
+<li>NetBIOS (137&#x2F;UDP &amp; 138&#x2F;UDP) Samba (139&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">139用于提供windows文件和打印机共享及UNIX中的Samba服务</span><br><span class="line"></span><br><span class="line">445用于提供windows文件和打印机共享</span><br><span class="line"></span><br><span class="line">(1)对于开放139/445端口，尝试利用MS17010溢出漏洞进行攻击;</span><br><span class="line"></span><br><span class="line">(2)对于只开放445端口，尝试利用MS06040、MS08067溢出漏洞攻击;</span><br><span class="line"></span><br><span class="line">(3)利用IPC$连接进行渗透</span><br><span class="line">未授权访问</span><br><span class="line">弱口令</span><br></pre></td></tr></table></figure></li>
+<li>IMAP (143&#x2F;TCP &amp; 993&#x2F;TCP)</li>
+<li>SNMP (161&#x2F;TCP &amp; 161&#x2F;UDP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Public 弱口令</span><br></pre></td></tr></table></figure></li>
+<li>LDAP (389&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">用于域上的权限验证服务</span><br><span class="line">匿名访问</span><br><span class="line">注入</span><br></pre></td></tr></table></figure></li>
+<li>HTTPS (443&#x2F;TCP)</li>
+<li>SMB (445&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Windows 协议簇，主要功能为文件共享服务</span><br><span class="line">net use \\192.168.1.1 /user:xxx\username password</span><br></pre></td></tr></table></figure></li>
+<li>Linux Rexec (512&#x2F;TCP &amp; 513&#x2F;TCP &amp; 514&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱口令</span><br></pre></td></tr></table></figure></li>
+<li>Rsync (873&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure></li>
+<li>RPC (1025&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NFS匿名访问</span><br></pre></td></tr></table></figure></li>
+<li>Java RMI (1090&#x2F;TCP &amp; 1099&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">反序列化远程命令执行漏洞</span><br></pre></td></tr></table></figure></li>
+<li>MSSQL (1433&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br><span class="line">差异备份 GetShell</span><br><span class="line">SA 提权</span><br></pre></td></tr></table></figure></li>
+<li>Oracle (1521&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br></pre></td></tr></table></figure></li>
+<li>NFS (2049&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">权限设置不当</span><br><span class="line">showmount &lt;host&gt;</span><br></pre></td></tr></table></figure></li>
+<li>ZooKeeper (2171&#x2F;TCP &amp; 2375&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无身份认证</span><br></pre></td></tr></table></figure></li>
+<li>Docker Remote API (2375&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">未限制IP / 未启用TLS身份认证</span><br><span class="line">http://docker.addr:2375/version</span><br></pre></td></tr></table></figure></li>
+<li>MySQL (3306&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">3306是MYSQL数据库默认的监听端口</span><br><span class="line"></span><br><span class="line">(1) mysql弱口令破解</span><br><span class="line"></span><br><span class="line">(2) 弱口令登录mysql，上传构造的恶意UDF自定义函数代码，通过调用注册的恶意函数执行系统命令</span><br><span class="line"></span><br><span class="line">(3) SQL注入获取数据库敏感信息，load_fie()函数读取系统文件，导出恶意代码到指定路径</span><br><span class="line">弱密码</span><br><span class="line">日志写WebShell</span><br><span class="line">UDF提权</span><br><span class="line">MOF提权</span><br></pre></td></tr></table></figure></li>
+<li>RDP &#x2F; Terminal Services (3389&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">3389是windows远程桌面服务默认监听的端口</span><br><span class="line"></span><br><span class="line">(1) RDP暴力破解攻击</span><br><span class="line"></span><br><span class="line">(2) MS12_020死亡蓝屏攻击</span><br><span class="line"></span><br><span class="line">(3) RDP远程桌面漏洞(CVE-2019-0708)</span><br><span class="line"></span><br><span class="line">(4) MSF开启RDP、注册表开启RDP</span><br><span class="line">弱密码</span><br></pre></td></tr></table></figure></li>
+<li>Postgres (5432&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br><span class="line">执行系统命令</span><br></pre></td></tr></table></figure></li>
+<li>VNC (5900&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br></pre></td></tr></table></figure></li>
+<li>CouchDB (5984&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure></li>
+<li>WinRM (5985&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Windows对WS-Management的实现</span><br><span class="line">在Vista上需要手动启动，在Windows Server 2008中服务是默认开启的</span><br></pre></td></tr></table></figure></li>
+<li>Redis (6379&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">开源的可基于内存的可持久化的日志型数据库，</span><br><span class="line"></span><br><span class="line">(1)爆破弱口令</span><br><span class="line"></span><br><span class="line">(2)redis未授权访问结合ssh key提权</span><br><span class="line"></span><br><span class="line">(3)主从复制 RCE</span><br><span class="line">无密码或弱密码</span><br><span class="line">绝对路径写 WebShell</span><br><span class="line">计划任务反弹 Shell</span><br><span class="line">写 SSH 公钥</span><br><span class="line">Windows 写启动项</span><br></pre></td></tr></table></figure></li>
+<li>Kubernetes API Server (6443&#x2F;TCP &amp;&amp; 10250&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://Kubernetes:10250/pods</span><br></pre></td></tr></table></figure></li>
+<li>Weblogic (7001&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(1)弱口令、爆破，弱密码一般为weblogic/Oracle@123 or weblogic</span><br><span class="line"></span><br><span class="line">(2)管理后台部署 war包后门</span><br><span class="line"></span><br><span class="line">(3)weblogic SSRF</span><br><span class="line"></span><br><span class="line">(4)反序列化漏洞</span><br></pre></td></tr></table></figure></li>
+<li>JDWP (8000&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">远程命令执行</span><br></pre></td></tr></table></figure></li>
+<li>ActiveMQ (8061&#x2F;TCP)</li>
+<li>Jenkin (8080&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure></li>
+<li>Tomcat-8080  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(1) Tomcat远程代码执行漏洞(CVE-2019-0232)</span><br><span class="line"></span><br><span class="line">(2) Tomcat任意文件上传(CVE-2017-12615)</span><br><span class="line"></span><br><span class="line">(3) tomcat 管理页面弱口令getshell</span><br></pre></td></tr></table></figure></li>
+<li>Elasticsearch (9200&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">代码执行</span><br><span class="line">http://es.addr:9200/_plugin/head/</span><br><span class="line">http://es.addr:9200/_nodes</span><br></pre></td></tr></table></figure></li>
+<li>Memcached (11211&#x2F;TCP &amp; 11211&#x2F;UDP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure></li>
+<li>RabbitMQ (15672&#x2F;TCP &amp; 15692&#x2F;TCP &amp; 25672&#x2F;TCP)</li>
+<li>MongoDB (27017&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无密码或弱密码</span><br></pre></td></tr></table></figure></li>
+<li>Hadoop (50070&#x2F;TCP &amp; 50075&#x2F;TCP)  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h5 id="1.2.1">端口扫描</h5>
+
+<a href="/2025/02/28/nmap/" title="NMAP">NMAP</a>
+
+
+<h3 id="2">网站信息</h3>
+<h4 id="2.1">网络指纹识别</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/aztecrabbit/bugscanner">备案</a></p>
+<ul>
+<li>判断网站操作系统<br>  Linux大小写敏感<br>  Windows大小写不敏感</li>
+<li>扫描敏感文件<br>  robots.txt<br>  crossdomain.xml<br>  sitemap.xml<br>  xx.tar.gz<br>  xx.bak 等</li>
+<li>确定网站采用的语言<br>  如PHP &#x2F; Java &#x2F; Python等<br>  找后缀，比如php&#x2F;asp&#x2F;jsp</li>
+<li>前端框架<br>  如jQuery &#x2F; BootStrap &#x2F; Vue &#x2F; React &#x2F; Angular等<br>  查看源代码</li>
+<li>中间服务器<br>  如 Apache &#x2F; Nginx &#x2F; IIS 等<br>  查看header中的信息<br>  根据报错信息判断<br>  根据默认页面判断</li>
+<li>Web容器服务器<br>  如Tomcat &#x2F; Jboss &#x2F; Weblogic等</li>
+<li>后端框架<br>  根据Cookie判断<br>  根据CSS &#x2F; 图片等资源的hash值判断<br>  根据URL路由判断</li>
+<li>如wp-admin<br>  根据网页中的关键字判断<br>  根据响应头中的X-Powered-By</li>
+<li>CDN信息<br>  常见的有Cloudflare、yunjiasu</li>
+<li>探测有没有WAF，如果有，什么类型的<br>  有WAF，找绕过方式<br>  没有，进入下一步</li>
+<li>扫描敏感目录，看是否存在信息泄漏<br>  扫描之前先自己尝试几个的url，人为看看反应</li>
+<li>使用爬虫爬取网站信息</li>
+<li>拿到一定信息后，通过拿到的目录名称，文件名称及文件扩展名了解网站开发人员的命名思路，确定其命名规则，推测出更多的目录及文件名</li>
+<li>常见入口目标</li>
+<li>关注度低的系统</li>
+<li>业务线较长的系统</li>
+</ul>
+<h4 id="2.2">网站服务 / 容器类型</h4>
+
+<p>在网站页面按下F12，可查看响应头Server字段，选择“ Network 网络 ”页面并按F5进行刷新，在出现的请求里选中和域名一样的，点击会在右侧出现“ headers 标头 ”，下拉找到 “ Response 响应标头 ”，里面有一个“ Server服务 ”，此时里面的值即为网站的中间件。</p>
+<p>可显示中间件、服务器、UI框架等的工具：</p>
+<p><a target="_blank" rel="noopener" href="https://www.whatweb.net/">在线网址 Whatweb</a><br><a target="_blank" rel="noopener" href="https://www.wappalyzer.com/">浏览器插件 Wappalyzer</a></p>
+<h4 id="2.3">CMS识别</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/kukuqi666/dedecmscan">CMS：称为内容管理系统，用于网站内容文章管理：</a></p>
+<p><a href="Onlinetools%EF%BC%9Ahttps://github.com/iceyhexman/onlinetools">常见CMS：dedecms(织梦)、Discuz、phpcms等。</a></p>
+<h4 id="2.3">敏感文件及目录探测</h4>
+
+<p>github、git、svn（前三个为代码仓库）、.DS Store（苹果操作系统）、.hg、.bzr、CVS、WEB-INF、备份文件都是。</p>
+<ul>
+<li>github 开发人员将代码上传到网站，在上传的时候，没有删除重要的一些信息。如邮箱信息，SVN信息，内部账号和密码，数据库连接信息，服务器配置信息等。尤其是邮箱信息和内部账号和密码。这类信息可以通过在github上搜索公司的一些特定信息查看是否有程序员将这些信息上传到了github上。<ul>
+<li>@example.com password&#x2F;pass&#x2F;pwd&#x2F;secret&#x2F;credentials&#x2F;token</li>
+<li>@example.com username&#x2F;user&#x2F;key&#x2F;login&#x2F;ftp&#x2F;</li>
+<li>@example.com config&#x2F;ftp&#x2F;smtp&#x2F;pop</li>
+<li>@example.com security_credentials&#x2F;connetionstring</li>
+<li>@example.com JDBC&#x2F;ssh2_auth_password&#x2F;send_keys</li>
+</ul>
+</li>
+<li><code>.git</code>泄露<ul>
+<li>.git” intitle:”index of “：<a target="_blank" rel="noopener" href="https://github.com/lijiejie/GitHack">https://github.com/lijiejie/GitHack</a><br>  GitHack是一个 .git 泄露利用脚本，通过泄露的 .git 文件夹下的文件，重建还原工程源代码。渗透测试人员、攻击者，可以进一步审计代码，挖掘文件上传，SQL注入等web安全漏洞。<br>  git泄露成因及危害：当前大量开发人员使用 git 进行版本控制，对网站进行自动部署。如果配置不当，可能会将.git文件部署到线上环境，这就引起了 git 泄露漏洞)<br>  安全维护方面，git 和 svn 信息泄露，是非常常见也是非常致命的漏洞。会导致整个网站的源码泄露。<br>  防护方法：在部署的时候，对 .git 文件夹进行删除;也可以在 nginx 配置中，对 .git 目录的访问进行屏蔽。</li>
+</ul>
+</li>
+<li><code>.svn</code>泄露<ul>
+<li>“.svn” intitle:”index of “：<a target="_blank" rel="noopener" href="https://github.com/admintony/svnExploit">https://github.com/admintony/svnExploit</a><br>  跟git一样，都是用来版本迭代的一个功能。具体一点就是使用 svn checkout 功能来更新代码。如果没有将 .svn 版本控制的目录进行删除，恶意用户就可以使用这个目录下的文件来恢复源码。从而可以获取如数据库密码，源码漏洞等信息。<br>  防护方法：在部署的时候，将该文件进行删除</li>
+</ul>
+</li>
+<li><code>WEB-INF/web.xml</code>泄露<ul>
+<li>WEB-INF是Java的WEB应用的安全目录。如果想在页面中直接访问其中的文件，必须通过 web.xml 文件对要访问的文件进行相应映射才能访问</li>
+</ul>
+</li>
+</ul>
+<h4 id="2.4">网站备份文件</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/7kbstorm/7kbscan-WebPathBrute">Web路径暴力探测工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/maurosoria/dirsearch">目录探测（探测是否有git泄露)</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/H4ckForJob/dirmap">御剑后台扫描工具 dirmap</a></p>
+<p>针对漏洞的信息泄露<br><a target="_blank" rel="noopener" href="https://github.com/LandGrey/SpringBootVulExploit">https://github.com/LandGrey/SpringBootVulExploit</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/rabbitmask/SB-Actuator">https://github.com/rabbitmask/SB-Actuator</a></p>
+<h4 id="2.5">网站WAF识别</h4>
+
+<p>WAF分类<br>WAF 可以根据其部署方式和实现形式分为软 WAF 和硬 WAF。</p>
+<ul>
+<li>软 WAF：通常是软件解决方案，可以在现有的服务器或虚拟机上部署。</li>
+<li>硬 WAF：通常是基于硬件的设备，专为处理 Web 应用程序流量而设计。</li>
+</ul>
+<h6 id="WAF功能"><a href="#WAF功能" class="headerlink" title="WAF功能"></a>WAF功能</h6><ol>
+<li>防止常见的各类网络攻击，如：SQL注入、XSS跨站、CSRF、网页后门等<br>网页后门执行的是一些系统调用命令，waf可以把请求包的系统调用阻止掉，导致一句话木马失效，需要给木马上免伤。</li>
+<li>防止各类自动化攻击，如：暴力破解（配置 iptables 也可以阻止）、撞库、批量注册、自动发贴等;</li>
+<li>阻止其它常见威胁，如：爬虫、0 DAY攻击、代码分析、嗅探、数据篡改、越权访问、敏感信息泄漏、应用层DDOS、远程恶意包含、盗链、越权、扫描等。</li>
+</ol>
+<p>Waf识别<br><a target="_blank" rel="noopener" href="https://github.com/EnableSecurity/wafw00f">wafw00f</a></p>
+<ul>
+<li>判断网址是否有waf的命令：<blockquote>
+<p>wafw00f + 网址</p>
+</blockquote>
+</li>
+<li>查看可识别waf的命令：<blockquote>
+<p>wafw00f -l</p>
+</blockquote>
+</li>
+<li>用nmap扫描有无waf：<blockquote>
+<p>nmap -p80,443 –script http-waf-detect ip<br>nmap -p80,443 –script http-waf-fingerprint ip</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="2.6">Windows主机信息收集</h4>
+
+<a href="/2025/02/28/pantesting-Intranet/" title="内网渗透">内网渗透</a>
+
+
+<h3 id="3">社会工程学-人员信息</h3>
+<h4 id="3.1">企业信息收集</h4>
+
+<p>一些网站如天眼查等，可以提供企业关系挖掘、工商信息、商标专利、企业年报等信息查询，可以提供企业的较为细致的信息。</p>
+<p>公司主站中会有业务方向、合作单位等信息。</p>
+<h4 id="3.2">人员信息收集</h4>
+
+<p>针对人员的信息收集考虑对目标重要人员、组织架构、社会关系的收集和分析。其中重要人员主要指高管、系统管理员、开发、运维、财务、人事、业务人员的个人电脑。</p>
+<p>人员信息收集较容易的入口点是网站，网站中可能包含网站的开发、管理维护等人员的信息。从网站联系功能中和代码的注释信息中都可能得到的所有开发及维护人员的姓名和邮件地址及其他联系方式。</p>
+<p>在获取这些信息后，可以在Github&#x2F;Linkedin等社交、招聘网站中进一步查找这些人在互联网上发布的与目标站点有关的一切信息，分析并发现有用的信息。</p>
+<p>此外，可以对获取到的邮箱进行密码爆破的操作，获取对应的密码。</p>
+<h4 id="3.3">钓鱼</h4>
+
+<p>基于之前收集到的信息，可以使用Office&#x2F;CHM&#x2F;RAR&#x2F;EXE&#x2F;快捷方式等文件格式制作钓鱼邮件发送至目标，进一步收集信息。</p>
+<p>其中Office可以使用Office漏洞、宏、OLE对象、PPSX等方式构造利用文件。</p>
+<p>Exe可以使用特殊的Unicode控制字符如RLO (Right-to-Left Override) 等来构建容易混淆的文件名。</p>
+<p>RAR主要是利用自解压等方式来构建恶意文件，同样加密的压缩包也在一定程度上可以逃逸邮件网关的检测。</p>
+<p>如果前期信息收集获取到了运维等人员的邮箱，可以使用运维人员的邮箱发送，如果未收集到相关的信息，可以使用伪造发送源的方式发送邮件。</p>
+<p>需要注意的是，钓鱼测试也需要注意合规问题，不能冒充监管单位、不能发送违法违规信息。具体可以参考《中华人民共和国电信条例》、《中华人民共和国互联网电子邮件服务管理办法》等法律法规。</p>
+<h4 id="3.4">其他信息</h4>
+
+<p>公司的公众号、企业号、网站，员工的网盘、百度文库等可能会存在一些敏感信息，如VPN&#x2F;堡垒机账号、TeamViewer账号、网络设备默认口令、服务器默认口令等。</p>
+<p>引用 ： <a target="_blank" rel="noopener" href="https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html">https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html</a><br><a target="_blank" rel="noopener" href="https://websec.readthedocs.io/zh/latest/info/site.html">https://websec.readthedocs.io/zh/latest/info/site.html</a></p>
 
         </div>
     
