@@ -133,6 +133,7 @@
                 </form>
                 <div id="local-search-result">
                 </div>
+                <p class='no-result'>No results found </p> 
             </div>
         </div>
     </div>
@@ -145,6 +146,17 @@
 <nav>
     <a href="#menu"></a>
 </nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
 
 <div class="container">
 
@@ -163,6 +175,12 @@
     </div>
 </header>
             <section class="main archive-container">
+                
+                        <div class="archive-post">
+    <a href="/categories/AI/">
+        AI
+    </a>
+</div>
                 
                         <div class="archive-post">
     <a href="/categories/%E7%A7%BB%E5%8A%A8%E7%AB%AF/">
@@ -185,6 +203,12 @@
                         <div class="archive-post">
     <a href="/categories/%E8%BF%90%E7%BB%B4/">
         运维
+    </a>
+</div>
+                
+                        <div class="archive-post">
+    <a href="/categories/%E6%B8%97%E9%80%8F/">
+        渗透
     </a>
 </div>
                 
@@ -219,8 +243,20 @@
 </div>
                 
                         <div class="archive-post">
+    <a href="/categories/%E8%AF%AD%E8%A8%80/">
+        语言
+    </a>
+</div>
+                
+                        <div class="archive-post">
     <a href="/categories/Linux/">
         Linux
+    </a>
+</div>
+                
+                        <div class="archive-post">
+    <a href="/categories/Mac/">
+        Mac
     </a>
 </div>
                 
@@ -237,18 +273,6 @@
 </div>
                 
                         <div class="archive-post">
-    <a href="/categories/AI/">
-        AI
-    </a>
-</div>
-                
-                        <div class="archive-post">
-    <a href="/categories/%E6%B8%97%E9%80%8F/">
-        渗透
-    </a>
-</div>
-                
-                        <div class="archive-post">
     <a href="/categories/%E5%8D%95%E7%89%87%E6%9C%BA/">
         单片机
     </a>
@@ -257,12 +281,6 @@
                         <div class="archive-post">
     <a href="/categories/%E6%9E%B6%E6%9E%84/">
         架构
-    </a>
-</div>
-                
-                        <div class="archive-post">
-    <a href="/categories/VIM/">
-        VIM
     </a>
 </div>
                 
@@ -298,19 +316,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/shell/">Bash</a>
+                <a class="footer-post" href="/2025/02/28/sqlmap/">SQLMap</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/software-structure/">软件架构演变</a>
+                <a class="footer-post" href="/2025/02/28/stock/">股市币市</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/springboot/">Springboot</a>
+                <a class="footer-post" href="/2025/02/28/system-migration/">系统迁移</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/sqlmap/">SQLMap</a>
+                <a class="footer-post" href="/2025/02/28/tree-decision/">决策树</a>
             </li>
             
         </ul>
@@ -328,15 +346,15 @@
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/%E6%96%B0/">新</a>
-        </li>
-        
-        <li>
             <a class="footer-post" href="/categories/Blog/">Blog</a>
         </li>
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>
@@ -458,7 +476,7 @@
 
 
 <!-- Searching -->
-<script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
 
 <script src="/js/search.js"></script>
 

@@ -133,6 +133,7 @@
                 </form>
                 <div id="local-search-result">
                 </div>
+                <p class='no-result'>No results found </p> 
             </div>
         </div>
     </div>
@@ -145,6 +146,17 @@
 <nav>
     <a href="#menu"></a>
 </nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
 
 <div class="container">
 
@@ -169,171 +181,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/shell/">
-                Bash
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-01-25</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
-
-<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/01/25/software-structure/">
-                软件架构演变
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-01-25</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/架构/">架构</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
-<ul>
-<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
-<li>Chrome: Webkit内核 -&gt; Blink内核</li>
-<li>火狐: Gecko内核</li>
-<li>Safari: Webkit内核</li>
-<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
-</ul>
-<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
-<p><img src="/images/single-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
-<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
-</ul>
-<p><em><strong>缺点:</strong></em></p>
-<ul>
-<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
-<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
-</ul>
-<p><em><strong>基本框架：</strong></em></p>
-<ul>
-<li>前端 - angular jq 模版引擎ecshop(smart)</li>
-<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
-</ul>
-<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
-<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
-<p><img src="/images/mult-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
-<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
-</ul>
-<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
-<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
-<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
-<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
-<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
-<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
-<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
-<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
-<p><img src="/images/SSO-software-structure.png"></p>
-<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
-<p><img src="/images/OAuth-software-structure.png"></p>
-<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
-<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
-<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
-<p><img src="/images/micro-software-structure.png"></p>
-<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
-<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
-<p>优点:</p>
-<ul>
-<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
-<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
-<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
-</ul>
-<p>缺点: </p>
-<ul>
-<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
-<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
-</ul>
-<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/01/25/springboot/">
-                Springboot
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-01-25</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/后端/">后端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>文章</p>
-<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/01/25/sqlmap/">
+            <a href="/2025/02/28/sqlmap/">
                 SQLMap
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -1005,13 +859,61 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/system-migration/">
+            <a href="/2025/02/28/stock/">
+                股市币市
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>本金 </p>
+<p>三折最多</p>
+<p>三折以上就是突发状况</p>
+<p>有信心可以all in 30%</p>
+<pre><code>信心一般可以先 20%
+</code></pre>
+<p>小试牛刀 10% </p>
+<pre><code>补刀 10%
+
+    收回本金 cl 1
+    或者收回补刀的钱 cl 2
+
+开始做空
+</code></pre>
+<p>一定要留补仓 40%</p>
+<p>本金越大 补仓率就要增高</p>
+<p>2&#x2F;24</p>
+<p>2684 200</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/system-migration/">
                 系统迁移
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -1041,18 +943,116 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/vim/">
+            <a href="/2025/02/28/tree-decision/">
+                决策树
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/tree/">
+                树 ADT
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <pre class="mermaid">graph LR
+    A[树] --> B[二叉树]
+    B[二叉树] --> C[完全二叉树]
+    C[完全二叉树] --> D[满二叉树]
+    C[完全二叉树] --> E[堆]
+    E[堆] --> F[大顶堆]
+    E[堆] --> G[小顶堆]
+    B[二叉树] --> H[二叉查找树]
+    B[二叉树] --> I[平衡二叉树]
+    B[二叉树] --> J[平衡二叉查找树]
+    J[平衡二叉查找树] --> K[红黑树]
+    J[平衡二叉查找树] --> L[AVL]
+    A[树] --> M[N叉树]
+    M[N叉树] --> N[B树]
+    M[N叉树] --> O[B+树]</pre>
+
+<p><img src="/images/tree.png"></p>
+<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
+<p><img src="/images/tree-ercha.png"></p>
+<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
+<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
+<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
+<p>满二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+
+<p>完全二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+
+<p>二叉查找树</p>
+<p><img src="/images/tree-erchachaozhao.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+
+<p>AVL树</p>
+<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
+<p>红黑树</p>
+<p><img src="/images/tree-honghei.png"></p>
+<p>B树</p>
+<p>B+树</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/vim/">
                 VIM
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/VIM/">VIM</a>
+                    <a href="/categories/Linux/">Linux</a>
                 </span>
             
         </div>
@@ -1172,7 +1172,8 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 </ul>
 </li>
 </ul>
-<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7201668416171655227">https://juejin.cn/post/7201668416171655227</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7201668416171655227">cc</a></p>
+<h2 id="VIM-IDE"><a href="#VIM-IDE" class="headerlink" title="VIM IDE"></a>VIM IDE</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7023535370516037669">bb</a></p>
 
         </div>
     
@@ -1184,13 +1185,13 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/vue-big-file-upload/">
+            <a href="/2025/02/28/vue-big-file-upload/">
                 vue2 大文件上传component(做成组件)
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -1218,13 +1219,13 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/vue2vsvue3/">
+            <a href="/2025/02/28/vue2vsvue3/">
                 vue2 对比 vue3
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -1297,13 +1298,13 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/wireshark/">
+            <a href="/2025/02/28/wireshark/">
                 Wireshark
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -1330,18 +1331,18 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/mysql-migrate-main-sub/">
-                Mysql-数据迁移-主从
+            <a href="/2025/02/28/xss/">
+                XSS跨站脚本攻击
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -1349,30 +1350,32 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
-<p>首先把 mysq.ini 配置打开</p>
+            <h1 id="XSS漏洞原理"><a href="#XSS漏洞原理" class="headerlink" title="XSS漏洞原理"></a>XSS漏洞原理</h1><p>XSS属于客户端攻击，受害者最终是用户，但特别要注意的是网站管理人员也属于用户之一。这就意味着XSS可以进行“服务端”攻击，因为管理员要比普通用户的权限大得多，一般管理员都可以对网站进行文件管理，数据管理等操作，而攻击者一般也是靠管理员身份作为“跳板”进行实施攻击。</p>
+<blockquote>
+<p>XSS的重点不在于跨站点，而在于脚本的执行。那么XSS的原理是：<br>恶意攻击者在web页面中会插入一些恶意的script代码。当用户浏览该页面的时候，那么嵌入到web页面中script代码会执行，因此会达到恶意攻击用户的目的。那么XSS攻击最主要有如下分类：反射型、存储型、及 DOM-based型。 反射性和DOM-baseed型可以归类为非持久性XSS攻击。存储型可以归类为持久性XSS攻击。</p>
 </blockquote>
+<ol>
+<li>XSS漏洞出现的原因</li>
+</ol>
+<p>程序对输入和输出的控制不够严格,导致”精心构造“的脚本输入后,在输到前端时被浏览器当作有效代码解析执行从而产生危害。</p>
+<ol start="2">
+<li>XSS的分类</li>
+</ol>
 <ul>
-<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
-</li>
-<li><p>重启数据库 并可启用 secure_file_priv</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure></li>
+<li>反射型XSS或不持久型XSS(中危)</li>
+<li>储存型XSS 或持久型 XSS（高危）</li>
+<li>DOM XSS</li>
 </ul>
-<blockquote>
-<p>bash脚本 并进行数据提取  -(数据导出)</p>
-<blockquote>
-<p> export_data.sh</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>测试方法<br>1、工具扫描：APPscan、AWVS</li>
+</ol>
+<p>2、手工测试：Burpsuite、firefox(hackbar)、XSSER XSSF</p>
+<p>使用手工检测Web应用程序是否存在XSS漏洞时，最重要的是考虑那里有输入，输入的数据在什么地方输出。在进行手工检测XSS时，人毕竟不像软件那样不知疲惫，所以一定要选择有特殊意义的字符，这样可以快速测试是否存在XSS。</p>
+<p>（1）在目标站点上找到输入点,比如查询接口,留言板等;</p>
+<p>（2）输入一组”特殊字符+唯一识别字符”,点击提交后,查看返回的源码,是否有做对应的处理;</p>
+<p>（3）通过搜索定位到唯一字符,结合唯一字符前后语法确认是否可以构造执行js的条件(构造闭合);提交构造的脚本代码,看是否可以成功执行,如果成功执行则说明存在XSS漏洞;</p>
+<h1 id="反射型XSS"><a href="#反射型XSS" class="headerlink" title="反射型XSS"></a>反射型XSS</h1><p>[引用]<a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/421932.html">https://www.freebuf.com/vuls/421932.html</a></p>
 
-<blockquote>
-<p>python脚本 数据批量插入 -(数据插入)</p>
-<blockquote>
-<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
         </div>
     
 
@@ -1420,19 +1423,19 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/shell/">Bash</a>
+                <a class="footer-post" href="/2025/02/28/sqlmap/">SQLMap</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/software-structure/">软件架构演变</a>
+                <a class="footer-post" href="/2025/02/28/stock/">股市币市</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/springboot/">Springboot</a>
+                <a class="footer-post" href="/2025/02/28/system-migration/">系统迁移</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/sqlmap/">SQLMap</a>
+                <a class="footer-post" href="/2025/02/28/tree-decision/">决策树</a>
             </li>
             
         </ul>
@@ -1450,15 +1453,15 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/%E6%96%B0/">新</a>
-        </li>
-        
-        <li>
             <a class="footer-post" href="/categories/Blog/">Blog</a>
         </li>
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>
@@ -1580,7 +1583,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
 
 <!-- Searching -->
-<script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
 
 <script src="/js/search.js"></script>
 

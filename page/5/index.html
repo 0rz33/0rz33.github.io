@@ -133,6 +133,7 @@
                 </form>
                 <div id="local-search-result">
                 </div>
+                <p class='no-result'>No results found </p> 
             </div>
         </div>
     </div>
@@ -145,6 +146,17 @@
 <nav>
     <a href="#menu"></a>
 </nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
 
 <div class="container">
 
@@ -169,18 +181,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/mysql-MyISAM-InnoDB/">
-                Mysql-MyISAM与InnoDB对比及用法
+            <a href="/2025/02/28/natcat/">
+                Natcat
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
+                    <a href="/categories/渗透工具/">渗透工具</a>
                 </span>
             
         </div>
@@ -188,157 +200,19 @@
 
     
         <div class="content">
-            <ul>
-<li><a href="#1">MyISAM 和 InnoDB区别</a></li>
-<li><a href="#2">事务的四大特征 (ACID)</a></li>
-<li><a href="#3">锁的重要性</a></li>
-</ul>
-<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="1">MyISAM 与 InnoDB 对比</h3>
-
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>InnoDB</th>
-<th>MyISAM</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>事务支持</td>
-<td>支持事务，ACID 兼容</td>
-<td>不支持事务</td>
-</tr>
-<tr>
-<td>锁机制</td>
-<td>行级锁，高并发性能优越</td>
-<td>表级锁，低并发性能</td>
-</tr>
-<tr>
-<td>数据完整性</td>
-<td>支持外键和崩溃恢复</td>
-<td>不支持外键和崩溃恢复</td>
-</tr>
-<tr>
-<td>读写性能</td>
-<td>适合高并发写操作，性能稳定</td>
-<td>适合读密集操作，性能高</td>
-</tr>
-<tr>
-<td>全文索引</td>
-<td>支持（MySQL 5.6+）</td>
-<td>原生支持</td>
-</tr>
-<tr>
-<td>恢复机制</td>
-<td>崩溃后自动恢复数据</td>
-<td>需要手动修复</td>
-</tr>
-<tr>
-<td>磁盘空间使用</td>
-<td>相对占用更多内存和磁盘空间</td>
-<td>占用较少内存和磁盘空间</td>
-</tr>
-<tr>
-<td>适用场景</td>
-<td>高并发、事务处理、数据安全性高的应用</td>
-<td>读多写少的应用，数据分析和归档</td>
-</tr>
-</tbody></table>
-<h3 id="关于数据插入错误时进行数据回滚-配合后端try-catch"><a href="#关于数据插入错误时进行数据回滚-配合后端try-catch" class="headerlink" title="关于数据插入错误时进行数据回滚 - 配合后端try catch"></a>关于数据插入错误时进行数据回滚 - 配合后端try catch</h3><h5 id="1-mysql-默认为把需要的table-转成InnoDB"><a href="#1-mysql-默认为把需要的table-转成InnoDB" class="headerlink" title="1.mysql 默认为把需要的table 转成InnoDB"></a>1.mysql 默认为把需要的table 转成InnoDB</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter table tag engine=innodb;</span><br></pre></td></tr></table></figure>
-
-<h5 id="2-查看事务"><a href="#2-查看事务" class="headerlink" title="2.查看事务"></a>2.查看事务</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_trx\G;</span><br></pre></td></tr></table></figure>
-
-<h5 id="3-mysql事务基本逻辑"><a href="#3-mysql事务基本逻辑" class="headerlink" title="3.mysql事务基本逻辑"></a>3.mysql事务基本逻辑</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 开启事务</span><br><span class="line">begin;  <span class="comment"># 或者下面的语句  </span></span><br><span class="line">start transaction;</span><br><span class="line"></span><br><span class="line">-- 写需求逻辑</span><br><span class="line"></span><br><span class="line">-- 事务回滚(回滚到之前的状态,并关闭事务)</span><br><span class="line">rollback;  <span class="comment"># 回滚 + 关闭</span></span><br><span class="line"></span><br><span class="line">-- 事务提交(将修改提交,并关闭事务)</span><br><span class="line">commit;    <span class="comment"># 提交 + 关闭</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="4-配合mysql事务"><a href="#4-配合mysql事务" class="headerlink" title="4.配合mysql事务"></a>4.配合mysql事务</h5><p>例子与thinkphp为例</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 启动事务</span><br><span class="line">Db::startTrans();</span><br><span class="line">try &#123;</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;find(1);</span><br><span class="line">    Db::table(<span class="string">&#x27;think_user&#x27;</span>)-&gt;delete(1);</span><br><span class="line">    // 提交事务</span><br><span class="line">    Db::commit();</span><br><span class="line">&#125; catch (\Exception <span class="variable">$e</span>) &#123;</span><br><span class="line">    // 回滚事务</span><br><span class="line">    Db::rollback();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="2">事务隔离级别</h3>
-
-<h4 id="ACID四种隔离界别："><a href="#ACID四种隔离界别：" class="headerlink" title="ACID四种隔离界别："></a>ACID四种隔离界别：</h4><ul>
-<li>Read Uncommit (读取未提交内容)</li>
-<li>Read Commit (读取提交内容)</li>
-<li>Repeatable Read (可重复读)</li>
-<li>Serializable (可串行化)</li>
-</ul>
-<h5 id="1-查看数据库版本"><a href="#1-查看数据库版本" class="headerlink" title="1.查看数据库版本"></a>1.查看数据库版本</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> version();</span><br></pre></td></tr></table></figure>
-
-<h5 id="2-查看隔离级别"><a href="#2-查看隔离级别" class="headerlink" title="2.查看隔离级别"></a>2.查看隔离级别</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- MySQL8.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@transaction_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.transaction_isolation;</span><br><span class="line"> </span><br><span class="line">-- MySQL5.0+：</span><br><span class="line">-- 查看当前会话隔离级别</span><br><span class="line"><span class="keyword">select</span> @@tx_isolation;</span><br><span class="line">-- 查看系统当前隔离级别</span><br><span class="line"><span class="keyword">select</span> @@global.tx_isolation;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="锁奥义"><a href="#锁奥义" class="headerlink" title="锁奥义"></a><h3 id="3">锁奥义</h3></h3><blockquote>
-<p>查看当前出现的锁</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * from information_schema.innodb_locks\G;</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show status like <span class="string">&#x27;innodb_row_lock_%&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<h5 id="1-互斥锁与自旋锁"><a href="#1-互斥锁与自旋锁" class="headerlink" title="1.互斥锁与自旋锁"></a>1.互斥锁与自旋锁</h5><ul>
-<li><p><code>互斥锁</code>加锁失败后，线程会释放 CPU ，给其他线程；</p>
-<p>  互斥锁是一种「独占锁」，比如当线程 A 加锁成功后，此时互斥锁已经被线程 A 独占了，只要线程 A 没有释放手中的锁，线程 B 加锁就会失败，于是就会释放 CPU 让给其他线程，既然线程 B 释放掉了 CPU，自然线程 B 加锁的代码就会被阻塞。</p>
-</li>
-</ul>
-<p><img src="/images/%E4%BA%92%E6%96%A5%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="互斥锁"></p>
+            <p>nc是netcat的简写，有着网络界的瑞士军刀美誉。因为它短小精悍、功能实用，被设计为一个简单、可靠的网络工具。 </p>
 <ul>
-<li><p><code>自旋锁</code>加锁失败后，线程会忙等待，直到它拿到锁；</p>
-<p>  自旋锁是通过 CPU 提供的 CAS 函数（Compare And Swap），在「用户态」完成加锁和解锁操作，不会主动产生线程上下文切换，所以相比互斥锁来说，会快一些，开销也小一些。</p>
-<p>  一般加锁的过程，包含两个步骤：</p>
-<p>  第一步，查看锁的状态，如果锁是空闲的，则执行第二步；<br>  第二步，将锁设置为当前线程持有；</p>
-<p>  CAS 函数就把这两个步骤合并成一条硬件级指令，形成原子指令，这样就保证了这两个步骤是不可分割的，要么一次性执行完两个步骤，要么两个步骤都不执行</p>
-<p>  使用自旋锁的时候，当发生多线程竞争锁的情况，加锁失败的线程会「忙等待」，直到它拿到锁。这里的「忙等待」可以用 while 循环等待实现，不过最好是使用 CPU 提供的 PAUSE 指令来实现「忙等待」，因为可以减少循环等待时的耗电量</p>
-<p>  自旋锁是最比较简单的一种锁，一直自旋，利用 CPU 周期，直到锁可用。需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU。</p>
-</li>
+<li>端口扫描工具， </li>
+<li>安全工具， </li>
+<li>监测工具， </li>
+<li>甚至可以做为一个简单的 TCP 代理</li>
 </ul>
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>互斥锁</th>
-<th>自旋锁</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>性能开销成本</td>
-<td>当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</td>
-<td>需要注意，在单核 CPU 上，需要抢占式的调度器（即不断通过时钟中断一个线程，运行其他线程）。否则，自旋锁在单 CPU 上无法使用，因为一个自旋的线程永远不会放弃 CPU</td>
-</tr>
-</tbody></table>
-<h5 id="2-读写锁：读和写还有优先级区分"><a href="#2-读写锁：读和写还有优先级区分" class="headerlink" title="2.读写锁：读和写还有优先级区分"></a>2.读写锁：读和写还有优先级区分</h5><p>由「读锁」和「写锁」两部分构成，如果只读取共享资源用「读锁」加锁，如果要修改共享资源则用「写锁」加锁</p>
-<p>工作原理：<br>当写锁没有被线程持有时，多个线程可以并发地持有读锁，但是当写锁被线程持有后，其他线程获取读锁和写锁的操作都会阻塞</p>
-<blockquote>
-<p><code>读优先锁</code></p>
-</blockquote>
-<p><img src="/images/%E8%AF%BB%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="读优先锁"></p>
-<blockquote>
-<p><code>写优先锁</code></p>
-</blockquote>
-<p><img src="/images/%E5%86%99%E4%BC%98%E5%85%88%E9%94%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="写优先锁"></p>
-<blockquote>
-<p>但是这两种都会造成线程“饥饿”的问题，比如</p>
-<ul>
-<li>读优先锁：一直有读线程获取读锁，那么写线程将永远获取不到，造成写线程“饥饿”。 </li>
-<li>写优先锁：如果⼀直有写线程获取写锁，读线程也会被「饿死」。</li>
+<h2 id="NC"><a href="#NC" class="headerlink" title="NC"></a>NC</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h2 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h2><ul>
+<li>正向连接 - 机器开放端口并可以主动连接目标机器端口 远程桌面、web服务、ssh、telnet等等都是正向连接</li>
+<li>反向连接 - 攻击者指定服务端，受害者主机主动连接攻击者的服务端程序</li>
 </ul>
-</blockquote>
-<p>所以我们可以搞一个公平读写锁<br>公平读写锁⽐较简单的⼀种⽅式是：⽤队列把获取锁的线程排队，不管是写线程还是读线程都按照先进先出的原则加锁即可，这样读线程仍然可以并发，也不会出现「饥饿」的现象。</p>
-<h5 id="3-乐观锁与悲观锁"><a href="#3-乐观锁与悲观锁" class="headerlink" title="3.乐观锁与悲观锁"></a>3.乐观锁与悲观锁</h5><p>前面提到的互斥锁、自旋锁、读写锁，都是属于悲观锁。</p>
-<blockquote>
-<ul>
-<li><p>悲观锁：认为多线程同时修改共享资源的概率⽐较⾼，于是很容易出现冲突，所以访问共享资源前，先要上锁。</p>
-</li>
-<li><p>前⾯提到的互斥锁、⾃旋锁、读写锁，都是属于悲观锁。</p>
-</li>
-<li><p>乐观锁：假定冲突的概率很低，它的⼯作⽅式是：先修改完共享资源，再验证这段时间内有没有发⽣冲突，如果没有其他线程在修改资源，那么操作完成，如果发现有其他线程已经修改过这个资源，就放弃本次操作。另外虽然叫锁，但是乐观锁全程并没有加锁，所以它也叫⽆锁编程。</p>
-</li>
-</ul>
-</blockquote>
-<p>一般会使用版本号机制或CAS算法实现</p>
-<h5 id="4-解决死锁问题"><a href="#4-解决死锁问题" class="headerlink" title="4.解决死锁问题"></a>4.解决死锁问题</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">show processlist; <span class="comment"># 只列出前100条</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#如果是root帐号，你能看到所有用户的当前连接。如果是其它普通帐号，只能看到自己占用的连接</span></span><br><span class="line">show full processlist</span><br><span class="line"></span><br><span class="line"><span class="built_in">kill</span> [<span class="built_in">id</span>] <span class="comment"># 杀进程</span></span><br></pre></td></tr></table></figure>
+<p>反弹shell的方式有很多，那具体要用哪种方式还需要根据目标主机的环境来确定，比如目标主机上如果安装有netcat，那我们就可以利用netcat反弹shell，如果具有python环境，那我们可以利用python反弹shell。如果具有php环境，那我们可以利用php反弹shell。</p>
 
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">show status; <span class="comment"># 查看状态</span></span><br><span class="line"></span><br><span class="line">show status like <span class="string">&#x27;%下面变量%&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Aborted_clients <span class="comment"># 由于客户没有正确关闭连接已经死掉，已经放弃的连接数量。</span></span><br><span class="line">Aborted_connects <span class="comment"># 尝试已经失败的MySQL服务器的连接的次数。</span></span><br><span class="line">Connections <span class="comment"># 试图连接MySQL服务器的次数。</span></span><br><span class="line">Created_tmp_tables <span class="comment"># 当执行语句时，已经被创造了的隐含临时表的数量。</span></span><br><span class="line">Delayed_insert_threads <span class="comment"># 正在使用的延迟插入处理器线程的数量。</span></span><br><span class="line">Delayed_writes <span class="comment"># 用INSERT DELAYED写入的行数。</span></span><br><span class="line">Delayed_errors <span class="comment"># 用INSERT DELAYED写入的发生某些错误(可能重复键值)的行数。</span></span><br><span class="line">Flush_commands <span class="comment"># 执行FLUSH命令的次数。</span></span><br><span class="line">Handler_delete <span class="comment"># 请求从一张表中删除行的次数。</span></span><br><span class="line">Handler_read_first <span class="comment"># 请求读入表中第一行的次数。</span></span><br><span class="line">Handler_read_key <span class="comment"># 请求数字基于键读行。</span></span><br><span class="line">Handler_read_next <span class="comment"># 请求读入基于一个键的一行的次数。</span></span><br><span class="line">Handler_read_rnd <span class="comment"># 请求读入基于一个固定位置的一行的次数。</span></span><br><span class="line">Handler_update <span class="comment"># 请求更新表中一行的次数。</span></span><br><span class="line">Handler_write <span class="comment"># 请求向表中插入一行的次数。&lt;</span></span><br><span class="line">Key_blocks_used <span class="comment"># 用于关键字缓存的块的数量。</span></span><br><span class="line">Key_read_requests <span class="comment"># 请求从缓存读入一个键值的次数。</span></span><br><span class="line">Key_reads <span class="comment"># 从磁盘物理读入一个键值的次数。</span></span><br><span class="line">Key_write_requests <span class="comment"># 请求将一个关键字块写入缓存次数。</span></span><br><span class="line">Key_writes <span class="comment"># 将一个键值块物理写入磁盘的次数。</span></span><br><span class="line">Max_used_connections <span class="comment"># 同时使用的连接的最大数目。</span></span><br><span class="line">Not_flushed_key_blocks <span class="comment"># 在键缓存中已经改变但是还没被清空到磁盘上的键块</span></span><br><span class="line">Not_flushed_delayed_rows <span class="comment"># 在INSERT DELAY队列中等待写入的行的数量。</span></span><br><span class="line">Open_tables <span class="comment"># 打开表的数量。</span></span><br><span class="line">Open_files <span class="comment"># 打开文件的数量。</span></span><br><span class="line">Open_streams <span class="comment"># 打开流的数量(主要用于日志记载）</span></span><br><span class="line">Opened_tables <span class="comment"># 已经打开的表的数量。</span></span><br><span class="line">Questions <span class="comment"># 发往服务器的查询的数量。</span></span><br><span class="line">Slow_queries <span class="comment"># 要花超过long_query_time时间的查询数量。</span></span><br><span class="line">Threads_connected <span class="comment"># 当前打开的连接的数量。</span></span><br><span class="line">Threads_running <span class="comment"># 不在睡眠的线程数量。</span></span><br><span class="line">Uptime <span class="comment"># 服务器工作了多少秒。</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
         </div>
     
 
@@ -349,13 +223,449 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/android/">
+            <a href="/2025/02/28/network-protocal/">
+                网络协议
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/网络协议/">网络协议</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p><img src="/images/network-basic.png" alt="网络协议"></p>
+<p><img src="/images/network-structure.png" alt="网络协议"></p>
+<ul>
+<li><a href="#1">http-协议</a><ul>
+<li><a href="#1.1">结构体</a></li>
+<li><a href="#1.2">请求方法</a></li>
+<li><a href="#1.3">响应状态码</a></li>
+<li><a href="#1.4">响应头部</a></li>
+</ul>
+</li>
+<li><a href="#2">https-协议</a></li>
+<li><a href="#3">DNS</a><ul>
+<li><a href="#3.1">域名解析</a></li>
+<li><a href="#3.2">DNS解析工具</a></li>
+<li><a href="#3.3">什么是DNS劫持</a></li>
+<li><a href="#3.4">什么是DNS污染</a></li>
+<li><a href="#3.5">为什么要DNS流量监控</a></li>
+</ul>
+</li>
+<li><a href="#4">TCP协议</a><ul>
+<li><a href="#4.1">TCP头部格式</a></li>
+<li><a href="#4.2">三次握手与四次挥手</a></li>
+<li><a href="#4.3">SYN攻击</a></li>
+<li><a href="#4.4">KeepAlive</a></li>
+<li><a href="#4.5">TCP和UDP的区别</a></li>
+</ul>
+</li>
+<li><a href="#5">Socket</a></li>
+</ul>
+<h3 id="1">http-协议</h3>
+<h4 id="1.1">结构体</h4>
+
+<p><img src="/images/http-request.png" alt="http请求结构体"></p>
+<p><img src="/images/http-request-demo.png" alt="http请求报文范例"></p>
+<h4 id="1.2">请求方法</h4>
+
+<ul>
+<li>GET</li>
+<li>POST</li>
+<li>HEAD</li>
+<li>DELETE</li>
+<li>OPTIONS</li>
+<li>PUT</li>
+<li>TRACE</li>
+<li>CONNECT</li>
+</ul>
+<h4 id="1.3">请求报文头</h4>
+
+<ul>
+<li>User-Agent : 产生请求的浏览器类型</li>
+<li>Accept : 客户端希望接受的数据类型，比如 Accept：text&#x2F;xml（application&#x2F;json）表示希望接受到的是xml（json）类型</li>
+<li>Content-Type：发送端发送的实体数据的数据类型。比如，Content-Type：text&#x2F;html（application&#x2F;json）表示发送的是html类型。</li>
+<li>Host : 请求的主机名，允许多个域名同处一个IP地址，即虚拟主机</li>
+</ul>
+<h4 id="1.4">响应状态码</h4>
+
+<ul>
+<li>状态代码由服务器发出，以响应客户端对服务器的请求。</li>
+<li>1xx（信息）：收到请求，继续处理</li>
+<li>2xx（成功）：请求已成功接收，理解和接受</li>
+<li>3xx（重定向）：需要采取进一步措施才能完成请求</li>
+<li>4xx（客户端错误）：请求包含错误的语法或无法满足</li>
+<li>5xx（服务器错误）：服务器无法满足明显有效的请求</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki">状态码详情请查阅</a></p>
+<h4 id="1.5">响应头部</h4>
+
+<p>响应头部主要是返回一些服务器的基本信息，以及一些Cookie值等。如上的响应头为:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Date: Sat, 01 Jul 2017 14:51:26 GMT</span><br><span class="line">Server: Apache/2.4.7 (Ubuntu)</span><br><span class="line">Set-Cookie: JSESSIONID=84C993F5E433C4DE9BFBA57150FFC065.ajp13_worker;path=/;HttpOnly</span><br><span class="line">Content-Language: zh-CN</span><br><span class="line">Vary: Accept-Encoding</span><br><span class="line">Content-Encoding: gzip</span><br><span class="line">Content-Length: 7333</span><br><span class="line">Keep-Alive: <span class="built_in">timeout</span>=5, max=100</span><br><span class="line">Connection: Keep-Alive</span><br><span class="line">Content-Type: text/html;charset=UTF-8</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/liujiarui/p/13253246.html">引鉴</a></p>
+</blockquote>
+<h3 id="2">https-协议</h3>
+
+<p><img src="/images/https-ssl.png" alt="http请求报文范例"></p>
+<h3 id="3">DNS</h3>
+
+<blockquote>
+<p>DNS 要解决的是域名和 IP 地址的映射问题</p>
+</blockquote>
+<p><img src="/images/domain-name-structure.png" alt="域名分层结构"></p>
+<p><img src="/images/domain-name-flow.png" alt="DNS解析过程"></p>
+<p>DNS 的查询解析过程分为两种模式：</p>
+<ul>
+<li>迭代 <img src="/images/dns-diedai.png" alt="迭代"></li>
+<li>递归 <img src="/images/dns-digui.png" alt="递归"></li>
+</ul>
+<h4 id="3.1">域名解析</h4>
+
+<ul>
+<li>A 将域名指向一个 IPv4 地址，如 106.55.75.123。 A记录归属地是埃文科技的付费接口，为了防止盗刷，每个用户有查询限制，请节省使用。</li>
+<li>AAAA 将域名指向一个 IPv6 地址，如 2402:4e00:1013:e500:0:9671:f018:4947。同一个主机名可以同时解析到 IPv4(A记录)地址 和 IPv6(AAAA 记录)地址上，当只有IPv4 地址的用户会解析到 IPv4 地址，一般情况下有 IPv6 地址的用户会优先解析到 IPv6 地址。</li>
+<li>CNAME 将域名指向另一个域名地址，与其保持相同解析，如 static.ipw.cn 别名到 static.ipw.cn.cdn.dnsv1.com</li>
+<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#x74;&#x65;&#x73;&#116;&#64;&#105;&#112;&#119;&#x2e;&#x63;&#110;">&#x74;&#x65;&#x73;&#116;&#64;&#105;&#112;&#119;&#x2e;&#x63;&#110;</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#116;&#101;&#115;&#x74;&#x40;&#x6d;&#97;&#105;&#x6c;&#x2e;&#105;&#x70;&#119;&#x2e;&#99;&#110;">&#116;&#101;&#115;&#x74;&#x40;&#x6d;&#97;&#105;&#x6c;&#x2e;&#105;&#x70;&#119;&#x2e;&#99;&#110;</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
+<li>TXT 附加文本信息，常用于域名所有权验证，如在申请 HTTPS 证书时需要增加记录、</li>
+<li>PTR IP 的反向解析记录，例如 159.75.190.197 反解析到 ipw.cn，一般用于提升自建域名邮件服务器的可信度，可提单找云服务商添加。</li>
+<li>NS 域名的 DNS 服务器地址，例如 ns3.dnsv2.com，推荐 DNSPod.</li>
+</ul>
+<h4 id="3.2">DNS解析工具</h4>
+
+<p><code>dig</code></p>
+<blockquote>
+<p>dig baidu.com</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; baidu.com</span><br><span class="line">;; global options: +cmd</span><br><span class="line">;; Got answer:</span><br><span class="line">;; -&gt;&gt;HEADER&lt;&lt;- <span class="string">opcode: QUERY, status: NOERROR, id: 1675</span></span><br><span class="line"><span class="string">;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 询问 baidu.com 域名的 A 记录</span></span><br><span class="line"><span class="string">;; OPT PSEUDOSECTION:   </span></span><br><span class="line"><span class="string">; EDNS: version: 0, flags:; udp: 512</span></span><br><span class="line"><span class="string">;; QUESTION SECTION:</span></span><br><span class="line"><span class="string">;baidu.com.			IN	A</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## baidu.com. 域名的 A 记录指向了 39.156.66.10 和 110.242.68.66 这两个IP</span></span><br><span class="line"><span class="string">;; ANSWER SECTION:</span></span><br><span class="line"><span class="string">baidu.com.		406	IN	A	39.156.66.10</span></span><br><span class="line"><span class="string">baidu.com.		406	IN	A	110.242.68.66</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 查询耗时，本地DNS地址，查询时间，返回消息包大小</span></span><br><span class="line"><span class="string">;; Query time: 50 msec</span></span><br><span class="line"><span class="string">;; SERVER: 8.8.8.8#53(8.8.8.8)</span></span><br><span class="line"><span class="string">;; WHEN: Tue Dec 31 14:28:42 +07 2024</span></span><br><span class="line"><span class="string">;; MSG SIZE  rcvd: 70</span></span><br><span class="line"><span class="string"></span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<ul>
+<li>dig +short baidu.com   (直接显示DNS寻址结果)</li>
+<li>dig +trace baidu.com   (整个分级查询过程)</li>
+<li>dig @8.8.8.8 baidu.com   (向特定DNS服务器寻址)</li>
+<li>dig ns baidu.com   (ns记录)</li>
+<li>dig a baidu.com   (a记录)</li>
+<li>dig mx baidu.com   (mx记录)</li>
+<li>dig -x 192.30.252.153   (查询PTR记录)</li>
+</ul>
+</blockquote>
+<p><code>host</code> 用于逆向查询，即从IP地址查询域名，等同于dig -x {IP}</p>
+<blockquote>
+<p>host github.com</p>
+</blockquote>
+<p><code>host</code> nslookup 互动式地查询域名记录</p>
+<blockquote>
+<p>nslookup github.com</p>
+</blockquote>
+<p><code>whois</code> 查看域名的注册情况</p>
+<blockquote>
+<p>whois github.com</p>
+</blockquote>
+<h4 id="3.3">什么是DNS劫持</h4>
+
+<p>什么是DNS劫持DNS劫持就是通过劫持了DNS服务器，通过某些手段取得某域名的解析记录控制权，进而修改此域名的解析结果，导致对该域名的访问由原IP地址转入到修改后的指定IP，其结果就是对特定的网址不能访问或访问的是假网址，从而实现窃取资料或者破坏原有正常服务的目的。DNS劫持通过篡改DNS服务器上的数据返回给用户一个错误的查询结果来实现的。</p>
+<blockquote>
+<p>DNS劫持症状：在某些地区的用户在成功连接宽带后，首次打开任何页面都指向ISP提供的“电信互联星空”、“网通黄页广告”等内容页面。还有就是曾经出现过用户访问Google域名的时候出现了百度的网站。这些都属于DNS劫持。</p>
+</blockquote>
+<h4 id="3.4">什么是DNS污染</h4>
+
+<p>DNS污染是一种让一般用户由于得到虚假目标主机IP而不能与其通信的方法，是一种DNS缓存投毒攻击（DNS cache poisoning）。其工作方式是：由于通常的DNS查询没有任何认证机制，而且DNS查询通常基于的UDP是无连接不可靠的协议，因此DNS的查询非常容易被篡改，通过对UDP端口53上的DNS查询进行入侵检测，一经发现与关键词相匹配的请求则立即伪装成目标域名的解析服务器（NS，Name Server）给查询者返回虚假结果。而DNS污染则是发生在用户请求的第一步上，直接从协议上对用户的DNS请求进行干扰。DNS污染症状：目前一些被禁止访问的网站很多就是通过DNS污染来实现的，例如YouTube、Facebook等网站。</p>
+<p>解决方法:</p>
+<ul>
+<li>对于DNS劫持，可以采用使用国外免费公用的DNS服务器解决。例如OpenDNS（208.67.222.222）或GoogleDNS（8.8.8.8）。</li>
+<li>对于DNS污染，可以说，个人用户很难单单靠设置解决，通常可以使用VPN或者域名远程解析的方法解决，但这大多需要购买付费的VPN或SSH等，也可以通过修改Hosts的方法，手动设置域名正确的IP地址。</li>
+</ul>
+<h4 id="3.5">为什么要DNS流量监控</h4>
+
+<p>预示网络中正出现可疑或恶意代码的 DNS 组合查询或流量特征。例如：</p>
+<ol>
+<li>来自伪造源地址的 DNS 查询、或未授权使用且无出口过滤地址的 DNS 查询，若同时观察到异常大的 DNS 查询量或使用 TCP 而非 UDP 进行 DNS 查询，这可能表明网络内存在被感染的主机，受到了 DDoS 攻击。</li>
+<li>异常 DNS 查询可能是针对域名服务器或解析器（根据目标 IP 地址确定）的漏洞攻击的标志。与此同时，这些查询也可能表明网络中有不正常运行的设备。原因可能是恶意软件或未能成功清除恶意软件。</li>
+<li>在很多情况下，DNS 查询要求解析的域名如果是已知的恶意域名，或具有域名生成算法( DGA )（与非法僵尸网络有关）常见特征的域名，或者向未授权使用的解析器发送的查询，都是证明网络中存在被感染主机的有力证据。</li>
+<li>DNS 响应也能显露可疑或恶意数据在网络主机间传播的迹象。例如，DNS 响应的长度或组合特征可以暴露恶意或非法行为。例如，响应消息异常巨大（放大攻击），或响应消息的 Answer Section 或 Additional Section 非常可疑（缓存污染，隐蔽通道）。</li>
+<li>针对自身域名组合的 DNS 响应，如果解析至不同于你发布在授权区域中的 IP 地址，或来自未授权区域主机的域名服务器的响应，或解析为名称错误( NXDOMAIN )的对区域主机名的肯定响应，均表明域名或注册账号可能被劫持或 DNS 响应被篡改。</li>
+<li>来自可疑 IP 地址的 DNS 响应，例如来自分配给宽带接入网络 IP 段的地址、非标准端口上出现的 DNS 流量，异常大量的解析至短生存时间( TTL )域名的响应消息，或异常大量的包含“ name error ”( NXDOMAIN )的响应消息，往往是主机被僵尸网络控制、运行恶意软件或被感染的表现。</li>
+</ol>
+<h3 id="4">TCP协议</h3>
+<h4 id="4.1">TCP头部格式</h4>
+
+
+<p><img src="/images/tcp-header.png" alt="TCP头部格式"></p>
+<ul>
+<li>【端口号】：端口号，用于多路复用或者分解来自（送到）上层的数据；</li>
+<li>【序列号】：在连接建立时由计算机计算出的初始值，通过 SYN 包传给对端主机，每发送一次新的数据包，就累加一次该序列号的大小。用来解决网络包乱序问题；</li>
+<li>【确认应答号】：指下次期望收到的数据的序列号，发送端收到这个确认应答以后可以确认确认应答号-1的数据包已经被正常接收。主要用来解决不丢包的问；</li>
+<li>【标志字段】：<ul>
+<li>【ACK】：用以指示确认字段中的值是有效的，即该报文段包括一个对已被成功接收的报文段的确认；</li>
+<li>【RST】：用以指示连接的强制拆除，当接收到错误连接时会发送RST位置为1的报文；</li>
+<li>【SYN】：用以指示连接的建立，该位为1的报文表示希望建立连接；</li>
+<li>【FIN】：用以指示连接的终止，该位为1的报文表示希望断开连接；</li>
+</ul>
+</li>
+</ul>
+<h4 id="4.2">三次握手与四次挥手</h4>
+
+<p><img src="/images/shakehand3-end4.png" alt="三次握手与四次挥手"></p>
+<p>三次握手</p>
+<ul>
+<li><p><em><strong>第一次握手(SYN&#x3D;1, seq&#x3D;x):</strong></em><br>客户端发送一个 TCP 的 SYN 标志位置1的包，指明客户端打算连接的服务器的端口，以及初始序号 X,保存在包头的序列号(Sequence Number)字段里。<br>发送完毕后，客户端进入 <code>SYN_SEND</code> 状态。</p>
+</li>
+<li><p><em><strong>第二次握手(SYN&#x3D;1, ACK&#x3D;1, seq&#x3D;y, ACKnum&#x3D;x+1):</strong></em><br>服务器发回确认包(ACK)应答。即 SYN 标志位和 ACK 标志位均为1。服务器端选择自己 ISN 序列号，放到 Seq 域里，同时将确认序号(Acknowledgement Number)设置为客户的 ISN 加1，即X+1。 发送完毕后，服务器端进入 <code>SYN_RCVD</code> 状态。</p>
+</li>
+<li><p><em><strong>第三次握手(ACK&#x3D;1，ACKnum&#x3D;y+1):</strong></em><br>客户端再次发送确认包(ACK)，SYN 标志位为0，ACK 标志位为1，并且把服务器发来 ACK 的序号字段+1，放在确定字段中发送给对方，并且在数据段放写ISN的+1<br>发送完毕后，客户端进入 ESTABLISHED 状态，当服务器端接收到这个包时，也进入 <code>ESTABLISHED</code> 状态，TCP 握手结束。</p>
+</li>
+</ul>
+<p>四次挥手</p>
+<ul>
+<li><p><em><strong>第一次挥手(FIN&#x3D;1，seq&#x3D;x):</strong></em><br>假设客户端想要关闭连接，客户端发送一个 FIN 标志位置为1的包，表示自己已经没有数据可以发送了，但是仍然可以接受数据。<br>发送完毕后，客户端进入 <code>FIN_WAIT_1</code> 状态。</p>
+</li>
+<li><p><em><strong>第二次挥手(ACK&#x3D;1，ACKnum&#x3D;x+1):</strong></em><br>服务器端确认客户端的 FIN 包，发送一个确认包，表明自己接受到了客户端关闭连接的请求，但还没有准备好关闭连接。<br>发送完毕后，服务器端进入 <code>CLOSE_WAIT</code> 状态，客户端接收到这个确认包之后，进入 <code>FIN_WAIT_2</code> 状态，等待服务器端关闭连接。</p>
+</li>
+<li><p><em><strong>第三次挥手(FIN&#x3D;1，seq&#x3D;y):</strong></em><br>服务器端准备好关闭连接时，向客户端发送结束连接请求，FIN 置为1。<br>发送完毕后，服务器端进入 <code>LAST_ACK</code> 状态，等待来自客户端的最后一个ACK。</p>
+</li>
+<li><p><em><strong>第四次挥手(ACK&#x3D;1，ACKnum&#x3D;y+1):</strong></em><br>客户端接收到来自服务器端的关闭请求，发送一个确认包，并进入 TIME_WAIT状态，等待可能出现的要求重传的 ACK 包。<br>服务器端接收到这个确认包之后，关闭连接，进入 CLOSED 状态。<br>客户端等待了某个固定时间（两个最大段生命周期，2MSL，2 Maximum Segment Lifetime）之后，没有收到服务器端的 ACK ，认为服务器端已经正常关闭连接，于是自己也关闭连接，进入 CLOSED 状态。</p>
+</li>
+</ul>
+<h4 id="4.3">SYN攻击</h4>
+
+<ul>
+<li><p>什么是 SYN 攻击（SYN Flood）？<br>在三次握手过程中，服务器发送 SYN-ACK 之后，收到客户端的 ACK 之前的 TCP 连接称为半连接(half-open connect)。此时服务器处于 SYN_RCVD 状态。当收到 ACK 后，服务器才能转入 ESTABLISHED 状态.<br>SYN 攻击指的是，攻击客户端在短时间内伪造大量不存在的IP地址，向服务器不断地发送SYN包，服务器回复确认包，并等待客户的确认。由于源地址是不存在的，服务器需要不断的重发直至超时，这些伪造的SYN包将长时间占用未连接队列，正常的SYN请求被丢弃，导致目标系统运行缓慢，严重者会引起网络堵塞甚至系统瘫痪。<br>SYN 攻击是一种典型的 DoS&#x2F;DDoS 攻击。</p>
+</li>
+<li><p>如何检测 SYN 攻击？<br>检测 SYN 攻击非常的方便，当你在服务器上看到大量的半连接状态时，特别是源IP地址是随机的，基本上可以断定这是一次SYN攻击。在 Linux&#x2F;Unix 上可以使用系统自带的 netstats 命令来检测 SYN 攻击。</p>
+</li>
+<li><p>如何防御 SYN 攻击？<br>SYN攻击不能完全被阻止，除非将TCP协议重新设计。我们所做的是尽可能的减轻SYN攻击的危害，常见的防御 SYN 攻击的方法有如下几种：<br>缩短超时（SYN Timeout）时间<br>增加最大半连接数<br>过滤网关防护<br>SYN cookies技术</p>
+</li>
+</ul>
+<h4 id="4.4">KeepAlive</h4>
+TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，交互双方都有可能出现掉电、死机、异常重启等各种意外
+
+<p>TCP KeepAlive 的基本原理是，隔一段时间给连接对端发送一个探测包，如果收到对方回应的 ACK，则认为连接还是存活的，在超过一定重试次数之后还是没有收到对方的回应，则丢弃该 TCP 连接。</p>
+<p><a target="_blank" rel="noopener" href="https://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/">TCP-Keepalive-HOWTO</a> 有对 TCP KeepAlive 特性的详细介绍，有兴趣的同学可以参考。这里主要说一下，TCP KeepAlive 的局限。首先 TCP KeepAlive 监测的方式是发送一个 probe 包，会给网络带来额外的流量，另外 TCP KeepAlive 只能在内核层级监测连接的存活与否，而连接的存活不一定代表服务的可用。例如当一个服务器 CPU 进程服务器占用达到 100%，已经卡死不能响应请求了，此时 TCP KeepAlive 依然会认为连接是存活的。因此 TCP KeepAlive 对于应用层程序的价值是相对较小的。需要做连接保活的应用层程序，例如 QQ，往往会在应用层实现自己的心跳功能。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://hit-alibaba.github.io/interview/basic/network/TCP.html">引鉴</a></p>
+</blockquote>
+<h4 id="4.5">TCP和UDP的区别</h4>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>TCP</th>
+<th>UDP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接性</td>
+<td>面向连接</td>
+<td>无连接</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>可靠</td>
+<td>不可靠</td>
+</tr>
+<tr>
+<td>有序性</td>
+<td>有序</td>
+<td>无序</td>
+</tr>
+<tr>
+<td>有界性</td>
+<td>有界</td>
+<td>无界</td>
+</tr>
+<tr>
+<td>拥塞控制</td>
+<td>有</td>
+<td>无</td>
+</tr>
+<tr>
+<td>传输速度</td>
+<td>慢</td>
+<td>快</td>
+</tr>
+<tr>
+<td>量级</td>
+<td>重量级</td>
+<td>轻量级</td>
+</tr>
+<tr>
+<td>头部大小</td>
+<td>大</td>
+<td>小</td>
+</tr>
+</tbody></table>
+<h3 id="5">Socket</h3>
+
+<p>Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信</p>
+<p><img src="/images/socket-network-model.png" alt="http请求报文范例"></p>
+<p>Socket通信实现步骤解析：</p>
+<ol>
+<li>创建ServerSocket和Socket</li>
+<li>打开连接到的Socket的输入&#x2F;输出流</li>
+<li>按照协议对Socket进行读&#x2F;写操作</li>
+<li>关闭输入输出流，以及Socket</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://pdai.tech/md/develop/protocol/dev-protocol-dns.html#%E4%BB%80%E4%B9%88%E6%98%AFdns%E5%8A%AB%E6%8C%81">引鉴</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/nmap/">
+                NMAP
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Network Mapper，是一款开放源代码的网络探测和安全审核的工具 </p>
+<h3 id="快速扫描"><a href="#快速扫描" class="headerlink" title="快速扫描"></a>快速扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##  默认发送一个arp的ping数据包 默认1-10000端口</span></span><br><span class="line">nmap 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 多个目标</span></span><br><span class="line">nmap 192.168.9.167 192.168.9.168 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口扫描 3389 20-200端口</span></span><br><span class="line">nmap -p 3389，20-200 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描除了指定ip外（192.168.9.168）或者txt</span></span><br><span class="line">nmap 192.168.9.1/24 -exclude 192.168.9.168</span><br><span class="line">nmap 192.168.9.1/24 -excludefile XXX.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 显示扫描 所有主机列表</span></span><br><span class="line">nmap -sL 192.168.9.1/24 </span><br></pre></td></tr></table></figure>
+
+<h3 id="特殊扫描"><a href="#特殊扫描" class="headerlink" title="特殊扫描"></a>特殊扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 类似于win/linxu ping方式扫描</span></span><br><span class="line">nmap -sP 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## SYN 不会再目标主机上产生任何日志记录</span></span><br><span class="line">nmap -sT 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## UDP </span></span><br><span class="line">nmap -sD 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## FIN标志</span></span><br><span class="line">nmap -sF 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## version 版本扫描</span></span><br><span class="line">nmap -sV 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS 操作系统探测</span></span><br><span class="line">nmap -O 192.168.1.1-255</span><br></pre></td></tr></table></figure>
+
+<h3 id="扫描格式"><a href="#扫描格式" class="headerlink" title="扫描格式"></a>扫描格式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## —T 设置时间</span></span><br><span class="line"><span class="comment"># 0 paranoid 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 1 sneakys 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 2 polite 降低扫描速度减少带宽和目标主机资源</span></span><br><span class="line"><span class="comment"># 3 normal 默认</span></span><br><span class="line"><span class="comment"># 4 aggressive 用户在网速极高的守候可用于快速扫描</span></span><br><span class="line"><span class="comment"># 5 nsane 特别快的网络为获取速度愿意牺牲准确性</span></span><br><span class="line">nmap -sS —T&lt;0-5&gt; 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 网段格式</span></span><br><span class="line"><span class="comment"># CIDR 子网掩码</span></span><br><span class="line"><span class="comment"># /24 C段  192.168.1.0/24 == 192.168.1.1 - 192.168.1.255</span></span><br><span class="line"><span class="comment"># /16 B段  192.168.1.0/16 == 192.168.1.1 - 192.1.255.255</span></span><br><span class="line"><span class="comment"># /8 A段  192.168.1.0/8 == 192.168.1.1 - 192.255.255.255</span></span><br><span class="line">nmap -sP 192.168.1.0/24</span><br><span class="line"></span><br><span class="line"><span class="comment">## 从文件中读取扫描IP列表</span></span><br><span class="line">$ <span class="built_in">cat</span> gg.txt</span><br><span class="line">192.168.1.1</span><br><span class="line">192.168.1.2</span><br><span class="line"></span><br><span class="line">nmap -iL gg.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 路由跟踪</span></span><br><span class="line">nmap -traceroute www.baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS版本探测</span></span><br><span class="line">nmap -A 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 混合扫描</span></span><br><span class="line">nmap -vv -p 100,3306,5000-5100 -O -traceroute 192.168.1.1</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
+
+<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/NLP/">
+                自然语言处理(NLP)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>RNN 网络模型 -&gt; LSTM 网络模型</p>
+<p>attention(权重)<br>元素-向量</p>
+<p>attention 序列模型机制</p>
+<p>在传统的Encoder-Decoder框架中，Decoder仅仅基于Encoder的最终输出来生成目标语言单词，这样就可能会忽略一些重要的信息，导致翻译效果不佳。为了解决这个问题，Attention机制被引入到Encoder-Decoder框架中，使得Decoder可以根据源语言句子的不同部分赋予不同的权重，从而更加关注重要的信息。</p>
+<ol>
+<li>计算注意力权重：对于每个目标语言单词，通过计算该单词与源语言句子中每个单词的相似度，来确定每个源语言单词对目标语言单词的贡献程度。这个相似度通常使用点积或者余弦相似度进行计算。</li>
+<li>加权求和：对于每个目标语言单词，根据注意力权重对源语言单词的向量进行加权求和，得到一个加权向量表示。</li>
+<li>上下文向量：将加权向量表示与Decoder的上一个隐状态进行拼接，得到上下文向量。上下文向量包含了源语言句子中与当前目标语言单词相关的信息，可以帮助Decoder更好地生成目标语言单词。</li>
+</ol>
+<p>example<br>I am pig</p>
+<ol>
+<li>准备放入数据(向量)[decoderA-编码器] -&gt; [i] [am] [pig] + [decoderA] 变成机器可以识别的特征码</li>
+<li>给每个向量一个得分(分数) -&gt; [i] * [decoderA] &#x3D; [i-score] &#x3D; 13,  [am] * [decoderA] &#x3D; [am-score] &#x3D; 9,  [pig] * [decoderA] &#x3D; [pig-score] &#x3D; 10</li>
+<li>给每个得分一个权重 -&gt; [i-score] * [权重] &#x3D; 0.96, [am-score] * [权重] &#x3D; 0.02, [pig-score] * [权重] &#x3D; 0.12</li>
+<li>重新算得一个平均值 -&gt; 13 * 0.96 &#x3D; [new-i-score], 9 * 0.02 &#x3D; [new-am-score], 10 * 0.12 &#x3D; [new-pig-score]</li>
+<li>合并数值并且[decoderB-解码器] -&gt; [new-i-score] [new-am-score] [new-pig-score] + [decoderB]</li>
+</ol>
+<p>LAS模型 语言识别</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/ai-learning/">
+                机器学习
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="高等数学"><a href="#高等数学" class="headerlink" title="高等数学"></a>高等数学</h2><p>函数：</p>
+<ul>
+<li>奇偶性</li>
+<li>周期性</li>
+<li>单调性</li>
+</ul>
+<p>三角函数<br>分段函数-&gt;(绝对值函数 符号函数)<br>复合函数<br>反函数</p>
+<p>数列：<br>极限<br>lim<br>导数<br>偏导数<br>方向导数</p>
+<h3 id="极限"><a href="#极限" class="headerlink" title="极限"></a>极限</h3><h3 id="线性代数"><a href="#线性代数" class="headerlink" title="线性代数"></a>线性代数</h3><h3 id="概率与统计"><a href="#概率与统计" class="headerlink" title="概率与统计"></a>概率与统计</h3><h3 id="微积分"><a href="#微积分" class="headerlink" title="微积分"></a>微积分</h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/android/">
                 Android
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -392,13 +702,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/armirror/">
+            <a href="/2025/02/28/armirror/">
                 AR虚拟试衣
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -420,6 +730,7 @@
 <li><p><a target="_blank" rel="noopener" href="https://core-electronics.com.au/guides/oak-d-lite-raspberry-pi/">Integrated Computer Vision Package - OAK-D Lite With Raspberry Pi Set Up</a></p>
 </li>
 </ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Balcher/p/17659481.html">AI换衣功能</a><br><a target="_blank" rel="noopener" href="https://juejin.cn/post/6897605923653550094">a</a></p>
 
         </div>
     
@@ -431,13 +742,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/burp-suite/">
+            <a href="/2025/02/28/burp-suite/">
                 Burp Suite
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -477,13 +788,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/01/25/darkweb/">
+            <a href="/2025/02/28/darkweb/">
                 darkweb
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-01-25</span>
+                <span class="date">2025-02-28</span>
             
             
             
@@ -495,6 +806,221 @@
             <h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><p><a target="_blank" rel="noopener" href="http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/">搜索工具</a></p>
 <p><a target="_blank" rel="noopener" href="http://weapon5dj7fwz2zaqa22fqeaqrauclim5kfvecegphrvxeywxoa3wuid.onion/shop.php">黑市交易</a></p>
 <p><a target="_blank" rel="noopener" href="https://onion666.com/">暗网交易中心</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/02/28/docker-basic/">
+                Docker
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-02-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#1">基础</a><ul>
+<li><a href="#1.1">Docker的组成</a></li>
+<li><a href="#1.2">Docker底层技术</a></li>
+<li><a href="#1.3">Docker网络</a></li>
+<li><a href="#1.4">Docker与传统虚拟机的区别</a></li>
+<li><a href="#1.6">容器的copy-on-write特性，修改容器里面的内容会修改镜像</a></li>
+<li><a href="#1.7">Dockerfile的整个构建镜像过程</a></li>
+<li><a href="#1.8">Dockerfile的基本指令</a></li>
+<li><a href="#1.9">如何进入容器，命令</a></li>
+</ul>
+</li>
+<li><a href="#2">docker-compose</a></li>
+<li><a href="#3">Docker逃逸</a></li>
+</ul>
+<h3 id="1">基础</h3>
+<h4 id="1.1">Docker的组成</h4>
+
+<ul>
+<li><em><strong>docker client 客户端</strong></em> 👉 docker daemon 交互</li>
+<li><em><strong>docker daemon 守护进程</strong></em> 👉 一般在宿主主机后台运行，等待接收来自客户端的请求消息</li>
+<li><em><strong>docker container 容器</strong></em> 👉 镜像的运行实例，我们可以把镜像看成是一个个的构建块，容器根据这些构建块搭建起了一个隔离的，拥有整个包的应用程序。每一个容器都是一个标准化单元，确保了在不同机子上也能拥有一致的行为</li>
+<li><em><strong>docker image 镜像</strong></em> 👉 包含了操作系统的一张光碟，它是一个模板文件，除了提供容器运行时所需的程序、库、资源、配置等文件外，还包含了一些为运行时准备的一些配置参数（如匿名卷、环境变量、用户等）</li>
+<li><em><strong>数据卷</strong></em> 👉 Docker 对数据持久化的解决方案，数据不会随着容器结束而丢失，通过将宿主机的某一文件目录载到容器里来实现 <code>volumes：</code></li>
+<li><em><strong>网络</strong></em> <ul>
+<li><em><strong>bridge 模式</strong></em> 👉 Docker 在主机上会创建一个<code>docker0</code>的网桥</li>
+<li><em><strong>host 模式</strong></em> 👉 在建一个容器时，一般会为容器分配一个独立的 Network Namespace 以进行网络隔离。如果我们使用了 Host 模式，则不再分配 Network Namespace，而是和宿主机共用一个 Network Namespace。此时容器将不再拥有自己的虚拟网卡、IP 和端口，而是和宿主机共用一个 IP 和端口</li>
+<li><em><strong>none 模式</strong></em> 👉 使用 none 模式的容器拥有属于自己的 Network Namespace，但不做任何网络配置。它和宿主机以及其他容器是不互通的。如果需要和外部通信，则需要自定义网络驱动程序，自己添加网卡、配置 IP 等</li>
+</ul>
+</li>
+</ul>
+<h4 id="1.2">Docker底层技术</h4>
+
+<ul>
+<li><em><strong>Namespaces（资源隔离）</strong></em>：将系统的全局资源通过抽象划分，使得在同一 namespace 中的进程看起来拥有自己的全局资源。主要有 Mount namespaces（文件系统挂载）、Network namespaces（网络）、User namespaces（用户）等的资源隔离。</li>
+<li><em><strong>CGroups（资源限制）</strong></em>：对系统资源的限制，比如 CPU、内存等。</li>
+<li><em><strong>UnionFS（联合文件系统）</strong></em>：一次同时加载多个文件系统，但从外面看起来，只能看到一个文件系统，联合加载会把各层文件系统叠加起来，这样最终的文件系统会包含所有底层的文件和目录。便于镜像的分层继承。</li>
+</ul>
+<h4 id="1.3">Docker网络</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker network prune</span><br><span class="line"></span><br><span class="line">docker network <span class="built_in">rm</span> XXX</span><br><span class="line"></span><br><span class="line">docker network list</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.4">Docker与传统虚拟机的区别</h4>
+
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Docker 容器</th>
+<th>传统虚拟机 (VM)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>启动速度</strong></td>
+<td>秒级启动 (轻量级)</td>
+<td>分钟级启动 (启动完整操作系统)</td>
+</tr>
+<tr>
+<td><strong>资源占用</strong></td>
+<td>共享主机内核，资源占用小</td>
+<td>每个虚拟机包含完整操作系统，占用大</td>
+</tr>
+<tr>
+<td><strong>架构</strong></td>
+<td>基于容器引擎 (如 Docker Engine)</td>
+<td>基于 Hypervisor (如 VMware、VirtualBox)</td>
+</tr>
+<tr>
+<td><strong>运行效率</strong></td>
+<td>运行在主机操作系统之上，高效</td>
+<td>需通过 Hypervisor 间接访问硬件，性能损耗较大</td>
+</tr>
+<tr>
+<td><strong>文件系统</strong></td>
+<td>分层镜像 (Layered Images)，增量存储</td>
+<td>每个虚拟机独立的磁盘文件 (如 VMDK, VDI)</td>
+</tr>
+<tr>
+<td><strong>隔离性</strong></td>
+<td>进程级隔离，共享主机内核</td>
+<td>完全隔离，虚拟机有自己的内核</td>
+</tr>
+<tr>
+<td><strong>操作系统支持</strong></td>
+<td>仅支持与主机相同的内核 (通常是 Linux)</td>
+<td>支持不同的操作系统 (如在 Windows 上运行 Linux)</td>
+</tr>
+<tr>
+<td><strong>应用场景</strong></td>
+<td>微服务、CI&#x2F;CD、测试环境、轻量服务</td>
+<td>需要完整操作系统的场景，如传统应用、特定依赖环境</td>
+</tr>
+<tr>
+<td><strong>部署方式</strong></td>
+<td>Dockerfile、镜像 (Image)、容器 (Container)</td>
+<td>镜像 (ISO)、虚拟机模板、虚拟机实例</td>
+</tr>
+<tr>
+<td><strong>资源调度</strong></td>
+<td>通过编排工具 (如 Kubernetes) 实现灵活调度</td>
+<td>通过虚拟化平台 (如 vSphere) 进行调度</td>
+</tr>
+<tr>
+<td><strong>迁移灵活性</strong></td>
+<td>容器镜像小，迁移快</td>
+<td>虚拟机文件大，迁移相对慢</td>
+</tr>
+</tbody></table>
+<h4 id="1.6">容器的copy-on-write特性，修改容器里面的内容会修改镜像</h4>
+<h4 id="1.7">Dockerfile的整个构建镜像过程</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker build -t [镜像名]:tag</span><br><span class="line">docker build -t 镜像名:tag -f /xx/xxx/Dockerfile <span class="comment"># 可以使用-f参数来指定dockerfile文件</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="1.8">Dockerfile的基本指令</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">FROM <span class="comment"># 指定基础镜像（必须为第一个指令，因为需要指定使用哪个基础镜像来构建镜像）；</span></span><br><span class="line"></span><br><span class="line">MAINTAINER <span class="comment"># 设置镜像作者相关信息，如作者名字，日期，邮件，联系方式等；</span></span><br><span class="line"></span><br><span class="line">COPY <span class="comment"># 复制文件到镜像；</span></span><br><span class="line"></span><br><span class="line">ADD <span class="comment"># 复制文件到镜像（ADD与COPY的区别在于，ADD会自动解压tar、zip、tgz、xz等归档文件，而COPY不会，同时ADD指令还可以接一个url下载文件地址，一般建议使用COPY复制文件即可，文件在宿主机上是什么样子复制到镜像里面就是什么样子这样比较好）；</span></span><br><span class="line"></span><br><span class="line">ENV <span class="comment"># 设置环境变量；</span></span><br><span class="line"></span><br><span class="line">EXPOSE <span class="comment"># 暴露容器进程的端口，仅仅是提示别人容器使用的哪个端口，没有过多作用；</span></span><br><span class="line"></span><br><span class="line">VOLUME <span class="comment"># 数据卷持久化，挂载一个目录；</span></span><br><span class="line"></span><br><span class="line">WORKDIR <span class="comment"># 设置工作目录，如果目录不在，则会自动创建目录；</span></span><br><span class="line"></span><br><span class="line">RUN <span class="comment"># 在容器中运行命令，RUN指令会创建新的镜像层，RUN指令经常被用于安装软件包；</span></span><br><span class="line"></span><br><span class="line">CMD <span class="comment"># 指定容器启动时默认运行哪些命令，如果有多个CMD，则只有最后一个生效，另外，CMD指令可以被docker run之后的参数替换；</span></span><br><span class="line"></span><br><span class="line">ENTRYOINT <span class="comment"># 指定容器启动时运行哪些命令，如果有多个ENTRYOINT，则只有最后一个生效，另外，如果Dockerfile中同时存在CMD和ENTRYOINT，那么CMD或docker run之后的参数将被当做参数传递给ENTRYOINT；</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="1.9">进入/容器/命令</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 容器生命周期管理</span></span><br><span class="line"><span class="comment"># 搜索镜像</span></span><br><span class="line">docker search centos</span><br><span class="line"><span class="comment"># 查看镜像层级关系</span></span><br><span class="line">docker images --tree</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看容器状态</span></span><br><span class="line">docker ps -a                <span class="comment"># 列出所有容器 (包含停止状态)</span></span><br><span class="line">docker ps                   <span class="comment"># 仅列出运行中的容器</span></span><br><span class="line">docker inspect my_nginx     <span class="comment"># 查看容器详细信息</span></span><br><span class="line">docker logs my_nginx        <span class="comment"># 查看容器日志输出</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建并运行容器</span></span><br><span class="line">docker run -d --name my_nginx -p 8080:80 nginx</span><br><span class="line"></span><br><span class="line"><span class="comment">### 启动、停止、重启容器</span></span><br><span class="line">docker start my_nginx       <span class="comment"># 启动已存在但停止的容器</span></span><br><span class="line">docker start $(docker ps -aq) <span class="comment"># 启动所有容器</span></span><br><span class="line">docker stop my_nginx        <span class="comment"># 停止正在运行的容器</span></span><br><span class="line">docker restart my_nginx     <span class="comment"># 重启容器 (相当于 stop + start)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 立即强制停止容器</span></span><br><span class="line">docker <span class="built_in">kill</span> my_nginx</span><br><span class="line"></span><br><span class="line"><span class="comment">### 删除容器</span></span><br><span class="line">docker <span class="built_in">rm</span> my_nginx          <span class="comment"># 删除的容器</span></span><br><span class="line">docker <span class="built_in">rm</span> -f my_nginx       <span class="comment"># 强制删除运行中的容器 (相当于 kill + rm)</span></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -q -f status=exited) <span class="comment"># 删除所有已退出的容器</span></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -a -q)  <span class="comment"># 删除所有已停止的容器</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除所有正在运行和已停止的容器</span></span><br><span class="line">docker stop $(docker ps -a -q)</span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -a -q)</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -aq)  <span class="comment"># 删除所有容器 (小心使用)</span></span><br><span class="line">docker rmi $(docker images -q) <span class="comment"># 删除所有镜像</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### Docker 资源清理</span></span><br><span class="line">docker container prune	<span class="comment"># 删除所有退出状态的容器</span></span><br><span class="line">docker image prune			<span class="comment"># 删除 dangling 或所有未被使用的镜像</span></span><br><span class="line">docker network prune		<span class="comment"># 删除所有未使用的网络</span></span><br><span class="line">docker volume prune			<span class="comment"># 删除未被使用的数据卷</span></span><br><span class="line">docker system prune			<span class="comment"># 删除已停止的容器、dangling 镜像、未被容器引用的 network 和构建过程中的 cache，安全起见，这个命令默认不会删除那些未被任何容器引用的数据卷，如果需要同时删除这些数据卷，你需要显式的指定 --volumns 参数</span></span><br><span class="line">docker system prune --all --force --volumns 	<span class="comment"># 这次不仅会删除数据卷，而且连确认的过程都没有了！注意，使用 --all 参数后会删除所有未被引用</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 暂停与恢复容器</span></span><br><span class="line">docker pause my_nginx       <span class="comment"># 暂停容器中的所有进程</span></span><br><span class="line">docker unpause my_nginx     <span class="comment"># 恢复被暂停的容器</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### 进入容器 </span></span><br><span class="line"><span class="comment"># attach  命令是attach到容器启动命令的终端</span></span><br><span class="line">docker attach my_nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># exec  是另外在容器里面启动一个TTY终端</span></span><br><span class="line">docker <span class="built_in">exec</span> -it my_nginx /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 也可以执行单次命令，而不进入交互模式</span></span><br><span class="line">docker <span class="built_in">exec</span> my_nginx <span class="built_in">ls</span> /usr/share/nginx/html</span><br><span class="line"></span><br><span class="line"><span class="comment">### 文件传输</span></span><br><span class="line">docker <span class="built_in">cp</span> [本地文件路径] [ID全称]:[容器路径]</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">docker <span class="built_in">cp</span> [ID全称]:[容器文件路径] [本地路径]</span><br><span class="line"></span><br><span class="line"><span class="comment">### 后台运行docker</span></span><br><span class="line">docker run -d</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="导出导入镜像"><a href="#导出导入镜像" class="headerlink" title="导出导入镜像"></a>导出导入镜像</h5><p>export\import 与 save\load 的区别：</p>
+<ul>
+<li><p>export\import 导出的镜像文件大小要小于 save\load 导出的镜像</p>
+</li>
+<li><p>export\import 是根据容器拿到的镜像，再导入时会丢失镜像所有的历史，所以无法进行回滚操作；而 save\load 的镜像，没有丢失镜像的历史，可以回滚到之前的层。</p>
+</li>
+</ul>
+<p>核心原因是 export 是针对容器的导出，所以只有所有层组合的最终版本；而 save 则是针对镜像的，所以可以看到每一层的信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 导出导入镜像</span></span><br><span class="line"><span class="comment"># export\import 导入导出</span></span><br><span class="line">docker <span class="built_in">export</span> web &gt; /home/docker_web.tar</span><br><span class="line">docker import /home/docker_web.tar</span><br><span class="line"></span><br><span class="line"><span class="comment"># save\load 导入导出</span></span><br><span class="line">docker save 9610cfc68e8d &gt; /home/docker_web.tar</span><br><span class="line">docker load &lt; /home/docker_web.tar</span><br></pre></td></tr></table></figure>
+
+<h5 id="修改正在运行的容器端口映射"><a href="#修改正在运行的容器端口映射" class="headerlink" title="修改正在运行的容器端口映射"></a>修改正在运行的容器端口映射</h5><ol>
+<li>停止容器</li>
+<li>停止 docker 服务(systemctl stop docker)</li>
+<li>修改这个容器的 hostconfig.json 文件中的端口（原帖有人提到，如果 config.v2.json 里面也记录了端口，也要修改）<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /var/lib/docker/3b6ef264a040* 	<span class="comment"># 这里是 CONTAINER ID</span></span><br><span class="line"></span><br><span class="line">vi hostconfig.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果之前没有端口映射, 应该有这样的一段:</span></span><br><span class="line"><span class="string">&quot;PortBindings&quot;</span>:&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 增加一个映射, 这样写:</span></span><br><span class="line"><span class="string">&quot;PortBindings&quot;</span>:&#123;<span class="string">&quot;3306/tcp&quot;</span>:[&#123;<span class="string">&quot;HostIp&quot;</span>:<span class="string">&quot;&quot;</span>,<span class="string">&quot;HostPort&quot;</span>:<span class="string">&quot;3307&quot;</span>&#125;]&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 前一个数字是容器端口, 后一个是宿主机端口</span></span><br><span class="line"><span class="comment"># 而修改现有端口映射更简单, 把端口号改掉就行</span></span><br></pre></td></tr></table></figure></li>
+<li>启动docker服务(systemctl start docker)</li>
+<li>启动容器</li>
+</ol>
+<h4 id="2">docker-compose</h4>
+
+<ul>
+<li>192网段<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">&#x27;3&#x27;</span></span><br><span class="line">services:</span><br><span class="line">  app:</span><br><span class="line">    network_mode: bridge</span><br><span class="line">    IP: 192.168.1.100</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&quot;8080:8080&quot;</span></span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line">  my-network:</span><br><span class="line">    driver: bridge</span><br><span class="line">    ipam:</span><br><span class="line">      config:</span><br><span class="line">        - subnet: 192.168.1.0/24</span><br><span class="line"></span><br><span class="line">$ docker-compose up --net=my-network</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3">Docker逃逸</h4>
+
+<ul>
+<li><p>容器镜像存在的风险</p>
+</li>
+<li><p>活动中的容器存在的风险</p>
+<ul>
+<li><p>不安全的容器应用</p>
+</li>
+<li><p>不受限制的资源共享</p>
+</li>
+<li><p>不安全的配置与挂载</p>
+<p>如果为容器设定了不安全的配置，会导致容器本身的隔离机制失效，容器的两大隔离机制如下：</p>
+<ul>
+<li>Linux 命名空间（NameSpace）：实现文件系统、网络、进程、主机名等方面的隔离</li>
+<li>Linux 控制组（cgroups）：实现 CPU、内存、硬盘等方面的隔离</li>
+</ul>
+<p>如果设定了以下配置就会导致相应的隔离机制失效：</p>
+<ul>
+<li>–privileged：使容器内的 root 权限和宿主机上的 root 权限一致，权限隔离被打破</li>
+<li>–net&#x3D;host：使容器与宿主机处于同一网络命名空间，网络隔离被打破</li>
+<li>–pid&#x3D;host：使容器与宿主机处于同一进程命令空间，进程隔离被打破</li>
+<li>–volume &#x2F;:&#x2F;host：宿主机根目录被挂载到容器内部，文件系统隔离被打破</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>容器管理程序接口的风险</p>
+<p>Docker 守护进程主要监听 UNIX socket 和 TCP socket，默认情况下，Docker 只会监听 UNIX socket</p>
+<ul>
+<li><p>UNIX socket<br>UNIX socket 的风险主要在于 Docker 守护进程默认以宿主机的 root 权限运行，因此就可以借助这点进行提权或者容器逃逸。<br>这类风险主要有两个利用场景：</p>
+<p>  普通用户被加到 Docker 用户组内<br>  如果普通用户被加入到 Docker 用户组内，那么普通用户也将有权限访问 Docker UNIX socket，如果攻击者获得了这个普通用户权限，就可以借助 Docker 提权到 root 用户权限。</p>
+<p>  具体的做法可以简单描述为：使用普通用户创建一个 privileged 为 true 的容器，在该容器内挂载宿主机硬盘并写入定时任务，然后将宿主机的 root 权限反弹回来，后期将详细介绍这种方法的使用。</p>
+<p>  UNIX socket 挂载到容器内部<br>  有时为了实现容器内部管理容器，可能会将 Docker UNIX socket 挂载到容器内部，那么如果该容器被入侵，RT 就可以借助这个 socket 进行容器逃逸获得宿主机 root 权限。</p>
+</li>
+<li><p>TCP socket<br>现在 Docker 守护进程默认不会监听 TCP socket，不过有时可能用户会因为方便开启 TCP socket 的监听，一般默认监听端口是 2375</p>
+<p>默认情况下，Docker 守护进程 TCP socket 是无加密无认证的，因此如果发现宿主机 Docker 开放了 TCP socket，就可以直接使用 docker -H 接管目标的容器</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://wiki.teamssix.com/cloudnative/docker/cve-2022-0847-dirty-pipe.html">docker 逃逸</a></p>
 
         </div>
     
@@ -513,7 +1039,7 @@
                 <a class="" href="/page/4/">
                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                 </a>
-                <a class="disabled" href="/">
+                <a class="" href="/page/6/">
                     <i class="fa fa-chevron-right" aria-hidden="true"></i>
                 </a>
             </div>
@@ -543,19 +1069,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/shell/">Bash</a>
+                <a class="footer-post" href="/2025/02/28/sqlmap/">SQLMap</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/software-structure/">软件架构演变</a>
+                <a class="footer-post" href="/2025/02/28/stock/">股市币市</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/springboot/">Springboot</a>
+                <a class="footer-post" href="/2025/02/28/system-migration/">系统迁移</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/01/25/sqlmap/">SQLMap</a>
+                <a class="footer-post" href="/2025/02/28/tree-decision/">决策树</a>
             </li>
             
         </ul>
@@ -573,15 +1099,15 @@
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/%E6%96%B0/">新</a>
-        </li>
-        
-        <li>
             <a class="footer-post" href="/categories/Blog/">Blog</a>
         </li>
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>
@@ -703,7 +1229,7 @@
 
 
 <!-- Searching -->
-<script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
 
 <script src="/js/search.js"></script>
 

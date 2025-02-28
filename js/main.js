@@ -104,9 +104,9 @@ var alphaDust = function () {
             }
         });
 
-        $('.menu-bg').click(function (e) {
+        $('.search-bg').click(function (e) {
             if(_searchOn && e.target === this) {
-                _menuHide();
+                _searchHide();
             }
         });
     }
