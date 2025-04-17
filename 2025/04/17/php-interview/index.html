@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="PHP
+运行模式
+Nginx与Apache解析php文件
+设计模式
+Session与Cookie
+闭包
+单双引号区别
+include和require的区别
+
+
+PHP优化与高并发
+优化方案
+PSR-4代码规范
+微服务
+抽象类与接口区别
+垃圾回收机制
+高并发优化
+
+
+Mysql
+myisam和inno">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="PHP 面试题"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>PHP 面试题 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2025/04/17/php-interview/">
+                PHP 面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-04-17</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <ul>
+<li><a href="#1">PHP</a><ul>
+<li><a href="#1.1">运行模式</a></li>
+<li><a href="#1.2">Nginx与Apache解析php文件</a></li>
+<li><a href="#1.3">设计模式</a></li>
+<li><a href="#1.4">Session与Cookie</a></li>
+<li><a href="#1.5">闭包</a></li>
+<li><a href="#1.6">单双引号区别</a></li>
+<li><a href="#1.7">include和require的区别</a></li>
+</ul>
+</li>
+<li><a href="#2">PHP优化与高并发</a><ul>
+<li><a href="#2.1">优化方案</a></li>
+<li><a href="#2.2">PSR-4代码规范</a></li>
+<li><a href="#2.3">微服务</a></li>
+<li><a href="#2.4">抽象类与接口区别</a></li>
+<li><a href="#2.5">垃圾回收机制</a></li>
+<li><a href="#2.6">高并发优化</a></li>
+</ul>
+</li>
+<li><a href="#3">Mysql</a><ul>
+<li><a href="#3.1">myisam和innodb区别以及事务四大特性</a></li>
+<li><a href="#3.2">mysql索引</a></li>
+<li><a href="#3.3">主从-分库分表-锁</a></li>
+<li><a href="#3.4">如何定位慢查询</a></li>
+</ul>
+</li>
+<li><a href="#4">MongoDB</a> </li>
+<li><a href="#5">Redis</a><ul>
+<li><a href="#5.1">Redis和Memcache区别</a></li>
+<li><a href="#5.2">Redis常见数据结构</a></li>
+<li><a href="#5.3">Redis缓存雪崩、缓存穿透、缓存击穿</a></li>
+<li><a href="#5.4">Redis淘汰策略</a> </li>
+<li><a href="#5.5">Redis分布式锁怎么实现</a></li>
+<li><a href="#5.6">Redis的持久化机制:RDB-vs-AOF</a></li>
+<li><a href="#5.7">Redis主从哨兵和集群的区别</a></li>
+<li><a href="#5.8">节点扩容不同</a></li>
+</ul>
+</li>
+<li><a href="#6">MQ</a><ul>
+<li><a href="#6.1">RabbitMQ,RocketMQ,Kafka区别</a></li>
+</ul>
+</li>
+<li><a href="#7">服务器&amp;其它方面</a>  <ul>
+<li><a href="#7.1">swoole</a></li>
+<li><a href="#7.2">phpunit</a></li>
+<li><a href="#7.3">php-cs-fixer</a></li>
+<li><a href="#7.4">docker多版本启动共用</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="php面试题"><a href="#php面试题" class="headerlink" title="php面试题"></a>php面试题</h2><h3 id="1">PHP</h3>
+<h4 id="1.1">运行模式</h4>
+
+
+<ul>
+<li>CGI（通用网关接口&#x2F; Common Gateway Interface）</li>
+<li>FastCGI（常驻型CGI &#x2F; Long-Live CGI）lamp</li>
+<li>CLI（命令行运行 &#x2F; Command Line Interface）</li>
+<li>Web模块模式（Apache等Web服务器运行的模式）</li>
+<li>ISAPI（Internet Server Application Program Interface）</li>
+</ul>
+<h4 id="1.2">Nginx与Apache解析php文件</h4>
+
+<ul>
+<li>php是apache的一个模块，必须依靠web服务器才可以运行，在php引擎解析php文件，php引擎将html页面带给web服务器解析并返回客户端</li>
+<li>cgi与fastcgi协议，CGI common gateway interface, CGI缺点，每处理一个请求都要fork一个全新的进程，就有了fastCGI，一个进程内可以处理多个请求</li>
+<li>phpCGI是fastCGI管理器，后面就用了FPM已经集成到了php里(php-fpm进程管理)</li>
+<li>php-fpm监听的事socket文件，nginx通过location将所有php文件交给fpm处理</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">default.conf</span><br><span class="line">location ~ |.php<span class="variable">$&#123;</span></span><br><span class="line"><span class="variable">	include fastcgi_params</span></span><br><span class="line"><span class="variable">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="1.3"><a rel="https://refactoringguru.cn/design-patterns/php">设计模式（三大类）</a></h4>
+
+<ul>
+<li>创建型模式共五种：工厂方法模式、抽象工厂模式、单例模式、建造者模式、原型模式。</li>
+<li>结构型模式共七种：适配器模式、装饰器模式、代理模式、外观模式、桥接模式、组合模式、享元模式</li>
+<li>行为型模式共十一种：策略模式、模板方法模式、观察者模式、迭代子模式、责任链模式、命令模式、备忘录模式、状态模式、访问者模式、中介者模式、解释器模式</li>
+</ul>
+<h4 id="1.4">Session与Cookie</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cookie 客户端，保存用户信息的一种机制，</span><br><span class="line">Session 服务端，跟踪用户状态，保存用户会话</span><br><span class="line"></span><br><span class="line"><span class="comment"># 有效期上不同</span></span><br><span class="line">Cookie  开发可以通过设置cookie的属性，达到使cookie长期有效的效果。</span><br><span class="line">Session  session依赖于名为JSESSIONID的cookie，而cookie JSESSIONID的过期时间默认为-1，只需关闭窗口该session就会失效，因而session不能达到长期有效的效果</span><br><span class="line"></span><br><span class="line"><span class="comment"># 跨域</span></span><br><span class="line">cookie 支持跨域名访问。</span><br><span class="line">session 不支持跨域名访问。</span><br><span class="line"></span><br><span class="line"><span class="comment"># 什么是CSRF攻击，XSS攻击</span></span><br><span class="line">CSRF （Cross-site request forgery）跨站请求伪造,黑客建立一个伪造网站或发送邮箱带了一个正常URL链接来让正常用户访问，来让正常用户让自己浏览器里的COOKIE权限来执行一些非法请求，</span><br><span class="line">如转账，提权等操作</span><br><span class="line">!! 防范方法有，验证 HTTP Referer 字段；在请求地址中添加 token 并验证</span><br><span class="line"></span><br><span class="line">XSS 主要将XSS代码提交存储在服务器端（数据库，内存，文件系统等），下次请求目标页面时不用再提交XSS代码。当目标用户访问该页面获取数据时，XSS代码会从服务器解析之后加载出来，返回到浏览器做正常的HTML和JS解析执行，XSS攻击就发生了</span><br><span class="line">!! 防范方法:通过过滤是针对非法的HTML代码包括单双引号等，使用htmlspecialchars()函数</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.5">闭包</h4>
+内部函数可以访问外部函数
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">init</span></span>() &#123;</span><br><span class="line">  var name = <span class="string">&quot;Mozilla&quot;</span>; // name 是一个被 init 创建的局部变量</span><br><span class="line">  <span class="keyword">function</span> <span class="function"><span class="title">displayName</span></span>() &#123;</span><br><span class="line">    // displayName() 是内部函数，一个闭包</span><br><span class="line">    alert(name); // 使用了父函数中声明的变量</span><br><span class="line">  &#125;</span><br><span class="line">  displayName();</span><br><span class="line">&#125;</span><br><span class="line">init();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.6">双引号和单引号的区别</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">“<span class="variable">$aaa</span>” 解释变量</span><br><span class="line">‘<span class="variable">$ccc</span>’ 不解释变量</span><br></pre></td></tr></table></figure>
+<h4 id="1.7">include和require的区别</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">require 首先执行，报错会终止程序</span><br><span class="line">include 如果包含的，报错会提示，继续执行下去</span><br></pre></td></tr></table></figure>
+<h3 id="2">PHP优化与高并发</h3>
+<h4 id="2.1">优化方案</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. <span class="built_in">unset</span>(); <span class="comment"># 注销那些不用的变量尤其是大数组，以便释放内存</span></span><br><span class="line">2. str_replace函数比preg_replace函数快，但strtr函数的效率是str_replace函数的四倍</span><br><span class="line">3. 尽量不要在<span class="keyword">for</span>循环中使用函数，比如<span class="keyword">for</span> (<span class="variable">$x</span>=0; <span class="variable">$x</span> &lt; count(<span class="variable">$array</span>); <span class="variable">$x</span>)每循环一次都会调用count()函数</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="2.2">PSR-4代码规范</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">composer如何实现？PSR-4是什么?</span><br><span class="line">1. 自动加载有两种方式（都是php内置的），一种是通过__autoload(),另一种是通过spl_autoload_register()。</span><br><span class="line"></span><br><span class="line">2.PSR是PHP Standards Recommendation的简称,制定的代码规范，简称PSR，是代码开发的事实标准</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="2.3">抽象类与接口区别</h4>
+
+
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>抽象类</th>
+<th>接口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用于声明某一种事物，规范名称、参数，形成模块，未有详细的实现细节</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>通过类来实现相关的细节工作</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>抽象类的抽象方法与接口一样</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>可继承</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>有属性、普通方法、抽象方法</td>
+<td>✅</td>
+<td>❌只有常量</td>
+</tr>
+<tr>
+<td>抽象方法</td>
+<td>❌不一定要有抽象方法</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>语法不同</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>声明不同</td>
+<td>abstract关键字在类前声明，且有class声明为类</td>
+<td>用interface来声明，但不能用class来声明</td>
+</tr>
+<tr>
+<td>继承</td>
+<td>extends关键字让子类继承父类后，在子类实现详细的抽象方法</td>
+<td>用implements让普通类在类里实现接口的详细方法，且接口可以一次性实现多个方法，用逗号分开各个接口就可</td>
+</tr>
+</tbody></table>
+<p>抽象类与接口的结合</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php </span><br><span class="line">/* </span><br><span class="line">写此程序源于自己的猜测，想在抽象类里实现某一接口。 </span><br><span class="line">*/ </span><br><span class="line">interface work&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">abstract class a implements work&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">showlove</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;love you&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;hello, i m in b&#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$k</span>=new b(); </span><br><span class="line"><span class="variable">$k</span>- say();</span><br><span class="line">/* </span><br><span class="line">以上程序能正常执行</span><br><span class="line">普通类implements接口后，就变成了抽象类了，这就好像是直接给抽象类增加了一个抽象方法。</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
+
+<p>接口与继承的结合</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">interface kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">class a &#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">show</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是父类&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a implements kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是继承A类，同时实现say接口的&lt;br / &#x27;</span>; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$b</span>=new b(); </span><br><span class="line"><span class="variable">$b</span>- show();//我是父类</span><br><span class="line"><span class="variable">$b</span>- say();//我是继承A类，同时实现say接口的</span><br></pre></td></tr></table></figure>
+
+<h4 id="2.4">微服务</h4>
+
+<p>优势：</p>
+<ul>
+<li>独立开发 – 所有微服务都可以根据各自的功能轻松开发</li>
+<li>独立部署 – 基于其服务，可以在任何应用程序中单独部署它们</li>
+<li>故障隔离 – 即使应用程序的一项服务不起作用，系统仍可继续运行</li>
+<li>混合技术堆栈 – 可以使用不同的语言和技术来构建同一应用程序的不同服务</li>
+<li>粒度缩放 – 单个组件可根据需要进行缩放，无需将所有组件缩放在一起</li>
+</ul>
+<p>特点：</p>
+<ul>
+<li>解耦 – 系统内的服务很大程度上是分离的。因此，整个应用程序可以轻松构建，更改和扩展</li>
+<li>组件化 – 微服务被视为可以轻松更换和升级的独立组件</li>
+<li>业务能力 – 微服务非常简单，专注于单一功能</li>
+<li>自治 – 开发人员和团队可以彼此独立工作，从而提高速度</li>
+<li>持续交付 – 通过软件创建，测试和批准的系统自动化，允许频繁发布软件</li>
+<li>责任 – 微服务不关注应用程序作为项目。相反，他们将应用程序视为他们负责的产品</li>
+<li>分散治理 – 重点是使用正确的工具来做正确的工作。这意味着没有标准化模式或任何技术模式。开发人员可以自由选择最有用的工具来解决他们的问题</li>
+<li>敏捷 – 微服务支持敏捷开发。任何新功能都可以快速开发并再次丢弃</li>
+</ul>
+<h4 id="2.5">垃圾回收机制</h4>
+
+<ul>
+<li>PHP垃圾回收机制</li>
+</ul>
+<p><code>PHP5.3版本</code>之前,使用的垃圾回收机制是单纯的“引用计数”<br>但是当两个或多个对象互相引用形成环状后，内存对象的计数器则不会消减为0,<br>这一组内存对象已经没用了，但是不能回收，从而导致内存泄露的现象<br>每个php变量存在一个叫”zval”的变量容器中。一个zval变量容器，除了包含变量的类型和值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xdebug_debug_zval( <span class="string">&#x27;a&#x27;</span> ); <span class="comment"># Xdebug来检查引用计数情况</span></span><br></pre></td></tr></table></figure>
+<p>从<code>PHP7的NTS版本</code>开始，以上例程的引用将不再被计数<br>对于null，bool，int和double的类型变量，refcount永远不会计数；<br>对于对象、资源类型，refcount计数和php5的一致；<br>字符串引用，计数不变，&amp;地址发生改变<br>数组引用，键值不变的情况下计数<br>改变后引用全部作废，重新计算</p>
+<ul>
+<li>回收周期</li>
+</ul>
+<p><code>zend.enable_gc</code><code>php.ini</code>默认是打开的</p>
+<ul>
+<li>性能影响</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/benbenhan/articles/15904812.html">https://www.cnblogs.com/benbenhan/articles/15904812.html</a><br><a target="_blank" rel="noopener" href="https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html">https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem=DRiKKpc8Q7W4D">https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem%3DDRiKKpc8Q7W4D</a></p>
+<h4 id="2.6">高并发优化</h4>
+
+<ul>
+<li>流量优化 - 防盗链处理</li>
+<li>前端优化<ol>
+<li>减少http请求次数</li>
+<li>添加异步请求</li>
+<li>启用浏览器缓存和文件压缩</li>
+<li>CDN加速</li>
+<li>建立独立的图片服务器(减少I&#x2F;O)</li>
+</ol>
+</li>
+<li>服务端优化<ol>
+<li>页面静态化</li>
+<li>并发处理</li>
+<li>队列处理</li>
+</ol>
+</li>
+<li>数据库优化<ol>
+<li>数据库缓存</li>
+<li>分库分表,分区</li>
+<li>读写分离</li>
+<li>负载均衡</li>
+</ol>
+</li>
+<li>web服务器优化<ol>
+<li>nginx反向代理实现负载均衡</li>
+<li>lvs实现负载均衡</li>
+</ol>
+</li>
+</ul>
+<h3 id="3">Mysql</h3>
+<h4 id="3.1">myisam和innodb区别以及事务四大特性</h4>
+
+<h4 id="3.2">mysql索引</h4>
+
+<blockquote>
+<p>从数据结构角度</p>
+</blockquote>
+<ul>
+<li>B+树索引(O(log(n)))：关于B+树索引，可以参考 MySQL索引背后的数据结构及算法原理</li>
+<li>hash索引：</li>
+</ul>
+<blockquote>
+<p>从物理存储角度</p>
+</blockquote>
+<ul>
+<li>聚集索引（clustered index）</li>
+<li>非聚集索引（non-clustered index）</li>
+</ul>
+<blockquote>
+<p>从逻辑角度</p>
+</blockquote>
+<ul>
+<li>主键索引：主键索引是一种特殊的唯一索引，不允许有空值</li>
+<li>普通索引或者单列索引</li>
+<li>多列索引（复合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合</li>
+<li>唯一索引或者非唯一索引</li>
+<li>空间索引：空间索引是对空间数据类型的字段建立的索引</li>
+</ul>
+<h4 id="3.3">主从-分区分表分库</h4>
+
+<ul>
+<li>分库：是为了解决数据库连接资源不足问题，和磁盘IO的性能瓶颈问题。</li>
+<li>分表：是为了解决单表数据量太大，sql语句查询数据时，即使走了索引也非常耗时问题。此外还可以解决消耗cpu资源问题。</li>
+<li>分库分表：可以解决 数据库连接资源不足、磁盘IO的性能瓶颈、检索数据耗时 和 消耗cpu资源等问题。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md">https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md</a></p>
+<h4 id="3.4">如何定位慢查询</h4>
+
+<ol>
+<li>首先确认是否开启了慢查询</li>
+<li>设置慢查询的时间限制</li>
+<li>查询慢查询日志可定位具体的慢sql</li>
+<li>相关sql查询</li>
+<li>用Explain分析具体的sql语句</li>
+</ol>
+<h3 id="5">Redis</h3>
+<h4 id="5.2">Redis常见数据结构</h4>
+
+<p>最常用的的有5种,字符串(String)、哈希(Hash)、列表(list)、集合(set)、有序集合(ZSET)</p>
+<blockquote>
+<p>元素唯一性：set中不允许重复的成员，而zset中不允许重复的成员，但是允许不同成员拥有相同的分数</p>
+</blockquote>
+<h4 id="5.3">Redis缓存雪崩、缓存穿透、缓存击穿</h4>
+
+
+<ul>
+<li><p>缓存雪崩<br>大量用户请求，全部转向请求访问数据库，压力剧增，可能导致数据库宕机，造成系统崩溃，造成缓存雪崩</p>
+</li>
+<li><p>缓存击穿<br>业务中几个数据会频繁访问，比如秒杀数据，被称为热点数据<br>如果某个热点数据过期了，此时大量用户请求，无法从缓存中读取，直接访问数据库，造成系统奔溃，缓存击穿</p>
+</li>
+<li><p>缓存穿透<br>当用户访问数据，既不在缓存中，也不在数据库，导致请求缓存时，发现缓存缺失，发现两者都没找到，没法构建缓存，</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>缓存异常</th>
+<th>产生原因</th>
+<th>应对方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>缓存雪崩</td>
+<td>大量数据同时过期</td>
+<td>1.均匀设置过期时间 - 过期时间后加随机数，保证不会再同一时间过期 </br>  2.互斥锁 - 保证同一时间只有一个请求来构建缓存 </br> 3.后台更新缓存</td>
+</tr>
+<tr>
+<td></td>
+<td>Redis 故障宕机</td>
+<td>1.服务熔断或请求限流机制 </br>  2.构建 Redis 缓存高可靠集群</td>
+</tr>
+<tr>
+<td>缓存击穿</td>
+<td>热点数据过期</td>
+<td>1.互斥锁 </br> 2.不给热点数据设置过期时间，由后台异步更新缓存</td>
+</tr>
+<tr>
+<td>缓存穿透</td>
+<td>访问的数据既不在缓存，也不在数据库</td>
+<td>1.非法请求 </br> 2.缓存空值或者默认值 </br> 3.使用布隆过滤器快速判断数据是否存在</td>
+</tr>
+</tbody></table>
+<h4 id="5.4">Redis淘汰策略</h4>
+<h4 id="5.5">Redis分布式锁怎么实现</h4>
+<h4 id="5.6">Redis的持久化机制:RDB-vs-AOF</h4>
+<h4 id="5.7">Redis主从哨兵和集群的区别</h4>
+<h4 id="5.8">节点扩容不同</h4>
+
+
+<h3 id="6">MQ</h3>
+<h4 id="6.1">RabbitMQ,RocketMQ,Kafka区别</h4>
+
+
+<table>
+<thead>
+<tr>
+<th>MQ消息队列</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RabbitMQ</td>
+<td>轻量级、容易部署和使用、支持多种客户端开发语言、支持灵活的路由配置</td>
+<td>对消息堆积的支持并不好、性能和吞吐量较差、使用 Erlang 语言编写，比较难进行二次开发</td>
+</tr>
+<tr>
+<td>RocketMQ</td>
+<td>性能好、稳定可靠、有活跃的中文社区、使用 Java 开发，容易进行二次开发、特点响应快</td>
+<td>兼容性较差</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>兼容性极好、设计上大量使用了批量和异步的思想，有超高的性能</td>
+<td>由于 “先攒一波再一起处理” 的设计，时延较高，不太适合在线业务场景</td>
+</tr>
+</tbody></table>
+<h3 id="7">服务器&其它方面</h3>
+<h4 id="7.1">swoole</h4>
+
+<p>Swoole是一个面向生产环境的PHP 异步网络通信引擎，使PHP 开发人员可以编写高性能的异步并发TCP、UDP、Unix Socket、HTTP，WebSocket 服务</p>
+<h4 id="7.2">phpunit</h4>
+
+<p>PHPUnit 是 PHP 程式语言中最常见的单元测试 (unit testing) 框架，PHPUnit 是参考 xUnit 架构利用 PHP 实作出来。</p>
+<ol>
+<li>针对类 Example 的测试写在类 ExampleTest 中, ExampleTest 继承自 TestCase</li>
+<li>对于方法的测试命名为 test* 的公用方法</li>
+<li>在测试方法内，类似于 assertEquals() 的断言方法用来对实际值和预期值的匹配做出验证</li>
+</ol>
+<h4 id="7.3">php-cs-fixer</h4>
+
+<p>php-cs-fixer 是个代码格式化工具，格式化的标准是 PSR-1、PSR-2 以及一些 symfony 的标准。</p>
+<ul>
+<li>–verbose 用于展示应用了的规则<blockquote>
+<p>–verbose</p>
+</blockquote>
+</li>
+<li>–using-cache 不使用缓存<blockquote>
+<p>–using-cache&#x3D;no</p>
+</blockquote>
+</li>
+<li>–config 指定配置文件<blockquote>
+<p>–config&#x3D;.php-cs-fixer.php</p>
+</blockquote>
+</li>
+<li>–level 用于控制需要使用的规则层级（默认psr2）<blockquote>
+<p>–level&#x3D;psr0<br>–level&#x3D;psr1<br>–level&#x3D;psr2<br>–level&#x3D;symfony</p>
+</blockquote>
+</li>
+<li>–fixers 默认情况下执行的是 PSR-2 的所有选项以及一些附加选项（主要是 symfony 相关的）。还有一些属于『贡献级别』的选项，你可以通过 –fixers 选择性的添加，–fixers 的多个条件要用逗号分开<blockquote>
+<p>–fixers&#x3D;linefeed,short_tag,indentation</p>
+</blockquote>
+</li>
+<li>-name_of_fixer 设定禁用哪些选项。如果同时设定了 –fixers 和 -name_of_fixer，前者的优先级更高</li>
+<li>–dry-run 和 –diff 可以显示出需要修改的汇总，但是并不实际修改<blockquote>
+<p>.&#x2F;vendor&#x2F;bin&#x2F;php-cs-fixer fix –verbose –diff –dry-run</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line"></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff</span></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$finder</span> = PhpCsFixer\Finder::create()</span><br><span class="line">    -&gt;<span class="keyword">in</span>(__DIR__)</span><br><span class="line">    -&gt;name(<span class="string">&#x27;*.php&#x27;</span>)</span><br><span class="line">    -&gt;notName(<span class="string">&#x27;*.blade.php&#x27;</span>); // 排除一些文件类型</span><br><span class="line"></span><br><span class="line"><span class="built_in">return</span> (new PhpCsFixer\Config())</span><br><span class="line">    -&gt;setUsingCache(<span class="literal">false</span>)  // 禁用缓存</span><br><span class="line">    -&gt;setRules([</span><br><span class="line">        <span class="string">&#x27;@PSR12&#x27;</span> =&gt; <span class="literal">true</span>,                      // 使用 PSR-12 标准</span><br><span class="line">        <span class="string">&#x27;no_unused_imports&#x27;</span> =&gt; <span class="literal">true</span>,            // 移除未使用的导入</span><br><span class="line">        <span class="string">&#x27;standardize_not_equals&#x27;</span> =&gt; <span class="literal">true</span>,       // 使用 `!==` 而不是 `&lt;&gt;`</span><br><span class="line">        <span class="string">&#x27;array_indentation&#x27;</span> =&gt; <span class="literal">true</span>,            // 数组缩进一致</span><br><span class="line">        <span class="string">&#x27;binary_operator_spaces&#x27;</span> =&gt; [<span class="string">&#x27;default&#x27;</span> =&gt; <span class="string">&#x27;align&#x27;</span>],  // 二元运算符对齐</span><br><span class="line">        <span class="string">&#x27;no_extra_blank_lines&#x27;</span> =&gt; <span class="literal">true</span>,         // 删除多余空行</span><br><span class="line">        <span class="string">&#x27;visibility_required&#x27;</span> =&gt; [<span class="string">&#x27;elements&#x27;</span> =&gt; [<span class="string">&#x27;property&#x27;</span>, <span class="string">&#x27;method&#x27;</span>]],  // 强制声明可见性</span><br><span class="line">        <span class="string">&#x27;no_trailing_whitespace&#x27;</span> =&gt; <span class="literal">true</span>,       // 删除行尾空白</span><br><span class="line">        <span class="string">&#x27;linebreak_after_opening_tag&#x27;</span> =&gt; <span class="literal">true</span>,  // 在 PHP 开标签后换行</span><br><span class="line">        <span class="string">&#x27;cast_spaces&#x27;</span> =&gt; [<span class="string">&#x27;space&#x27;</span> =&gt; <span class="string">&#x27;single&#x27;</span>], // 类型转换间隔为单空格</span><br><span class="line">        <span class="string">&#x27;align_multiline_comment&#x27;</span> =&gt; <span class="literal">true</span>,      // 多行注释对齐</span><br><span class="line">        <span class="string">&#x27;ternary_operator_spaces&#x27;</span> =&gt; <span class="literal">true</span>,      // 三元运算符间空格</span><br><span class="line">        <span class="string">&#x27;no_blank_lines_after_phpdoc&#x27;</span> =&gt; <span class="literal">true</span>,  // PHPDoc 后不允许空行</span><br><span class="line">        <span class="string">&#x27;method_argument_space&#x27;</span> =&gt; [<span class="string">&#x27;on_multiline&#x27;</span> =&gt; <span class="string">&#x27;ensure_fully_multiline&#x27;</span>],  // 方法参数一致性</span><br><span class="line">    ])</span><br><span class="line">    -&gt;setFinder(<span class="variable">$finder</span>);</span><br></pre></td></tr></table></figure>
+
+<h4 id="7.4">docker多版本启动共用</h4>
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/PHP/">#PHP</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2025/04/17/php-structure/">PHP框架</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/04/17/pressure-testing/">压测工具集合</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/04/17/redis/">Redis</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/04/17/raspberry-pi/">Raspberry Pi 树莓派</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%A7%BB%E5%8A%A8%E7%AB%AF/">移动端</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

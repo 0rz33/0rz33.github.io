@@ -184,18 +184,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/metasploit/">
-                MetaSploit Framwork(MSF)
+            <a href="/2025/04/17/mac/">
+                Mac坑
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/渗透工具/">渗透工具</a>
+                    <a href="/categories/Mac/">Mac</a>
                 </span>
             
         </div>
@@ -203,23 +203,227 @@
 
     
         <div class="content">
-            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><h3 id="模块划分"><a href="#模块划分" class="headerlink" title="模块划分"></a>模块划分</h3><ul>
-<li>辅助模块 (Auxiliary，扫描器)，扫描主机系统，寻找可用漏洞；</li>
-<li>渗透攻击模块 (Exploits)，选择并配置一个漏洞利用模块；</li>
-<li>攻击载荷模块 (Payloads)，选择并配置一个攻击载荷模块；</li>
-<li>后渗透攻击模块 (Post)，用于内网渗透的各种操作；</li>
-<li>编码器模块 (Encoders)，选择编码技术，绕过杀软（或其他免杀方式）；</li>
+            <p>m1 已经是arm处理器</p>
+<ul>
+<li>包管理 brew</li>
+<li><a href="/2025/04/17/shell/" title="Shell">Shell</a></li>
 </ul>
-<h3 id="渗透步骤（exploit）"><a href="#渗透步骤（exploit）" class="headerlink" title="渗透步骤（exploit）"></a>渗透步骤（exploit）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search xxx		<span class="comment">## 搜索某个漏洞</span></span><br><span class="line">use xxx			<span class="comment">## 使用某个漏洞利用模块</span></span><br><span class="line">show options    	<span class="comment">## 查看配置选项</span></span><br><span class="line"><span class="built_in">set</span> payload		<span class="comment">## 配置攻击载荷</span></span><br><span class="line">exploit			<span class="comment">## 执行渗透攻击</span></span><br></pre></td></tr></table></figure>
+<h1 id="launchd-代替-crontab"><a href="#launchd-代替-crontab" class="headerlink" title="launchd 代替 crontab"></a><code>launchd</code> 代替 <code>crontab</code></h1><p></code>crontab</code> 设置后并不起作用</p>
+<p>MacOS 可能禁用了 <code>cron</code>，可以用 <code>launchd</code> 代替：</p>
+<p>launchd 是 MacOS 用来管理系统和用户级别的守护进程的工具</p>
+<ul>
+<li><p>LaunchDaemons（后台服务）</p>
+<ul>
+<li>适用于系统级别的任务，通常以 root 权限运行。</li>
+<li>在 开机时 启动，不依赖用户登录。</li>
+<li>目录：&#x2F;System&#x2F;Library&#x2F;LaunchDaemons&#x2F; 和 &#x2F;Library&#x2F;LaunchDaemons&#x2F;</li>
+<li>适用于系统服务，如数据库、守护进程等。</li>
+</ul>
+</li>
+<li><p>LaunchAgents（用户任务）</p>
+<ul>
+<li>适用于用户级别的任务，以当前用户权限运行。</li>
+<li>在 用户登录后 才会启动。</li>
+<li>目录：&#x2F;System&#x2F;Library&#x2F;LaunchAgents&#x2F;、&#x2F;Library&#x2F;LaunchAgents&#x2F;、~&#x2F;Library&#x2F;LaunchAgents&#x2F;</li>
+<li>适用于个人任务，如开机自动运行应用、定时脚本等。</li>
+</ul>
+</li>
+</ul>
+<p>什么时候用 LaunchDaemons？</p>
+<ol>
+<li>你希望一个进程开机自动运行，而不依赖用户是否登录。</li>
+<li>任务需要root 权限（比如修改系统文件）。</li>
+</ol>
+<p>什么时候用 LaunchAgents？</p>
+<ol>
+<li>任务需要在用户登录后运行，比如启动应用、挂载网络驱动等。</li>
+<li>你不需要 root 权限，而是以当前用户权限运行。</li>
+</ol>
+<h3 id="创建一个定时任务"><a href="#创建一个定时任务" class="headerlink" title="创建一个定时任务"></a>创建一个定时任务</h3><p>每天 下午3点运行一次 &#x2F;Users&#x2F;mac&#x2F;work&#x2F;navCatReset&#x2F;reset_navicat.sh。</p>
+<ol>
+<li>创建 plist 文件</li>
+</ol>
+<p>vi ~&#x2F;Library&#x2F;LaunchAgents&#x2F;com.user.resetnavicat.plist</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;UTF-8&quot;</span>?&gt;</span><br><span class="line">&lt;!DOCTYPE plist PUBLIC <span class="string">&quot;-//Apple//DTD PLIST 1.0//EN&quot;</span> <span class="string">&quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;</span>&gt;</span><br><span class="line">&lt;plist version=<span class="string">&quot;1.0&quot;</span>&gt;</span><br><span class="line">&lt;dict&gt;</span><br><span class="line">    &lt;key&gt;Label&lt;/key&gt;</span><br><span class="line">    &lt;string&gt;com.user.resetnavicat&lt;/string&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;ProgramArguments&lt;/key&gt;</span><br><span class="line">    &lt;array&gt;</span><br><span class="line">        &lt;string&gt;/bin/bash&lt;/string&gt;</span><br><span class="line">        &lt;string&gt;/Users/mac/work/navCatReset/reset_navicat.sh&lt;/string&gt;</span><br><span class="line">    &lt;/array&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;StartCalendarInterval&lt;/key&gt;</span><br><span class="line">    &lt;dict&gt;</span><br><span class="line">        &lt;key&gt;Hour&lt;/key&gt;</span><br><span class="line">        &lt;<span class="built_in">integer</span>&gt;15&lt;/integer&gt;  &lt;!-- 下午3点 --&gt;</span><br><span class="line">        &lt;key&gt;Minute&lt;/key&gt;</span><br><span class="line">        &lt;<span class="built_in">integer</span>&gt;0&lt;/integer&gt;   &lt;!-- 00 分 --&gt;</span><br><span class="line">    &lt;/dict&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;RunAtLoad&lt;/key&gt;</span><br><span class="line">    &lt;<span class="literal">true</span>/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;StandardOutPath&lt;/key&gt;</span><br><span class="line">    &lt;string&gt;/Users/mac/work/navCatReset/cron_stdout.log&lt;/string&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;StandardErrorPath&lt;/key&gt;</span><br><span class="line">    &lt;string&gt;/Users/mac/work/navCatReset/cron_stderr.log&lt;/string&gt;</span><br><span class="line">&lt;/dict&gt;</span><br><span class="line">&lt;/plist&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<h3 id="参数摘要"><a href="#参数摘要" class="headerlink" title="参数摘要"></a>参数摘要</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">reload_all		<span class="comment">#从目录重载所有模块。导入模块也需要用到此命令。</span></span><br><span class="line">back	<span class="comment">#后退命令，移出当前上下文，用于模块切换</span></span><br><span class="line">info	<span class="comment">#目标和模块详细信息</span></span><br><span class="line">check	<span class="comment">#检查目标是否受某个漏洞影响</span></span><br><span class="line"></span><br><span class="line">sessions		<span class="comment">#会话管理</span></span><br><span class="line">sessions -l		<span class="comment">#列出所有会话</span></span><br><span class="line">sessions -K		<span class="comment">#终止所有会话</span></span><br><span class="line">sessions -i <span class="built_in">id</span>	<span class="comment">#进入某个会话</span></span><br><span class="line">sessions -v		<span class="comment">#以详细模式列出会话</span></span><br><span class="line">sessions -u		<span class="comment">#在许多平台上将shell升级到meterpreter会话</span></span><br><span class="line"></span><br><span class="line">show options	<span class="comment">#显示可选选项</span></span><br><span class="line">	 auxiliary	<span class="comment">#显示所有辅助模块</span></span><br><span class="line">	 exploits	<span class="comment">#显示所有漏洞利用模块</span></span><br><span class="line">	 payloads	<span class="comment">#显示所有有效载荷</span></span><br><span class="line">	 targets	<span class="comment">#显示所有可用目标</span></span><br><span class="line">	 advanced	<span class="comment">#显示更多高级选项</span></span><br><span class="line">	 encoders	<span class="comment">#显示可用编码器列表</span></span><br><span class="line">	 </span><br><span class="line"><span class="built_in">unset</span> [Module Options]    <span class="comment">#清除Module Options</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>加载任务</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">launchctl load ~/Library/LaunchAgents/com.user.resetnavicat.plist</span><br></pre></td></tr></table></figure>
 
+<ol start="3">
+<li>检查是否成功</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">launchctl list | grep com.user.resetnavicat</span><br></pre></td></tr></table></figure>
 
-<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>重新加载或修改后生效</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">launchctl unload ~/Library/LaunchAgents/com.user.resetnavicat.plist</span><br><span class="line">launchctl load ~/Library/LaunchAgents/com.user.resetnavicat.plist</span><br></pre></td></tr></table></figure>
 
-<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>停止任务</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">launchctl remove com.user.resetnavicat</span><br></pre></td></tr></table></figure>
+        </div>
+    
 
-<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a><br><a target="_blank" rel="noopener" href="https://sh1yan.top/2019/07/28/MSF-Command-Notes/">https://sh1yan.top/2019/07/28/MSF-Command-Notes/</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/LyShark/p/12189163.html">https://www.cnblogs.com/LyShark/p/12189163.html</a><br><a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/tools/metasploit.html">https://wiki.wgpsec.org/knowledge/tools/metasploit.html</a></p>
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/04/17/mongodb/">
+                MongoDB
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-04-17</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#1">基础</a><ul>
+<li><a href="#1.1">MySQL和mongodb的区别</a></li>
+<li><a href="#1.1">分析器在MongoDB中的作用</a></li>
+<li><a href="#1.1">名字空间(namespace)是</a></li>
+<li><a href="#1.1">如果用户移除对象的属性，该属性是否从存储层中删除</a></li>
+<li><a href="#1.1">允许空值null吗</a></li>
+<li><a href="#1.1">更新操作立刻fsync到磁盘</a></li>
+<li><a href="#1.1">如何执行事务&#x2F;加锁</a></li>
+<li><a href="#1.1">数据文件如此庞大</a></li>
+<li><a href="#1.1">启用备份故障恢复需要多久</a></li>
+<li><a href="#1.1">什么是master或primary</a></li>
+<li><a href="#1.1">什么是secondary或slave</a></li>
+<li><a href="#1.1">我必须调用getLastError来确保写操作生效了么</a></li>
+<li><a href="#1.1">分片(sharding)和复制(replication)是怎样工作的</a></li>
+<li><a href="#1.1">数据在什么时候才会扩展到多个分片(shard)里</a></li>
+</ul>
+</li>
+</ul>
+<p>非关系型数据库 -&gt; 文档数据库<br>可提供高性能，高可用性和易扩展性。<br>数据模型实现，接口，对想存储以及复制方法</p>
+<p>GridFS是一种将大型文件存储在MongoDB的文件规范。 所有官方支持的驱动均实现了GridFS规范。 GridFS是MongoDB中的一个内置功能，可以用于存放文件。 数据库支持以(BSON格式<code>Binary JSON</code>)保存二进制对象。</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><table>
+<thead>
+<tr>
+<th>SQL术语&#x2F;概念</th>
+<th>MongoDB 术语&#x2F;概念</th>
+<th>解释&#x2F;说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>database</td>
+<td>database</td>
+<td>数据库</td>
+</tr>
+<tr>
+<td>table</td>
+<td>collection</td>
+<td>数据库表&#x2F;集合</td>
+</tr>
+<tr>
+<td>row</td>
+<td>document</td>
+<td>数据记录行&#x2F;文档</td>
+</tr>
+<tr>
+<td>column</td>
+<td>field</td>
+<td>数据字段&#x2F;域</td>
+</tr>
+<tr>
+<td>index</td>
+<td>index</td>
+<td>索引</td>
+</tr>
+<tr>
+<td>table joins</td>
+<td></td>
+<td>表连接,MongoDB不支持</td>
+</tr>
+<tr>
+<td>primary key</td>
+<td>primary key</td>
+<td>主键,MongoDB自动将_id字段设置为主键</td>
+</tr>
+</tbody></table>
+<h2 id="MySQL和mongodb的区别"><a href="#MySQL和mongodb的区别" class="headerlink" title="MySQL和mongodb的区别"></a>MySQL和mongodb的区别</h2><table>
+<thead>
+<tr>
+<th>形式</th>
+<th>MongoDB</th>
+<th>MySQL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据库模型</td>
+<td>非关系型</td>
+<td>关系型</td>
+</tr>
+<tr>
+<td>存储方式</td>
+<td></td>
+<td>虚拟内存+持久化</td>
+</tr>
+<tr>
+<td>查询语句</td>
+<td>独特的MongoDB查询方式</td>
+<td>传统SQL语句</td>
+</tr>
+<tr>
+<td>架构特点</td>
+<td>副本集以及分片</td>
+<td>常见单点、M-S、MHA、MMM等架构方式</td>
+</tr>
+<tr>
+<td>数据处理方式</td>
+<td>基于内存，将热数据存在物理内存中，从而达到高速读写</td>
+<td>不同的引擎拥有自己的特点</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>事件的记录，内容管理或者博客平台等数据大且非结构化数据的场景</td>
+<td>适用于数据量少且很多结构化数据</td>
+</tr>
+</tbody></table>
+<p>索引类型</p>
+<ul>
+<li>单字段索引(Single Field Indexes)</li>
+<li>复合索引(Compound Indexes)</li>
+<li>多键索引(Multikey Indexes)</li>
+<li>全文索引(text Indexes)</li>
+<li>Hash 索引(Hash Indexes)</li>
+<li>通配符索引(Wildcard Index)</li>
+<li>2dsphere索引(2dsphere Indexes)</li>
+</ul>
+<h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 批量更新 click, favorite, love, notlove</span></span><br><span class="line">db.getCollection(<span class="string">&quot;post&quot;</span>).updateMany(&#123; <span class="variable">$set</span>: &#123;</span><br><span class="line">        click: 0,</span><br><span class="line">        favorite: 0,</span><br><span class="line">        love: 0,</span><br><span class="line">        notlove:0</span><br><span class="line">    &#125; </span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查询age字段不存在并且批量更新为1</span></span><br><span class="line">db.getCollection(<span class="string">&quot;users&quot;</span>).updateMany(</span><br><span class="line">    &#123; age: &#123; <span class="variable">$exists</span>: <span class="literal">false</span> &#125; &#125;, </span><br><span class="line">    &#123; <span class="variable">$set</span>: &#123; age: 18 &#125; &#125; </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h3><ul>
+<li>导入 - 多集合</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span> </span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span> </span><br><span class="line">DATABASE=<span class="string">&quot;&quot;</span> </span><br><span class="line">FOLDER_PATH=<span class="string">&quot;/data/db/backup_dev_20250115&quot;</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历文件夹 </span></span><br><span class="line"><span class="keyword">for</span> DIR <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$FOLDER_PATH</span>&quot;</span>/*/; <span class="keyword">do</span> </span><br><span class="line">	COLLECTION_NAME=$(<span class="built_in">basename</span> <span class="string">&quot;<span class="variable">$DIR</span>&quot;</span>) </span><br><span class="line">	mongorestore --db <span class="variable">$COLLECTION_NAME</span> <span class="variable">$DIR</span>  -j 100</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;所有文件导入完成！&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>备份-多集合</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/data/db/dbback&quot;</span>        <span class="comment"># 备份存储目录</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span>           <span class="comment"># MongoDB 主机</span></span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span>               <span class="comment"># MongoDB 端口</span></span><br><span class="line">PJ=<span class="string">&quot;dev&quot;</span>                        <span class="comment"># 项目名称</span></span><br><span class="line">DATE=$(<span class="built_in">date</span> +%Y%m%d)             <span class="comment"># 当前日期，格式为 YYYYMMDD</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_.log&quot;</span>  <span class="comment"># 日志文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 要排除的集合（可以根据需要修改）</span></span><br><span class="line">EXCLUDE_COLLECTIONS=(<span class="string">&quot;app_log&quot;</span> <span class="string">&quot;comics_history&quot;</span> <span class="string">&quot;movie_history&quot;</span> <span class="string">&quot;novel_history&quot;</span> <span class="string">&quot;post_history&quot;</span>)  <span class="comment"># 这里列出所有需要排除的集合</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拼接排除集合的参数</span></span><br><span class="line">EXCLUDE_PARAMS=<span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">for</span> collection <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;EXCLUDE_COLLECTIONS[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">    EXCLUDE_PARAMS=<span class="string">&quot;<span class="variable">$EXCLUDE_PARAMS</span> --excludeCollection=<span class="variable">$collection</span>&quot;</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取所有数据库的列表，并排除 local 数据库</span></span><br><span class="line">DATABASES=“”</span><br><span class="line"><span class="comment"># 检查mongo命令是否存在并获取版本信息 </span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">command</span> -v mongo &amp;&gt; /dev/null; <span class="keyword">then</span> </span><br><span class="line">    DATABASES=$(mongo --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --quiet --<span class="built_in">eval</span> <span class="string">&quot;db.adminCommand(&#x27;listDatabases&#x27;).databases.map(function(d) &#123; return d.name; &#125;).filter(function(name) &#123; return name != &#x27;local&#x27;; &#125;).join(&#x27; &#x27;);&quot;</span>)</span><br><span class="line"><span class="keyword">elif</span> <span class="built_in">command</span> -v mongosh &amp;&gt; /dev/null; <span class="keyword">then</span> </span><br><span class="line">    DATABASES=$(mongosh --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --quiet --<span class="built_in">eval</span> <span class="string">&quot;db.adminCommand(&#x27;listDatabases&#x27;).databases.map(function(d) &#123; return d.name; &#125;).filter(function(name) &#123; return name != &#x27;local&#x27;; &#125;).join(&#x27; &#x27;);&quot;</span>)</span><br><span class="line"><span class="keyword">else</span> </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;MongoDB未安装或未在PATH中找到。&quot;</span> </span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份目标文件夹</span></span><br><span class="line">BACKUP_PATH=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志记录函数</span></span><br><span class="line"><span class="function"><span class="title">log_msg</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(date +&#x27;%Y-%m-%d %H:%M:%S&#x27;)</span> - <span class="variable">$1</span>&quot;</span> | <span class="built_in">tee</span> -a <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历所有数据库进行备份</span></span><br><span class="line"><span class="keyword">for</span> DB_NAME <span class="keyword">in</span> <span class="variable">$DATABASES</span>; <span class="keyword">do</span></span><br><span class="line">    log_msg <span class="string">&quot;开始备份数据库 <span class="variable">$DB_NAME</span>...&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 执行备份</span></span><br><span class="line">    mongodump --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --db <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span> --out <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span> <span class="variable">$EXCLUDE_PARAMS</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">        log_msg <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 备份成功！&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        log_msg <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 备份失败！&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建压缩包并删除备份文件夹</span></span><br><span class="line">log_msg <span class="string">&quot;开始创建压缩包...&quot;</span></span><br><span class="line">tar -zcvf <span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>.tar.gz&quot;</span> -C <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"><span class="built_in">rm</span> -rf <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除7天前的备份</span></span><br><span class="line">log_msg <span class="string">&quot;删除超过7天的旧备份...&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> f -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*.tar.gz&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -f &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> d -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -rf &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">log_msg <span class="string">&quot;备份完成，过期备份清理完成！&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>聚合</p>
+<p>mongodb 副本集的主的选举–优先级设置</p>
+<p>分片<br>复制集</p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904186300071943">https://juejin.cn/post/6844904186300071943</a></p>
 
         </div>
     
@@ -231,13 +435,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/mysql-MyISAM-InnoDB/">
+            <a href="/2025/04/17/mysql-MyISAM-InnoDB/">
                 Mysql-MyISAM与InnoDB对比及用法
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
@@ -411,13 +615,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/mysql-migrate-main-sub/">
+            <a href="/2025/04/17/mysql-migrate-main-sub/">
                 Mysql-数据迁移-主从
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
@@ -466,13 +670,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/mysql-migrate/">
+            <a href="/2025/04/17/mysql-migrate/">
                 Mysql-数据迁移-基础篇
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
@@ -522,13 +726,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/mysql/">
+            <a href="/2025/04/17/mysql/">
                 Mysql-basic
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
@@ -600,13 +804,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/natcat/">
+            <a href="/2025/04/17/natcat/">
                 Natcat
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
@@ -642,56 +846,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/nmap/">
-                NMAP
+            <a href="/2025/04/17/NLP---/">
+                自然语言处理(NLP)
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透工具/">渗透工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>Network Mapper，是一款开放源代码的网络探测和安全审核的工具 </p>
-<h3 id="快速扫描"><a href="#快速扫描" class="headerlink" title="快速扫描"></a>快速扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##  默认发送一个arp的ping数据包 默认1-10000端口</span></span><br><span class="line">nmap 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 多个目标</span></span><br><span class="line">nmap 192.168.9.167 192.168.9.168 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口扫描 3389 20-200端口</span></span><br><span class="line">nmap -p 3389，20-200 192.168.9.167 </span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描除了指定ip外（192.168.9.168）或者txt</span></span><br><span class="line">nmap 192.168.9.1/24 -exclude 192.168.9.168</span><br><span class="line">nmap 192.168.9.1/24 -excludefile XXX.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 显示扫描 所有主机列表</span></span><br><span class="line">nmap -sL 192.168.9.1/24 </span><br></pre></td></tr></table></figure>
-
-<h3 id="特殊扫描"><a href="#特殊扫描" class="headerlink" title="特殊扫描"></a>特殊扫描</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 类似于win/linxu ping方式扫描</span></span><br><span class="line">nmap -sP 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## SYN 不会再目标主机上产生任何日志记录</span></span><br><span class="line">nmap -sT 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## UDP </span></span><br><span class="line">nmap -sD 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## FIN标志</span></span><br><span class="line">nmap -sF 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## version 版本扫描</span></span><br><span class="line">nmap -sV 192.168.1.1-255</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS 操作系统探测</span></span><br><span class="line">nmap -O 192.168.1.1-255</span><br></pre></td></tr></table></figure>
-
-<h3 id="扫描格式"><a href="#扫描格式" class="headerlink" title="扫描格式"></a>扫描格式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## —T 设置时间</span></span><br><span class="line"><span class="comment"># 0 paranoid 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 1 sneakys 用于IDS躲避</span></span><br><span class="line"><span class="comment"># 2 polite 降低扫描速度减少带宽和目标主机资源</span></span><br><span class="line"><span class="comment"># 3 normal 默认</span></span><br><span class="line"><span class="comment"># 4 aggressive 用户在网速极高的守候可用于快速扫描</span></span><br><span class="line"><span class="comment"># 5 nsane 特别快的网络为获取速度愿意牺牲准确性</span></span><br><span class="line">nmap -sS —T&lt;0-5&gt; 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 网段格式</span></span><br><span class="line"><span class="comment"># CIDR 子网掩码</span></span><br><span class="line"><span class="comment"># /24 C段  192.168.1.0/24 == 192.168.1.1 - 192.168.1.255</span></span><br><span class="line"><span class="comment"># /16 B段  192.168.1.0/16 == 192.168.1.1 - 192.1.255.255</span></span><br><span class="line"><span class="comment"># /8 A段  192.168.1.0/8 == 192.168.1.1 - 192.255.255.255</span></span><br><span class="line">nmap -sP 192.168.1.0/24</span><br><span class="line"></span><br><span class="line"><span class="comment">## 从文件中读取扫描IP列表</span></span><br><span class="line">$ <span class="built_in">cat</span> gg.txt</span><br><span class="line">192.168.1.1</span><br><span class="line">192.168.1.2</span><br><span class="line"></span><br><span class="line">nmap -iL gg.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">## 路由跟踪</span></span><br><span class="line">nmap -traceroute www.baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS版本探测</span></span><br><span class="line">nmap -A 192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="comment">## 混合扫描</span></span><br><span class="line">nmap -vv -p 100,3306,5000-5100 -O -traceroute 192.168.1.1</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
-
-<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
-
-<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/12/27/ollama/">
-                Ollama
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
@@ -704,41 +865,117 @@
 
     
         <div class="content">
-            <p><code>Ollama</code> 是一个基于 Go 语言开发的简单易用的本地大语言模型运行框架。<br>适用于macOS，Linux，Window，也可使用Docker</p>
-<p>模型管理 ：</p>
-<ul>
-<li><code>ollama list</code> 显示模型列表。</li>
-<li><code>ollama show</code> 显示模型的信息</li>
-<li><code>ollama pull</code> 拉取模型</li>
-<li><code>ollama push</code> 推送模型</li>
-<li><code>ollama cp</code>   拷贝一个模型</li>
-<li><code>ollama rm</code>   删除一个模型</li>
-<li><code>ollama run</code>  运行一个模型</li>
-</ul>
-<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h3 id="下载并使用模型"><a href="#下载并使用模型" class="headerlink" title="下载并使用模型"></a>下载并使用模型</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ollama pull llama3.2 <span class="comment">#下载模型</span></span><br><span class="line">ollama run llama3.2 <span class="comment">#运行模型</span></span><br></pre></td></tr></table></figure>
+            <p><img src="/images/ai-career.png"></p>
+<p>Natural Language Processing (NLP) - 自然语言处理<br>旨在让计算机理解、生成和处理人类语言。它涵盖了从文本分析到语音识别的广泛领域。</p>
+<pre class="mermaid">mindmap
+  root((人工智能 AI))
+    NLP
+      词向量
+      句法分析
+      语义分析
+      预训练语言模型
+        BERT
+        GPT
+        T5
 
-<h3 id="WebUI-可视化交互"><a href="#WebUI-可视化交互" class="headerlink" title="WebUI 可视化交互"></a><a href="git">WebUI 可视化交互</a></h3><h2 id="微调-改进接近ChatGPT"><a href="#微调-改进接近ChatGPT" class="headerlink" title="微调 - 改进接近ChatGPT"></a>微调 - 改进接近ChatGPT</h2><blockquote>
-<p>本机微调<br>docker 微调</p>
-</blockquote>
-<p>芯片训练（GPU CPU NPU）<br>mac m1 比较特殊 用的是mps来进行训练</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/0rz33/LLAMA-Factory">llama_factory安装</a></li>
-<li>llama_factory 运行</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 进入llama_factory docker exec</span></span><br><span class="line">llamafactory-cli <span class="built_in">help</span>  <span class="comment">## 显示帮助信息。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## LLaMA Board 可视化微调</span></span><br><span class="line">llamafactory-cli webui</span><br></pre></td></tr></table></figure>
-<ul>
-<li>训练模型</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 一般会到huggingface里面注册账户 进行训练</span></span><br><span class="line"><span class="comment">## 里面有很多大容量数据 可以提供训练</span></span><br><span class="line"><span class="comment">## 训练前先登录</span></span><br><span class="line">login </span><br></pre></td></tr></table></figure>
+    数学基础
+      随机变量
+      线性代数
+      概率论
+      信息论
+      优化方法
+    
+    机器学习
+      监督学习
+      无监督学习
+      强化学习
+      经典算法
+        回归
+        决策树
+        支持向量机
+        KNN
+        聚类方法
+    
+    深度学习
+      计算机视觉
+      自然语言处理
+      生成模型
+      预训练模型
+      训练技巧
+      框架
+        TensorFlow
+        PyTorch
+    
+    神经网络
+      感知机
+      多层感知机（MLP）
+      卷积神经网络（CNN）
+      递归神经网络（RNN）
+      Transformer</pre>
 
 <ul>
-<li><p>申请数据接口和模型<br><img src="/images/llama-factory-access.png"></p>
-</li>
-<li><p>开始训练模型<br><img src="/images/llama-factory-training-1.png"><br><img src="/images/llama-factory-training-2.png"><br><img src="/images/llama-factory-training-3.png"><br><img src="/images/llama-factory-training-4.png"></p>
-</li>
+<li><a href="#4">多模态</a></li>
+<li><a href="#4">认知神经科学</a></li>
+<li><a href="#4">图神经网络</a></li>
+<li><a href="#4">图像处理</a></li>
+<li><a href="#4">对比学习</a></li>
+<li><a href="#4">语音识别</a></li>
 </ul>
-<p><a target="_blank" rel="noopener" href="https://www.53ai.com/news/qianyanjishu/2015.html">https://www.53ai.com/news/qianyanjishu/2015.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/shanren/p/18251730">https://www.cnblogs.com/shanren/p/18251730</a></p>
-<p><a target="_blank" rel="noopener" href="https://gitee.com/mirrors/HuatuoGPT">在线医生</a></p>
+<h3 id="深度学习模型"><a href="#深度学习模型" class="headerlink" title="深度学习模型"></a>深度学习模型</h3><p>神经网络：</p>
+<ul>
+<li>RNNs (Recurrent Neural Networks) - 循环神经网络<br>  适用于序列数据，如文本。它通过隐藏状态捕捉上下文信息，但存在梯度消失问题</li>
+<li>LSTMs (Long Short-Term Memory networks) - 长短期记忆网络<br>  RNN的改进版本，通过门控机制解决梯度消失问题，适用于长序列数据</li>
+<li>CNN - 卷积神经网络</li>
+<li>MLP</li>
+</ul>
+<h2 id="统计自然语言处理"><a href="#统计自然语言处理" class="headerlink" title="统计自然语言处理"></a>统计自然语言处理</h2><h2 id="深度学习自然语言处理"><a href="#深度学习自然语言处理" class="headerlink" title="深度学习自然语言处理"></a>深度学习自然语言处理</h2><ul>
+<li>文本数据预处理</li>
+<li>各大任务的评价指标</li>
+<li>改进 NLP 模型的一些思路</li>
+</ul>
+<h3 id="词向量三部曲"><a href="#词向量三部曲" class="headerlink" title="词向量三部曲"></a>词向量三部曲</h3><ul>
+<li>词向量 - Word2Vec</li>
+<li>词向量 - Glove</li>
+<li>词向量 - FastText</li>
+</ul>
+<h3 id="预训练语言模型"><a href="#预训练语言模型" class="headerlink" title="预训练语言模型"></a>预训练语言模型</h3><h3 id="预训练模型："><a href="#预训练模型：" class="headerlink" title="预训练模型："></a>预训练模型：</h3><ul>
+<li>BERT</li>
+<li>GPT</li>
+<li>Transformer通过自注意力机制（Self-Attention）捕捉全局依赖关系，无需序列处理。BERT和GPT都是基于Transformer的模型</li>
+</ul>
+<p>预训练语言模型 - BERT改进研究<br>预训练语言模型 - 融入知识图谱<br>预训练语言模型 - 自然语言生成</p>
+<h3 id="Attention-机制"><a href="#Attention-机制" class="headerlink" title="Attention 机制"></a>Attention 机制</h3><p>框架和工具：</p>
+<ul>
+<li>TensorFlow</li>
+<li>PyTorch</li>
+<li>Keras</li>
+<li>Hugging Face</li>
+</ul>
+<h3 id="数据处理和特征工程"><a href="#数据处理和特征工程" class="headerlink" title="数据处理和特征工程"></a>数据处理和特征工程</h3><ul>
+<li>文本预处理：熟悉常见的文本预处理步骤，如分词、去停用词、词干提取和词形还原。</li>
+<li>特征提取：掌握 TF-IDF、word2vec、GloVe 等常用的文本表示方法，了解最新的嵌入技术。</li>
+<li>数据清洗和增强：能够处理缺失数据、异常值，以及数据增强技术的应用，如同义词替换、回译等。</li>
+</ul>
+<p>GRUs (Gated Recurrent Units) </p>
+<p>语料表</p>
+<p>attention(权重)<br>元素-向量</p>
+<p>attention 序列模型机制</p>
+<p>在传统的Encoder-Decoder框架中，Decoder仅仅基于Encoder的最终输出来生成目标语言单词，这样就可能会忽略一些重要的信息，导致翻译效果不佳。为了解决这个问题，Attention机制被引入到Encoder-Decoder框架中，使得Decoder可以根据源语言句子的不同部分赋予不同的权重，从而更加关注重要的信息。</p>
+<ol>
+<li>计算注意力权重：对于每个目标语言单词，通过计算该单词与源语言句子中每个单词的相似度，来确定每个源语言单词对目标语言单词的贡献程度。这个相似度通常使用点积或者余弦相似度进行计算。</li>
+<li>加权求和：对于每个目标语言单词，根据注意力权重对源语言单词的向量进行加权求和，得到一个加权向量表示。</li>
+<li>上下文向量：将加权向量表示与Decoder的上一个隐状态进行拼接，得到上下文向量。上下文向量包含了源语言句子中与当前目标语言单词相关的信息，可以帮助Decoder更好地生成目标语言单词。</li>
+</ol>
+<p>example<br>I am pig</p>
+<ol>
+<li>准备放入数据(向量)[decoderA-编码器] -&gt; [i] [am] [pig] + [decoderA] 变成机器可以识别的特征码</li>
+<li>给每个向量一个得分(分数) -&gt; [i] * [decoderA] &#x3D; [i-score] &#x3D; 13,  [am] * [decoderA] &#x3D; [am-score] &#x3D; 9,  [pig] * [decoderA] &#x3D; [pig-score] &#x3D; 10</li>
+<li>给每个得分一个权重 -&gt; [i-score] * [权重] &#x3D; 0.96, [am-score] * [权重] &#x3D; 0.02, [pig-score] * [权重] &#x3D; 0.12</li>
+<li>重新算得一个平均值 -&gt; 13 * 0.96 &#x3D; [new-i-score], 9 * 0.02 &#x3D; [new-am-score], 10 * 0.12 &#x3D; [new-pig-score]</li>
+<li>合并数值并且[decoderB-解码器] -&gt; [new-i-score] [new-am-score] [new-pig-score] + [decoderB]</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://github.com/songyingxin/NLPer-Interview/blob/master/4-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/%E5%88%86%E7%B1%BB%E6%A8%A1%E5%9E%8B4%20-%20%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF.md">LAS模型</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/cc965/articles/15902135.html">NLP(自然语言处理)算法 最全面面试题</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/gongdiwudu/article/details/135985324">100 个 NLP 面试问题</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/657966244">NLP 自然语言处理 面试题汇总</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/82114104">一文读懂机器学习分类算法</a></p>
 
         </div>
     
@@ -750,47 +987,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2024/12/27/darkweb/">
-                darkweb
+            <a href="/2025/04/17/android/">
+                Android
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2024-12-27</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><p><a target="_blank" rel="noopener" href="http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/">搜索工具</a></p>
-<p><a target="_blank" rel="noopener" href="http://weapon5dj7fwz2zaqa22fqeaqrauclim5kfvecegphrvxeywxoa3wuid.onion/shop.php">黑市交易</a></p>
-<p><a target="_blank" rel="noopener" href="https://onion666.com/">暗网交易中心</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2024/12/27/docker-basic/">
-                Docker
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2024-12-27</span>
+                <span class="date">2025-04-17</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/运维/">运维</a>
+                    <a href="/categories/移动端/">移动端</a>
                 </span>
             
         </div>
@@ -798,212 +1006,59 @@
 
     
         <div class="content">
-            <ul>
-<li><a href="#1">基础</a><ul>
-<li><a href="#1.1">Docker的组成</a></li>
-<li><a href="#1.2">Docker底层技术</a></li>
-<li><a href="#1.3">Docker网络</a></li>
-<li><a href="#1.4">Docker与传统虚拟机的区别</a></li>
-<li><a href="#1.6">容器的copy-on-write特性，修改容器里面的内容会修改镜像</a></li>
-<li><a href="#1.7">Dockerfile的整个构建镜像过程</a></li>
-<li><a href="#1.8">Dockerfile的基本指令</a></li>
-<li><a href="#1.9">如何进入容器，命令</a></li>
-</ul>
-</li>
-<li><a href="#2">Docker-compose</a></li>
-<li><a href="#3">QA</a><ul>
-<li><a href="#3.1">Docker容器时间与宿主机不一致</a></li>
-</ul>
-</li>
-<li><a href="#4">Docker逃逸</a></li>
-</ul>
-<h1 id="1">基础</h1>
-<h2 id="1.1">Docker的组成</h2>
+            <h2 id="安卓学习"><a href="#安卓学习" class="headerlink" title="安卓学习"></a>安卓学习</h2><h3 id="安卓流程"><a href="#安卓流程" class="headerlink" title="安卓流程"></a>安卓流程</h3><p>1 启动活动 根据 此目录来定</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity android:name=<span class="string">&quot;.MainActivity&quot;</span>&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=<span class="string">&quot;android.intent.action.MAIN&quot;</span> /&gt;</span><br><span class="line">        &lt;category android:name=<span class="string">&quot;android.intent.category.LAUNCHER&quot;</span> /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
 
+<p>2 活动生命周期</p>
+<p>MainActivity 的生命周期方法依次被调用：<br>	onCreate(): 初始化。<br>	onStart(): 准备显示。<br>	onResume(): 变为可交互状态。<br>用户与活动交互后，可能会触发其他活动的启动。</p>
+<p>4 导航<br>在 MainActivity 中，可以通过 Intent 启动其他活动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = new Intent(this, SecondActivity.class);</span><br><span class="line">startActivity(intent);</span><br></pre></td></tr></table></figure>
+
+<p>5 其他组件</p>
+<p>应用还可以包含其他组件，如 Service（用于后台任务）、BroadcastReceiver（处理广播）和 ContentProvider（数据共享）</p>
+<p>6 退出应用</p>
+<p>当活动关闭或用户手动退出时，应用的进程可能会被系统终止。此时，onPause()、onStop() 和 onDestroy() 方法依次被调用。</p>
+<p>整个流程可以概括为：用户启动应用 → 系统加载启动活动 → 进入活动生命周期 → 用户交互并导航到其他活动 → 退出应用。理解这一流程有助于你设计用户体验和管理应用状态。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/04/17/armirror/">
+                AR虚拟试衣
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-04-17</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>需要技术</p>
 <ul>
-<li><em><strong>docker client 客户端</strong></em> 👉 docker daemon 交互</li>
-<li><em><strong>docker daemon 守护进程</strong></em> 👉 一般在宿主主机后台运行，等待接收来自客户端的请求消息</li>
-<li><em><strong>docker container 容器</strong></em> 👉 镜像的运行实例，我们可以把镜像看成是一个个的构建块，容器根据这些构建块搭建起了一个隔离的，拥有整个包的应用程序。每一个容器都是一个标准化单元，确保了在不同机子上也能拥有一致的行为</li>
-<li><em><strong>docker image 镜像</strong></em> 👉 包含了操作系统的一张光碟，它是一个模板文件，除了提供容器运行时所需的程序、库、资源、配置等文件外，还包含了一些为运行时准备的一些配置参数（如匿名卷、环境变量、用户等）</li>
-<li><em><strong>数据卷</strong></em> 👉 Docker 对数据持久化的解决方案，数据不会随着容器结束而丢失，通过将宿主机的某一文件目录载到容器里来实现 <code>volumes：</code></li>
-<li><em><strong>网络</strong></em> <ul>
-<li><em><strong>bridge 模式</strong></em> 👉 Docker 在主机上会创建一个<code>docker0</code>的网桥</li>
-<li><em><strong>host 模式</strong></em> 👉 在建一个容器时，一般会为容器分配一个独立的 Network Namespace 以进行网络隔离。如果我们使用了 Host 模式，则不再分配 Network Namespace，而是和宿主机共用一个 Network Namespace。此时容器将不再拥有自己的虚拟网卡、IP 和端口，而是和宿主机共用一个 IP 和端口</li>
-<li><em><strong>none 模式</strong></em> 👉 使用 none 模式的容器拥有属于自己的 Network Namespace，但不做任何网络配置。它和宿主机以及其他容器是不互通的。如果需要和外部通信，则需要自定义网络驱动程序，自己添加网卡、配置 IP 等</li>
-</ul>
+<li><p>视觉：<br>  OpenCV: 这是一个功能强大的计算机视觉库，可以用于检测和追踪人脸、姿态等。这对于在AR试衣应用中准确定位衣物非常有帮助。<br>  <a target="_blank" rel="noopener" href="https://www.oakchina.cn/product/oak-d/">OAK-D是一款嵌入式3D人工智能平台，它在OAK-1的基础上，扩展了两个全局快门高速深度相机，IMU芯片。并且相机内置双目深度计算、AI神经网络推理，帮助用户构建具有真正实时3D对象定位和跟跟踪的产品。</a> 获取高清捕捉</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.oakchina.cn/2022/09/27/home-automation-rpi-oak/">视频捕捉</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://core-electronics.com.au/guides/oak-d-lite-raspberry-pi/">Integrated Computer Vision Package - OAK-D Lite With Raspberry Pi Set Up</a></p>
 </li>
 </ul>
-<h2 id="1.2">Docker底层技术</h2>
-
-<ul>
-<li><em><strong>Namespaces（资源隔离）</strong></em>：将系统的全局资源通过抽象划分，使得在同一 namespace 中的进程看起来拥有自己的全局资源。主要有 Mount namespaces（文件系统挂载）、Network namespaces（网络）、User namespaces（用户）等的资源隔离。</li>
-<li><em><strong>CGroups（资源限制）</strong></em>：对系统资源的限制，比如 CPU、内存等。</li>
-<li><em><strong>UnionFS（联合文件系统）</strong></em>：一次同时加载多个文件系统，但从外面看起来，只能看到一个文件系统，联合加载会把各层文件系统叠加起来，这样最终的文件系统会包含所有底层的文件和目录。便于镜像的分层继承。</li>
-</ul>
-<h2 id="1.3">Docker网络</h2>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker network prune</span><br><span class="line"></span><br><span class="line">docker network <span class="built_in">rm</span> XXX</span><br><span class="line"></span><br><span class="line">docker network list</span><br></pre></td></tr></table></figure>
-
-<h2 id="1.4">Docker与传统虚拟机的区别</h2>
-
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>Docker 容器</th>
-<th>传统虚拟机 (VM)</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>启动速度</strong></td>
-<td>秒级启动 (轻量级)</td>
-<td>分钟级启动 (启动完整操作系统)</td>
-</tr>
-<tr>
-<td><strong>资源占用</strong></td>
-<td>共享主机内核，资源占用小</td>
-<td>每个虚拟机包含完整操作系统，占用大</td>
-</tr>
-<tr>
-<td><strong>架构</strong></td>
-<td>基于容器引擎 (如 Docker Engine)</td>
-<td>基于 Hypervisor (如 VMware、VirtualBox)</td>
-</tr>
-<tr>
-<td><strong>运行效率</strong></td>
-<td>运行在主机操作系统之上，高效</td>
-<td>需通过 Hypervisor 间接访问硬件，性能损耗较大</td>
-</tr>
-<tr>
-<td><strong>文件系统</strong></td>
-<td>分层镜像 (Layered Images)，增量存储</td>
-<td>每个虚拟机独立的磁盘文件 (如 VMDK, VDI)</td>
-</tr>
-<tr>
-<td><strong>隔离性</strong></td>
-<td>进程级隔离，共享主机内核</td>
-<td>完全隔离，虚拟机有自己的内核</td>
-</tr>
-<tr>
-<td><strong>操作系统支持</strong></td>
-<td>仅支持与主机相同的内核 (通常是 Linux)</td>
-<td>支持不同的操作系统 (如在 Windows 上运行 Linux)</td>
-</tr>
-<tr>
-<td><strong>应用场景</strong></td>
-<td>微服务、CI&#x2F;CD、测试环境、轻量服务</td>
-<td>需要完整操作系统的场景，如传统应用、特定依赖环境</td>
-</tr>
-<tr>
-<td><strong>部署方式</strong></td>
-<td>Dockerfile、镜像 (Image)、容器 (Container)</td>
-<td>镜像 (ISO)、虚拟机模板、虚拟机实例</td>
-</tr>
-<tr>
-<td><strong>资源调度</strong></td>
-<td>通过编排工具 (如 Kubernetes) 实现灵活调度</td>
-<td>通过虚拟化平台 (如 vSphere) 进行调度</td>
-</tr>
-<tr>
-<td><strong>迁移灵活性</strong></td>
-<td>容器镜像小，迁移快</td>
-<td>虚拟机文件大，迁移相对慢</td>
-</tr>
-</tbody></table>
-<h2 id="1.6">容器的copy-on-write特性，修改容器里面的内容会修改镜像</h2>
-<h2 id="1.7">Dockerfile的整个构建镜像过程</h2>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker build -t [镜像名]:tag</span><br><span class="line">docker build -t 镜像名:tag -f /xx/xxx/Dockerfile <span class="comment"># 可以使用-f参数来指定dockerfile文件</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h2 id="1.8">Dockerfile的基本指令</h2>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">FROM <span class="comment"># 指定基础镜像（必须为第一个指令，因为需要指定使用哪个基础镜像来构建镜像）；</span></span><br><span class="line"></span><br><span class="line">MAINTAINER <span class="comment"># 设置镜像作者相关信息，如作者名字，日期，邮件，联系方式等；</span></span><br><span class="line"></span><br><span class="line">COPY <span class="comment"># 复制文件到镜像；</span></span><br><span class="line"></span><br><span class="line">ADD <span class="comment"># 复制文件到镜像（ADD与COPY的区别在于，ADD会自动解压tar、zip、tgz、xz等归档文件，而COPY不会，同时ADD指令还可以接一个url下载文件地址，一般建议使用COPY复制文件即可，文件在宿主机上是什么样子复制到镜像里面就是什么样子这样比较好）；</span></span><br><span class="line"></span><br><span class="line">ENV <span class="comment"># 设置环境变量；</span></span><br><span class="line"></span><br><span class="line">EXPOSE <span class="comment"># 暴露容器进程的端口，仅仅是提示别人容器使用的哪个端口，没有过多作用；</span></span><br><span class="line"></span><br><span class="line">VOLUME <span class="comment"># 数据卷持久化，挂载一个目录；</span></span><br><span class="line"></span><br><span class="line">WORKDIR <span class="comment"># 设置工作目录，如果目录不在，则会自动创建目录；</span></span><br><span class="line"></span><br><span class="line">RUN <span class="comment"># 在容器中运行命令，RUN指令会创建新的镜像层，RUN指令经常被用于安装软件包；</span></span><br><span class="line"></span><br><span class="line">CMD <span class="comment"># 指定容器启动时默认运行哪些命令，如果有多个CMD，则只有最后一个生效，另外，CMD指令可以被docker run之后的参数替换；</span></span><br><span class="line"></span><br><span class="line">ENTRYOINT <span class="comment"># 指定容器启动时运行哪些命令，如果有多个ENTRYOINT，则只有最后一个生效，另外，如果Dockerfile中同时存在CMD和ENTRYOINT，那么CMD或docker run之后的参数将被当做参数传递给ENTRYOINT；</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="1.9">进入/容器/命令</h2>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 容器生命周期管理</span></span><br><span class="line"><span class="comment"># 搜索镜像</span></span><br><span class="line">docker search centos</span><br><span class="line"><span class="comment"># 查看镜像层级关系</span></span><br><span class="line">docker images --tree</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看容器状态</span></span><br><span class="line">docker ps -a                <span class="comment"># 列出所有容器 (包含停止状态)</span></span><br><span class="line">docker ps                   <span class="comment"># 仅列出运行中的容器</span></span><br><span class="line">docker inspect my_nginx     <span class="comment"># 查看容器详细信息</span></span><br><span class="line">docker logs my_nginx        <span class="comment"># 查看容器日志输出</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建并运行容器</span></span><br><span class="line">docker run -d --name my_nginx -p 8080:80 nginx</span><br><span class="line"></span><br><span class="line"><span class="comment">### 启动、停止、重启容器</span></span><br><span class="line">docker start my_nginx       <span class="comment"># 启动已存在但停止的容器</span></span><br><span class="line">docker start $(docker ps -aq) <span class="comment"># 启动所有容器</span></span><br><span class="line">docker stop my_nginx        <span class="comment"># 停止正在运行的容器</span></span><br><span class="line">docker restart my_nginx     <span class="comment"># 重启容器 (相当于 stop + start)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 立即强制停止容器</span></span><br><span class="line">docker <span class="built_in">kill</span> my_nginx</span><br><span class="line"></span><br><span class="line"><span class="comment">### 删除容器</span></span><br><span class="line">docker <span class="built_in">rm</span> my_nginx          <span class="comment"># 删除的容器</span></span><br><span class="line">docker <span class="built_in">rm</span> -f my_nginx       <span class="comment"># 强制删除运行中的容器 (相当于 kill + rm)</span></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -q -f status=exited) <span class="comment"># 删除所有已退出的容器</span></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -a -q)  <span class="comment"># 删除所有已停止的容器</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除所有正在运行和已停止的容器</span></span><br><span class="line">docker stop $(docker ps -a -q)</span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -a -q)</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -aq)  <span class="comment"># 删除所有容器 (小心使用)</span></span><br><span class="line">docker rmi $(docker images -q) <span class="comment"># 删除所有镜像</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### Docker 资源清理</span></span><br><span class="line">docker container prune	<span class="comment"># 删除所有退出状态的容器</span></span><br><span class="line">docker image prune			<span class="comment"># 删除 dangling 或所有未被使用的镜像</span></span><br><span class="line">docker network prune		<span class="comment"># 删除所有未使用的网络</span></span><br><span class="line">docker volume prune			<span class="comment"># 删除未被使用的数据卷</span></span><br><span class="line">docker system prune			<span class="comment"># 删除已停止的容器、dangling 镜像、未被容器引用的 network 和构建过程中的 cache，安全起见，这个命令默认不会删除那些未被任何容器引用的数据卷，如果需要同时删除这些数据卷，你需要显式的指定 --volumns 参数</span></span><br><span class="line">docker system prune --all --force --volumns 	<span class="comment"># 这次不仅会删除数据卷，而且连确认的过程都没有了！注意，使用 --all 参数后会删除所有未被引用</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 暂停与恢复容器</span></span><br><span class="line">docker pause my_nginx       <span class="comment"># 暂停容器中的所有进程</span></span><br><span class="line">docker unpause my_nginx     <span class="comment"># 恢复被暂停的容器</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### 进入容器 </span></span><br><span class="line"><span class="comment"># attach  命令是attach到容器启动命令的终端</span></span><br><span class="line">docker attach my_nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># exec  是另外在容器里面启动一个TTY终端</span></span><br><span class="line">docker <span class="built_in">exec</span> -it my_nginx /bin/bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 也可以执行单次命令，而不进入交互模式</span></span><br><span class="line">docker <span class="built_in">exec</span> my_nginx <span class="built_in">ls</span> /usr/share/nginx/html</span><br><span class="line"></span><br><span class="line"><span class="comment">### 文件传输</span></span><br><span class="line">docker <span class="built_in">cp</span> [本地文件路径] [ID全称]:[容器路径]</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">docker <span class="built_in">cp</span> [ID全称]:[容器文件路径] [本地路径]</span><br><span class="line"></span><br><span class="line"><span class="comment">### 后台运行docker</span></span><br><span class="line">docker run -d</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h5 id="导出导入镜像"><a href="#导出导入镜像" class="headerlink" title="导出导入镜像"></a>导出导入镜像</h5><p>export\import 与 save\load 的区别：</p>
-<ul>
-<li><p>export\import 导出的镜像文件大小要小于 save\load 导出的镜像</p>
-</li>
-<li><p>export\import 是根据容器拿到的镜像，再导入时会丢失镜像所有的历史，所以无法进行回滚操作；而 save\load 的镜像，没有丢失镜像的历史，可以回滚到之前的层。</p>
-</li>
-</ul>
-<p>核心原因是 export 是针对容器的导出，所以只有所有层组合的最终版本；而 save 则是针对镜像的，所以可以看到每一层的信息。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### 导出导入镜像</span></span><br><span class="line"><span class="comment"># export\import 导入导出</span></span><br><span class="line">docker <span class="built_in">export</span> web &gt; /home/docker_web.tar</span><br><span class="line">docker import /home/docker_web.tar</span><br><span class="line"></span><br><span class="line"><span class="comment"># save\load 导入导出</span></span><br><span class="line">docker save 9610cfc68e8d &gt; /home/docker_web.tar</span><br><span class="line">docker load &lt; /home/docker_web.tar</span><br></pre></td></tr></table></figure>
-
-<h5 id="修改正在运行的容器端口映射"><a href="#修改正在运行的容器端口映射" class="headerlink" title="修改正在运行的容器端口映射"></a>修改正在运行的容器端口映射</h5><ol>
-<li>停止容器</li>
-<li>停止 docker 服务(systemctl stop docker)</li>
-<li>修改这个容器的 hostconfig.json 文件中的端口（原帖有人提到，如果 config.v2.json 里面也记录了端口，也要修改）</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /var/lib/docker/3b6ef264a040* 	<span class="comment"># 这里是 CONTAINER ID</span></span><br><span class="line"></span><br><span class="line">vi hostconfig.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果之前没有端口映射, 应该有这样的一段:</span></span><br><span class="line"><span class="string">&quot;PortBindings&quot;</span>:&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 增加一个映射, 这样写:</span></span><br><span class="line"><span class="string">&quot;PortBindings&quot;</span>:&#123;<span class="string">&quot;3306/tcp&quot;</span>:[&#123;<span class="string">&quot;HostIp&quot;</span>:<span class="string">&quot;&quot;</span>,<span class="string">&quot;HostPort&quot;</span>:<span class="string">&quot;3307&quot;</span>&#125;]&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 前一个数字是容器端口, 后一个是宿主机端口</span></span><br><span class="line"><span class="comment"># 而修改现有端口映射更简单, 把端口号改掉就行</span></span><br></pre></td></tr></table></figure>
-<ol start="4">
-<li>启动docker服务(systemctl start docker)</li>
-<li>启动容器</li>
-</ol>
-<h1 id="2">docker-compose</h1>
-
-<ul>
-<li>192网段</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">version: <span class="string">&#x27;3&#x27;</span></span><br><span class="line">services:</span><br><span class="line">  app:</span><br><span class="line">    network_mode: bridge</span><br><span class="line">    IP: 192.168.1.100</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&quot;8080:8080&quot;</span></span><br><span class="line">    depends_on:</span><br><span class="line">      - db</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line">  my-network:</span><br><span class="line">    driver: bridge</span><br><span class="line">    ipam:</span><br><span class="line">      config:</span><br><span class="line">        - subnet: 192.168.1.0/24</span><br><span class="line"></span><br><span class="line">$ docker-compose up --net=my-network</span><br></pre></td></tr></table></figure>
-
-<h1 id="3">QA</h1>
-
-<h2 id="3.1">Docker容器时间与宿主机不一致</h2>
-
-<h3 id="方法一：初始化容器时，容器时间与宿主机同步，docker-run-添加时间参数"><a href="#方法一：初始化容器时，容器时间与宿主机同步，docker-run-添加时间参数" class="headerlink" title="方法一：初始化容器时，容器时间与宿主机同步，docker run 添加时间参数"></a>方法一：初始化容器时，容器时间与宿主机同步，docker run 添加时间参数</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker  run -itd --privileged=<span class="literal">true</span> -v /etc/localtime:/etc/localtime:ro</span><br></pre></td></tr></table></figure>
-
-<h3 id="方法二：Dockerfile解决方案"><a href="#方法二：Dockerfile解决方案" class="headerlink" title="方法二：Dockerfile解决方案"></a>方法二：Dockerfile解决方案</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 方法1</span></span><br><span class="line"><span class="comment"># 添加时区环境变量，亚洲，上海</span></span><br><span class="line">ENV TimeZone=Asia/Shanghai</span><br><span class="line"><span class="comment"># 使用软连接，并且将时区配置覆盖/etc/timezone</span></span><br><span class="line">RUN <span class="built_in">ln</span> -snf /usr/share/zoneinfo/<span class="variable">$TimeZone</span> /etc/localtime &amp;&amp; <span class="built_in">echo</span> <span class="variable">$TimeZone</span> &gt; /etc/timezone</span><br><span class="line">  </span><br><span class="line"><span class="comment"># 方法2</span></span><br><span class="line"><span class="comment"># CentOS</span></span><br><span class="line">RUN <span class="built_in">echo</span> <span class="string">&quot;Asia/shanghai&quot;</span> &gt; /etc/timezone</span><br><span class="line"><span class="comment"># Ubuntu</span></span><br><span class="line">RUN <span class="built_in">cp</span> /usr/share/zoneinfo/Asia/Shanghai /etc/localtime</span><br></pre></td></tr></table></figure>
-
-<h3 id="方法三：docker-compose解决方案"><a href="#方法三：docker-compose解决方案" class="headerlink" title="方法三：docker-compose解决方案"></a>方法三：docker-compose解决方案</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#第一种方式(推荐)：</span></span><br><span class="line">environment:</span><br><span class="line">  TZ: Asia/Shanghai</span><br><span class="line">  </span><br><span class="line"><span class="comment">#第二种方式：</span></span><br><span class="line">environment:</span><br><span class="line">  SET_CONTAINER_TIMEZONE=<span class="literal">true</span></span><br><span class="line">  CONTAINER_TIMEZONE=Asia/Shanghai</span><br><span class="line">  </span><br><span class="line"><span class="comment">#第三种方式：</span></span><br><span class="line">volumes:</span><br><span class="line">  - /etc/timezone:/etc/timezone</span><br><span class="line">  - /etc/localtime:/etc/localtime</span><br></pre></td></tr></table></figure>
-
-<h3 id="方法四：正在运行的容器，可以宿主机直接执行命令给某个容器同步时间"><a href="#方法四：正在运行的容器，可以宿主机直接执行命令给某个容器同步时间" class="headerlink" title="方法四：正在运行的容器，可以宿主机直接执行命令给某个容器同步时间"></a>方法四：正在运行的容器，可以宿主机直接执行命令给某个容器同步时间</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#方法1  直接在宿主机操作</span></span><br><span class="line">docker <span class="built_in">cp</span> /etc/localtime 【容器ID或者NAME】:/etc/localtime</span><br><span class="line">docker <span class="built_in">cp</span> -L /usr/share/zoneinfo/Asia/Shanghai 【容器ID或者NAME】:/etc/localtime</span><br><span class="line">  </span><br><span class="line"><span class="comment">#方法2  登录容器同步时区timezone，一般是因为时区不同导致时间差</span></span><br><span class="line"><span class="built_in">ln</span> -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime</span><br></pre></td></tr></table></figure>
-
-<h1 id="4">Docker逃逸</h1>
-
-<ul>
-<li><p>容器镜像存在的风险</p>
-</li>
-<li><p>活动中的容器存在的风险</p>
-<ul>
-<li><p>不安全的容器应用</p>
-</li>
-<li><p>不受限制的资源共享</p>
-</li>
-<li><p>不安全的配置与挂载</p>
-<p>如果为容器设定了不安全的配置，会导致容器本身的隔离机制失效，容器的两大隔离机制如下：</p>
-<ul>
-<li>Linux 命名空间（NameSpace）：实现文件系统、网络、进程、主机名等方面的隔离</li>
-<li>Linux 控制组（cgroups）：实现 CPU、内存、硬盘等方面的隔离</li>
-</ul>
-<p>如果设定了以下配置就会导致相应的隔离机制失效：</p>
-<ul>
-<li>–privileged：使容器内的 root 权限和宿主机上的 root 权限一致，权限隔离被打破</li>
-<li>–net&#x3D;host：使容器与宿主机处于同一网络命名空间，网络隔离被打破</li>
-<li>–pid&#x3D;host：使容器与宿主机处于同一进程命令空间，进程隔离被打破</li>
-<li>–volume &#x2F;:&#x2F;host：宿主机根目录被挂载到容器内部，文件系统隔离被打破</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>容器管理程序接口的风险</p>
-<p>Docker 守护进程主要监听 UNIX socket 和 TCP socket，默认情况下，Docker 只会监听 UNIX socket</p>
-<ul>
-<li><p>UNIX socket<br>UNIX socket 的风险主要在于 Docker 守护进程默认以宿主机的 root 权限运行，因此就可以借助这点进行提权或者容器逃逸。<br>这类风险主要有两个利用场景：</p>
-<p>  普通用户被加到 Docker 用户组内<br>  如果普通用户被加入到 Docker 用户组内，那么普通用户也将有权限访问 Docker UNIX socket，如果攻击者获得了这个普通用户权限，就可以借助 Docker 提权到 root 用户权限。</p>
-<p>  具体的做法可以简单描述为：使用普通用户创建一个 privileged 为 true 的容器，在该容器内挂载宿主机硬盘并写入定时任务，然后将宿主机的 root 权限反弹回来，后期将详细介绍这种方法的使用。</p>
-<p>  UNIX socket 挂载到容器内部<br>  有时为了实现容器内部管理容器，可能会将 Docker UNIX socket 挂载到容器内部，那么如果该容器被入侵，RT 就可以借助这个 socket 进行容器逃逸获得宿主机 root 权限。</p>
-</li>
-<li><p>TCP socket<br>现在 Docker 守护进程默认不会监听 TCP socket，不过有时可能用户会因为方便开启 TCP socket 的监听，一般默认监听端口是 2375</p>
-<p>默认情况下，Docker 守护进程 TCP socket 是无加密无认证的，因此如果发现宿主机 Docker 开放了 TCP socket，就可以直接使用 docker -H 接管目标的容器</p>
-</li>
-</ul>
-</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://wiki.teamssix.com/cloudnative/docker/cve-2022-0847-dirty-pipe.html">docker 逃逸</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Balcher/p/17659481.html">AI换衣功能</a><br><a target="_blank" rel="noopener" href="https://juejin.cn/post/6897605923653550094">a</a></p>
 
         </div>
     
@@ -1052,19 +1107,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/03/03/NLP-deep-learning-NLP/">自然语言处理(NLP)-深度学习自然语言处理</a>
+                <a class="footer-post" href="/2025/04/17/php-structure/">PHP框架</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/03/03/NLP-deep-learning/">自然语言处理(NLP)-深度学习</a>
+                <a class="footer-post" href="/2025/04/17/pressure-testing/">压测工具集合</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/03/03/NLP-machine-learning/">自然语言处理(NLP)-机器学习</a>
+                <a class="footer-post" href="/2025/04/17/redis/">Redis</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/03/03/NLP-math/">自然语言处理(NLP)-数学基础</a>
+                <a class="footer-post" href="/2025/04/17/raspberry-pi/">Raspberry Pi 树莓派</a>
             </li>
             
         </ul>
