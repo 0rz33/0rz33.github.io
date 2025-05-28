@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="freqtrade量化-文档
+
+docker-compose 安装到本地
+策略定制
+策略
+
+
+XGBoost 训练模型
+流程
+
+
+结合 Freqai
+
+docker-compose 安装到本地添加 config.json 和 SampleStrategy.py 两个文件
+12--config /fr">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="freqtrade"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>freqtrade - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2025/05/28/freqtrade/">
+                freqtrade
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-05-28</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <p><a target="_blank" rel="noopener" href="https://www.wuzao.com/document/freqtrade/#google_vignette">freqtrade量化-文档</a></p>
+<ul>
+<li><a href="#docker-compose-%E5%AE%89%E8%A3%85%E5%88%B0%E6%9C%AC%E5%9C%B0">docker-compose 安装到本地</a></li>
+<li><a href="#%E7%AD%96%E7%95%A5%E5%AE%9A%E5%88%B6">策略定制</a><ul>
+<li><a href="#%E7%AD%96%E7%95%A5">策略</a></li>
+</ul>
+</li>
+<li><a href="#XGBoost-%E8%AE%AD%E7%BB%83%E6%A8%A1%E5%9E%8B">XGBoost 训练模型</a><ul>
+<li><a href="#%E6%B5%81%E7%A8%8B">流程</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BB%93%E5%90%88-Freqai">结合 Freqai</a></li>
+</ul>
+<h1 id="docker-compose-安装到本地"><a href="#docker-compose-安装到本地" class="headerlink" title="docker-compose 安装到本地"></a>docker-compose 安装到本地</h1><p>添加 config.json 和 SampleStrategy.py 两个文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">--config /freqtrade/user_data/config.json</span><br><span class="line">--strategy SampleStrategy</span><br></pre></td></tr></table></figure>
+
+<p>如果启动没有反应 就重写配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建配置 - 需要回答交互式问题</span></span><br><span class="line">docker compose run --<span class="built_in">rm</span> freqtrade new-config --config user_data/config.json</span><br></pre></td></tr></table></figure>
+
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h1 id="策略定制"><a href="#策略定制" class="headerlink" title="策略定制"></a>策略定制</h1><ul>
+<li>指标</li>
+<li>入场策略规则</li>
+<li>出场策略规则</li>
+<li>推荐的最小投资回报率</li>
+<li>强烈推荐使用止损</li>
+</ul>
+<h2 id="策略"><a href="#策略" class="headerlink" title="策略"></a>策略</h2><h3 id="📊-市场状态与策略类型对应表"><a href="#📊-市场状态与策略类型对应表" class="headerlink" title="📊 市场状态与策略类型对应表"></a>📊 市场状态与策略类型对应表</h3><table>
+<thead>
+<tr>
+<th>市场状态</th>
+<th>策略类型</th>
+<th>关键词</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>📈 趋势行情</td>
+<td>趋势跟随策略</td>
+<td>顺势交易、动量、跟涨杀跌</td>
+</tr>
+<tr>
+<td>🔁 震荡行情</td>
+<td>网格&#x2F;区间交易策略</td>
+<td>高抛低吸、区间套利</td>
+</tr>
+<tr>
+<td>💥 极端行情</td>
+<td>逆势捕捉 &#x2F; 突破策略</td>
+<td>超跌反弹、插针、爆发</td>
+</tr>
+</tbody></table>
+<ul>
+<li>🔁 一、趋势跟随策略（适合连涨连跌）</li>
+</ul>
+<h3 id="自己总结"><a href="#自己总结" class="headerlink" title="自己总结"></a>自己总结</h3><p>波动大 - 投资小 搏一搏<br>波动小 - 投资大 稳定 转利息</p>
+<ul>
+<li><img src="/images/freqtrade-wangge-1.png" alt="上下波动恒定" title="上下波动恒定"><ol>
+<li>网格</li>
+</ol>
+</li>
+<li><img src="/images/freqtrade-wangge-2.png" alt="连跌" title="连跌"><ol>
+<li>比较大的就 先止损 -  高抛低吸 </li>
+<li>小的就直接做 - 合约 做空</li>
+</ol>
+</li>
+</ul>
+<h2 id="XGBoost-训练模型"><a href="#XGBoost-训练模型" class="headerlink" title="XGBoost 训练模型"></a>XGBoost 训练模型</h2><h3 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h3><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>内容</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第 1 步</td>
+<td>安装 Freqtrade 环境</td>
+<td>把系统搭好，能运行</td>
+</tr>
+<tr>
+<td>第 2 步</td>
+<td>下载币种历史数据</td>
+<td>模拟交易所数据做训练和回测</td>
+</tr>
+<tr>
+<td>第 3 步</td>
+<td>写策略文件（含指标）</td>
+<td>把逻辑&#x2F;模型写进去</td>
+</tr>
+<tr>
+<td>第 4 步</td>
+<td>做回测 &#x2F; 回测优化</td>
+<td>看策略是否赚钱、找最佳参数</td>
+</tr>
+<tr>
+<td>第 5 步</td>
+<td>训练模型 + 联动策略</td>
+<td>用 AI 做预测生成信号</td>
+</tr>
+</tbody></table>
+<p> imbalanced-learn 安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 📦 第 1 步：下载 BTC 历史数据</span></span><br><span class="line"><span class="comment"># 下载 5 分钟K线，过去30天</span></span><br><span class="line">freqtrade download-data --exchange binance --pairs BTC/USDT --timeframe 5m --days 30</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第 2 步： 训练 XGBoost 模型</span></span><br><span class="line">python3 train/xgboost_model.py</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第 3 步： 做回测</span></span><br><span class="line">freqtrade backtesting  --config config_backtest.json --strategy MarketStateStrategy</span><br></pre></td></tr></table></figure>
+
+<h2 id="xgboost步骤细化"><a href="#xgboost步骤细化" class="headerlink" title="xgboost步骤细化"></a>xgboost步骤细化</h2><ol>
+<li>下载5分钟k先数据 50天</li>
+<li>数据处理<ul>
+<li>转换成csv </li>
+<li>矫正格式 (开盘价、最高价、最低价、收盘价、成交量)</li>
+<li>数据预处理<ul>
+<li><a href="#%E6%8A%80%E6%9C%AF%E6%8C%87%E6%A0%87-%E5%B8%81%E7%A7%8D%E7%89%B9%E6%80%A7">技术指标 币种特性</a></li>
+<li>创建交易标签，增加更细致的币种特征</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>数据训练<ul>
+<li>xgboost</li>
+</ul>
+</li>
+<li><a href="#%E6%8C%81%E4%BB%93%E7%AE%A1%E7%90%86">持仓管理</a></li>
+</ol>
+<h3 id="技术指标-币种特性"><a href="#技术指标-币种特性" class="headerlink" title="技术指标 币种特性"></a>技术指标 币种特性</h3><p>核心区指标不变 </p>
+<ol>
+<li>核心趋势指标<ul>
+<li>EMA组合(10&#x2F;50&#x2F;100周期)</li>
+<li>MACD(12&#x2F;26&#x2F;9参数) 金叉死叉</li>
+<li>ADX趋势强度(14周期)</li>
+<li>多均线交叉信号(ema_cross)</li>
+</ul>
+</li>
+<li>动量震荡指标<ul>
+<li>RSI(14周期)</li>
+<li>随机指标(14,3,3)</li>
+<li>CCI(14周期)</li>
+<li>价格变化率(return)</li>
+</ul>
+</li>
+<li>波动率管理指标<ul>
+<li>布林带(20周期，2σ)</li>
+<li>ATR真实波幅(14周期)</li>
+<li>布林带宽度特征(bb_width)</li>
+<li>价格波动率(14周期标准差)</li>
+</ul>
+</li>
+<li>成交量特征<ul>
+<li>成交量Z分数(volume_zscore)</li>
+<li>成交量均值(14周期×1.5乘数)</li>
+<li>VWAP(20周期)</li>
+</ul>
+</li>
+<li>特殊优化指标</li>
+</ol>
+<h3 id="持仓管理"><a href="#持仓管理" class="headerlink" title="持仓管理"></a>持仓管理</h3><pre class="mermaid">flowchart TD
+    A[获取当前账户状态\n（余额、持仓、价格、手续费）] --> B[判断市场信号\n（是否开仓、加仓、平仓）]
+
+    B -->|开仓信号| C[是否已有持仓？]
+    B -->|无信号或持仓中| Z[等待下一信号]
+
+    C -->|已有持仓| D[判断是否满足加仓条件]
+    C -->|无持仓| E[计算开仓资金与风险\n（资金占比、最大亏损等）]
+
+    D --> F[计算加仓资金与风险\n（资金投入、风险敞口）]
+    E --> G[执行开仓下单]
+
+    F --> H[执行加仓下单]
+    G --> I[更新持仓记录]
+    H --> I
+
+    I --> J[止盈 / 止损 / 换仓判断]
+    J --> K[是否满足平仓条件？]
+    K -->|是| L[计算当前盈亏与风险比\n（盈亏率、RR比、最大回撤）]
+    K -->|否| Z
+
+    L --> M[执行平仓 / 止损 / 减仓下单]
+    M --> N[更新资金与交易日志]</pre>
+
+<h3 id="买入信号-指标"><a href="#买入信号-指标" class="headerlink" title="买入信号(指标)"></a>买入信号(指标)</h3><ol>
+<li>趋势确认信号 短期EMA 长期EMA 中期EMA MACD金叉死叉</li>
+<li>KDJ信号</li>
+<li>布林带信号</li>
+<li>动量指标信号</li>
+<li>权重 计算各指标信号强度</li>
+</ol>
+<h3 id="-1"><a href="#-1" class="headerlink" title=""></a></h3><h3 id="xgboost心得"><a href="#xgboost心得" class="headerlink" title="xgboost心得"></a>xgboost心得</h3><ol start="0">
+<li>注意币种特性</li>
+<li>用xgboots分析市场入场信号  <ul>
+<li>标签可以更细化</li>
+<li>入场信号细化</li>
+<li>权重必不可少 因为交易都有冲突</li>
+</ul>
+</li>
+<li>入场后，交易中，离场<ul>
+<li>动态止顺止盈，持仓情况</li>
+<li>风控要做好</li>
+<li>权重必不可少 因为交易都有冲突</li>
+<li>模型可以随时调整</li>
+<li>多指标融合 不同策略</li>
+</ul>
+</li>
+<li>xgboost训练数据<ul>
+<li>训练加入监控</li>
+<li>调整相应参数</li>
+</ul>
+</li>
+</ol>
+<h1 id="结合-Freqai"><a href="#结合-Freqai" class="headerlink" title="结合 Freqai"></a>结合 Freqai</h1><h2 id="config-json-适应"><a href="#config-json-适应" class="headerlink" title="config.json 适应"></a>config.json 适应</h2><p>Hyperopt config.json  IFreqaiModel FreqAI FreqaiStrategy<br>train</p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/量化交易/">#量化交易</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2025/05/28/stock/">股市币市</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/05/28/system-migration/">系统迁移</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/05/28/tree/">树 ADT</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/05/28/vim/">VIM</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%A7%BB%E5%8A%A8%E7%AB%AF/">移动端</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/DIY/">DIY</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
