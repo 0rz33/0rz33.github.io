@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="信息收集内网基础环境分析内网基础环境判断IP、网关、DNS、是否能连通外网、网络连接及端口、本机host文件、机器的代理、是否在域内，域名是什么。
+分析机器所处位置区域DMZ区、办公区、生产区、核心DB等等
+DMZ（Demilitarized Zone，非军事区或隔离区）是网络安全架构中的一种设计，">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="内网渗透"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>内网渗透 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2025/06/17/pantesting-Intranet/">
+                内网渗透
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-06-17</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h2 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h2><p>内网基础环境分析<br>内网基础环境判断<br>IP、网关、DNS、是否能连通外网、网络连接及端口、本机host文件、机器的代理、是否在域内，域名是什么。</p>
+<p>分析机器所处位置区域<br>DMZ区、办公区、生产区、核心DB等等</p>
+<p>DMZ（Demilitarized Zone，非军事区或隔离区）是网络安全架构中的一种设计，用于增强网络的安全性。它通常指在内部网络和外部网络（如互联网）之间设置的一个中间区域，用于放置公共访问的服务和设备。</p>
+<p>分析机器的角色<br>普通WEB服务器、开发服务器、文件服务器、代理服务器、DNS服务器、数据存储服务器等等</p>
+<p>分析进出口流量是否能连通<br>协议的判断：常见的TCP、DNS、HTTP、ICMP等协议</p>
+<p>端口判断：外网vps做监听，内网机器测试常见端口，常见能出去的端口有 80,8080,443,53,110,123 等。</p>
+<ol>
+<li><p>TCP协议：</p>
+<blockquote>
+<p>vps：nc -lvvp 8888<br>target：nc vps-ip 8888</p>
+</blockquote>
+</li>
+<li><p>HTTP协议：</p>
+<blockquote>
+<p>vps：nc -lvvp 80<br>target：curl vps-ip 80</p>
+</blockquote>
+</li>
+<li><p>ICMP协议：</p>
+<blockquote>
+<p>vps：tcpdump icmp （tcpdump是一个抓包工具，用于捕获和分析通过网络接口传输的数据包。）<br>target：ping vps-ip<br>ping 命令属于 互联网控制消息协议（ICMP, Internet Control Message Protocol）。</p>
+</blockquote>
+</li>
+<li><p>DNS协议：</p>
+<blockquote>
+<p>vps：nc -u -lvp 53<br>target：nslookup <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a> vps-ip<br>dig @vsp-ip <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a><br>（dig 是一个用于查询 DNS（域名系统）信息的命令行工具，广泛用于网络管理和故障排查，可以获取有关域名的不同类型的 DNS 记录。在Windows系统中不内置，在Linux则有内置）</p>
+</blockquote>
+</li>
+</ol>
+<h4 id="本机的-hosts-文件用于映射主机名（域名）到-IP-地址。"><a href="#本机的-hosts-文件用于映射主机名（域名）到-IP-地址。" class="headerlink" title="本机的 hosts 文件用于映射主机名（域名）到 IP 地址。"></a>本机的 hosts 文件用于映射主机名（域名）到 IP 地址。</h4><ol>
+<li>基本功能<br>域名解析：hosts 文件可以手动指定某个域名对应的 IP 地址，优先于 DNS 服务器的解析结果。<br>本地测试：在开发和测试环境中，可以将域名指向本地 IP 地址（如 127.0.0.1），方便开发者在不影响外部网络的情况下进行测试。</li>
+<li>使用场景<br>屏蔽网站：可以将某些网站的域名指向 0.0.1，从而阻止访问该网站。<br>快速访问：将常用的域名映射到本地 IP 地址，可以加快访问速度，尤其是在 DNS 服务不稳定的情况下。<br>替代 DNS：在没有 DNS 服务的网络中，可以使用 hosts 文件进行简单的域名解析。</li>
+<li>文件位置<br>Windows：通常位于 C:\Windows\System32\drivers\etc\hosts<br>Linux 和 macOS：通常位于 &#x2F;etc&#x2F;hosts</li>
+<li>文件格式<br>hosts 文件的格式较为简单，每行包含一个 IP 地址和一个或多个主机名，例如：<br>127.0.0.1 localhost 192.168.1.10 mylocaldev</li>
+<li>优缺点<br>优点:<br>提高解析速度，减少对 DNS 服务器的依赖。<br>简单易用，适合快速配置。<br>缺点:<br>不易于管理，特别是在需要频繁更改时。<br>在大型网络中，维护 hosts 文件可能变得复杂且不高效。</li>
+</ol>
+<h3 id="本机信息收集"><a href="#本机信息收集" class="headerlink" title="本机信息收集"></a>本机信息收集</h3><p>操作系统、权限、内网IP地址段、杀软、端口、服务、补丁情况、网络环境情况、共享、会话等</p>
+<p>如果是域内主机，那么操作系统、应用软件、补丁、服务、杀软一般都是批量安装的。</p>
+<h3 id="内网网段信息收集"><a href="#内网网段信息收集" class="headerlink" title="内网网段信息收集"></a>内网网段信息收集</h3><p>只有找到不同网段才能进行纵向渗透，否则只能横向渗透</p>
+<p>纵向渗透关注的是权限的提升，从低权限向高权限移动，旨在获取更深层次的控制。<br>横向渗透则是在同一权限层级内扩展访问，旨在访问更多的目标或资源。</p>
+<ol>
+<li>内网网段扫描</li>
+<li>文件共享、FTP连接记录、浏览器访问记录、mstsc连接记录<br>拓展：mstsc 是 Windows 系统中用于远程桌面连接的工具。按 Win + R 输入mstsc即可启动。</li>
+<li>渗透路由器、交换机</li>
+</ol>
+<h3 id="用户信息（用CMD）"><a href="#用户信息（用CMD）" class="headerlink" title="用户信息（用CMD）"></a>用户信息（用CMD）</h3><ul>
+<li>查看本机用户列表：<blockquote>
+<p>net user</p>
+</blockquote>
+</li>
+<li>获取本地管理员信息：<blockquote>
+<p>net localgroup administrators</p>
+</blockquote>
+</li>
+<li>查看当前在线用户：<blockquote>
+<p>quser query user query user || qwinsta</p>
+</blockquote>
+</li>
+<li>查看当前用户在目标系统中的具体权限：<blockquote>
+<p>whoami &#x2F;all</p>
+</blockquote>
+</li>
+<li>查看当前权限：<blockquote>
+<p>whoami &amp;&amp; whoami &#x2F;priv</p>
+</blockquote>
+</li>
+<li>查看当前机器中所有的组名，了解不同组的职能，如 IT、HR、ADMIN、FILE：<blockquote>
+<p>net localgroup</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="系统信息"><a href="#系统信息" class="headerlink" title="系统信息"></a>系统信息</h3><ul>
+<li>查询网络配置信息，进行IP地址段信息收集：<blockquote>
+<p>ipconfig &#x2F;all</p>
+</blockquote>
+</li>
+<li>查询操作系统及软件信息（当然也可以直接运行：systeminfo）：<blockquote>
+<p>systeminfo | findstr &#x2F;B &#x2F;C:”OS 名称” &#x2F;C:”OS 版本” #中文系统</p>
+</blockquote>
+</li>
+<li>查看当前系统版本：<blockquote>
+<p>wmic OS get Caption,CSDVersion,OSArchitecture,Version</p>
+</blockquote>
+</li>
+</ul>
+<p>上面这个命令使用 WMIC 工具来获取 Windows 操作系统的相关信息。具体来说，它的作用是提取以下几个属性：</p>
+<blockquote>
+<p>wmic：调用 Windows Management Instrumentation Command-line 工具。<br>OS：指定要查询的对象类型为操作系统（Operating System）。<br>get：表示获取指定的属性。<br>Caption：操作系统的名称（如 Windows 10）。<br>CSDVersion：操作系统的服务包版本（如 Service Pack 1），如果没有安装服务包则可能为空。<br>OSArchitecture：操作系统的架构（如 32 位或 64 位）。<br>Version：操作系统的版本号（如 10.0.19041）。</p>
+</blockquote>
+<ul>
+<li>查看系统体系结构：<blockquote>
+<p>echo %PROCESSOR_ARCHITECTURE%</p>
+</blockquote>
+</li>
+<li>查询本机服务信息：<blockquote>
+<p>wmic service list brief</p>
+</blockquote>
+</li>
+<li>查看安装的软件的版本、路径等：<blockquote>
+<p>wmic product get name,version powershell “Get-WmiObject -class Win32_Product | Select-Object -Property name, version”</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Windows-内网渗透"><a href="#Windows-内网渗透" class="headerlink" title="Windows 内网渗透"></a>Windows 内网渗透</h2><h3 id="工作组和域"><a href="#工作组和域" class="headerlink" title="工作组和域"></a>工作组和域</h3><p>工作组和域的区别：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw">https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw</a><br>查看本机工作组的方法：右键“此电脑”，找到“域或工作组”，此时便会显示本机工作组。<br>发现在同一个组的计算机方法：开启 “ 网络发现 ”。</p>
+<h3 id="工作组简介"><a href="#工作组简介" class="headerlink" title="工作组简介"></a>工作组简介</h3><p>工作组是最常见最简单最普通的资源管理模式，就是将不同的电脑按功能分别列入不同的组中，以方便管理。</p>
+<p>默认情况下所有计算机都处在名为 WORKGROUP 的工作组中，工作组资源管理模式适合于网络中计算机不多，对管理要求不严格的情况。它的建立步骤简单，使用起来也很好上手。</p>
+<p>大部分中小公司都采取工作组的方式对资源进行权限分配和目录共享相同组中的不同用户通过对方主机的用户名和密码可以査看对方共享的文件夹，默认共享的是 Users 目录。</p>
+<p>不同组的不同用户通过对方主机的用户名和密码也可以査看对方共享的文件夹,工作组并不存在真正的集中管理作用，工作组里的所有计算机都是对等的，也就是没有服务器和客户机之分的。</p>
+<h2 id="Linux-内网渗透"><a href="#Linux-内网渗透" class="headerlink" title="Linux 内网渗透"></a>Linux 内网渗透</h2><h2 id="mac-内网渗透"><a href="#mac-内网渗透" class="headerlink" title="mac 内网渗透"></a>mac 内网渗透</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p>引用 ：<br><a target="_blank" rel="noopener" href="https://github.com/wjl110/MacGosh-Pro">https://github.com/wjl110/MacGosh-Pro</a><br><a target="_blank" rel="noopener" href="https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86">https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86">https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file">https://github.com/r0eXpeR/pentest?tab=readme-ov-file</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254884.html">https://www.freebuf.com/articles/system/254884.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/backlion/p/16850277.html">https://www.cnblogs.com/backlion/p/16850277.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254826.html">https://www.freebuf.com/articles/system/254826.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/177493.html">https://www.freebuf.com/articles/network/177493.html</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus2024/#google_vignette">https://www.ddosi.org/nessus2024/#google_vignette</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus-plugin-pro-3/">https://www.ddosi.org/nessus-plugin-pro-3/</a><br><a target="_blank" rel="noopener" href="https://github.com/Hack-with-Github/Awesome-Hacking">https://github.com/Hack-with-Github/Awesome-Hacking</a></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/内网/">#内网</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/stock/">股市币市</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/system-migration/">系统迁移</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/tree/">树 ADT</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/vim/">VIM</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

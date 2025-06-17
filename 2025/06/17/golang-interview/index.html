@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="基础
+进程、线程、Goroutine(协程)区别
+make和new区别
+数组和切片区别
+
+
+GMP协程调度器
+调度器策略
+调度器的生命周期
+
+
+并发 sync
+通道 - channel
+互斥锁 Mutex 与 读写锁 RWMutex 区别
+并发Map - sync.Map
+线程池 - sync.Po">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Golang 面试题"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>Golang 面试题 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2025/06/17/golang-interview/">
+                Golang 面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-06-17</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <ul>
+<li><a href="#1">基础</a><ul>
+<li><a href="#1.1">进程、线程、Goroutine(协程)区别</a></li>
+<li><a href="#1.2">make和new区别</a></li>
+<li><a href="#1.3">数组和切片区别</a></li>
+</ul>
+</li>
+<li><a href="#2">GMP协程调度器</a><ul>
+<li><a href="#2.1">调度器策略</a></li>
+<li><a href="#2.2">调度器的生命周期</a></li>
+</ul>
+</li>
+<li><a href="#3">并发 sync</a><ul>
+<li><a href="#3.1">通道 - channel</a></li>
+<li><a href="#3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</a></li>
+<li><a href="#3.3">并发Map - sync.Map</a></li>
+<li><a href="#3.4">线程池 - sync.Pool</a></li>
+</ul>
+</li>
+<li><a href="#4">内存</a><ul>
+<li><a href="#4.1">CG</a></li>
+</ul>
+</li>
+<li><a href="#5">微服务之间通信方式 rpc Grpc http</a></li>
+<li><a href="#6">go.work</a></li>
+</ul>
+<h3 id="1">基础</h3>
+
+
+<p><a href="">锁系列</a></p>
+<h4 id="1.1"> 进程、线程、Goroutine(协程)区别 </h4>
+
+<ul>
+<li><em><strong>进程</strong></em> - 直观点说，保存在硬盘上的程序运行之后，会在内存空间里形成一个独立的内存体，这个内存体有自己独立的地址空间，有自己的堆，上级挂靠单位是操作系统。</li>
+<li><em><strong>线程</strong></em> - 轻量级进程（LightWeight Process，LWP），是操作系统调度（CPU调度）执行的最小单位。</li>
+<li><em><strong>协程</strong></em> - 比线程更轻量级的存在，协程完全由程序控制</li>
+</ul>
+<h4 id="1.2">make和new区别 </h4>
+
+<ul>
+<li>make和new都是golang用来分配内存的內建函数，且在堆上分配内存，make 即分配内存，也初始化内存。new只是将内存清零，并没有初始化内存。</li>
+<li>make返回的还是引用类型本身；而new返回的是指向类型的指针。</li>
+<li>make只能用来分配及初始化类型为slice，map，channel的数据；new可以分配任意类型的数据。</li>
+</ul>
+<h4 id="1.3">数组和切片区别 </h4>
+
+<ul>
+<li>数组是一个长度固定的数据类型，其长度在定义时就已经确定，内存空间大小是固定；切片是一个长度可变的数据类型，内存空间运行时动态分配，其长度在定义时可以为空，也可以指定一个初始长度 append追加切片</li>
+<li>当数组作为函数参数时，函数操作的是数组的一个副本，不会影响原始数组；当切片作为函数参数时，函数操作的是切片的引用，会影响原始切片</li>
+</ul>
+<h3 id="2">GMP协程调度器</h3>
+
+<blockquote>
+<p>内核线程-thread(Machine)，协程(Goroutine)，处理器-G的上下文环境（Processor）</p>
+<ul>
+<li>G：goroutine协程，基于协程建立的用户态线程</li>
+<li>M：machine，它直接关联一个os内核线程，用于执行G</li>
+<li>P：processor处理器，P里面一般会存当前goroutine运行的上下文环境（函数指针，堆栈地址及地址边界），P会对自己管理的goroutine队列做一些调度</li>
+</ul>
+</blockquote>
+<p><img src="/images/GMP-%E6%A8%A1%E5%9E%8B.png"></p>
+<h4 id="2.1"> 调度器策略 </h4>
+
+<ul>
+<li>全局G队列 - 通过<code>go func()</code>来创建一个goroutine,有两个存储G的队列，一个是局部调度器P的本地队列、一个是全局G队列。新创建的G会先保存在P的本地队列中，如果P的本地队列已经满了就会保存在全局的队列中</li>
+<li>复用线程 - <code>work stealing机制</code>和<code>hand off机制</code>（偷别人的去执行，和自己扔掉执行）,G只能运行在M中，一个M必须持有一个P,M与P是<code>1：1</code>的关系,</li>
+</ul>
+<p><code>work stealing机制</code>如果P的本地队列为空，就会想其他的MP组合偷取一个可执行的G来执行<br><code>hand off机制</code>当本线程因为G进行系统调用阻塞时，线程释放绑定的P，把P转移给其他空闲的线程执行，此时M1如果长时间阻塞，可能会执行睡眠或销毁</p>
+<ul>
+<li>利用并行 - 我们可以使用<code>GOMAXPROCS</code>设置P的数量,这样的话最多有<code>GOMAXPROCS</code>个线程分布在多个CPU上同时运行。<code>GOMAXPROCS</code>也限制了并发的程度，比如GOMAXPROCS &#x3D; 核数&#x2F;2，则最多利用了一半的CPU核进行并行</li>
+<li>抢占策略 - 1对1模型的调度器，需要等待一个<code>co-routine</code>主动释放后才能轮到下一个进行使用, 如果一个<code>goroutine</code>使用10ms还没执行完，CPU资源就会被其他<code>goroutine</code>所抢占</li>
+</ul>
+<h4 id="2.2"> 调度器的生命周期</h4> 
+
+<blockquote>
+<p>在了解调度器生命周期之前，我们需要了解两个新的角色M0和G0  </p>
+<p>M0（跟进程数量绑定，一比一）：</p>
+<ul>
+<li>启动程序后编号为0的主线程</li>
+<li>在全局变量runtime.m0中，不需要在heap上分配</li>
+<li>负责执行初始化操作和启动第一个G</li>
+<li>启动第一个G之后，M0就和其他的M一样了</li>
+</ul>
+<p>G0（每个M都会有一个G0）：</p>
+<ul>
+<li>每次启动一个M，都会第一个创建的gourtine，就是G0</li>
+<li>G0仅用于负责调度G</li>
+<li>G0不指向任何可执行的函数</li>
+<li>每个M都会有一个自己的G0</li>
+<li>在调度或系统调用时会使用M切换到G0，再通过G0进行调度</li>
+</ul>
+<p>M0和G0都是放在全局空间的</p>
+</blockquote>
+<h3 id="3">并发 sync</h3>
+
+<p>sync.waitgroup, sync.map ,sync.Lock, sync.RWLock，sync.Pool….</p>
+<h4 id="3.1">通道 - channel</h4>
+
+<p>每个通道都有一个锁和一个读写队列，当多个协程同时向通道写入数据或者从通道读取数据时，只有一个协程能够获取到锁进行读写操作，其他协程则会被阻塞直到获得锁</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// 发送方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      ch &lt;- 1</span><br><span class="line">   &#125;()</span><br><span class="line">   // 接收方</span><br><span class="line">   go <span class="function"><span class="title">func</span></span>() &#123;</span><br><span class="line">      num := &lt;-ch</span><br><span class="line">      fmt.Println(num)</span><br><span class="line">   &#125;()</span><br></pre></td></tr></table></figure>
+
+<p>channel 死锁的场景和原因浅析<br>锁死场景</p>
+<ul>
+<li>没有缓冲区的时候，单协程内通道同时写和读</li>
+<li>无缓冲区的时候，通道输入数据早于接收方的协程开启</li>
+<li>没有数据的channel里拿数据引起的死锁</li>
+</ul>
+<p>解决方案</p>
+<ul>
+<li>做缓冲通道 -》 缓冲通道可以用cap()测试出来</li>
+<li>解决多值发送死锁 循环接收</li>
+</ul>
+<h4 id="3.2">互斥锁 Mutex 与 读写锁 RWMutex 区别</h4>
+
+<ul>
+<li>Mutex只允许一个goroutine同时获得锁，适用于需要频繁修改共享资源的场景；</li>
+<li>RWMutex允许多个goroutine同时获得读锁，但只允许一个goroutine获得写锁，适用于需要频繁读取共享资源的场景</li>
+</ul>
+<h4 id="3.3">并发Map - sync.Map</h4>
+
+
+
+<h4 id="3.4">线程池 - sync.Pool</h4>
+
+
+<p>sync.Pool 其实就是一个线程安全的对象池，用于保存和复用临时对象，，在大批量申请和释放相同类型的临时对象时使用 sync.Pool 可以减少很多内存分配和回收操作，减小GC压力。</p>
+<h3 id="4">内存</h3>
+<h4 id="4.1">CG</h4>
+
+<h4 id="5">微服务之间通信方式 rpc Grpc http</h4>
+
+<h4 id="6">go.work</h4>
+
+<p>多模块 - 项目结构</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/workspace</span><br><span class="line">  ├── go.work</span><br><span class="line">  ├── service1/</span><br><span class="line">  │   ├── go.mod</span><br><span class="line">  │   ├── main.go</span><br><span class="line">  ├── service2/</span><br><span class="line">  │   ├── go.mod</span><br><span class="line">  │   ├── main.go</span><br></pre></td></tr></table></figure>
+
+<p>你的 go.work 文件可能是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">go 1.21</span><br><span class="line"></span><br><span class="line">use (</span><br><span class="line">    ./service1</span><br><span class="line">    ./service2</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>Go 1.18 及以上版本引入的 工作区模式（Workspace Mode） 的配置文件</p>
+<p>而无需使用 replace 指令或 GOPATH</p>
+<p>go.work 是 Go 1.18+ 的新功能，用于 管理多个 Go 模块。<br>它让 多个本地模块 互相引用，避免 go.mod 里写 replace。<br>go work use <module-path> 命令可以方便地添加模块</p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/Golang/">#Golang</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/stock/">股市币市</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/system-migration/">系统迁移</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/tree/">树 ADT</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/vim/">VIM</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

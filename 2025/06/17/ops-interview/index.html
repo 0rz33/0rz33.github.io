@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="Linux如何挂载windows下的共享目录？
+
+12mount.cifs //IP地址/server /mnt/server -o user=administrator,password=123456# linux 下的server需要自己手动建一个 后面的user与pass 是windows主机">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="运维面试题"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>运维面试题 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2025/06/17/ops-interview/">
+                运维面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-06-17</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <ol>
+<li>Linux如何挂载windows下的共享目录？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mount.cifs //IP地址/server /mnt/server -o user=administrator,password=123456</span><br><span class="line"><span class="comment"># linux 下的server需要自己手动建一个 后面的user与pass 是windows主机的账号和密码 注意空格 和逗号</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>如何查看http的并发请求数与其TCP连接状态？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;++b[<span class="variable">$NF</span>]&#125;’ END &#123;<span class="keyword">for</span>(a <span class="keyword">in</span> b) <span class="built_in">print</span> a,b[a]&#125;’</span><br><span class="line"></span><br><span class="line"><span class="built_in">ulimit</span> -n <span class="comment"># 查看linux系统打开最大的文件描述符，这里默认1024，不修改这里web服务器修改再大也没用。若要用就修改很几个办法，这里说其中一个：</span></span><br><span class="line">修改/etc/security/limits.conf</span><br><span class="line">* soft nofile 10240</span><br><span class="line">* hard nofile 10240</span><br><span class="line">重启后生效</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>如何用tcpdump嗅探80端口的访问看看谁最高？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i eth0 -tnn dst port 80 -c 1000 | awk -F”.” ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>″.”<span class="variable">$2</span>″.”<span class="variable">$3</span>″.”<span class="variable">$4</span>″.”&#125;’ | <span class="built_in">sort</span> |<span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr | head-5</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>如何查看&#x2F;var&#x2F;log目录下的文件数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/log/ -1R | grep “-” | <span class="built_in">wc</span> -l</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>如何查看Linux系统每个ip的连接数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;<span class="built_in">print</span> <span class="variable">$5</span>&#125;’ | awk -F: ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>shell下生成32位随机密码？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /dev/urandom | <span class="built_in">head</span> -1 | <span class="built_in">md5sum</span> | <span class="built_in">head</span> -c 32 &gt;&gt; /pass</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>统计出apache的access.log中访问量最多的5个ip？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> access.log | awk ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -n -r | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure>
+<ol start="8">
+<li>如何查看二进制文件的内容？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 我们一般通过hexdump命令 来查看二进制文件的内容。</span></span><br><span class="line">hexdump -C XXX(文件名) -C是参数 不同的参数有不同的意义</span><br><span class="line"><span class="comment"># -C 是比较规范的 十六进制和ASCII码显示</span></span><br><span class="line"><span class="comment"># -c 是单字节字符显示</span></span><br><span class="line"><span class="comment"># -b 单字节八进制显示</span></span><br><span class="line"><span class="comment"># -o 是双字节八进制显示</span></span><br><span class="line"><span class="comment"># -d 是双字节十进制显示</span></span><br><span class="line"><span class="comment"># -x 是双字节十六进制显示</span></span><br></pre></td></tr></table></figure>
+
+<ol start="9">
+<li>ps aux 中的VSZ代表什么意思，RSS代表什么意思？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">**VSZ：**虚拟内存集，进程占用的虚拟内存空间。</span><br><span class="line"></span><br><span class="line">**RSS：**物理内存集，进程战用实际物理内存空间。</span><br></pre></td></tr></table></figure>
+
+<ol start="10">
+<li>如何检测并修复&#x2F;dev&#x2F;hda5？</li>
+</ol>
+<p><code>fsck</code>用来检查和维护不一致的文件系统。若系统掉电或磁盘发生问题，可利用<code>fsck</code>命令对文件系统进行检查。</p>
+<ol start="11">
+<li>介绍下Linux系统的开机启动顺序？</li>
+</ol>
+<p>加载BIOS–&gt;读取MBR–&gt;Boot Loader–&gt;加载内核–&gt;用户层init一句inittab文件来设定系统运行的等级(一般3或者5，3是多用户命令行，5是界面)–&gt;init进程执行rc.syninit–&gt;启动内核模块–&gt;执行不同级别运行的脚本程序–&gt;执行&#x2F;etc&#x2F;rc.d&#x2F;rc.local(本地运行服务)–&gt;执行&#x2F;bin&#x2F;login，就可以登录了。</p>
+<ol start="12">
+<li>符号链接与硬链接的区别？<br>我们可以把符号链接，也就是软连接，当做是 Windows系统里的快捷方式。</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 硬链接 就好像是 又复制了一份，举例说明：</span></span><br><span class="line"><span class="built_in">ln</span> 3.txt 4.txt <span class="comment"># 这是硬链接，相当于复制，不可以跨分区，但修改3，4会跟着变，若删除3，4不受任何影响。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ln</span> -s 3.txt 4.txt <span class="comment"># 这是软连接，相当于快捷方式。修改4，3也会跟着变，若删除3，4就坏掉了，不可以用了。</span></span><br></pre></td></tr></table></figure>
+
+<ol start="13">
+<li>保存当前磁盘分区的分区表？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dd</span> <span class="comment"># 命令是以个强大的命令，在复制的同时进行转换。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/sda of=./mbr.txt bs=1 count=512</span><br></pre></td></tr></table></figure>
+
+<ol start="14">
+<li>如何在文本里面进行复制、粘贴，删除行，删除全部，按行查找和按字母查找？</li>
+</ol>
+<p>以下操作全部在命令行状态操作，不要在编辑状态操作。<br>在文本里移动到想要复制的行 按 yy 想复制到哪就移动到哪，然后按 <code>P</code> 就粘贴了。<br>删除行 移动到改行 按<code>dd</code>。</p>
+<p>删除全部 <code>dG</code> 这里注意G一定要大写。</p>
+<p>按行查找<code>：90</code> 这样就是找到第90行。</p>
+<p>按字母查找 <code>/path</code> 这样就是 找到path这个单词所在的位置，文本里可能存在多个,多次查找会显示在不同的位置。</p>
+<ol start="15">
+<li>手动安装grub？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grub-install /dev/sda</span><br></pre></td></tr></table></figure>
+<ol start="16">
+<li>修改内核参数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/sysctl.conf <span class="comment"># 这里修改参数</span></span><br><span class="line">sysctl -p <span class="comment"># 刷新后可用</span></span><br></pre></td></tr></table></figure>
+
+<ol start="17">
+<li>在1-39内取随机数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">expr</span> $[RANDOM%39] +1</span><br><span class="line"><span class="comment"># RANDOM随机数</span></span><br><span class="line"><span class="comment"># %39取余数范围0-38</span></span><br></pre></td></tr></table></figure>
+
+<ol start="18">
+<li>限制apache每秒新建连接数为1，峰值为3？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每秒新建连接数一般都是由防火墙来做，apache本身好像无法设置每秒新建连接数，只能设置最大连接：</span></span><br><span class="line">iptables -A INPUT -d 172.16.100.1 -p tcp –dport 80 -m <span class="built_in">limit</span> –<span class="built_in">limit</span> 1/second -j ACCEPT</span><br></pre></td></tr></table></figure>
+
+<ol start="19">
+<li>FTP的主动模式和被动模式</li>
+</ol>
+<p>FTP协议有两种工作方式：PORT方式和PASV方式，中文意思为主动式和被动式。</p>
+<p>PORT（主动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，客户端在命令链路上用 PORT 命令告诉服务器：“我打开了XX端口，你过来连接我”。于是服务器从20端口向客户端的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>PASV（被动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，服务器在命令链路上用 PASV 命令告诉客户端：“我打开了XX端口，你过来连接我”。于是客户端向服务器的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>从上面可以看出，两种方式的命令链路连接方法是一样的，而数据链路的建立方法就完全不同。</p>
+<ol start="20">
+<li>显示&#x2F;etc&#x2F;inittab中以#开头，且后面跟了一个或者多个空白字符，而后又跟了任意非空白字符的行？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “^#&#123;1,&#125;[^]” /etc/inittab</span><br></pre></td></tr></table></figure>
+
+<ol start="21">
+<li>显示&#x2F;etc&#x2F;inittab中包含了：一个数字：(即两个冒号中间一个数字)的行？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “:[0-9]&#123;1&#125;:” /etc/inittab</span><br></pre></td></tr></table></figure>
+
+<ol start="22">
+<li>怎么把脚本添加到系统服务里，即用service来调用？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在脚本里加入：</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">chkconfig: 345 85 15</span><br><span class="line">description: httpd</span><br><span class="line"><span class="comment"># 然后保存，chkconfig httpd –add 创建系统服务，现在就可以使用service 来 start or restart。</span></span><br></pre></td></tr></table></figure>
+
+<ol start="23">
+<li>写一个脚本，实现批量添加20个用户，用户名为user01-20，密码为user后面跟5个随机字符？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment">#description: useradd</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `<span class="built_in">seq</span> -f”%02g” 1 20`;<span class="keyword">do</span></span><br><span class="line">useradd user<span class="variable">$i</span></span><br><span class="line"><span class="built_in">echo</span> “user<span class="variable">$i</span>-`<span class="built_in">echo</span> <span class="variable">$RANDOM</span>|<span class="built_in">md5sum</span>|<span class="built_in">cut</span> -c 1-5`”|passwd –stdinuser<span class="variable">$i</span> &gt;/dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<ol start="24">
+<li>写一个脚本，实现判断192.168.1.0&#x2F;24网络里，当前在线的IP有哪些，能ping通则认为在线？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">for</span> ip <span class="keyword">in</span> `<span class="built_in">seq</span> 1 255`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">ping -c 1 192.168.1.<span class="variable">$ip</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> UP</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> DOWN</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;&amp;</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">wait</span></span><br></pre></td></tr></table></figure>
+
+<ol start="25">
+<li>写一个脚本，判断一个指定的脚本是否是语法错误；如果有错误，则提醒用户键入Q或者q无视错误并退出其它任何键可以通过vim打开这个指定的脚本？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> checksh.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="built_in">read</span> -p “please input check script-&gt; ” file</span><br><span class="line"><span class="keyword">if</span> [ -f <span class="variable">$file</span> ]; <span class="keyword">then</span></span><br><span class="line">sh -n <span class="variable">$file</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “You input <span class="variable">$file</span> syntax error,[Type q to <span class="built_in">exit</span> or Type vim to edit]” answer</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$answer</span> <span class="keyword">in</span></span><br><span class="line">q | Q)</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line">vim )</span><br><span class="line">vim <span class="variable">$file</span></span><br><span class="line">;;</span><br><span class="line">*）</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> “<span class="variable">$file</span> not exist”</span><br><span class="line"><span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<ol start="26">
+<li>写一个脚本，要求如何？</li>
+</ol>
+<p>创建一个函数，能接受两个参数：</p>
+<p>1）第一个参数为URL，即可下载的文件；第二个参数为目录，即下载后保存的位置；</p>
+<p>2）如果用户给的目录不存在，则提示用户是否创建；如果创建就继续执行，否则，函数返回一个51的错误值给调用脚本；</p>
+<p>3）如果给的目录存在，则下载文件；下载命令执行结束后测试文件下载成功与否；如果成功，则返回0给调用脚本，否则，返回52给调用脚本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> downfile.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">url=<span class="variable">$1</span></span><br><span class="line"><span class="built_in">dir</span>=<span class="variable">$2</span></span><br><span class="line"><span class="function"><span class="title">download</span></span>()</span><br><span class="line">&#123;</span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span> &gt;&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “<span class="variable">$dir</span> No such file or directory,create?(y/n)” answer</span><br><span class="line"><span class="keyword">if</span> [ “<span class="variable">$answer</span>” == “y” ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span></span><br><span class="line">wget <span class="variable">$url</span> 1&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">return</span> “51”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">return</span> “52”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line">download <span class="variable">$url</span> <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+
+<ol start="27">
+<li>写一个脚本，详细需求如下？<br>1、创建一个函数，可以接受一个磁盘设备路径（如&#x2F;dev&#x2F;sdb）作为参数；在真正开始后面步骤之前提醒用户有危险，并让用户选择是否继续；而后将此磁盘设备上的所有分区清空（提示，使用命令dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;&#x2F;dev&#x2F;sdb bs&#x3D;512 count&#x3D;1实现，注意其中的设备路径不要写错了；</li>
+</ol>
+<p>如果此步骤失败，返回67给主程序；</p>
+<p>接着在此磁盘设备上创建两个主分区，一个大小为100M，一个大小为1G；如果此步骤失败，返回68给主程序；</p>
+<p>格式化此两分区，文件系统类型为ext3；如果此步骤失败，返回69给主程序；</p>
+<p>如果上述过程都正常，返回0给主程序；</p>
+<p>2、调用此函数；并通过接收函数执行的返回值来判断其执行情况，并将信息显示出来。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">local</span> Darray=(`<span class="built_in">ls</span> /dev/sd[a-z]`)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="variable">$&#123;Darray&#125;</span>;<span class="keyword">do</span></span><br><span class="line">[[ “<span class="variable">$i</span>” == “<span class="variable">$1</span>” ]] &amp;&amp; Sd=<span class="variable">$i</span> &amp;&amp;<span class="built_in">break</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">return66</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#当匹配成功，进入选择，告诉用户，是否继续，输错的话进入无限循环，当用户选择Y,则清空目标分区，且跳出while循环</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> :;<span class="keyword">do</span></span><br><span class="line"><span class="built_in">read</span> -p “Warning!!!This operation will clean <span class="variable">$Sd</span> data.Next=y,Quit=n [y|n]:” Choice</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$Choice</span> <span class="keyword">in</span></span><br><span class="line">y)</span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/zero of=<span class="variable">$Sd</span> bs=512 count=1 &amp;&gt; /dev/null &amp;&amp;<span class="built_in">break</span> || <span class="built_in">return</span> 67 ;;</span><br><span class="line">n)</span><br><span class="line"><span class="built_in">exit</span> 88 ;;</span><br><span class="line">*)</span><br><span class="line"><span class="built_in">echo</span> “Invalid choice,please choice again.” ;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#使用echo传递给fdisk进行分区，如果此命令失败，则跳转出去，错误值68，需要注意的是，有时候这个返回值很诡异，笔者之前成功与否都是返回的1，后来重启之后，就好了，如果慎重的话，可以对创建的分区，进行判断，不过就需要使用其他工具截取相关字段了，虽有些小麻烦，但无大碍</span></span><br><span class="line"></span><br><span class="line">echo-e “np1+100Mnp2+1024Mw”|fdisk /dev/sdb&amp;&gt; /dev/null || || <span class="built_in">return</span> 68</span><br><span class="line"></span><br><span class="line"><span class="comment">#格式化之前，让内核重新读取磁盘分区表，值得注意的是，有的系统版本，使用partprobe无效，譬如笔者的环境是rhel5.8，而rhel6.0以后，这个命令就很危险了，而使用partx -a /dev/sdb则效果更好…此项需慎重，如果格式化失败，则告知把失败的分区定义成变量，且跳出函数，并带出错误值69</span></span><br><span class="line"></span><br><span class="line">`partprobe`</span><br><span class="line">Part=`fdisk -l /dev/<span class="variable">$Sd</span>|<span class="built_in">tail</span> -2|<span class="built_in">cut</span> -d” ” -f1`</span><br><span class="line"><span class="keyword">for</span> M <span class="keyword">in</span> <span class="variable">$&#123;Part&#125;</span>;<span class="keyword">do</span></span><br><span class="line">mke2fs -j <span class="variable">$M</span> &amp;&gt; /dev/null &amp;&amp; ErrorPart=<span class="variable">$M</span> &amp;&amp;<span class="built_in">return</span> 69</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">return</span> 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#下面代码，调用函数，接收函数返回值，根据返回值进行判断哪里出错。</span></span><br><span class="line"></span><br><span class="line">Disk_Mod <span class="variable">$1</span></span><br><span class="line">Res=$?</span><br><span class="line">[ <span class="variable">$Res</span>-eq 0 ] &amp;&amp; <span class="built_in">exit</span> 0</span><br><span class="line">[ <span class="variable">$Res</span>-eq 66 ] &amp;&amp; <span class="built_in">echo</span> “Error! Invalid input.”</span><br><span class="line">[ <span class="variable">$Res</span>-eq 67 ] &amp;&amp; <span class="built_in">echo</span> “Error! Command -&gt; <span class="built_in">dd</span> fdisk mke2fs</span><br></pre></td></tr></table></figure>
+
+<ol start="28">
+<li>如何让history命令显示具体时间？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">HISTTIMEFORMAT=”%Y-%m-%d %H:%M:%S”</span><br><span class="line"><span class="built_in">export</span> HISTTIMEFORMAT</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新开机后会还原，可以写/etc/profile</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://dockerworld.cn/?id=392">https://dockerworld.cn/?id=392</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/martin-huang/p/13606761.html">https://www.cnblogs.com/martin-huang/p/13606761.html</a><br><a target="_blank" rel="noopener" href="https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html">https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2407138">https://cloud.tencent.com/developer/article/2407138</a></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/运维/">#运维</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/stock/">股市币市</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/system-migration/">系统迁移</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/tree/">树 ADT</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/06/17/vim/">VIM</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
