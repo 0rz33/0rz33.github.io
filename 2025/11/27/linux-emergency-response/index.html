@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="入侵排查思路
+账号安全
+历史命令
+检查异常端口
+检查异常进程
+检查开机启动项
+检查定时任务
+检查服务
+检查异常文件
+检查系统日志
+
+
+工具
+Rootkit查杀
+病毒查杀
+webshell查杀
+RPM check检查
+linux安全检查脚本
+
+
+常见网络安全攻击特征
+Linux数据传输
+
+入侵排查思路">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Linux应急响应"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>Linux应急响应 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2025/11/27/linux-emergency-response/">
+                Linux应急响应
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-11-27</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <ul>
+<li><a href="#1">入侵排查思路</a><ul>
+<li><a href="#1.1">账号安全</a></li>
+<li><a href="#1.2">历史命令</a></li>
+<li><a href="#1.3">检查异常端口</a></li>
+<li><a href="#1.4">检查异常进程</a></li>
+<li><a href="#1.5">检查开机启动项</a></li>
+<li><a href="#1.6">检查定时任务</a></li>
+<li><a href="#1.7">检查服务</a></li>
+<li><a href="#1.8">检查异常文件</a></li>
+<li><a href="#1.9">检查系统日志</a></li>
+</ul>
+</li>
+<li><a href="#2">工具</a><ul>
+<li><a href="#2.1">Rootkit查杀</a></li>
+<li><a href="#2.2">病毒查杀</a></li>
+<li><a href="#2.3">webshell查杀</a></li>
+<li><a href="#2.4">RPM check检查</a></li>
+<li><a href="#2.5">linux安全检查脚本</a></li>
+</ul>
+</li>
+<li><a href="#3">常见网络安全攻击特征</a></li>
+<li><a href="#4">Linux数据传输</a></li>
+</ul>
+<h3 id="1">入侵排查思路</h3>
+
+<ol>
+<li><p>了解清楚事件发生时间点、事件有什么特征、服务器的用途、服务器上部署的应用组件、已做过那些应急措施，禁忌上来就一顿操作；</p>
+</li>
+<li><p>大概思考下能沾边的网络攻击特征，同时根据服务器版本以及服务器上部署的组件看看近期是否有nday漏洞，有时匹配上了可以节约一大部分时间；</p>
+</li>
+<li><p>根据已部署的安全设备，快速看看异常事件以及已攻击成功的事件；</p>
+</li>
+<li><p>上机排查，使用busybox套装防止发生预期以外的情况，使用磁盘备份（dd）进行整个备份，或手工备份日志以及一些易被覆盖的系统文件，如：.viminfo、history，使用LiME（Linux Memory Extractor）备份服务器内存，或者使用手工追加将进程、网络连接状态等进行备份，（虚拟化&#x2F;云环境可直接拍摄快照）；</p>
+</li>
+<li><p>根据前期了解的情况、事件特征进行排查，若排查到有一定的特征的异常文件或者进程时，可先到网上找找有没有相似案例，可以节约很多时间。</p>
+</li>
+</ol>
+<h4 id="1.1">账号安全</h4>
+
+<ul>
+<li>基本使用</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1、用户信息文件</span></span><br><span class="line">/etc/passwd</span><br><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">account:password:UID:GID:GECOS:directory:shell</span><br><span class="line"><span class="comment"># 用户名：密码：用户ID：组ID：用户说明：家目录：登陆之后shell</span></span><br><span class="line"><span class="comment">## 注意：无密码只允许本机登陆，远程不允许登陆</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2、影子文件</span></span><br><span class="line">/etc/shadow</span><br><span class="line">root:$6$oGs1PqhL2p3ZetrE<span class="variable">$X7o7bzoouHQVSEmSgsYN5UD4</span>.kMHx6qgbTqwNVC5oOAouXvcjQSt.Ft7ql1WpkopY0UV9ajBwUt1DpYxTCVvI/:16809:0:99999:7:::</span><br><span class="line"><span class="comment">#用户名：加密密码：密码最后一次修改日期：两次密码的修改时间间隔：密码有效期：密码修改到期到的警告天数：密码过期之后的宽限天数：账号失效时间：保留</span></span><br><span class="line"><span class="comment"># who     查看当前登录用户（tty本地登陆  pts远程登录）</span></span><br><span class="line"><span class="comment"># w       查看系统信息，想知道某一时刻用户的行为</span></span><br><span class="line"><span class="comment"># uptime  查看登陆多久、多少用户，负载</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>入侵排查</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1、查询特权用户特权用户(uid 为0)</span></span><br><span class="line">awk -F: <span class="string">&#x27;$3==0&#123;print $1&#125;&#x27;</span> /etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2、查询可以远程登录的帐号信息</span></span><br><span class="line">awk <span class="string">&#x27;/\$1|\$6/&#123;print $1&#125;&#x27;</span> /etc/shadow</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3、除root帐号外，其他帐号是否存在sudo权限。如非管理需要，普通帐号应删除sudo权限</span></span><br><span class="line">more /etc/sudoers | grep -v <span class="string">&quot;^#\|^$&quot;</span> | grep <span class="string">&quot;ALL=(ALL)&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4、禁用或删除多余及可疑的帐号</span></span><br><span class="line">usermod -L user    <span class="comment"># 禁用帐号，帐号无法登录，/etc/shadow第二栏为!开头</span></span><br><span class="line">userdel user       <span class="comment"># 删除user用户</span></span><br><span class="line">userdel -r user    <span class="comment"># 将删除user用户，并且将/home目录下的user目录一并删除</span></span><br></pre></td></tr></table></figure>
+
+
+<h4 id="1.2">历史命令</h4>
+
+<ul>
+<li>基本使用</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过.bash_history查看帐号执行过的系统命令</span></span><br><span class="line"><span class="comment"># 1、root的历史命令</span></span><br><span class="line">histroy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2、打开/home各帐号目录下的.bash_history，查看普通帐号的历史命令</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 为历史的命令增加登录的IP地址、执行命令时间等信息：</span></span><br><span class="line"><span class="comment">## 1）保存1万条命令</span></span><br><span class="line">sed -i <span class="string">&#x27;s/^HISTSIZE=1000/HISTSIZE=10000/g&#x27;</span> /etc/profile</span><br><span class="line"></span><br><span class="line"><span class="comment">## 2）在/etc/profile的文件尾部添加如下行数配置信息：</span></span><br><span class="line"><span class="comment">######jiagu history xianshi#########</span></span><br><span class="line">USER_IP=`<span class="built_in">who</span> -u am i 2&gt;/dev/null | awk <span class="string">&#x27;&#123;print $NF&#125;&#x27;</span> | sed -e <span class="string">&#x27;s/[()]//g&#x27;</span>`</span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$USER_IP</span>&quot;</span> = <span class="string">&quot;&quot;</span> ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line">USER_IP=`hostname`</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">export</span> HISTTIMEFORMAT=<span class="string">&quot;%F %T <span class="variable">$USER_IP</span> `whoami` &quot;</span></span><br><span class="line"><span class="built_in">shopt</span> -s histappend</span><br><span class="line"><span class="built_in">export</span> PROMPT_COMMAND=<span class="string">&quot;history -a&quot;</span></span><br><span class="line"><span class="comment">######### jiagu history xianshi ##########</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3）让配置生效</span></span><br><span class="line"><span class="built_in">source</span> /etc/profile</span><br><span class="line"></span><br><span class="line"><span class="comment">#生成效果： </span></span><br><span class="line">1  2018-07-10 19:45:39 192.168.204.1 root <span class="built_in">source</span> /etc/profile</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3、历史操作命令的清除：</span></span><br><span class="line"><span class="built_in">history</span> -c</span><br><span class="line"><span class="comment">## 但此命令并不会清除保存在文件中的记录，因此需要手动删除.bash_profile文件中的记录。</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>入侵排查</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进入用户目录下</span></span><br><span class="line"><span class="built_in">cat</span> .bash_history &gt;&gt; history.txt</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.3">检查异常端口</h4>
+
+<p>使用netstat 网络连接命令，分析可疑端口、IP、PID</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">netstat -antlp|more</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看下pid所对应的进程文件路径，</span></span><br><span class="line"><span class="built_in">ls</span> -l /proc/<span class="variable">$PID</span>/exe或file /proc/<span class="variable">$PID</span>/exe（<span class="variable">$PID</span> 为对应的pid 号）</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.4">检查异常进程</h4>
+
+<p>使用ps命令，分析进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep pid</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.5">检查开机启动项</h4>
+
+<ul>
+<li>基本使用<br>系统运行级别示意图：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>运行级别</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>关机</td>
+</tr>
+<tr>
+<td>1</td>
+<td>单用户模式，可以想象为windows的安全模式，主要用于系统修复</td>
+</tr>
+<tr>
+<td>2</td>
+<td>不完全的命令行模式，不含NFS服务</td>
+</tr>
+<tr>
+<td>3</td>
+<td>完全的命令行模式，就是标准字符界面</td>
+</tr>
+<tr>
+<td>4</td>
+<td>系统保留</td>
+</tr>
+<tr>
+<td>5</td>
+<td>图形模式</td>
+</tr>
+<tr>
+<td>6</td>
+<td>重启动</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看运行级别命令 </span></span><br><span class="line">runlevel</span><br><span class="line"></span><br><span class="line"><span class="comment"># 系统默认允许级别</span></span><br><span class="line"></span><br><span class="line">vi  /etc/inittab</span><br><span class="line"><span class="built_in">id</span>=3：initdefault  <span class="comment"># 系统开机后直接进入哪个运行级别</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 开机启动配置文件</span></span><br><span class="line">/etc/rc.local</span><br><span class="line">/etc/rc.d/rc[0~6].d</span><br><span class="line"><span class="comment"># 例子:当我们需要开机启动自己的脚本时，只需要将可执行脚本丢在/etc/init.d目录下，然后在/etc/rc.d/rc*.d中建立软链接即可</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ln</span> -s /etc/init.d/sshd /etc/rc.d/rc3.d/S100ssh</span><br><span class="line"><span class="comment"># 此处sshd是具体服务的脚本文件，S100ssh是其软链接，S开头代表加载时自启动；如果是K开头的脚本文件，代表运行级别加载时需要关闭的。</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>入侵排查</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动项文件 </span></span><br><span class="line">more /etc/rc.local /etc/rc.d/rc[0~6].d <span class="built_in">ls</span> -l /etc/rc.d/rc3.d/</span><br></pre></td></tr></table></figure>
+<h4 id="1.6">检查定时任务</h4>
+
+<ul>
+<li>基本使用</li>
+</ul>
+<h5 id="1-利用crontab创建计划任务"><a href="#1-利用crontab创建计划任务" class="headerlink" title="1. 利用crontab创建计划任务"></a>1. 利用crontab创建计划任务</h5><h6 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h6><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">crontab -l <span class="comment"># 列出某个用户cron服务的详细内容</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## Tips：默认编写的crontab文件会保存在 (/var/spool/cron/用户名 例如: /var/spool/cron/root</span></span><br><span class="line"></span><br><span class="line">crontab -r <span class="comment"># 删除每个用户cront任务(谨慎：删除所有的计划任务)</span></span><br><span class="line"></span><br><span class="line">crontab -e <span class="comment"># 使用编辑器编辑当前的crontab文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 如：</span></span><br><span class="line">/1 * <span class="built_in">echo</span> <span class="string">&quot;hello world&quot;</span> &gt;&gt; /tmp/test.txt 每分钟写入文件</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-利用anacron实现异步定时任务调度"><a href="#2-利用anacron实现异步定时任务调度" class="headerlink" title="2. 利用anacron实现异步定时任务调度"></a>2. 利用anacron实现异步定时任务调度</h5><h6 id="使用案例"><a href="#使用案例" class="headerlink" title="使用案例"></a>使用案例</h6><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 每天运行 /home/backup.sh脚本： </span></span><br><span class="line">vi /etc/anacrontab @daily 10 example.daily /bin/bash /home/backup.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 当机器在 backup.sh 期望被运行时是关机的，anacron会在机器开机十分钟之后运行它，而不用再等待 7天。</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>入侵排查</li>
+</ul>
+<p>重点关注以下目录中是否存在恶意脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/var/spool/cron/* </span><br><span class="line">/etc/crontab</span><br><span class="line">/etc/cron.d/*</span><br><span class="line">/etc/cron.daily/* </span><br><span class="line">/etc/cron.hourly/* </span><br><span class="line">/etc/cron.monthly/*</span><br><span class="line">/etc/cron.weekly/</span><br><span class="line">/etc/anacrontab</span><br><span class="line">/var/spool/anacron/*</span><br><span class="line"></span><br><span class="line"><span class="comment"># 小技巧：</span></span><br><span class="line">more /etc/cron.daily/*  <span class="comment"># 查看目录下所有文件</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="1.7">检查服务</h4>
+
+<ul>
+<li>服务自启动</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一种修改方法：</span></span><br><span class="line">chkconfig [--level 运行级别] [独立服务名] [on|off]</span><br><span class="line">chkconfig –level  2345 httpd on  开启自启动</span><br><span class="line">chkconfig httpd on （默认level是2345）</span><br><span class="line"></span><br><span class="line"><span class="comment">#第二种修改方法：</span></span><br><span class="line">修改/etc/re.d/rc.local 文件  </span><br><span class="line">加入 /etc/init.d/httpd start</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三种修改方法：</span></span><br><span class="line"><span class="comment"># 使用ntsysv命令管理自启动，可以管理独立服务和xinetd服务。</span></span><br><span class="line">ntsysv</span><br></pre></td></tr></table></figure>
+<ul>
+<li>入侵排查</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 1、查询已安装的服务：</span></span><br><span class="line"><span class="comment"># RPM包安装的服务</span></span><br><span class="line">chkconfig  --list  <span class="comment"># 查看服务自启动状态，可以看到所有的RPM包安装的服务</span></span><br><span class="line">ps aux | grep crond <span class="comment"># 查看当前服务</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 系统在3与5级别下的启动项 </span></span><br><span class="line"><span class="comment">## 中文环境</span></span><br><span class="line">chkconfig --list | grep <span class="string">&quot;3:启用\|5:启用&quot;</span></span><br><span class="line"><span class="comment">## 英文环境</span></span><br><span class="line">chkconfig --list | grep <span class="string">&quot;3:on\|5:on&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 源码包安装的服务</span></span><br><span class="line"><span class="comment"># 查看服务安装位置</span></span><br><span class="line">/user/local/</span><br><span class="line"></span><br><span class="line">service httpd start</span><br><span class="line"><span class="comment"># 搜索/etc/rc.d/init.d/  查看是否存在</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="1.8">检查异常文件</h4>
+
+<ol>
+<li>查看敏感目录，如&#x2F;tmp目录下的文件，同时注意隐藏文件夹，以“..”为名的文件夹具有隐藏属性</li>
+<li>得到发现WEBSHELL、远控木马的创建时间，如何找出同一时间范围内创建的文件？<br> 可以使用find命令来查找，如 <code>find /opt -iname &quot;*&quot; -atime 1 -type f </code>找出 &#x2F;opt 下一天前访问过的文件</li>
+<li>针对可疑文件可以使用stat进行创建修改时间。</li>
+</ol>
+<h4 id="1.9">检查系统日志</h4>
+
+<p>日志默认存放位置：&#x2F;var&#x2F;log&#x2F;</p>
+<p>查看日志配置情况：more &#x2F;etc&#x2F;rsyslog.conf</p>
+<table>
+<thead>
+<tr>
+<th>日志文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&#x2F;var&#x2F;log&#x2F;cron</td>
+<td>记录了系统定时任务相关的日志</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;cups</td>
+<td>记录打印信息的日志</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;dmesg</td>
+<td>记录了系统在开机时内核自检的信息，也可以使用dmesg命令直接查看内核自检信息</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;mailog</td>
+<td>记录邮件信息</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;message</td>
+<td>记录系统重要信息的日志。这个日志文件中会记录Linux系统的绝大多数重要信息，如果系统出现问题时，首先要检查的就应该是这个日志文件</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;btmp</td>
+<td>记录错误登录日志，这个文件是二进制文件，不能直接vi查看，而要使用lastb命令查看</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;lastlog</td>
+<td>记录系统中所有用户最后一次登录时间的日志，这个文件是二进制文件，不能直接vi，而要使用lastlog命令查看</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;wtmp</td>
+<td>永久记录所有用户的登录、注销信息，同时记录系统的启动、重启、关机事件。同样这个文件也是一个二进制文件，不能直接vi，而需要使用last命令来查看</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;utmp</td>
+<td>记录当前已经登录的用户信息，这个文件会随着用户的登录和注销不断变化，只记录当前登录用户的信息。同样这个文件不能直接vi，而要使用w,who,users等命令来查询</td>
+</tr>
+<tr>
+<td>&#x2F;var&#x2F;log&#x2F;secure</td>
+<td>记录验证和授权方面的信息，只要涉及账号和密码的程序都会记录，比如SSH登录，su切换用户，sudo授权，甚至添加用户和修改用户密码都会记录在这个日志文件中</td>
+</tr>
+</tbody></table>
+<p>日志分析技巧：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1、定位有多少IP在爆破主机的root帐号：    </span></span><br><span class="line">grep <span class="string">&quot;Failed password for root&quot;</span> /var/log/secure | awk <span class="string">&#x27;&#123;print $11&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr | more</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定位有哪些IP在爆破：</span></span><br><span class="line">grep <span class="string">&quot;Failed password&quot;</span> /var/log/secure|grep -E -o <span class="string">&quot;(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)&quot;</span>|<span class="built_in">uniq</span> -c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 爆破用户名字典是什么？</span></span><br><span class="line"> grep <span class="string">&quot;Failed password&quot;</span> /var/log/secure|perl -e <span class="string">&#x27;while($_=&lt;&gt;)&#123; /for(.*?) from/; print &quot;$1\n&quot;;&#125;&#x27;</span>|<span class="built_in">uniq</span> -c|<span class="built_in">sort</span> -nr</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2、登录成功的IP有哪些：     </span></span><br><span class="line">grep <span class="string">&quot;Accepted &quot;</span> /var/log/secure | awk <span class="string">&#x27;&#123;print $11&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr | more</span><br><span class="line"></span><br><span class="line"><span class="comment"># 登录成功的日期、用户名、IP：</span></span><br><span class="line">grep <span class="string">&quot;Accepted &quot;</span> /var/log/secure | awk <span class="string">&#x27;&#123;print $1,$2,$3,$9,$11&#125;&#x27;</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 3、增加一个用户kali日志：</span></span><br><span class="line">Jul 10 00:12:15 localhost useradd[2382]: new group: name=kali, GID=1001</span><br><span class="line">Jul 10 00:12:15 localhost useradd[2382]: new user: name=kali, UID=1001, GID=1001, home=/home/kali</span><br><span class="line">, shell=/bin/bash</span><br><span class="line">Jul 10 00:12:58 localhost passwd: pam_unix(passwd:chauthtok): password changed <span class="keyword">for</span> kali</span><br><span class="line"><span class="comment">#grep &quot;useradd&quot; /var/log/secure </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4、删除用户kali日志：</span></span><br><span class="line">Jul 10 00:14:17 localhost userdel[2393]: delete user <span class="string">&#x27;kali&#x27;</span></span><br><span class="line">Jul 10 00:14:17 localhost userdel[2393]: removed group <span class="string">&#x27;kali&#x27;</span> owned by <span class="string">&#x27;kali&#x27;</span></span><br><span class="line">Jul 10 00:14:17 localhost userdel[2393]: removed shadow group <span class="string">&#x27;kali&#x27;</span> owned by <span class="string">&#x27;kali&#x27;</span></span><br><span class="line"><span class="comment"># grep &quot;userdel&quot; /var/log/secure</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5、su切换用户：</span></span><br><span class="line">Jul 10 00:38:13 localhost su: pam_unix(su-l:session): session opened <span class="keyword">for</span> user good by root(uid=0)</span><br><span class="line"></span><br><span class="line"><span class="comment"># sudo授权执行:</span></span><br><span class="line"><span class="built_in">sudo</span> -l</span><br><span class="line">Jul 10 00:43:09 localhost <span class="built_in">sudo</span>:    good : TTY=pts/4 ; PWD=/home/good ; USER=root ; COMMAND=/sbin/shutdown -r now</span><br></pre></td></tr></table></figure>
+
+<p>软件包管理器log：</p>
+<table>
+<thead>
+<tr>
+<th>操作系统</th>
+<th>格式</th>
+<th>工具</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Debian</td>
+<td>.deb</td>
+<td>apt, apt-cache, apt-get, dpkg</td>
+</tr>
+<tr>
+<td>Ubuntu</td>
+<td>.deb</td>
+<td>apt, apt-cache, apt-get, dpkg</td>
+</tr>
+<tr>
+<td>CentOS</td>
+<td>.rpm</td>
+<td>yum</td>
+</tr>
+<tr>
+<td>Fedora</td>
+<td>.rpm</td>
+<td>dnf</td>
+</tr>
+<tr>
+<td>FreeBSD</td>
+<td>Ports, .txz</td>
+<td>make, pkg</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 软件安装升级卸载日志：</span></span><br><span class="line">~~~yum install gcc yum install gcc</span><br><span class="line"></span><br><span class="line"><span class="comment"># </span></span><br><span class="line">more /var/log/yum.log</span><br></pre></td></tr></table></figure>
+
+<h3 id="2">工具</h3>
+<h4 id="2.1">Rootkit查杀</h4>
+
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.chkrootkit.org/">chkrootkit</a></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用方法：</span></span><br><span class="line">wget ftp://ftp.pangeia.com.br/pub/seg/pac/chkrootkit.tar.gz</span><br><span class="line">tar zxvf chkrootkit.tar.gz</span><br><span class="line"><span class="built_in">cd</span> chkrootkit-0.52</span><br><span class="line">make sense</span><br><span class="line"><span class="comment">#编译完成没有报错的话执行检查</span></span><br><span class="line">./chkrootkit</span><br></pre></td></tr></table></figure>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://rkhunter.sourceforge.net/">rkhunter</a></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用方法：</span></span><br><span class="line">Wget https://nchc.dl.sourceforge.net/project/rkhunter/rkhunter/1.4.4/rkhunter-1.4.4.tar.gz</span><br><span class="line">tar -zxvf rkhunter-1.4.4.tar.gz</span><br><span class="line"><span class="built_in">cd</span> rkhunter-1.4.4</span><br><span class="line">./installer.sh --install</span><br><span class="line">rkhunter -c</span><br></pre></td></tr></table></figure>
+
+<h4 id="2.2">病毒查杀</h4>
+
+<p><a target="_blank" rel="noopener" href="http://www.clamav.net/download.html">Clamav</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装方式一：</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1、安装zlib：</span></span><br><span class="line">wget http://nchc.dl.sourceforge.net/project/libpng/zlib/1.2.7/zlib-1.2.7.tar.gz </span><br><span class="line">tar -zxvf  zlib-1.2.7.tar.gz</span><br><span class="line"><span class="built_in">cd</span> zlib-1.2.7</span><br><span class="line"><span class="comment">#安装一下gcc编译环境： yum install gcc</span></span><br><span class="line">CFLAGS=<span class="string">&quot;-O3 -fPIC&quot;</span> ./configure --prefix= /usr/local/zlib/</span><br><span class="line">make &amp;&amp; make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2、添加用户组clamav和组成员clamav：</span></span><br><span class="line">groupadd clamav</span><br><span class="line">useradd -g clamav -s /bin/false -c <span class="string">&quot;Clam AntiVirus&quot;</span> clamav</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3、安装Clamav</span></span><br><span class="line">tar –zxvf clamav-0.97.6.tar.gz</span><br><span class="line"><span class="built_in">cd</span> clamav-0.97.6</span><br><span class="line">./configure --prefix=/opt/clamav --disable-clamav -with-zlib=/usr/local/zlib</span><br><span class="line">make</span><br><span class="line">make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4、配置Clamav</span></span><br><span class="line"><span class="built_in">mkdir</span> /opt/clamav/logs</span><br><span class="line"><span class="built_in">mkdir</span> /opt/clamav/updata</span><br><span class="line"><span class="built_in">touch</span> /opt/clamav/logs/freshclam.log</span><br><span class="line"><span class="built_in">touch</span> /opt/clamav/logs/clamd.log</span><br><span class="line"><span class="built_in">cd</span> /opt/clamav/logs</span><br><span class="line"><span class="built_in">chown</span> clamav:clamav clamd.log</span><br><span class="line"><span class="built_in">chown</span> clamav:clamav freshclam.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5、ClamAV 使用：</span></span><br><span class="line"> /opt/clamav/bin/freshclam 升级病毒库</span><br><span class="line">./clamscan –h 查看相应的帮助信息</span><br><span class="line">./clamscan -r /home  扫描所有用户的主目录就使用</span><br><span class="line">./clamscan -r --bell -i /bin  扫描bin目录并且显示有问题的文件的扫描结果</span><br><span class="line"></span><br><span class="line"><span class="comment">## 安装方式二：</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#安装</span></span><br><span class="line">yum install -y clamav</span><br><span class="line"><span class="comment">#更新病毒库</span></span><br><span class="line">freshclam</span><br><span class="line"><span class="comment">#扫描方法</span></span><br><span class="line">clamscan -r /etc --max-dir-recursion=5 -l /root/etcclamav.log</span><br><span class="line">clamscan -r /bin --max-dir-recursion=5 -l /root/binclamav.log</span><br><span class="line">clamscan -r /usr --max-dir-recursion=5 -l /root/usrclamav.log</span><br><span class="line"><span class="comment">#扫描并杀毒</span></span><br><span class="line">clamscan -r  --remove  /usr/bin/bsd-port</span><br><span class="line">clamscan -r  --remove  /usr/bin/</span><br><span class="line">clamscan -r --remove  /usr/local/zabbix/sbin</span><br><span class="line"><span class="comment">#查看日志发现</span></span><br><span class="line"><span class="built_in">cat</span> /root/usrclamav.log |grep FOUND</span><br></pre></td></tr></table></figure>
+
+<h4 id="2.3">webshell查杀</h4>
+
+
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.shellpub.com/">河马webshell查杀</a></li>
+<li><a target="_blank" rel="noopener" href="http://edr.sangfor.com.cn/backdoor_detection.html">深信服Webshell网站后门检测工具</a></li>
+</ul>
+<h4 id="2.4">RPM check检查</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 系统完整性可以通过rpm自带的-Va来校验检查所有的rpm软件包，查看哪些命令是否被替换了：</span></span><br><span class="line">./rpm -Va &gt; rpm.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果一切均校验正常将不会产生任何输出，如果有不一致的地方，就会显示出来，输出格式是8位长字符串，每个字符都用以表示文件与RPM数据库中一种属性的比较结果 ，如果是. (点) 则表示测试通过。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证内容中的8个信息的具体内容如下：</span></span><br><span class="line"><span class="comment">#        S         文件大小是否改变</span></span><br><span class="line"><span class="comment">#        M         文件的类型或文件的权限（rwx）是否被改变</span></span><br><span class="line"><span class="comment">#        5         文件MD5校验是否改变（可以看成文件内容是否改变）</span></span><br><span class="line"><span class="comment">#        D         设备中，从代码是否改变</span></span><br><span class="line"><span class="comment">#        L         文件路径是否改变</span></span><br><span class="line"><span class="comment">#        U         文件的属主（所有者）是否改变</span></span><br><span class="line"><span class="comment">#        G         文件的属组是否改变</span></span><br><span class="line"><span class="comment">#        T         文件的修改时间是否改变</span></span><br><span class="line"><span class="comment"># 如果命令被替换了，如果还原回来：</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 文件提取还原案例：</span></span><br><span class="line">rpm  -qf /bin/ls  <span class="comment"># 查询ls命令属于哪个软件包</span></span><br><span class="line"><span class="built_in">mv</span>  /bin/ls /tmp  <span class="comment"># 先把ls转移到tmp目录下，造成ls命令丢失的假象</span></span><br><span class="line">rpm2cpio /mnt/cdrom/Packages/coreutils-8.4-19.el6.i686.rpm | cpio -idv ./bin/ls <span class="comment"># 提取rpm包中ls命令到当前目录的/bin/ls下</span></span><br><span class="line"><span class="built_in">cp</span> /root/bin/ls  /bin/ <span class="comment"># 把ls命令复制到/bin/目录 修复文件丢失</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2.4">linux安全检查脚本</h4>
+
+<p>Github项目地址：<br><a target="_blank" rel="noopener" href="https://github.com/grayddq/GScan">https://github.com/grayddq/GScan</a><br><a target="_blank" rel="noopener" href="https://github.com/ppabc/security_check">https://github.com/ppabc/security_check</a><br><a target="_blank" rel="noopener" href="https://github.com/T0xst/linux">https://github.com/T0xst/linux</a></p>
+<h4 id="3">常见网络安全攻击特征</h4>
+
+<table>
+<thead>
+<tr>
+<th>攻击类型</th>
+<th>特征表现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>挖矿病毒</td>
+<td>- CPU &#x2F; GPU 长时间 占用 100%- 异常进程（如xmrig、kworker、ddgs） - 持续对外连接 矿池地址（stratum+tcp:&#x2F;&#x2F;）</td>
+</tr>
+<tr>
+<td>DDoS 攻击</td>
+<td>- 服务器 带宽异常占满-netstat显示大 SYN_RECV、TIME_WAIT-ps发现大量httpd&#x2F;nginx进程</td>
+</tr>
+<tr>
+<td>后门木马</td>
+<td>- 隐藏进程，ps进程列表找不到但top能看到 -crontab中出现可疑定时任务 - 端口监听异常 (ss -antp显示 root 运行的非标准端口)</td>
+</tr>
+<tr>
+<td>蠕虫病毒</td>
+<td>- 短时间内大量文件变动-top显示异常高 I&#x2F;O 负载 - 服务器对外疯狂扫描其他 IP</td>
+</tr>
+<tr>
+<td>勒索病毒</td>
+<td>- 文件被加密（扩展名.lock、.encrypted） -&#x2F;tmp目录下出现未知可执行文件 -ps发现wget&#x2F;curl下载可疑文件</td>
+</tr>
+<tr>
+<td>Webshell &#x2F; 恶意代码</td>
+<td>- 网站目录（&#x2F;var&#x2F;www&#x2F;html&#x2F;）出现陌生脚本文件- &#96;grep -r eval</td>
+</tr>
+<tr>
+<td>SQL 注入攻击</td>
+<td>- 数据库mysqld进程 CPU 异常升高 - 网站日志出现大量 UNION SELECT或 OR 1&#x3D;1语句</td>
+</tr>
+<tr>
+<td>暴力破解 SSH</td>
+<td>-&#x2F;var&#x2F;log&#x2F;secure出现大量 failed login记录 -who发现陌生 IP 登录 -ss -antp发现22端口大量连接</td>
+</tr>
+<tr>
+<td>DNS 劫持</td>
+<td>-resolv.conf被篡改，DNS 解析异常 -ping google.com解析 IP 变化 - 服务器 DNS 记录被改到8.8.8.8之外的未知 IP</td>
+</tr>
+<tr>
+<td>恶意代理 &#x2F; 隧道</td>
+<td>-ps发现socat、nc、iodine等隧道工具 - 服务器对外大量443&#x2F;80连接 -iptables规则被修改</td>
+</tr>
+<tr>
+<td>ARP 欺骗 &#x2F; 内网流量劫持</td>
+<td>-arp -a显示异常网关 MAC - 内网通信异常，流量到达错误 IP -tcpdump发现 ARP 报文激增</td>
+</tr>
+</tbody></table>
+<h4 id="4">Linux数据传输</h4>
+
+<table>
+<thead>
+<tr>
+<th>传输方式</th>
+<th>适用场景</th>
+<th>使用示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SCP（安全复制协议）✅ 推荐</td>
+<td>适用于内网或有 SSH 访问权限的服务器，支持加密传输</td>
+<td>scp tool.tar.gz <a href="mailto:&#117;&#115;&#x65;&#114;&#64;&#x31;&#x39;&#x32;&#46;&#49;&#54;&#56;&#46;&#49;&#x2e;&#x31;&#x30;&#x30;">user@192.168.1.100</a>:&#x2F;tmp&#x2F;</td>
+</tr>
+<tr>
+<td>SFTP（安全文件传输）✅ 推荐</td>
+<td>基于 SSH，适用于Windows 客户端上传</td>
+<td>使用FileZilla、WinSCP等客户端 ｜</td>
+</tr>
+<tr>
+<td>rsync（高效增量同步）✅ 推荐</td>
+<td>大文件同步，支持断点续传</td>
+<td>rsync -avz tool.tar.gz <a href="mailto:&#117;&#x73;&#x65;&#x72;&#64;&#49;&#x39;&#x32;&#46;&#x31;&#54;&#56;&#46;&#49;&#46;&#49;&#48;&#x30;">user@192.168.1.100</a>:&#x2F;tmp&#x2F; ｜</td>
+</tr>
+<tr>
+<td>Xshell &#x2F; Xftp（图形化）</td>
+<td>适用于Windows 远程管理</td>
+<td>Xftp 上传文件到服务器 ｜</td>
+</tr>
+<tr>
+<td>FTP（不安全，谨慎使用）</td>
+<td>适用于无 SSH 但开放 FTP 端口的服务器</td>
+<td>ftp 192.168.1.100 ｜</td>
+</tr>
+<tr>
+<td>HTTP &#x2F; Python Web 服务器✅ 推荐</td>
+<td>适用于目标服务器可访问外网的情况</td>
+<td>python3 -m http.server 8080 ｜</td>
+</tr>
+<tr>
+<td>Wget &#x2F; Curl（远程下载）✅ 推荐</td>
+<td>适用于服务器能访问公网的情况</td>
+<td>wget <a target="_blank" rel="noopener" href="http://your-server.com/tool.tar.gz">http://your-server.com/tool.tar.gz</a></td>
+</tr>
+<tr>
+<td>Netcat（适用于封闭环境）✅ 推荐</td>
+<td>适用于内网受限环境，可用于无 SSH 但有端口通信的服务器</td>
+<td>发送端：nc -lvp 4444 &lt; tool.tar.gz接收端：nc IP 4444 &gt; tool.tar.gz</td>
+</tr>
+<tr>
+<td>SMB 共享（Windows ↔ Linux）</td>
+<td>适用于Windows 与 Linux 互传</td>
+<td>Linux 挂载 SMB:mount -t cifs &#x2F;&#x2F;192.168.1.100&#x2F;share &#x2F;mnt</td>
+</tr>
+<tr>
+<td>U 盘 &#x2F; 物理介质</td>
+<td>适用于离线服务器</td>
+<td>直接拷贝到 U 盘，然后mount &#x2F;dev&#x2F;sdb1 &#x2F;mnt</td>
+</tr>
+</tbody></table>
+<p><a target="_blank" rel="noopener" href="https://bypass007.github.io/Emergency-Response-Notes/Summary/%E7%AC%AC2%E7%AF%87%EF%BC%9ALinux%E5%85%A5%E4%BE%B5%E6%8E%92%E6%9F%A5.html">引用</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/WangsuSecurity/article/details/143143504">https://blog.csdn.net/WangsuSecurity/article/details/143143504</a></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/应急响应/">#应急响应</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2025/11/27/vue2vsvue3/">vue2 对比 vue3</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/11/27/vue-big-file-upload/">vue2 大文件上传component(做成组件)</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/11/27/wireshark/">Wireshark</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2025/11/27/xss/">XSS跨站脚本攻击</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/">数据分析</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

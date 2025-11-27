@@ -184,244 +184,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/07/08/mysql-migrate-main-sub/">
-                Mysql-数据迁移-主从
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-07-08</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
-<p>首先把 mysq.ini 配置打开</p>
-</blockquote>
-<ul>
-<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
-</li>
-<li><p>重启数据库 并可启用 secure_file_priv</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>bash脚本 并进行数据提取  -(数据导出)</p>
-<blockquote>
-<p> export_data.sh</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>python脚本 数据批量插入 -(数据插入)</p>
-<blockquote>
-<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/07/08/mysql/">
-                Mysql-basic
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-07-08</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>文章</p>
-<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><h3 id="常用mysql语句"><a href="#常用mysql语句" class="headerlink" title="常用mysql语句"></a>常用mysql语句</h3><ul>
-<li>添加字段</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE <span class="built_in">users</span></span><br><span class="line">ADD COLUMN username VARCHAR(255);</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>所有字段更新</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UPDATE  <span class="built_in">users</span> SET role_id=<span class="string">&quot;1&quot;</span>;</span><br><span class="line"><span class="comment">##更新部分字段</span></span><br><span class="line"><span class="built_in">where</span> XXX</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>批量替换   旧的 -》新的</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UPDATE your_table</span><br><span class="line">SET your_column = REPLACE(your_column, <span class="string">&#x27;http://107.148.73.24:83/uploads/tool/202409/&#x27;</span>, <span class="string">&#x27;http://aaa.com/uploads/tool/202409/&#x27;</span>);</span><br></pre></td></tr></table></figure>
-<h3 id="mysql-删除重复记录-去重"><a href="#mysql-删除重复记录-去重" class="headerlink" title="mysql 删除重复记录 去重"></a>mysql 删除重复记录 去重</h3><p>peopleId 去重</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">DELETE </span><br><span class="line">FROM </span><br><span class="line">    people </span><br><span class="line">WHERE </span><br><span class="line">    peopleId IN (</span><br><span class="line">		SELECT	</span><br><span class="line">            peopleId </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY </span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">	)</span><br><span class="line">AND </span><br><span class="line">    rowid </span><br><span class="line">    NOT IN ( </span><br><span class="line">        SELECT </span><br><span class="line">            min(rowid) </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY	</span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DELETE</span><br><span class="line">FROM</span><br><span class="line">	user</span><br><span class="line">WHERE</span><br><span class="line">	<span class="built_in">id</span> NOT IN (</span><br><span class="line">SELECT <span class="built_in">id</span> FROM (</span><br><span class="line">		SELECT</span><br><span class="line">			MAX(<span class="built_in">id</span>) AS <span class="built_in">id</span></span><br><span class="line">		FROM</span><br><span class="line">			user</span><br><span class="line">		GROUP BY</span><br><span class="line">			username</span><br><span class="line">	) AS d</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="数据二进制备份-binlog"><a href="#数据二进制备份-binlog" class="headerlink" title="数据二进制备份 binlog"></a>数据二进制备份 binlog</h3><p> binlog，也称为二进制日志，记录对数据发生或潜在发生更改的SQL语句，并以二进制的形式保存在磁盘中，可以用来查看数据库的变更历史（具体的时间点所有的SQL操作）、数据库增量备份和恢复（增量备份和基于时间点的恢复）、Mysql的复制（主主数据库的复制、主从数据库的复制）。</p>
-<ul>
-<li>查看是否开启binlog</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like <span class="string">&#x27;%bin%&#x27;</span>  </span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>开启binlog<br>只需要打开mysql的配置文件my.ini（也可能是my.cnf），找到log-bin</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log-bin=mysql-bin </span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>mysqlbinlog 导入二进制binlog文件</li>
-</ul>
-<h3 id="数据备份"><a href="#数据备份" class="headerlink" title="数据备份"></a>数据备份</h3><p>mysqldump 只适用于数据备份 选择性的（加条件）数据不能使用<br>只能用 excel 进行 数据插入</p>
-<ul>
-<li><p>选择性导出 (加条件)<br>mysqldump -u root -p heitang post –where&#x3D;”id &gt; 14192” &gt; post.sql</p>
-<ul>
-<li>{heitang} 数据库名</li>
-<li>{post} table</li>
-<li>–where&#x3D;”id &gt; 14192” 条件</li>
-<li>post.sql 导出sql</li>
-</ul>
-</li>
-<li><p>excel<br>SELECT name, age, email INTO OUTFILE ‘&#x2F;path&#x2F;to&#x2F;output.csv’<br>FIELDS TERMINATED BY ‘,’<br>ENCLOSED BY ‘“‘<br>LINES TERMINATED BY ‘\n’<br>FROM users;</p>
-</li>
-<li><p>数据误update 数据没了</p>
-</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/07/08/mysql-migrate/">
-                Mysql-数据迁移-基础篇
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-07-08</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>文章</p>
-<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
-<p>首先把 mysq.ini 配置打开</p>
-</blockquote>
-<ul>
-<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
-</li>
-<li><p>重启数据库 并可启用 secure_file_priv</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>bash脚本 并进行数据提取  -(数据导出)</p>
-<blockquote>
-<p> export_data.sh</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>python脚本 数据批量插入 -(数据插入)</p>
-<blockquote>
-<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
-</blockquote>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/07/08/natcat/">
-                Natcat
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-07-08</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透工具/">渗透工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>nc是netcat的简写，有着网络界的瑞士军刀美誉。因为它短小精悍、功能实用，被设计为一个简单、可靠的网络工具。 </p>
-<ul>
-<li>端口扫描工具， </li>
-<li>安全工具， </li>
-<li>监测工具， </li>
-<li>甚至可以做为一个简单的 TCP 代理</li>
-</ul>
-<h2 id="NC"><a href="#NC" class="headerlink" title="NC"></a>NC</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h2 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h2><ul>
-<li>正向连接 - 机器开放端口并可以主动连接目标机器端口 远程桌面、web服务、ssh、telnet等等都是正向连接</li>
-<li>反向连接 - 攻击者指定服务端，受害者主机主动连接攻击者的服务端程序</li>
-</ul>
-<p>反弹shell的方式有很多，那具体要用哪种方式还需要根据目标主机的环境来确定，比如目标主机上如果安装有netcat，那我们就可以利用netcat反弹shell，如果具有python环境，那我们可以利用python反弹shell。如果具有php环境，那我们可以利用php反弹shell。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/07/08/network-protocal/">
+            <a href="/2025/11/27/network-protocal/">
                 网络协议
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-07-08</span>
+                <span class="date">2025-11-27</span>
             
             
             
@@ -528,7 +297,7 @@
 <li>A 将域名指向一个 IPv4 地址，如 106.55.75.123。 A记录归属地是埃文科技的付费接口，为了防止盗刷，每个用户有查询限制，请节省使用。</li>
 <li>AAAA 将域名指向一个 IPv6 地址，如 2402:4e00:1013:e500:0:9671:f018:4947。同一个主机名可以同时解析到 IPv4(A记录)地址 和 IPv6(AAAA 记录)地址上，当只有IPv4 地址的用户会解析到 IPv4 地址，一般情况下有 IPv6 地址的用户会优先解析到 IPv6 地址。</li>
 <li>CNAME 将域名指向另一个域名地址，与其保持相同解析，如 static.ipw.cn 别名到 static.ipw.cn.cdn.dnsv1.com</li>
-<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#116;&#101;&#x73;&#116;&#x40;&#105;&#112;&#x77;&#46;&#99;&#110;">test@ipw.cn</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#116;&#x65;&#115;&#116;&#64;&#109;&#97;&#105;&#108;&#46;&#105;&#112;&#x77;&#46;&#x63;&#x6e;">test@mail.ipw.cn</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
+<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#116;&#x65;&#115;&#x74;&#64;&#x69;&#x70;&#x77;&#46;&#x63;&#110;">test@ipw.cn</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#x74;&#101;&#115;&#116;&#x40;&#109;&#97;&#105;&#x6c;&#x2e;&#x69;&#x70;&#119;&#x2e;&#x63;&#110;">test@mail.ipw.cn</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
 <li>TXT 附加文本信息，常用于域名所有权验证，如在申请 HTTPS 证书时需要增加记录、</li>
 <li>PTR IP 的反向解析记录，例如 159.75.190.197 反解析到 ipw.cn，一般用于提升自建域名邮件服务器的可信度，可提单找云服务商添加。</li>
 <li>NS 域名的 DNS 服务器地址，例如 ns3.dnsv2.com，推荐 DNSPod.</li>
@@ -722,13 +491,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/07/08/nmap/">
+            <a href="/2025/11/27/nmap/">
                 NMAP
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-07-08</span>
+                <span class="date">2025-11-27</span>
             
             
             
@@ -765,13 +534,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/07/08/ollama/">
+            <a href="/2025/11/27/ollama/">
                 Ollama
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-07-08</span>
+                <span class="date">2025-11-27</span>
             
             
             
@@ -787,10 +556,11 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
             <ul>
 <li><a href="#%E5%9F%BA%E7%A1%80">基础</a><ul>
 <li><a href="#%E5%BE%AE%E8%B0%83-%E6%94%B9%E8%BF%9B%E6%8E%A5%E8%BF%91ChatGPT">微调 改进接近ChatGPT</a></li>
+<li><a href="#%E5%BE%AE%E8%B0%83">微调</a></li>
 <li><a href="#AI%E7%BC%96%E8%BE%91%E5%99%A8">AI编辑器</a></li>
 </ul>
 </li>
-<li><a href="#%E5%BE%AE%E8%B0%83">微调</a></li>
+<li><a href="#MCP">MCP</a></li>
 </ul>
 <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><p><code>Ollama</code> 是一个基于 Go 语言开发的简单易用的本地大语言模型运行框架。<br>适用于macOS，Linux，Window，也可使用Docker</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##########</span></span><br><span class="line"><span class="comment"># ollama命令 ：</span></span><br><span class="line"><span class="comment">##########</span></span><br><span class="line"></span><br><span class="line">ollama list <span class="comment"># 模型列表</span></span><br><span class="line"></span><br><span class="line">ollama show  <span class="comment"># 模型的信息</span></span><br><span class="line"></span><br><span class="line">ollama pull <span class="comment"># 拉取模型</span></span><br><span class="line"></span><br><span class="line">ollama push <span class="comment"># 推送模型</span></span><br><span class="line"></span><br><span class="line">ollama <span class="built_in">cp</span> <span class="comment"># 拷贝一个模型</span></span><br><span class="line"></span><br><span class="line">ollama <span class="built_in">rm</span> <span class="comment"># 删除一个模型</span></span><br><span class="line"></span><br><span class="line">ollama run <span class="comment"># 运行一个模型</span></span><br><span class="line"></span><br><span class="line">ollama pull llama3.2 <span class="comment">#下载模型</span></span><br><span class="line">ollama run llama3.2 <span class="comment">#运行模型</span></span><br></pre></td></tr></table></figure>
@@ -822,19 +592,93 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 <blockquote>
 <p>Tabby是一个自托管的AI编程助手，为开发人员提供了一个开源和本地部署的替代方案，支持通过利用第三方开源代码大模型</p>
 </blockquote>
-<p>(Mac m1)<br>因为tabby对arm支持很差所以直接用 <code>Homebrew</code><br>代替docker的tabby</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 Homebrew 版 Tabby</span></span><br><span class="line">brew install tabbyml/tabby/tabby</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动服务（建议使用轻量模型 StarCoder-1B）：</span></span><br><span class="line">tabby serve --device metal --model TabbyML/StarCoder-1B --port 5000</span><br></pre></td></tr></table></figure>
-
 <p>此版本仅限于 X86 AMD</p>
 <figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&#x27;3.8&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="comment"># 🧠 本地 LLM 模型运行器（如 llama3）</span></span><br><span class="line">  <span class="attr">ollama:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ollama/ollama:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">ollama</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;11434:11434&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./model:/root/.ollama</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 💻 浏览器聊天界面，调用本地模型</span></span><br><span class="line">  <span class="attr">open-webui:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ghcr.io/open-webui/open-webui:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">open-webui</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;8888:8080&quot;</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_BASE_URL=http://ollama:11434</span></span><br><span class="line">    <span class="attr">depends_on:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ollama</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./webui:/app/backend/data</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># 🧠 实时代码补全（配合 VS Code 插件 Tabby）</span></span><br><span class="line">  <span class="attr">tabby:</span></span><br><span class="line">    <span class="attr">platform:</span> <span class="string">linux/amd64</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">tabbyml/tabby:0.29.0</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">tabby</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;5000:5000&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./tabby:/data</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">serve</span></span><br></pre></td></tr></table></figure>
 
+<h3 id="Mac-cpu-M2"><a href="#Mac-cpu-M2" class="headerlink" title="Mac cpu &#x3D; M2"></a>Mac cpu &#x3D; M2</h3><blockquote>
+<p> MCP server + 对话框 + 代码补全</p>
+<ul>
+<li>ollama + contiune(VScode) + tabby (内存充足的情况下 10G以上)</li>
+<li>hugging API +  contiune(VScode) + tabby (内存 4G)</li>
+</ul>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#####</span></span><br><span class="line"><span class="comment"># Ollama (local)</span></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ollama ⚠️ 目前  deepseek-r1:latest deepseek-r1:7b </span></span><br><span class="line"><span class="comment"># （deepseek-r1:7b、qwen2:7b、llama3:8b）内存都需要16G</span></span><br><span class="line"><span class="comment"># 目前只能用 (llama3:3b gemma2:2b qwen2:3b) 4G</span></span><br><span class="line">ollama run llama3:3b</span><br><span class="line">ollama run deepseek-r1:latest</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line"><span class="comment"># Tabby (local)</span></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># (Mac m1)</span></span><br><span class="line"><span class="comment"># 因为tabby对arm支持很差所以直接用 Homebrew </span></span><br><span class="line"><span class="comment"># 代替docker的tabby</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 Homebrew 版 Tabby</span></span><br><span class="line">brew install tabbyml/tabby/tabby</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动服务（建议使用轻量模型 StarCoder-1B）：</span></span><br><span class="line">tabby serve --device metal --model TabbyML/StarCoder-1B --port 5000</span><br><span class="line"></span><br><span class="line">ps aux | grep tabby</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果密码记不得了 用SQLite</span></span><br><span class="line">sqlite3 ~/.tabby/ee/db.sqlite</span><br><span class="line"><span class="comment"># 进去改密码</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line"><span class="comment"># contiune (local)</span></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ❌Contiune-ollama(local)  ollama vscode contiune config.yaml json</span></span><br><span class="line">name: <span class="string">&quot;Local Ollama Config&quot;</span></span><br><span class="line">version: <span class="string">&quot;1&quot;</span></span><br><span class="line"></span><br><span class="line">models:</span><br><span class="line">  - name: <span class="string">&quot;DeepSeek-R1&quot;</span></span><br><span class="line">    provider: <span class="string">&quot;ollama&quot;</span></span><br><span class="line">    model: <span class="string">&quot;deepseek-r1:latest&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># Contiune-hugging face HF API</span></span><br><span class="line"><span class="comment"># ❌</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<h3 id="tabby-命令"><a href="#tabby-命令" class="headerlink" title="tabby 命令"></a>tabby 命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-<p><a target="_blank" rel="noopener" href="https://gitee.com/mirrors/HuatuoGPT">在线医生</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/news/427722.html">“全能黑客工具”Xanthorox AI：自进化AI武器的威胁与防御破局</a></p>
+<h1 id="MCP"><a href="#MCP" class="headerlink" title="MCP"></a>MCP</h1><h3 id="1️⃣-核心思路"><a href="#1️⃣-核心思路" class="headerlink" title="1️⃣ 核心思路"></a>1️⃣ 核心思路</h3><ol>
+<li>选择开源模型</li>
+</ol>
+<ul>
+<li><code>小模型（CPU/单卡可跑）</code>：GPT4All, LLaMA-7B, MPT-7B</li>
+<li><code>大模型（多卡 / 大显存）</code>：LLaMA-13B, Falcon-40B, MPT-30B</li>
+</ul>
+<ol start="2">
+<li>选择推理框架</li>
+</ol>
+<ul>
+<li><code>Ollama</code> → REST &#x2F; CLI</li>
+<li><code>Transformers + PyTorch / Accelerate</code> → 官方框架，灵活</li>
+<li><code>vLLM</code> → 高效推理，大批量请求性能好</li>
+<li><code>Text-generation-webui</code> → 快速部署 REST &#x2F; WebSocket API</li>
+<li><code>FastChat</code> → 聊天模型专用，支持多轮对话</li>
+</ul>
+<ol start="3">
+<li>提供 REST &#x2F; SSE 接口</li>
+</ol>
+<ul>
+<li>使用 FastAPI 封装 MCP 接口</li>
+<li><code>/v1/chat/completions</code> 普通返回</li>
+<li><code>/v1/chat/stream</code> 流式输出</li>
+</ul>
+<h4 id="与-MCP-框架的对比"><a href="#与-MCP-框架的对比" class="headerlink" title="与 MCP 框架的对比"></a>与 MCP 框架的对比</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Ollama</th>
+<th>vLLM &#x2F; WebUI &#x2F; Transformers</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>本地部署</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>云端调用</td>
+<td>✅</td>
+<td>❌（需自己部署）</td>
+</tr>
+<tr>
+<td>API 支持</td>
+<td>REST &#x2F; CLI</td>
+<td>REST &#x2F; SSE（自定义）</td>
+</tr>
+<tr>
+<td>流式输出</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>模型自由度</td>
+<td>受限</td>
+<td>完全自由，开源模型都可用</td>
+</tr>
+<tr>
+<td>免费 &#x2F; 开源</td>
+<td>部分免费</td>
+<td>完全开源</td>
+</tr>
+</tbody></table>
+<h3 id="2️⃣-部署示例（FastAPI-Transformers）"><a href="#2️⃣-部署示例（FastAPI-Transformers）" class="headerlink" title="2️⃣ 部署示例（FastAPI + Transformers）"></a>2️⃣ 部署示例（FastAPI + Transformers）</h3><h3 id="3️⃣-部署建议"><a href="#3️⃣-部署建议" class="headerlink" title="3️⃣ 部署建议"></a>3️⃣ 部署建议</h3><ol>
+<li><p>硬件要求<br>  模型 &lt; 7B → 16GB 显存或 32GB 内存可跑<br>  模型 13B → 40GB 显存或多卡<br>  模型 30B+ → 80GB+ 显存或分布式 GPU</p>
+</li>
+<li><p>优化推理<br>  使用 torch_dtype&#x3D;torch.float16 或 load_in_8bit&#x3D;True 降低显存<br>  用 vLLM 或 Text-generation-webui 可提高并发性能</p>
+</li>
+<li><p>多模型支持<br>  MCP 可扩展多个模型<br>  请求时通过 model 字段选择模型</p>
+</li>
+<li><p>安全性<br>  对外提供 API 时，可加 Token 校验<br>  限制单次请求 max_tokens 或并发量</p>
+</li>
+</ol>
+<h1 id="MCP-NAS"><a href="#MCP-NAS" class="headerlink" title="MCP + NAS"></a>MCP + NAS</h1><h3 id="🖥️-台式机-MCP-树莓派-NAS-部署清单"><a href="#🖥️-台式机-MCP-树莓派-NAS-部署清单" class="headerlink" title="🖥️ 台式机 MCP + 树莓派 NAS 部署清单"></a>🖥️ 台式机 MCP + 树莓派 NAS 部署清单</h3><p><a target="_blank" rel="noopener" href="https://gitee.com/mirrors/HuatuoGPT">在线医生</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/news/427722.html">“全能黑客工具”Xanthorox AI：自进化AI武器的威胁与防御破局</a></p>
 
         </div>
     
@@ -846,13 +690,858 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/07/08/ops-basic/">
+            <a href="/2025/11/27/ops-interview/">
+                运维面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-11-27</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ol>
+<li>Linux如何挂载windows下的共享目录？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mount.cifs //IP地址/server /mnt/server -o user=administrator,password=123456</span><br><span class="line"><span class="comment"># linux 下的server需要自己手动建一个 后面的user与pass 是windows主机的账号和密码 注意空格 和逗号</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>如何查看http的并发请求数与其TCP连接状态？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;++b[<span class="variable">$NF</span>]&#125;’ END &#123;<span class="keyword">for</span>(a <span class="keyword">in</span> b) <span class="built_in">print</span> a,b[a]&#125;’</span><br><span class="line"></span><br><span class="line"><span class="built_in">ulimit</span> -n <span class="comment"># 查看linux系统打开最大的文件描述符，这里默认1024，不修改这里web服务器修改再大也没用。若要用就修改很几个办法，这里说其中一个：</span></span><br><span class="line">修改/etc/security/limits.conf</span><br><span class="line">* soft nofile 10240</span><br><span class="line">* hard nofile 10240</span><br><span class="line">重启后生效</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>如何用tcpdump嗅探80端口的访问看看谁最高？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i eth0 -tnn dst port 80 -c 1000 | awk -F”.” ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>″.”<span class="variable">$2</span>″.”<span class="variable">$3</span>″.”<span class="variable">$4</span>″.”&#125;’ | <span class="built_in">sort</span> |<span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr | head-5</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>如何查看&#x2F;var&#x2F;log目录下的文件数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/log/ -1R | grep “-” | <span class="built_in">wc</span> -l</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>如何查看Linux系统每个ip的连接数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;<span class="built_in">print</span> <span class="variable">$5</span>&#125;’ | awk -F: ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>shell下生成32位随机密码？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /dev/urandom | <span class="built_in">head</span> -1 | <span class="built_in">md5sum</span> | <span class="built_in">head</span> -c 32 &gt;&gt; /pass</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>统计出apache的access.log中访问量最多的5个ip？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> access.log | awk ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -n -r | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure>
+<ol start="8">
+<li>如何查看二进制文件的内容？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 我们一般通过hexdump命令 来查看二进制文件的内容。</span></span><br><span class="line">hexdump -C XXX(文件名) -C是参数 不同的参数有不同的意义</span><br><span class="line"><span class="comment"># -C 是比较规范的 十六进制和ASCII码显示</span></span><br><span class="line"><span class="comment"># -c 是单字节字符显示</span></span><br><span class="line"><span class="comment"># -b 单字节八进制显示</span></span><br><span class="line"><span class="comment"># -o 是双字节八进制显示</span></span><br><span class="line"><span class="comment"># -d 是双字节十进制显示</span></span><br><span class="line"><span class="comment"># -x 是双字节十六进制显示</span></span><br></pre></td></tr></table></figure>
+
+<ol start="9">
+<li>ps aux 中的VSZ代表什么意思，RSS代表什么意思？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">**VSZ：**虚拟内存集，进程占用的虚拟内存空间。</span><br><span class="line"></span><br><span class="line">**RSS：**物理内存集，进程战用实际物理内存空间。</span><br></pre></td></tr></table></figure>
+
+<ol start="10">
+<li>如何检测并修复&#x2F;dev&#x2F;hda5？</li>
+</ol>
+<p><code>fsck</code>用来检查和维护不一致的文件系统。若系统掉电或磁盘发生问题，可利用<code>fsck</code>命令对文件系统进行检查。</p>
+<ol start="11">
+<li>介绍下Linux系统的开机启动顺序？</li>
+</ol>
+<p>加载BIOS–&gt;读取MBR–&gt;Boot Loader–&gt;加载内核–&gt;用户层init一句inittab文件来设定系统运行的等级(一般3或者5，3是多用户命令行，5是界面)–&gt;init进程执行rc.syninit–&gt;启动内核模块–&gt;执行不同级别运行的脚本程序–&gt;执行&#x2F;etc&#x2F;rc.d&#x2F;rc.local(本地运行服务)–&gt;执行&#x2F;bin&#x2F;login，就可以登录了。</p>
+<ol start="12">
+<li>符号链接与硬链接的区别？<br>我们可以把符号链接，也就是软连接，当做是 Windows系统里的快捷方式。</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 硬链接 就好像是 又复制了一份，举例说明：</span></span><br><span class="line"><span class="built_in">ln</span> 3.txt 4.txt <span class="comment"># 这是硬链接，相当于复制，不可以跨分区，但修改3，4会跟着变，若删除3，4不受任何影响。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ln</span> -s 3.txt 4.txt <span class="comment"># 这是软连接，相当于快捷方式。修改4，3也会跟着变，若删除3，4就坏掉了，不可以用了。</span></span><br></pre></td></tr></table></figure>
+
+<ol start="13">
+<li>保存当前磁盘分区的分区表？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dd</span> <span class="comment"># 命令是以个强大的命令，在复制的同时进行转换。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/sda of=./mbr.txt bs=1 count=512</span><br></pre></td></tr></table></figure>
+
+<ol start="14">
+<li>如何在文本里面进行复制、粘贴，删除行，删除全部，按行查找和按字母查找？</li>
+</ol>
+<p>以下操作全部在命令行状态操作，不要在编辑状态操作。<br>在文本里移动到想要复制的行 按 yy 想复制到哪就移动到哪，然后按 <code>P</code> 就粘贴了。<br>删除行 移动到改行 按<code>dd</code>。</p>
+<p>删除全部 <code>dG</code> 这里注意G一定要大写。</p>
+<p>按行查找<code>：90</code> 这样就是找到第90行。</p>
+<p>按字母查找 <code>/path</code> 这样就是 找到path这个单词所在的位置，文本里可能存在多个,多次查找会显示在不同的位置。</p>
+<ol start="15">
+<li>手动安装grub？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grub-install /dev/sda</span><br></pre></td></tr></table></figure>
+<ol start="16">
+<li>修改内核参数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/sysctl.conf <span class="comment"># 这里修改参数</span></span><br><span class="line">sysctl -p <span class="comment"># 刷新后可用</span></span><br></pre></td></tr></table></figure>
+
+<ol start="17">
+<li>在1-39内取随机数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">expr</span> $[RANDOM%39] +1</span><br><span class="line"><span class="comment"># RANDOM随机数</span></span><br><span class="line"><span class="comment"># %39取余数范围0-38</span></span><br></pre></td></tr></table></figure>
+
+<ol start="18">
+<li>限制apache每秒新建连接数为1，峰值为3？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每秒新建连接数一般都是由防火墙来做，apache本身好像无法设置每秒新建连接数，只能设置最大连接：</span></span><br><span class="line">iptables -A INPUT -d 172.16.100.1 -p tcp –dport 80 -m <span class="built_in">limit</span> –<span class="built_in">limit</span> 1/second -j ACCEPT</span><br></pre></td></tr></table></figure>
+
+<ol start="19">
+<li>FTP的主动模式和被动模式</li>
+</ol>
+<p>FTP协议有两种工作方式：PORT方式和PASV方式，中文意思为主动式和被动式。</p>
+<p>PORT（主动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，客户端在命令链路上用 PORT 命令告诉服务器：“我打开了XX端口，你过来连接我”。于是服务器从20端口向客户端的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>PASV（被动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，服务器在命令链路上用 PASV 命令告诉客户端：“我打开了XX端口，你过来连接我”。于是客户端向服务器的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>从上面可以看出，两种方式的命令链路连接方法是一样的，而数据链路的建立方法就完全不同。</p>
+<ol start="20">
+<li>显示&#x2F;etc&#x2F;inittab中以#开头，且后面跟了一个或者多个空白字符，而后又跟了任意非空白字符的行？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “^#&#123;1,&#125;[^]” /etc/inittab</span><br></pre></td></tr></table></figure>
+
+<ol start="21">
+<li>显示&#x2F;etc&#x2F;inittab中包含了：一个数字：(即两个冒号中间一个数字)的行？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “:[0-9]&#123;1&#125;:” /etc/inittab</span><br></pre></td></tr></table></figure>
+
+<ol start="22">
+<li>怎么把脚本添加到系统服务里，即用service来调用？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在脚本里加入：</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">chkconfig: 345 85 15</span><br><span class="line">description: httpd</span><br><span class="line"><span class="comment"># 然后保存，chkconfig httpd –add 创建系统服务，现在就可以使用service 来 start or restart。</span></span><br></pre></td></tr></table></figure>
+
+<ol start="23">
+<li>写一个脚本，实现批量添加20个用户，用户名为user01-20，密码为user后面跟5个随机字符？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment">#description: useradd</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `<span class="built_in">seq</span> -f”%02g” 1 20`;<span class="keyword">do</span></span><br><span class="line">useradd user<span class="variable">$i</span></span><br><span class="line"><span class="built_in">echo</span> “user<span class="variable">$i</span>-`<span class="built_in">echo</span> <span class="variable">$RANDOM</span>|<span class="built_in">md5sum</span>|<span class="built_in">cut</span> -c 1-5`”|passwd –stdinuser<span class="variable">$i</span> &gt;/dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<ol start="24">
+<li>写一个脚本，实现判断192.168.1.0&#x2F;24网络里，当前在线的IP有哪些，能ping通则认为在线？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">for</span> ip <span class="keyword">in</span> `<span class="built_in">seq</span> 1 255`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">ping -c 1 192.168.1.<span class="variable">$ip</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> UP</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> DOWN</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;&amp;</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">wait</span></span><br></pre></td></tr></table></figure>
+
+<ol start="25">
+<li>写一个脚本，判断一个指定的脚本是否是语法错误；如果有错误，则提醒用户键入Q或者q无视错误并退出其它任何键可以通过vim打开这个指定的脚本？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> checksh.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="built_in">read</span> -p “please input check script-&gt; ” file</span><br><span class="line"><span class="keyword">if</span> [ -f <span class="variable">$file</span> ]; <span class="keyword">then</span></span><br><span class="line">sh -n <span class="variable">$file</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “You input <span class="variable">$file</span> syntax error,[Type q to <span class="built_in">exit</span> or Type vim to edit]” answer</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$answer</span> <span class="keyword">in</span></span><br><span class="line">q | Q)</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line">vim )</span><br><span class="line">vim <span class="variable">$file</span></span><br><span class="line">;;</span><br><span class="line">*）</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> “<span class="variable">$file</span> not exist”</span><br><span class="line"><span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<ol start="26">
+<li>写一个脚本，要求如何？</li>
+</ol>
+<p>创建一个函数，能接受两个参数：</p>
+<p>1）第一个参数为URL，即可下载的文件；第二个参数为目录，即下载后保存的位置；</p>
+<p>2）如果用户给的目录不存在，则提示用户是否创建；如果创建就继续执行，否则，函数返回一个51的错误值给调用脚本；</p>
+<p>3）如果给的目录存在，则下载文件；下载命令执行结束后测试文件下载成功与否；如果成功，则返回0给调用脚本，否则，返回52给调用脚本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> downfile.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">url=<span class="variable">$1</span></span><br><span class="line"><span class="built_in">dir</span>=<span class="variable">$2</span></span><br><span class="line"><span class="function"><span class="title">download</span></span>()</span><br><span class="line">&#123;</span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span> &gt;&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “<span class="variable">$dir</span> No such file or directory,create?(y/n)” answer</span><br><span class="line"><span class="keyword">if</span> [ “<span class="variable">$answer</span>” == “y” ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span></span><br><span class="line">wget <span class="variable">$url</span> 1&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">return</span> “51”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">return</span> “52”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line">download <span class="variable">$url</span> <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+
+<ol start="27">
+<li>写一个脚本，详细需求如下？<br>1、创建一个函数，可以接受一个磁盘设备路径（如&#x2F;dev&#x2F;sdb）作为参数；在真正开始后面步骤之前提醒用户有危险，并让用户选择是否继续；而后将此磁盘设备上的所有分区清空（提示，使用命令dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;&#x2F;dev&#x2F;sdb bs&#x3D;512 count&#x3D;1实现，注意其中的设备路径不要写错了；</li>
+</ol>
+<p>如果此步骤失败，返回67给主程序；</p>
+<p>接着在此磁盘设备上创建两个主分区，一个大小为100M，一个大小为1G；如果此步骤失败，返回68给主程序；</p>
+<p>格式化此两分区，文件系统类型为ext3；如果此步骤失败，返回69给主程序；</p>
+<p>如果上述过程都正常，返回0给主程序；</p>
+<p>2、调用此函数；并通过接收函数执行的返回值来判断其执行情况，并将信息显示出来。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">local</span> Darray=(`<span class="built_in">ls</span> /dev/sd[a-z]`)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="variable">$&#123;Darray&#125;</span>;<span class="keyword">do</span></span><br><span class="line">[[ “<span class="variable">$i</span>” == “<span class="variable">$1</span>” ]] &amp;&amp; Sd=<span class="variable">$i</span> &amp;&amp;<span class="built_in">break</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">return66</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#当匹配成功，进入选择，告诉用户，是否继续，输错的话进入无限循环，当用户选择Y,则清空目标分区，且跳出while循环</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> :;<span class="keyword">do</span></span><br><span class="line"><span class="built_in">read</span> -p “Warning!!!This operation will clean <span class="variable">$Sd</span> data.Next=y,Quit=n [y|n]:” Choice</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$Choice</span> <span class="keyword">in</span></span><br><span class="line">y)</span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/zero of=<span class="variable">$Sd</span> bs=512 count=1 &amp;&gt; /dev/null &amp;&amp;<span class="built_in">break</span> || <span class="built_in">return</span> 67 ;;</span><br><span class="line">n)</span><br><span class="line"><span class="built_in">exit</span> 88 ;;</span><br><span class="line">*)</span><br><span class="line"><span class="built_in">echo</span> “Invalid choice,please choice again.” ;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#使用echo传递给fdisk进行分区，如果此命令失败，则跳转出去，错误值68，需要注意的是，有时候这个返回值很诡异，笔者之前成功与否都是返回的1，后来重启之后，就好了，如果慎重的话，可以对创建的分区，进行判断，不过就需要使用其他工具截取相关字段了，虽有些小麻烦，但无大碍</span></span><br><span class="line"></span><br><span class="line">echo-e “np1+100Mnp2+1024Mw”|fdisk /dev/sdb&amp;&gt; /dev/null || || <span class="built_in">return</span> 68</span><br><span class="line"></span><br><span class="line"><span class="comment">#格式化之前，让内核重新读取磁盘分区表，值得注意的是，有的系统版本，使用partprobe无效，譬如笔者的环境是rhel5.8，而rhel6.0以后，这个命令就很危险了，而使用partx -a /dev/sdb则效果更好…此项需慎重，如果格式化失败，则告知把失败的分区定义成变量，且跳出函数，并带出错误值69</span></span><br><span class="line"></span><br><span class="line">`partprobe`</span><br><span class="line">Part=`fdisk -l /dev/<span class="variable">$Sd</span>|<span class="built_in">tail</span> -2|<span class="built_in">cut</span> -d” ” -f1`</span><br><span class="line"><span class="keyword">for</span> M <span class="keyword">in</span> <span class="variable">$&#123;Part&#125;</span>;<span class="keyword">do</span></span><br><span class="line">mke2fs -j <span class="variable">$M</span> &amp;&gt; /dev/null &amp;&amp; ErrorPart=<span class="variable">$M</span> &amp;&amp;<span class="built_in">return</span> 69</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">return</span> 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#下面代码，调用函数，接收函数返回值，根据返回值进行判断哪里出错。</span></span><br><span class="line"></span><br><span class="line">Disk_Mod <span class="variable">$1</span></span><br><span class="line">Res=$?</span><br><span class="line">[ <span class="variable">$Res</span>-eq 0 ] &amp;&amp; <span class="built_in">exit</span> 0</span><br><span class="line">[ <span class="variable">$Res</span>-eq 66 ] &amp;&amp; <span class="built_in">echo</span> “Error! Invalid input.”</span><br><span class="line">[ <span class="variable">$Res</span>-eq 67 ] &amp;&amp; <span class="built_in">echo</span> “Error! Command -&gt; <span class="built_in">dd</span> fdisk mke2fs</span><br></pre></td></tr></table></figure>
+
+<ol start="28">
+<li>如何让history命令显示具体时间？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">HISTTIMEFORMAT=”%Y-%m-%d %H:%M:%S”</span><br><span class="line"><span class="built_in">export</span> HISTTIMEFORMAT</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新开机后会还原，可以写/etc/profile</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://dockerworld.cn/?id=392">https://dockerworld.cn/?id=392</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/martin-huang/p/13606761.html">https://www.cnblogs.com/martin-huang/p/13606761.html</a><br><a target="_blank" rel="noopener" href="https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html">https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2407138">https://cloud.tencent.com/developer/article/2407138</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/11/27/pantesting-Intranet/">
+                内网渗透
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-11-27</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h2><p>内网基础环境分析<br>内网基础环境判断<br>IP、网关、DNS、是否能连通外网、网络连接及端口、本机host文件、机器的代理、是否在域内，域名是什么。</p>
+<p>分析机器所处位置区域<br>DMZ区、办公区、生产区、核心DB等等</p>
+<p>DMZ（Demilitarized Zone，非军事区或隔离区）是网络安全架构中的一种设计，用于增强网络的安全性。它通常指在内部网络和外部网络（如互联网）之间设置的一个中间区域，用于放置公共访问的服务和设备。</p>
+<p>分析机器的角色<br>普通WEB服务器、开发服务器、文件服务器、代理服务器、DNS服务器、数据存储服务器等等</p>
+<p>分析进出口流量是否能连通<br>协议的判断：常见的TCP、DNS、HTTP、ICMP等协议</p>
+<p>端口判断：外网vps做监听，内网机器测试常见端口，常见能出去的端口有 80,8080,443,53,110,123 等。</p>
+<ol>
+<li><p>TCP协议：</p>
+<blockquote>
+<p>vps：nc -lvvp 8888<br>target：nc vps-ip 8888</p>
+</blockquote>
+</li>
+<li><p>HTTP协议：</p>
+<blockquote>
+<p>vps：nc -lvvp 80<br>target：curl vps-ip 80</p>
+</blockquote>
+</li>
+<li><p>ICMP协议：</p>
+<blockquote>
+<p>vps：tcpdump icmp （tcpdump是一个抓包工具，用于捕获和分析通过网络接口传输的数据包。）<br>target：ping vps-ip<br>ping 命令属于 互联网控制消息协议（ICMP, Internet Control Message Protocol）。</p>
+</blockquote>
+</li>
+<li><p>DNS协议：</p>
+<blockquote>
+<p>vps：nc -u -lvp 53<br>target：nslookup <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a> vps-ip<br>dig @vsp-ip <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a><br>（dig 是一个用于查询 DNS（域名系统）信息的命令行工具，广泛用于网络管理和故障排查，可以获取有关域名的不同类型的 DNS 记录。在Windows系统中不内置，在Linux则有内置）</p>
+</blockquote>
+</li>
+</ol>
+<h4 id="本机的-hosts-文件用于映射主机名（域名）到-IP-地址。"><a href="#本机的-hosts-文件用于映射主机名（域名）到-IP-地址。" class="headerlink" title="本机的 hosts 文件用于映射主机名（域名）到 IP 地址。"></a>本机的 hosts 文件用于映射主机名（域名）到 IP 地址。</h4><ol>
+<li>基本功能<br>域名解析：hosts 文件可以手动指定某个域名对应的 IP 地址，优先于 DNS 服务器的解析结果。<br>本地测试：在开发和测试环境中，可以将域名指向本地 IP 地址（如 127.0.0.1），方便开发者在不影响外部网络的情况下进行测试。</li>
+<li>使用场景<br>屏蔽网站：可以将某些网站的域名指向 0.0.1，从而阻止访问该网站。<br>快速访问：将常用的域名映射到本地 IP 地址，可以加快访问速度，尤其是在 DNS 服务不稳定的情况下。<br>替代 DNS：在没有 DNS 服务的网络中，可以使用 hosts 文件进行简单的域名解析。</li>
+<li>文件位置<br>Windows：通常位于 C:\Windows\System32\drivers\etc\hosts<br>Linux 和 macOS：通常位于 &#x2F;etc&#x2F;hosts</li>
+<li>文件格式<br>hosts 文件的格式较为简单，每行包含一个 IP 地址和一个或多个主机名，例如：<br>127.0.0.1 localhost 192.168.1.10 mylocaldev</li>
+<li>优缺点<br>优点:<br>提高解析速度，减少对 DNS 服务器的依赖。<br>简单易用，适合快速配置。<br>缺点:<br>不易于管理，特别是在需要频繁更改时。<br>在大型网络中，维护 hosts 文件可能变得复杂且不高效。</li>
+</ol>
+<h3 id="本机信息收集"><a href="#本机信息收集" class="headerlink" title="本机信息收集"></a>本机信息收集</h3><p>操作系统、权限、内网IP地址段、杀软、端口、服务、补丁情况、网络环境情况、共享、会话等</p>
+<p>如果是域内主机，那么操作系统、应用软件、补丁、服务、杀软一般都是批量安装的。</p>
+<h3 id="内网网段信息收集"><a href="#内网网段信息收集" class="headerlink" title="内网网段信息收集"></a>内网网段信息收集</h3><p>只有找到不同网段才能进行纵向渗透，否则只能横向渗透</p>
+<p>纵向渗透关注的是权限的提升，从低权限向高权限移动，旨在获取更深层次的控制。<br>横向渗透则是在同一权限层级内扩展访问，旨在访问更多的目标或资源。</p>
+<ol>
+<li>内网网段扫描</li>
+<li>文件共享、FTP连接记录、浏览器访问记录、mstsc连接记录<br>拓展：mstsc 是 Windows 系统中用于远程桌面连接的工具。按 Win + R 输入mstsc即可启动。</li>
+<li>渗透路由器、交换机</li>
+</ol>
+<h3 id="用户信息（用CMD）"><a href="#用户信息（用CMD）" class="headerlink" title="用户信息（用CMD）"></a>用户信息（用CMD）</h3><ul>
+<li>查看本机用户列表：<blockquote>
+<p>net user</p>
+</blockquote>
+</li>
+<li>获取本地管理员信息：<blockquote>
+<p>net localgroup administrators</p>
+</blockquote>
+</li>
+<li>查看当前在线用户：<blockquote>
+<p>quser query user query user || qwinsta</p>
+</blockquote>
+</li>
+<li>查看当前用户在目标系统中的具体权限：<blockquote>
+<p>whoami &#x2F;all</p>
+</blockquote>
+</li>
+<li>查看当前权限：<blockquote>
+<p>whoami &amp;&amp; whoami &#x2F;priv</p>
+</blockquote>
+</li>
+<li>查看当前机器中所有的组名，了解不同组的职能，如 IT、HR、ADMIN、FILE：<blockquote>
+<p>net localgroup</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="系统信息"><a href="#系统信息" class="headerlink" title="系统信息"></a>系统信息</h3><ul>
+<li>查询网络配置信息，进行IP地址段信息收集：<blockquote>
+<p>ipconfig &#x2F;all</p>
+</blockquote>
+</li>
+<li>查询操作系统及软件信息（当然也可以直接运行：systeminfo）：<blockquote>
+<p>systeminfo | findstr &#x2F;B &#x2F;C:”OS 名称” &#x2F;C:”OS 版本” #中文系统</p>
+</blockquote>
+</li>
+<li>查看当前系统版本：<blockquote>
+<p>wmic OS get Caption,CSDVersion,OSArchitecture,Version</p>
+</blockquote>
+</li>
+</ul>
+<p>上面这个命令使用 WMIC 工具来获取 Windows 操作系统的相关信息。具体来说，它的作用是提取以下几个属性：</p>
+<blockquote>
+<p>wmic：调用 Windows Management Instrumentation Command-line 工具。<br>OS：指定要查询的对象类型为操作系统（Operating System）。<br>get：表示获取指定的属性。<br>Caption：操作系统的名称（如 Windows 10）。<br>CSDVersion：操作系统的服务包版本（如 Service Pack 1），如果没有安装服务包则可能为空。<br>OSArchitecture：操作系统的架构（如 32 位或 64 位）。<br>Version：操作系统的版本号（如 10.0.19041）。</p>
+</blockquote>
+<ul>
+<li>查看系统体系结构：<blockquote>
+<p>echo %PROCESSOR_ARCHITECTURE%</p>
+</blockquote>
+</li>
+<li>查询本机服务信息：<blockquote>
+<p>wmic service list brief</p>
+</blockquote>
+</li>
+<li>查看安装的软件的版本、路径等：<blockquote>
+<p>wmic product get name,version powershell “Get-WmiObject -class Win32_Product | Select-Object -Property name, version”</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Windows-内网渗透"><a href="#Windows-内网渗透" class="headerlink" title="Windows 内网渗透"></a>Windows 内网渗透</h2><h3 id="工作组和域"><a href="#工作组和域" class="headerlink" title="工作组和域"></a>工作组和域</h3><p>工作组和域的区别：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw">https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw</a><br>查看本机工作组的方法：右键“此电脑”，找到“域或工作组”，此时便会显示本机工作组。<br>发现在同一个组的计算机方法：开启 “ 网络发现 ”。</p>
+<h3 id="工作组简介"><a href="#工作组简介" class="headerlink" title="工作组简介"></a>工作组简介</h3><p>工作组是最常见最简单最普通的资源管理模式，就是将不同的电脑按功能分别列入不同的组中，以方便管理。</p>
+<p>默认情况下所有计算机都处在名为 WORKGROUP 的工作组中，工作组资源管理模式适合于网络中计算机不多，对管理要求不严格的情况。它的建立步骤简单，使用起来也很好上手。</p>
+<p>大部分中小公司都采取工作组的方式对资源进行权限分配和目录共享相同组中的不同用户通过对方主机的用户名和密码可以査看对方共享的文件夹，默认共享的是 Users 目录。</p>
+<p>不同组的不同用户通过对方主机的用户名和密码也可以査看对方共享的文件夹,工作组并不存在真正的集中管理作用，工作组里的所有计算机都是对等的，也就是没有服务器和客户机之分的。</p>
+<h2 id="Linux-内网渗透"><a href="#Linux-内网渗透" class="headerlink" title="Linux 内网渗透"></a>Linux 内网渗透</h2><h2 id="mac-内网渗透"><a href="#mac-内网渗透" class="headerlink" title="mac 内网渗透"></a>mac 内网渗透</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p>引用 ：<br><a target="_blank" rel="noopener" href="https://github.com/wjl110/MacGosh-Pro">https://github.com/wjl110/MacGosh-Pro</a><br><a target="_blank" rel="noopener" href="https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86">https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86">https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file">https://github.com/r0eXpeR/pentest?tab=readme-ov-file</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254884.html">https://www.freebuf.com/articles/system/254884.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/backlion/p/16850277.html">https://www.cnblogs.com/backlion/p/16850277.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254826.html">https://www.freebuf.com/articles/system/254826.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/177493.html">https://www.freebuf.com/articles/network/177493.html</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus2024/#google_vignette">https://www.ddosi.org/nessus2024/#google_vignette</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus-plugin-pro-3/">https://www.ddosi.org/nessus-plugin-pro-3/</a><br><a target="_blank" rel="noopener" href="https://github.com/Hack-with-Github/Awesome-Hacking">https://github.com/Hack-with-Github/Awesome-Hacking</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/11/27/pantesting-getinfo/">
+                信息收集
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-11-27</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>信息收集是指通过各种方式获取所需要的信息，以便我们在后续的渗透过程更好的进行。比如目标站点IP、中间件、脚本语言、端口、邮箱等等。信息收集包含资产收集但不限于资产收集。</p>
+<ul>
+<li><p>主动信息收集<br>通过直接访问网站在网站上进行操作、对网站进行扫描等，这种是有网络流量经过目标服务器的信息收集方式。</p>
+</li>
+<li><p>被动信息收集<br>基于公开的渠道，比如搜索引擎等，在不与目标系统直接交互的情况下获取信息，并且尽量避免留下痕迹。</p>
+</li>
+<li><p><a href="#1">服务器信息</a></p>
+<ul>
+<li><a href="#1.1">域名信息</a><ul>
+<li><a href="#1.1.1">搜索引擎搜索</a></li>
+<li><a href="#1.1.2">子域名查询</a></li>
+<li><a href="#1.1.3">IP域名反查</a></li>
+<li><a href="#1.1.4">CDN</a></li>
+<li><a href="#1.1.5">扫描工具</a></li>
+<li><a href="#1.1.6">域名相关性总结</a></li>
+</ul>
+</li>
+<li><a href="#1.2">端口信息</a><ul>
+<li><a href="#1.2.1">端口扫描</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a href="#2">网站&#x2F;域名信息</a></p>
+<ul>
+<li><a href="#2.1">网络指纹识别</a></li>
+<li><a href="#2.2">网站服务 &#x2F; 容器类型</a></li>
+<li><a href="#2.3">敏感文件及目录探测</a></li>
+<li><a href="#2.4">网站备份文件</a></li>
+<li><a href="#2.5">网站WAF识别</a></li>
+<li><a href="#2.6">Windows主机信息收集</a></li>
+</ul>
+</li>
+<li><p><a href="#3">社会工程学-人员信息</a></p>
+<ul>
+<li><a href="#3.1">企业信息收集</a></li>
+<li><a href="#3.2">人员信息收集</a></li>
+<li><a href="#3.3">钓鱼</a></li>
+<li><a href="#3.4">其他信息</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="1">服务器信息</h3>
+
+<ul>
+<li><p>IP</p>
+<blockquote>
+<p>C段</p>
+</blockquote>
+</li>
+<li><p>线下网络</p>
+<blockquote>
+<p>Wi-Fi</p>
+<ul>
+<li>SSID</li>
+<li>认证信息</li>
+</ul>
+<p>bluetooth</p>
+</blockquote>
+</li>
+<li><p>VPN</p>
+<blockquote>
+<p>厂商<br>登录方式</p>
+</blockquote>
+</li>
+<li><p>邮件网关</p>
+</li>
+<li><p>手机APP</p>
+</li>
+<li><p>小程序后台</p>
+</li>
+<li><p>OA</p>
+</li>
+<li><p>SSO</p>
+</li>
+<li><p>边界网络设备</p>
+</li>
+<li><p>上游运营商</p>
+</li>
+</ul>
+<h4 id="1.1">域名信息</h4>
+
+<h5 id="1.1.1">搜索引擎搜索</h5>
+
+<p>用搜索引擎 搜索相关的域名和子域名 <code>site:[DomainName]</code></p>
+<ul>
+<li>site:<br>限定搜索结果只来自特定网站。<blockquote>
+<p>示例：<code>site:</code>wikipedia.org</p>
+</blockquote>
+</li>
+<li>filetype:<br>查找特定类型的文件。<blockquote>
+<p>示例：<code>filetype:</code>pdf 教学大纲</p>
+</blockquote>
+</li>
+<li>intitle:<br>查找标题中包含特定词语的页面。<blockquote>
+<p>示例：<code>intitle:</code>市场分析</p>
+</blockquote>
+</li>
+<li>inurl:<br>查找URL中包含特定词语的页面。<blockquote>
+<p>示例：<code>inurl:</code>blog</p>
+</blockquote>
+</li>
+<li>related:<br>查找与某个特定网站相似的网站。<blockquote>
+<p>示例：<code>related:</code>example.com</p>
+</blockquote>
+</li>
+<li>OR（要大写）<br>在搜索中使用逻辑“或”，查找包含任一关键词的结果。<blockquote>
+<p>示例：<code>苹果 OR 橙子</code></p>
+</blockquote>
+</li>
+<li>-（短横线）<br>排除某个词语，从搜索结果中剔除特定内容。<blockquote>
+<p>示例：<code>水果 -香蕉</code></p>
+</blockquote>
+</li>
+<li>“ “（引号）<br>精确匹配短语，查找包含确切词组的结果。<blockquote>
+<p>示例：<code>&quot;机器学习入门&quot;</code></p>
+</blockquote>
+</li>
+<li>*（星号）<br>用作通配符，可以替代一个或多个词。<blockquote>
+<p>示例：<code>&quot;我喜欢 * 的电影&quot;</code></p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 返回此目标站点被搜索引擎抓取收录的所有内容</span></span><br><span class="line">site:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回此目标站点被搜索引擎抓取收录的包含此关键词的所有页面</span></span><br><span class="line"><span class="comment">## 此处可以将关键词设定为网站后台，管理后台，密码修改，密码找回等</span></span><br><span class="line">site:www.hao123.com keyword</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回目标站点的地址中包含admin.php的所有页面，可以使用admin.php/manage.php或者其他关键词来寻找关键功能页面 </span></span><br><span class="line">site:www.hao123.com inurl:admin.php</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回所有包含目标站点链接的页面，其中包括其开发人员的个人博客，开发日志，或者开放这个站点的第三方公司，合作伙伴等</span></span><br><span class="line"><span class="built_in">link</span>:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回所有与目标站点”相似”的页面，可能会包含一些通用程序的信息等</span></span><br><span class="line">related:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 搜索出错的页面</span></span><br><span class="line">intitle:<span class="string">&quot;500 Internal Server Error&quot;</span> <span class="string">&quot;server at&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 查找代理服务器</span></span><br><span class="line">inurl:<span class="string">&quot;nph-proxy.cgi&quot;</span> <span class="string">&quot;Start browsing&quot;</span></span><br><span class="line"><span class="comment">## 除了以上的关键字，还有allintile / allinurl / allintext / inanchor / intext / filetype / info / numberange / cache等。</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="1.1.2">第三方查询</h5>
+
+<ul>
+<li><a target="_blank" rel="noopener" href="https://dnsdumpster.com/">子域名查询信息</a></li>
+<li><a href="virustotal.com">全球最大的免费在线查毒网站 virustotal</a></li>
+<li>[威胁信息挖掘](<a target="_blank" rel="noopener" href="https://www.threatminer.org)/">https://www.threatminer.org）</a></li>
+<li><a target="_blank" rel="noopener" href="https://search.censys.io/">联网设备信息的新型搜索引擎</a></li>
+</ul>
+<h5 id="1.1.2">子域名查询</h5>
+
+<ul>
+<li>SSL证书查询<ul>
+<li><a target="_blank" rel="noopener" href="https://crt.sh/">SSL查询网址</a></li>
+</ul>
+</li>
+<li>发现子域名工具<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Threezh1/JSFinder">JS子域名爬取工具</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/shmilylty/OneForAll">强大的子域搜集工具 - OneForAll</a></li>
+<li><a href="">Subdomainsbrute</a></li>
+<li><a target="_blank" rel="noopener" href="https://scan.javasec.cn/">在线爆破子域名</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.3">IP域名反查</h5>
+
+<ul>
+<li>IP反查域名<ul>
+<li><a target="_blank" rel="noopener" href="http://stool.chinaz.com/same">1</a></li>
+<li><a target="_blank" rel="noopener" href="https://tools.ipip.net/ipdomain.php">2</a></li>
+</ul>
+</li>
+<li>域名查询IP<ul>
+<li><a target="_blank" rel="noopener" href="https://ip.tool.chinaz.com/">3</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.4">CDN</h5>
+
+<p>CDN即内容分发网络。CDN是构建在网络之上的内容分发网络，依靠部署在各地的边缘服务器，通过中心平台的负载均衡、内容分发、调度等功能模块，使用户就近获取所需内容，降低网络拥塞，提高用户访问响应速度和命中率。</p>
+<p>通俗来说，就是部署在本地的服务器，里面备用了想要访问的服务器的数据。</p>
+<ul>
+<li>多地ping判断CDN<ul>
+<li><a target="_blank" rel="noopener" href="http://ping.chinaz.com/">1</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.webkaka.com/Ping.aspx">2</a></li>
+</ul>
+</li>
+<li>Mx记录邮件服务<ul>
+<li>将IP输入到ping检测网址里</li>
+</ul>
+</li>
+<li>查询历史DNS记录<ul>
+<li><a target="_blank" rel="noopener" href="https://dnsdb.io/zh-cn">1</a></li>
+<li><a target="_blank" rel="noopener" href="https://securitytrails.com/">2</a></li>
+<li><a target="_blank" rel="noopener" href="https://x.threatbook.cn/">3</a></li>
+</ul>
+</li>
+<li>常见的几个DNS记录类型<ul>
+<li>A记录：将域名指向一个IPV4地址(例如:100.100.100.100)，需要增加A记录；</li>
+<li>NS记录：域名解析服务器记录，如果要将子域名指定某个域名服务器来解析，需要设置NS记录；</li>
+<li>SOA记录： SOA叫做起始授权机构记录，NS用于标识多台域名解析服务器，SOA记录用于在众多NS记录中标记哪一台是主服务器；</li>
+<li>MX记录：建立电子邮箱服务，将指向邮件服务器地址，需要设置MX记录。建立邮箱时，一般会根据邮箱服务商提供的MX记录填写此记录；</li>
+<li>TXT记录：可任意填写，可为空。一般做一些验证记录时会使用此项，如做SPF(反垃圾邮件)记录；</li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.5">扫描工具</h5>
+
+<ul>
+<li>nmap</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/se55i0n/Cwebscanner">Cwebscan</a></li>
+</ul>
+<h5 id="1.1.6">域名相关性总结</h5>
+
+<ul>
+<li>查询域名注册邮箱</li>
+<li>通过域名查询备案号</li>
+<li>通过备案号查询域名</li>
+<li>反查注册邮箱</li>
+<li>反查注册人</li>
+<li>通过注册人查询到的域名在查询邮箱</li>
+<li>通过上一步邮箱去查询域名</li>
+<li>查询以上获取出的域名的子域名</li>
+</ul>
+<h4 id="1.2">端口信息</h4>
+
+<ul>
+<li>端口类型<br>周知端口：众所周知的端口号，范围:0-1023，如80端口是WWW服务<br>动态端口：一般不固定分配某种服务，范围:49152-65535<br>注册端口：范围:1024-49151，用于分配给用户进程或程序</li>
+<li>各种端口介绍<ul>
+<li>FTP (21&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">FTP：文件传输协议，允许用户通过网络上传、下载和管理文件，使用TCP端口20、21。20用于传输数据，21用于传输控制信息。</span><br><span class="line"></span><br><span class="line">FTP 本身并不加密：数据以明文形式传输，容易被窃听。</span><br><span class="line"></span><br><span class="line">(1) ftp基础爆破：owasp 的 Bruter、hydra 以及 msf 中的 ftp 爆破模块。 暴力破解密码 默认用户名密码 anonymous:anonymous</span><br><span class="line"></span><br><span class="line">(2) ftp匿名访问：</span><br><span class="line">用户名: anonymous 密码: 为空或者任意邮箱</span><br><span class="line"></span><br><span class="line">(3) vsftpd后门：vsftpd 2到2.3.4版本存在后门漏洞，通过该漏洞获取root权限</span><br><span class="line"></span><br><span class="line">(4) 嗅探：ftp使用明文传输，使用 Cain 进行渗透。(但是探需要在局域网并需要欺骗或监听网关)</span><br><span class="line"></span><br><span class="line">(5) ftp远程代码溢出。</span><br><span class="line"></span><br><span class="line">(6) ftp跳转攻击。</span><br><span class="line"></span><br><span class="line">FTP跳转攻击:https://blog.csdn.net/mgxcool/article/details/48249473</span><br></pre></td></tr></table></figure>
+<ul>
+<li>SSH (22&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SSH:(secure shell)是目前较可靠，专为远程登录会话和其他网络服务提供安全性的协议。</span><br><span class="line"></span><br><span class="line">(1)弱口令，可使用工具hydra，msf中的ssh爆破模块。</span><br><span class="line"></span><br><span class="line">(2)SSH后门</span><br><span class="line"></span><br><span class="line">(3)openssh用户枚举 CVE-2018-15473.</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Telent (23&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Telnet 协议是 TCP/IP 协议族中的一员，是Internet远程登录服务的标准协议和主要方式。</span><br><span class="line"></span><br><span class="line">(1) 暴力破解，使用 hydra 或者 msf 中 teInet 模块对其进行破解。</span><br><span class="line"></span><br><span class="line">(2) 在linux系统中一般采用SSH进行远程访问，传输的敏感数据都是经过加密的。而对于windows下的 telnet 来说是脆弱的，因为默认没有经过任何加密就在网络中进行传输。使用cain等嗅探工具可轻松截获远程登录密码。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>SMTP (25&#x2F;TCP &amp; 465&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">smtp:邮件协议，在linux中默认开启这个服务，可发送钓鱼邮件</span><br><span class="line"></span><br><span class="line">默认端口:25(smtp)、465(smtps)</span><br><span class="line"></span><br><span class="line">(1)爆破:弱口令，使用hydra</span><br><span class="line"></span><br><span class="line">(2)SMTP 无认证伪造发件人</span><br></pre></td></tr></table></figure>
+<ul>
+<li>DNS (53&#x2F;UDP &amp; 53&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">域传送漏洞</span><br><span class="line">DNS劫持</span><br><span class="line">DNS缓存投毒</span><br><span class="line">DNS欺骗</span><br><span class="line">SPF / DMARC Check</span><br><span class="line">DDoS</span><br><span class="line">    DNS Query Flood</span><br><span class="line">    DNS 反弹</span><br><span class="line"></span><br><span class="line">DNS 隧道</span><br></pre></td></tr></table></figure>
+<ul>
+<li>DHCP 67 &amp; 68</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">劫持/欺骗</span><br></pre></td></tr></table></figure>
+<ul>
+<li>TFTP (69&#x2F;TCP)</li>
+<li>HTTP (80&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">为超文本传输协议(HTTP)开放的端口，主要用于万维网传输信息的协议</span><br><span class="line"></span><br><span class="line">(1) 通常80端口使用中间件漏洞进行攻击，如 llS、apache任意文件读写漏洞、nginx等</span><br><span class="line"></span><br><span class="line">(2) 80端口一般通过web应用程序的常见漏洞进行攻击</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Kerberos (88&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">主要用于监听KDC的票据请求</span><br><span class="line">用于进行黄金票据和白银票据的伪造</span><br></pre></td></tr></table></figure>
+<ul>
+<li>POP3 (110&#x2F;TCP &amp; 995&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">爆破</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RPC (135&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic 服务利用</span><br></pre></td></tr></table></figure>
+<ul>
+<li>NetBIOS (137&#x2F;UDP &amp; 138&#x2F;UDP) Samba (139&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">139用于提供windows文件和打印机共享及UNIX中的Samba服务</span><br><span class="line"></span><br><span class="line">445用于提供windows文件和打印机共享</span><br><span class="line"></span><br><span class="line">(1)对于开放139/445端口，尝试利用MS17010溢出漏洞进行攻击;</span><br><span class="line"></span><br><span class="line">(2)对于只开放445端口，尝试利用MS06040、MS08067溢出漏洞攻击;</span><br><span class="line"></span><br><span class="line">(3)利用IPC$连接进行渗透</span><br><span class="line">未授权访问</span><br><span class="line">弱口令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>IMAP (143&#x2F;TCP &amp; 993&#x2F;TCP)</li>
+<li>SNMP (161&#x2F;TCP &amp; 161&#x2F;UDP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Public 弱口令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>LDAP (389&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">用于域上的权限验证服务</span><br><span class="line">匿名访问</span><br><span class="line">注入</span><br></pre></td></tr></table></figure>
+<ul>
+<li>HTTPS (443&#x2F;TCP)</li>
+<li>SMB (445&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Windows 协议簇，主要功能为文件共享服务</span><br><span class="line">net use \\192.168.1.1 /user:xxx\username password</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Linux Rexec (512&#x2F;TCP &amp; 513&#x2F;TCP &amp; 514&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱口令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Rsync (873&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RPC (1025&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NFS匿名访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Java RMI (1090&#x2F;TCP &amp; 1099&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">反序列化远程命令执行漏洞</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MSSQL (1433&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br><span class="line">差异备份 GetShell</span><br><span class="line">SA 提权</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Oracle (1521&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>NFS (2049&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">权限设置不当</span><br><span class="line">showmount &lt;host&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ZooKeeper (2171&#x2F;TCP &amp; 2375&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无身份认证</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Docker Remote API (2375&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">未限制IP / 未启用TLS身份认证</span><br><span class="line">http://docker.addr:2375/version</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MySQL (3306&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">3306是MYSQL数据库默认的监听端口</span><br><span class="line"></span><br><span class="line">(1) mysql弱口令破解</span><br><span class="line"></span><br><span class="line">(2) 弱口令登录mysql，上传构造的恶意UDF自定义函数代码，通过调用注册的恶意函数执行系统命令</span><br><span class="line"></span><br><span class="line">(3) SQL注入获取数据库敏感信息，load_fie()函数读取系统文件，导出恶意代码到指定路径</span><br><span class="line">弱密码</span><br><span class="line">日志写WebShell</span><br><span class="line">UDF提权</span><br><span class="line">MOF提权</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RDP &#x2F; Terminal Services (3389&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">3389是windows远程桌面服务默认监听的端口</span><br><span class="line"></span><br><span class="line">(1) RDP暴力破解攻击</span><br><span class="line"></span><br><span class="line">(2) MS12_020死亡蓝屏攻击</span><br><span class="line"></span><br><span class="line">(3) RDP远程桌面漏洞(CVE-2019-0708)</span><br><span class="line"></span><br><span class="line">(4) MSF开启RDP、注册表开启RDP</span><br><span class="line">弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Postgres (5432&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br><span class="line">执行系统命令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>VNC (5900&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>CouchDB (5984&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>WinRM (5985&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Windows对WS-Management的实现</span><br><span class="line">在Vista上需要手动启动，在Windows Server 2008中服务是默认开启的</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Redis (6379&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">开源的可基于内存的可持久化的日志型数据库，</span><br><span class="line"></span><br><span class="line">(1)爆破弱口令</span><br><span class="line"></span><br><span class="line">(2)redis未授权访问结合ssh key提权</span><br><span class="line"></span><br><span class="line">(3)主从复制 RCE</span><br><span class="line">无密码或弱密码</span><br><span class="line">绝对路径写 WebShell</span><br><span class="line">计划任务反弹 Shell</span><br><span class="line">写 SSH 公钥</span><br><span class="line">Windows 写启动项</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Kubernetes API Server (6443&#x2F;TCP &amp;&amp; 10250&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://Kubernetes:10250/pods</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Weblogic (7001&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(1)弱口令、爆破，弱密码一般为weblogic/Oracle@123 or weblogic</span><br><span class="line"></span><br><span class="line">(2)管理后台部署 war包后门</span><br><span class="line"></span><br><span class="line">(3)weblogic SSRF</span><br><span class="line"></span><br><span class="line">(4)反序列化漏洞</span><br></pre></td></tr></table></figure>
+<ul>
+<li>JDWP (8000&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">远程命令执行</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ActiveMQ (8061&#x2F;TCP)</li>
+<li>Jenkin (8080&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Tomcat-8080</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(1) Tomcat远程代码执行漏洞(CVE-2019-0232)</span><br><span class="line"></span><br><span class="line">(2) Tomcat任意文件上传(CVE-2017-12615)</span><br><span class="line"></span><br><span class="line">(3) tomcat 管理页面弱口令getshell</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Elasticsearch (9200&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">代码执行</span><br><span class="line">http://es.addr:9200/_plugin/head/</span><br><span class="line">http://es.addr:9200/_nodes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Memcached (11211&#x2F;TCP &amp; 11211&#x2F;UDP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RabbitMQ (15672&#x2F;TCP &amp; 15692&#x2F;TCP &amp; 25672&#x2F;TCP)</li>
+<li>MongoDB (27017&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无密码或弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Hadoop (50070&#x2F;TCP &amp; 50075&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="1.2.1">端口扫描</h5>
+
+<a href="/2025/11/27/nmap/" title="NMAP">NMAP</a>
+
+
+<h3 id="2">网站信息</h3>
+<h4 id="2.1">网络指纹识别</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/aztecrabbit/bugscanner">备案</a></p>
+<ul>
+<li>判断网站操作系统<br>  Linux大小写敏感<br>  Windows大小写不敏感</li>
+<li>扫描敏感文件<br>  robots.txt<br>  crossdomain.xml<br>  sitemap.xml<br>  xx.tar.gz<br>  xx.bak 等</li>
+<li>确定网站采用的语言<br>  如PHP &#x2F; Java &#x2F; Python等<br>  找后缀，比如php&#x2F;asp&#x2F;jsp</li>
+<li>前端框架<br>  如jQuery &#x2F; BootStrap &#x2F; Vue &#x2F; React &#x2F; Angular等<br>  查看源代码</li>
+<li>中间服务器<br>  如 Apache &#x2F; Nginx &#x2F; IIS 等<br>  查看header中的信息<br>  根据报错信息判断<br>  根据默认页面判断</li>
+<li>Web容器服务器<br>  如Tomcat &#x2F; Jboss &#x2F; Weblogic等</li>
+<li>后端框架<br>  根据Cookie判断<br>  根据CSS &#x2F; 图片等资源的hash值判断<br>  根据URL路由判断</li>
+<li>如wp-admin<br>  根据网页中的关键字判断<br>  根据响应头中的X-Powered-By</li>
+<li>CDN信息<br>  常见的有Cloudflare、yunjiasu</li>
+<li>探测有没有WAF，如果有，什么类型的<br>  有WAF，找绕过方式<br>  没有，进入下一步</li>
+<li>扫描敏感目录，看是否存在信息泄漏<br>  扫描之前先自己尝试几个的url，人为看看反应</li>
+<li>使用爬虫爬取网站信息</li>
+<li>拿到一定信息后，通过拿到的目录名称，文件名称及文件扩展名了解网站开发人员的命名思路，确定其命名规则，推测出更多的目录及文件名</li>
+<li>常见入口目标</li>
+<li>关注度低的系统</li>
+<li>业务线较长的系统</li>
+</ul>
+<h4 id="2.2">网站服务 / 容器类型</h4>
+
+<p>在网站页面按下F12，可查看响应头Server字段，选择“ Network 网络 ”页面并按F5进行刷新，在出现的请求里选中和域名一样的，点击会在右侧出现“ headers 标头 ”，下拉找到 “ Response 响应标头 ”，里面有一个“ Server服务 ”，此时里面的值即为网站的中间件。</p>
+<p>可显示中间件、服务器、UI框架等的工具：</p>
+<p><a target="_blank" rel="noopener" href="https://www.whatweb.net/">在线网址 Whatweb</a><br><a target="_blank" rel="noopener" href="https://www.wappalyzer.com/">浏览器插件 Wappalyzer</a></p>
+<h4 id="2.3">CMS识别</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/kukuqi666/dedecmscan">CMS：称为内容管理系统，用于网站内容文章管理：</a></p>
+<p><a href="Onlinetools%EF%BC%9Ahttps://github.com/iceyhexman/onlinetools">常见CMS：dedecms(织梦)、Discuz、phpcms等。</a></p>
+<h4 id="2.3">敏感文件及目录探测</h4>
+
+<p>github、git、svn（前三个为代码仓库）、.DS Store（苹果操作系统）、.hg、.bzr、CVS、WEB-INF、备份文件都是。</p>
+<ul>
+<li>github 开发人员将代码上传到网站，在上传的时候，没有删除重要的一些信息。如邮箱信息，SVN信息，内部账号和密码，数据库连接信息，服务器配置信息等。尤其是邮箱信息和内部账号和密码。这类信息可以通过在github上搜索公司的一些特定信息查看是否有程序员将这些信息上传到了github上。<ul>
+<li>@example.com password&#x2F;pass&#x2F;pwd&#x2F;secret&#x2F;credentials&#x2F;token</li>
+<li>@example.com username&#x2F;user&#x2F;key&#x2F;login&#x2F;ftp&#x2F;</li>
+<li>@example.com config&#x2F;ftp&#x2F;smtp&#x2F;pop</li>
+<li>@example.com security_credentials&#x2F;connetionstring</li>
+<li>@example.com JDBC&#x2F;ssh2_auth_password&#x2F;send_keys</li>
+</ul>
+</li>
+<li><code>.git</code>泄露<ul>
+<li>.git” intitle:”index of “：<a target="_blank" rel="noopener" href="https://github.com/lijiejie/GitHack">https://github.com/lijiejie/GitHack</a><br>  GitHack是一个 .git 泄露利用脚本，通过泄露的 .git 文件夹下的文件，重建还原工程源代码。渗透测试人员、攻击者，可以进一步审计代码，挖掘文件上传，SQL注入等web安全漏洞。<br>  git泄露成因及危害：当前大量开发人员使用 git 进行版本控制，对网站进行自动部署。如果配置不当，可能会将.git文件部署到线上环境，这就引起了 git 泄露漏洞)<br>  安全维护方面，git 和 svn 信息泄露，是非常常见也是非常致命的漏洞。会导致整个网站的源码泄露。<br>  防护方法：在部署的时候，对 .git 文件夹进行删除;也可以在 nginx 配置中，对 .git 目录的访问进行屏蔽。</li>
+</ul>
+</li>
+<li><code>.svn</code>泄露<ul>
+<li>“.svn” intitle:”index of “：<a target="_blank" rel="noopener" href="https://github.com/admintony/svnExploit">https://github.com/admintony/svnExploit</a><br>  跟git一样，都是用来版本迭代的一个功能。具体一点就是使用 svn checkout 功能来更新代码。如果没有将 .svn 版本控制的目录进行删除，恶意用户就可以使用这个目录下的文件来恢复源码。从而可以获取如数据库密码，源码漏洞等信息。<br>  防护方法：在部署的时候，将该文件进行删除</li>
+</ul>
+</li>
+<li><code>WEB-INF/web.xml</code>泄露<ul>
+<li>WEB-INF是Java的WEB应用的安全目录。如果想在页面中直接访问其中的文件，必须通过 web.xml 文件对要访问的文件进行相应映射才能访问</li>
+</ul>
+</li>
+</ul>
+<h4 id="2.4">网站备份文件</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/7kbstorm/7kbscan-WebPathBrute">Web路径暴力探测工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/maurosoria/dirsearch">目录探测（探测是否有git泄露)</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/H4ckForJob/dirmap">御剑后台扫描工具 dirmap</a></p>
+<p>针对漏洞的信息泄露<br><a target="_blank" rel="noopener" href="https://github.com/LandGrey/SpringBootVulExploit">https://github.com/LandGrey/SpringBootVulExploit</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/rabbitmask/SB-Actuator">https://github.com/rabbitmask/SB-Actuator</a></p>
+<h4 id="2.5">网站WAF识别</h4>
+
+<p>WAF分类<br>WAF 可以根据其部署方式和实现形式分为软 WAF 和硬 WAF。</p>
+<ul>
+<li>软 WAF：通常是软件解决方案，可以在现有的服务器或虚拟机上部署。</li>
+<li>硬 WAF：通常是基于硬件的设备，专为处理 Web 应用程序流量而设计。</li>
+</ul>
+<h6 id="WAF功能"><a href="#WAF功能" class="headerlink" title="WAF功能"></a>WAF功能</h6><ol>
+<li>防止常见的各类网络攻击，如：SQL注入、XSS跨站、CSRF、网页后门等<br>网页后门执行的是一些系统调用命令，waf可以把请求包的系统调用阻止掉，导致一句话木马失效，需要给木马上免伤。</li>
+<li>防止各类自动化攻击，如：暴力破解（配置 iptables 也可以阻止）、撞库、批量注册、自动发贴等;</li>
+<li>阻止其它常见威胁，如：爬虫、0 DAY攻击、代码分析、嗅探、数据篡改、越权访问、敏感信息泄漏、应用层DDOS、远程恶意包含、盗链、越权、扫描等。</li>
+</ol>
+<p>Waf识别<br><a target="_blank" rel="noopener" href="https://github.com/EnableSecurity/wafw00f">wafw00f</a></p>
+<ul>
+<li>判断网址是否有waf的命令：<blockquote>
+<p>wafw00f + 网址</p>
+</blockquote>
+</li>
+<li>查看可识别waf的命令：<blockquote>
+<p>wafw00f -l</p>
+</blockquote>
+</li>
+<li>用nmap扫描有无waf：<blockquote>
+<p>nmap -p80,443 –script http-waf-detect ip<br>nmap -p80,443 –script http-waf-fingerprint ip</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="2.6">Windows主机信息收集</h4>
+
+<a href="/2025/11/27/pantesting-Intranet/" title="内网渗透">内网渗透</a>
+
+
+<h3 id="3">社会工程学-人员信息</h3>
+<h4 id="3.1">企业信息收集</h4>
+
+<p>一些网站如天眼查等，可以提供企业关系挖掘、工商信息、商标专利、企业年报等信息查询，可以提供企业的较为细致的信息。</p>
+<p>公司主站中会有业务方向、合作单位等信息。</p>
+<h4 id="3.2">人员信息收集</h4>
+
+<p>针对人员的信息收集考虑对目标重要人员、组织架构、社会关系的收集和分析。其中重要人员主要指高管、系统管理员、开发、运维、财务、人事、业务人员的个人电脑。</p>
+<p>人员信息收集较容易的入口点是网站，网站中可能包含网站的开发、管理维护等人员的信息。从网站联系功能中和代码的注释信息中都可能得到的所有开发及维护人员的姓名和邮件地址及其他联系方式。</p>
+<p>在获取这些信息后，可以在Github&#x2F;Linkedin等社交、招聘网站中进一步查找这些人在互联网上发布的与目标站点有关的一切信息，分析并发现有用的信息。</p>
+<p>此外，可以对获取到的邮箱进行密码爆破的操作，获取对应的密码。</p>
+<h4 id="3.3">钓鱼</h4>
+
+<p>基于之前收集到的信息，可以使用Office&#x2F;CHM&#x2F;RAR&#x2F;EXE&#x2F;快捷方式等文件格式制作钓鱼邮件发送至目标，进一步收集信息。</p>
+<p>其中Office可以使用Office漏洞、宏、OLE对象、PPSX等方式构造利用文件。</p>
+<p>Exe可以使用特殊的Unicode控制字符如RLO (Right-to-Left Override) 等来构建容易混淆的文件名。</p>
+<p>RAR主要是利用自解压等方式来构建恶意文件，同样加密的压缩包也在一定程度上可以逃逸邮件网关的检测。</p>
+<p>如果前期信息收集获取到了运维等人员的邮箱，可以使用运维人员的邮箱发送，如果未收集到相关的信息，可以使用伪造发送源的方式发送邮件。</p>
+<p>需要注意的是，钓鱼测试也需要注意合规问题，不能冒充监管单位、不能发送违法违规信息。具体可以参考《中华人民共和国电信条例》、《中华人民共和国互联网电子邮件服务管理办法》等法律法规。</p>
+<h4 id="3.4">其他信息</h4>
+
+<p>公司的公众号、企业号、网站，员工的网盘、百度文库等可能会存在一些敏感信息，如VPN&#x2F;堡垒机账号、TeamViewer账号、网络设备默认口令、服务器默认口令等。</p>
+<p>引用 ： <a target="_blank" rel="noopener" href="https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html">https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html</a><br><a target="_blank" rel="noopener" href="https://websec.readthedocs.io/zh/latest/info/site.html">https://websec.readthedocs.io/zh/latest/info/site.html</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/11/27/ops-basic/">
                 Devops
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-07-08</span>
+                <span class="date">2025-11-27</span>
             
             
             
@@ -867,7 +1556,10 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
         <div class="content">
             <p><a target="_blank" rel="noopener" href="https://roadmap.sh/devops">Devops之路</a></p>
 <ul>
-<li><a href="#%E7%90%90%E7%A2%8E">琐碎</a></li>
+<li><a href="#%E7%90%90%E7%A2%8E">琐碎</a><ul>
+<li><a href="#Nginx%E9%99%90%E6%B5%81%E4%B8%8E%E9%98%B2%E7%88%AC%E8%99%AB%E9%85%8D%E7%BD%AE%E6%96%B9%E6%A1%88">Nginx限流与防爬虫配置方案</a></li>
+</ul>
+</li>
 <li><a href="#AWS">AWS</a><ul>
 <li><a href="#EC2">EC2</a></li>
 <li><a href="#Amazon-Linux-2023">Amazon Linux 2023</a></li>
@@ -909,7 +1601,8 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 <p>dev1 属于dev1<br>www 属于www<br>会有404报错 找不到文件 因为在dev1就已经进不去了</p>
 <h3 id="session-问题-》CDN"><a href="#session-问题-》CDN" class="headerlink" title="session 问题 -》CDN"></a>session 问题 -》CDN</h3><p>由于Session数据存储在服务器端，而CDN节点是分布式的，<br>因此在多个节点之间共享Session数据时，可能会出现数据不一致的情况。<br>这主要是因为Session数据是基于服务器的，而CDN节点是基于客户端的，<br>因此在不同节点之间进行数据同步时，可能会出现延迟或者丢失的情况。</p>
 <p>解决办法：<br>用redis存储session</p>
-<h3 id="进程守护-Systemd"><a href="#进程守护-Systemd" class="headerlink" title="进程守护 Systemd"></a>进程守护 Systemd</h3><h1 id="AWS"><a href="#AWS" class="headerlink" title="AWS"></a>AWS</h1><pre class="mermaid">graph TB
+<h3 id="进程守护-Systemd"><a href="#进程守护-Systemd" class="headerlink" title="进程守护 Systemd"></a>进程守护 Systemd</h3><h2 id="Nginx限流与防爬虫配置方案"><a href="#Nginx限流与防爬虫配置方案" class="headerlink" title="Nginx限流与防爬虫配置方案"></a>Nginx限流与防爬虫配置方案</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wuyang-1990/p/13288170.html">Nginx限流与防爬虫配置方案</a></p>
+<h1 id="AWS"><a href="#AWS" class="headerlink" title="AWS"></a>AWS</h1><pre class="mermaid">graph TB
     A[计算] --EC2--> B[操作系统]
     B[操作系统] --网络与安全--> C[安全组-端口]
     B[操作系统] --存储(扩容)--> D[S3]
@@ -1117,65 +1810,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/07/08/hack-note/">
-                笔记
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2025-07-08</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="收集目标信息"><a href="#收集目标信息" class="headerlink" title="收集目标信息"></a>收集目标信息</h2><ul>
-<li>Gitdorker 使用 - 从github里面找代码 是否有敏感信息泄漏</li>
-<li><a target="_blank" rel="noopener" href="https://en.fofa.info/">FOFA</a> - 了解更多目标信息产品</li>
-</ul>
-<h2 id="SQL手工注入"><a href="#SQL手工注入" class="headerlink" title="SQL手工注入"></a>SQL手工注入</h2><h2 id="docker-逃逸"><a href="#docker-逃逸" class="headerlink" title="docker 逃逸"></a>docker 逃逸</h2><p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/425455.html">引用 容器逃逸——配置不当</a></p>
-<p><img src="/images/hack-note-1.png"></p>
-<p>先了解 Linux 中的 Capabilities 机制</p>
-<p>Capabilities是一种细粒度的权限控制机制，将 root 的超级权限拆分为多个独立的能力模块，允许进程或线程按需获取特定权限，而非直接拥有完整的 root 权限。用来替代传统的“全有或全无”的超级用户（root）权限模型，大约分为 40+ 种不同的权限。</p>
-<p>安装 capsh 命令：<code>sudo apt install libcap2-bin</code></p>
-<ol>
-<li>Privileged</li>
-</ol>
-<p><code>--privileged=true</code><br>这会导致容器与宿主机共享内核，容器可直接访问宿主机的设备和内核，且任何容器内的内核级操作均会直接影响宿主机</p>
-<ol start="2">
-<li><p>CAP_SYS_ADMIN</p>
-</li>
-<li><p>CAP_SYS_PTRACE</p>
-</li>
-<li><p>CAP_SYS_MODULE</p>
-</li>
-</ol>
-<p>…</p>
-<h2 id="CTF"><a href="#CTF" class="headerlink" title="CTF"></a>CTF</h2><h2 id="二进制"><a href="#二进制" class="headerlink" title="二进制"></a>二进制</h2><h2 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h2><h3 id="提权"><a href="#提权" class="headerlink" title="提权"></a>提权</h3>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/07/08/hexo/">
+            <a href="/2025/11/27/hexo/">
                 hexo
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-07-08</span>
+                <span class="date">2025-11-27</span>
             
             
             
@@ -1206,6 +1847,425 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
 
 <h3 id="username-github-io-page页面设置"><a href="#username-github-io-page页面设置" class="headerlink" title="{username}.github.io page页面设置"></a>{username}.github.io page页面设置</h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/11/27/house-electric/">
+                家庭-电力节能
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-11-27</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#%E5%85%89%E4%BC%8F%E5%82%A8%E8%83%BD%E6%B7%B7%E5%90%88%E7%B3%BB%E7%BB%9F">光伏储能混合系统</a></li>
+<li><a href="#%E7%94%B5%E5%8A%9B%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">电力节能设计方案</a></li>
+</ul>
+<h1 id="光伏储能混合系统（Hybrid-PV-System）"><a href="#光伏储能混合系统（Hybrid-PV-System）" class="headerlink" title="光伏储能混合系统（Hybrid PV System）"></a>光伏储能混合系统（Hybrid PV System）</h1><p>其实就是 “太阳能板 + 电池 + 混合逆变器 + 家用电网” 的综合解决方案。</p>
+<pre class="mermaid">flowchart TB
+  subgraph PV_SIDE["光伏侧 PV Side"]
+    A["光伏阵列\nPV Array"] --> B["直流汇流箱\nDC Combiner"]
+    B --> C["直流断路器/隔离开关\nDC Isolator"]
+    C --> D["混合逆变器\nHybrid Inverter (MPPT)"]
+  end
+
+  subgraph STORAGE["储能 Storage"]
+    E["电池组\nBattery Bank (LiFePO4)"] --> F["BMS"]
+    F --> D
+  end
+
+  subgraph AC_SIDE["交流侧 AC Side"]
+    D --> G["交流输出\nAC Output"]
+    G --> H["总配电箱\nMain Distribution Panel"]
+    H --> I["日常负载\nHousehold Loads"]
+    H --> J["重要负载子配电箱\nCritical Loads (Backup)\nvia ATS/Transfer Switch"]
+    H --> K["双向电表\nBi-directional Meter"]
+    K --> L["电网\nUtility Grid"]
+  end</pre>
+
+<h2 id="所需硬件"><a href="#所需硬件" class="headerlink" title="所需硬件"></a>所需硬件</h2><h3 id="核心部件"><a href="#核心部件" class="headerlink" title="核心部件"></a>核心部件</h3><ul>
+<li><p>光伏组件（Solar PV Modules &#x2F; Solar Panels）<br>作用：把太阳光转为直流电（DC）。<br>要点：选单晶硅、高转换效率（≥19% 更优）、带 PID 抗衰能力。组件功率按屋顶面积&#x2F;需求选择（如 300–540 W&#x2F;panel）。<br>数量 &#x3D; 目标系统容量（kW） ÷ 单板功率（kW）。</p>
+</li>
+<li><p>混合逆变器（Hybrid Inverter &#x2F; PV Inverter with ESS）<br>作用：DC→AC、MPPT、管理电池充放电、并网与离网切换。<br>要点：支持双向充放电、并网认证、离网&#x2F;备电输出、通信（RS485 &#x2F; CAN &#x2F; Wi-Fi）、峰值输出能力要匹配家中最大同时功率。<br>常见规格：3kW &#x2F; 5kW &#x2F; 10kW 等；直流输入电压&#x2F;最大 MPPT 电流要能接入你的 PV 阵列。</p>
+</li>
+<li><p>储能电池（Battery Bank） — 推荐 LiFePO4（磷酸铁锂）<br>作用：存储白天多余电能，用于夜间或停电时供电。<br>要点：选择带 BMS 的电池包；标注循环寿命（≥3000 次@80% DOD 更好）；额定电压（48V 系统常见）或模块化 400V 系统（取决逆变器）。<br>容量建议（家庭参考）：5 kWh &#x2F; 10 kWh &#x2F; 20 kWh。</p>
+</li>
+<li><p>电池管理系统（BMS）<br>作用：电池保护（过充、过放、均衡、温度保护）和与逆变器通讯。<br>要点：必须与电池和逆变器兼容，支持报警与远程通信。</p>
+</li>
+</ul>
+<h2 id="电力节能设计方案"><a href="#电力节能设计方案" class="headerlink" title="电力节能设计方案"></a>电力节能设计方案</h2><h3 id="☀️-主动节能设备"><a href="#☀️-主动节能设备" class="headerlink" title="☀️ 主动节能设备"></a>☀️ 主动节能设备</h3><ul>
+<li>太阳能板（光伏发电系统）。</li>
+<li>太阳能热水器（辅助电加热）。</li>
+<li>LED 节能灯具 + 红外&#x2F;光控感应装置。</li>
+<li>高能效空调（EER ≥ 3.5，支持变频与定时功能）。</li>
+<li>智能用电控制系统（外出一键断电、自动温控）。</li>
+</ul>
+<h3 id="❄️-被动节能设计"><a href="#❄️-被动节能设计" class="headerlink" title="❄️ 被动节能设计"></a>❄️ 被动节能设计</h3><ul>
+<li>屋顶加隔热层、使用双层中空玻璃。</li>
+<li>交叉通风、中庭风道设计。</li>
+<li>高反射屋面材料（如白色瓦&#x2F;反光涂层）。</li>
+<li>插座集中控制，防止待机耗电。</li>
+</ul>
+<hr>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2025/11/27/house-maker/">
+                家庭-自建房
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2025-11-27</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#%E4%B8%9C%E5%8D%97%E4%BA%9A%E5%88%AB%E5%A2%85%E5%BB%BA%E8%AE%BE%E4%B8%8E%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%94%BB%E7%95%A5">东南亚别墅建设与节能设计全攻略</a><ul>
+<li><a href="#%E5%9C%B0%E5%9F%BA%E9%98%B6%E6%AE%B5%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">地基阶段注意事项</a></li>
+<li><a href="#%E7%94%B5%E5%8A%9B%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">电力节能设计方案</a></li>
+<li><a href="#%E6%B0%B4%E8%B5%84%E6%BA%90%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">水资源节能设计方案</a></li>
+<li><a href="#%E5%AE%A4%E5%86%85%E8%A3%85%E4%BF%AE%E9%98%B6%E6%AE%B5%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">室内装修阶段注意事项</a></li>
+</ul>
+</li>
+<li><a href="#%E5%BF%85%E4%B9%B0%E8%A3%85%E5%A4%87">必买装备</a><ul>
+<li><a href="#%E6%8A%95%E5%BD%B1%E4%BB%AA">投影仪</a></li>
+<li><a href="#%E5%8D%87%E9%99%8D%E6%A1%8CDIY">升降桌DIY</a></li>
+<li><a href="#3d%E6%89%93%E5%8D%B0">3d打印</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BA%91%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">云操作系统</a></li>
+<li><a href="#%E6%B0%B4%E5%9F%B9%E8%94%AC%E8%8F%9C">水培蔬菜</a></li>
+</ul>
+<p>基础配置</p>
+<ul>
+<li>楼高-两层半足矣</li>
+<li>一楼：厨房、餐厅、客厅、停车位、老人房、公用洗手间、蓄电房</li>
+<li>二楼：主卧、次卧、次卧</li>
+</ul>
+<h1 id="东南亚别墅建设与节能设计全攻略"><a href="#东南亚别墅建设与节能设计全攻略" class="headerlink" title="东南亚别墅建设与节能设计全攻略"></a>东南亚别墅建设与节能设计全攻略</h1><h2 id="地基阶段注意事项"><a href="#地基阶段注意事项" class="headerlink" title="地基阶段注意事项"></a>地基阶段注意事项</h2><h3 id="防水处理"><a href="#防水处理" class="headerlink" title="防水处理"></a>防水处理</h3><ul>
+<li>关键节点加强防水：厨房、卫生间的地面与墙面交界处，务必采用聚氨酯或水泥基防水涂料，并向上返高≥30cm。</li>
+<li>设置防潮层：一楼地面下应预铺防潮膜（如PVC或自粘式沥青卷材），有效阻隔地气上升。</li>
+<li>户外地面坡度设计：屋外地坪应高于周边排水沟至少10cm，地面向外倾斜2~3%，防止雨水回流。</li>
+</ul>
+<h3 id="热水-供水布局"><a href="#热水-供水布局" class="headerlink" title="热水&#x2F;供水布局"></a>热水&#x2F;供水布局</h3><ul>
+<li>热水管道预埋：采用PPR或PE-RT热水专用管，外包保温棉，防止热量流失。</li>
+<li>太阳能热水系统预留：<ul>
+<li>上水、回水、溢水管道预埋；</li>
+<li>储水箱位置尽量设于高处以确保自然水压；</li>
+</ul>
+</li>
+<li>泵系统智能化：<ul>
+<li>安装断电自停功能，避免干烧；</li>
+<li>可选变频恒压泵以提升用水舒适度与节能效果。</li>
+</ul>
+</li>
+</ul>
+<h3 id="防蚊虫叮咬"><a href="#防蚊虫叮咬" class="headerlink" title="防蚊虫叮咬"></a>防蚊虫叮咬</h3><ul>
+<li>高离地设计：将地面层抬高 40–80 cm，有效减少地面湿气与虫害滋生源。</li>
+<li>水沟与排水坡度设计：避免积水死角，是预防蚊虫滋生的核心设计。</li>
+<li>屋顶排水顺畅设计：设置排水沟槽、防堵落叶网，防止雨后积水孳生蚊子。</li>
+<li>无死角阴暗空间：减少蚊虫栖息区域，尤其在厨房、厕所、天花板边缘。</li>
+</ul>
+<h3 id="节能导向的地基设计"><a href="#节能导向的地基设计" class="headerlink" title="节能导向的地基设计"></a>节能导向的地基设计</h3><ul>
+<li>保温层预留：在地坪施工前铺设XPS 挤塑板或泡沫混凝土，减少地面热传导；</li>
+<li>太阳能系统预布线：地基预留光伏电缆通道、电池房管线槽；</li>
+<li>雨水收集系统接口：预埋雨水排入储水池的管道，用于冲厕、浇花等二次利用。</li>
+</ul>
+<hr>
+<h2 id="电力节能设计方案"><a href="#电力节能设计方案" class="headerlink" title="电力节能设计方案"></a>电力节能设计方案</h2><a href="/2025/11/27/house-electric/" title="家庭-电力节能">家庭-电力节能</a>
+
+<h2 id="水资源节能设计方案"><a href="#水资源节能设计方案" class="headerlink" title="水资源节能设计方案"></a>水资源节能设计方案</h2><table>
+<thead>
+<tr>
+<th>级别</th>
+<th>水质要求</th>
+<th>用水场景</th>
+<th>推荐水源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>✅ 一级水</td>
+<td><strong>可直接饮用</strong></td>
+<td>饮水、做饭</td>
+<td>自来水 &#x2F; 反渗透（RO）处理后的雨水或地下水</td>
+</tr>
+<tr>
+<td>✅ 二级水</td>
+<td><strong>可接触皮肤</strong></td>
+<td>洗澡、泳池、洗手</td>
+<td>雨水+三级过滤杀菌 &#x2F; 污水深度处理水</td>
+</tr>
+<tr>
+<td>✅ 三级水</td>
+<td><strong>无皮肤接触</strong></td>
+<td>冲厕、洗衣机、室内清洁</td>
+<td>雨水+普通过滤 &#x2F; 灰水处理出水</td>
+</tr>
+<tr>
+<td>✅ 四级水</td>
+<td><strong>非接触景观水</strong></td>
+<td>浇花、冲地、喷泉、景观池补水</td>
+<td>荷花池雨水原水 &#x2F; 简单过滤的灰水</td>
+</tr>
+</tbody></table>
+<p>🔧 每级水处理建议方案</p>
+<ul>
+<li>🥇 一级水（饮用）<ul>
+<li>推荐：自来水 或<ul>
+<li>RO膜+UV消毒雨水系统</li>
+<li>末端设置净水龙头（饮水分开）</li>
+</ul>
+</li>
+<li>用于：厨房饮用水、泡茶、做饭</li>
+</ul>
+</li>
+<li>🥈 二级水（洗澡 &#x2F; 泳池）<ul>
+<li>雨水处理需：<ul>
+<li>多级砂滤 + 活性炭 + 紫外线（或臭氧）</li>
+</ul>
+</li>
+<li>池水需循环过滤系统 + 定期杀菌</li>
+</ul>
+</li>
+<li>🥉 三级水（冲厕 &#x2F; 洗衣）<ul>
+<li>雨水+简单过滤即可；</li>
+<li>或使用处理后的灰水（洗澡水）</li>
+</ul>
+</li>
+<li>🧯 四级水（浇花 &#x2F; 景观）<ul>
+<li>不需杀菌；</li>
+<li>可直接从荷花池抽取或雨水初滤水</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/house-maker-1.png"></p>
+<h3 id="🌧️-雨水管理与回用"><a href="#🌧️-雨水管理与回用" class="headerlink" title="🌧️ 雨水管理与回用"></a>🌧️ 雨水管理与回用</h3><ul>
+<li>屋顶雨水收集系统（落水管 + 滤网 + 蓄水桶）。</li>
+<li>灰水（洗澡&#x2F;洗衣水）过滤后回用：冲厕、浇花。</li>
+<li>智能水表 + 水流实时监控，漏水报警。</li>
+</ul>
+<h3 id="🚿-节水设备与生活用水优化"><a href="#🚿-节水设备与生活用水优化" class="headerlink" title="🚿 节水设备与生活用水优化"></a>🚿 节水设备与生活用水优化</h3><ul>
+<li>节水型洁具（双档马桶、节水花洒、起泡龙头）。</li>
+<li>可降解洗涤剂（适配灰水系统，避免堵塞&#x2F;污染）。</li>
+<li>花园微滴灌系统，减少水耗、提高效率。</li>
+</ul>
+<h3 id="♻️-污水处理与再利用"><a href="#♻️-污水处理与再利用" class="headerlink" title="♻️ 污水处理与再利用"></a>♻️ 污水处理与再利用</h3><ul>
+<li><p><strong>处理方式</strong>：</p>
+<ul>
+<li>三格式化粪池：基础版，适用于1~3户。</li>
+<li>一体化小型污水处理设备：出水可灌溉&#x2F;冲厕。</li>
+<li>MBR 膜处理系统：可达中水标准，回用广泛。</li>
+</ul>
+</li>
+<li><p><strong>运行优化</strong>：</p>
+<ul>
+<li>使用电曝气或风曝气系统提升处理效率。</li>
+<li>搭配太阳能曝气机节能运行。</li>
+</ul>
+</li>
+<li><p><strong>回用建议</strong>：</p>
+<ul>
+<li>出水仅用于非饮用途，如景观、花园、厕所冲水。</li>
+<li>设置绿植过滤带&#x2F;湿地吸收，提升生态安全性。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="室内装修阶段注意事项"><a href="#室内装修阶段注意事项" class="headerlink" title="室内装修阶段注意事项"></a>室内装修阶段注意事项</h2><h3 id="🚽-卫生间设计"><a href="#🚽-卫生间设计" class="headerlink" title="🚽 卫生间设计"></a>🚽 卫生间设计</h3><ul>
+<li>洗手台面应有微斜排水设计，避免水滞留。</li>
+<li>地面坡度 ≥1.5%，设置地漏 ≥2个，防止积水。</li>
+<li>建议做干湿分离（玻璃隔断&#x2F;推拉门）。</li>
+</ul>
+<h3 id="🪟-窗户设计"><a href="#🪟-窗户设计" class="headerlink" title="🪟 窗户设计"></a>🪟 窗户设计</h3><ul>
+<li>落地窗滑轮推荐安装于上方，更防尘易维护。</li>
+<li>建议使用中空双层玻璃 + 隔热断桥铝材料。</li>
+<li>窗户加装密封条，提升隔音与保温性能。</li>
+</ul>
+<h3 id="🍳-厨房设计"><a href="#🍳-厨房设计" class="headerlink" title="🍳 厨房设计"></a>🍳 厨房设计</h3><ul>
+<li>选 ≥17m³&#x2F;min 吸力油烟机，配备止回阀。</li>
+<li>抽油烟口向外，带防虫防雨罩。</li>
+<li>橱柜下方设计通风口或百叶门，防潮防霉。</li>
+</ul>
+<h3 id="照明与配电系统设计"><a href="#照明与配电系统设计" class="headerlink" title="照明与配电系统设计"></a>照明与配电系统设计</h3><p>配电安全</p>
+<ul>
+<li>强电&#x2F;弱电分离布线，避免干扰，布线使用阻燃线管。</li>
+<li>所有空调、热水器、厨房电器应设置独立回路 + 空气开关；</li>
+<li>建议安装漏电保护器（ELCB）+ 电涌保护器（SPD），应对雷击等风险。</li>
+</ul>
+<p>照明布局</p>
+<ul>
+<li>主照明建议使用LED 吸顶灯或筒灯，高效节能；</li>
+<li>卧室、走廊、卫生间建议搭配感应灯或夜灯，便捷又节能；</li>
+<li>考虑预埋智能照明控制系统（如 Zigbee、Wi-Fi、KNX），后期可接入 Home Assistant 等智能中枢。</li>
+</ul>
+<hr>
+<h2 id="🌿-节能建筑设计辅助方案"><a href="#🌿-节能建筑设计辅助方案" class="headerlink" title="🌿 节能建筑设计辅助方案"></a>🌿 节能建筑设计辅助方案</h2><h3 id="🍃-通风与遮阳设计"><a href="#🍃-通风与遮阳设计" class="headerlink" title="🍃 通风与遮阳设计"></a>🍃 通风与遮阳设计</h3><ul>
+<li>中庭通风井、开窗对流、屋檐挑出 ≥0.8m。</li>
+<li>百叶窗与高位排气窗配合，增强排热与遮阳效果。</li>
+</ul>
+<h3 id="🧱-材料与结构选择"><a href="#🧱-材料与结构选择" class="headerlink" title="🧱 材料与结构选择"></a>🧱 材料与结构选择</h3><ul>
+<li>使用本地天然建材（竹、柚木、红土砖），低碳环保。</li>
+<li>坡屋顶利于排水与热对流。</li>
+<li>设置独立“设备房”：集中布置电池、泵、过滤设备等，方便维护与检修。</li>
+</ul>
+<hr>
+<h2 id="✅-附加建议（施工实用）"><a href="#✅-附加建议（施工实用）" class="headerlink" title="✅ 附加建议（施工实用）"></a>✅ 附加建议（施工实用）</h2><ul>
+<li>插座预留合理，避免后期拖线。</li>
+<li>弱电布线提前规划：摄像头、Wi-Fi、门禁等。</li>
+<li>屋顶可加绿植或设凉亭，降温又美观。</li>
+<li>建议双管排水（黑水&#x2F;灰水分离），提升回用系统效率。</li>
+</ul>
+<h1 id="云操作系统"><a href="#云操作系统" class="headerlink" title="云操作系统"></a>云操作系统</h1><a href="/2025/11/27/house-system/" title="家庭-中控系统">家庭-中控系统</a>
+
+<h1 id="必买装备"><a href="#必买装备" class="headerlink" title="必买装备"></a>必买装备</h1><h2 id="投影仪"><a href="#投影仪" class="headerlink" title="投影仪"></a>投影仪</h2><p>小米 1S 激光</p>
+<h2 id="升降桌DIY"><a href="#升降桌DIY" class="headerlink" title="升降桌DIY"></a>升降桌DIY</h2><p>铝型材 DIY</p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1qJHTefE5e/?share_source=copy_web">【DIY双层升降桌！一张桌子却有两张桌面？？】</a><br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1cL4y1T7fC/?share_source=copy_web">【做工具】 自从有了“多功能电动升降桌”再也不用爬梯子🪜了 转自Kynosys Inventor WoodWorker</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1oWiiYfEkX/?share_source=copy_web">详细教程和材料清单】DIYer的梦中情桌！我做的：双层铝型材电动升降桌 升级版！正装结构更稳！不用切割，上手更简单！你确定不做一张吗？</a></p>
+<h2 id="3d打印"><a href="#3d打印" class="headerlink" title="3d打印"></a>3d打印</h2><ul>
+<li>3d建模<br>deepseek<br>即梦AI<br>tripo ai</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://makerworld.com.cn/zh/models/1029386-ke-hua-dong-fen-ge-yao-he-zao-wan-kuan?from=search#profileId-1061361">可滑动分隔药盒 早&#x2F;晚款</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.3dforprint.com/3dmodel/glock-full-gun/391">Glock17 </a></p>
+<p><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013711?from=search#profileId-993508">GP02A半身像1</a><br><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013735#profileId-993524">GP02A半身像2</a></p>
+
+
+	<div class="row">
+    <embed src="/pdf/GP02A_Assembly_Guide.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+
+<p><a target="_blank" rel="noopener" href="https://www.aigei.com/item/3d_da_yin_gao_d.html">3D打印高达模型 06-飞翼</a></p>
+<p><a target="_blank" rel="noopener" href="https://makerworld.com.cn/zh/models/1731767-gui-zhai-shi-noyou-ya-gang-qin-jian-qiang-bi-yi-ma#profileId-1907861">钢琴键墙壁衣帽钩</a></p>
+<p>开放itx机架</p>
+<h3 id="打印列表"><a href="#打印列表" class="headerlink" title="打印列表"></a>打印列表</h3><ul>
+<li>树莓派小电脑 - jvc 3100r复古造型</li>
+<li>水培检测器</li>
+<li>水培营养液投放器</li>
+<li>nas</li>
+<li>高达模型 - 用作电脑</li>
+<li>折叠鞋柜</li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h3 id="光固化"><a href="#光固化" class="headerlink" title="光固化"></a>光固化</h3><table>
+<thead>
+<tr>
+<th><strong>类别</strong></th>
+<th><strong>项目</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>🖨️ <strong>主要设备</strong></td>
+<td>光固化 3D 打印机 (SLA&#x2F;DLP&#x2F;LCD)</td>
+</tr>
+<tr>
+<td></td>
+<td>紫外固化灯箱 (UV Curing Box)</td>
+</tr>
+<tr>
+<td></td>
+<td>清洗设备 (超声波清洗机、清洗桶)</td>
+</tr>
+<tr>
+<td>🧴 <strong>材料与消耗品</strong></td>
+<td>光敏树脂 (标准树脂、柔性树脂、透明树脂、铸造树脂等)</td>
+</tr>
+<tr>
+<td></td>
+<td>FEP 膜 (需定期更换)</td>
+</tr>
+<tr>
+<td></td>
+<td>树脂槽 (Resin Vat)</td>
+</tr>
+<tr>
+<td></td>
+<td>打印平台 (Build Plate)</td>
+</tr>
+<tr>
+<td>🔧 <strong>后处理工具</strong></td>
+<td>清洗液 (IPA 异丙醇)</td>
+</tr>
+<tr>
+<td></td>
+<td>刷子、刮刀、镊子、钳子</td>
+</tr>
+<tr>
+<td></td>
+<td>砂纸、打磨工具、模型修补工具</td>
+</tr>
+<tr>
+<td>🛠️ <strong>维护配件</strong></td>
+<td>备用 LCD 屏、UV 灯、Z 轴润滑剂</td>
+</tr>
+<tr>
+<td></td>
+<td>备用 FEP 膜、备用树脂槽</td>
+</tr>
+<tr>
+<td></td>
+<td>风扇或过滤装置 (提升安全性和打印环境)</td>
+</tr>
+<tr>
+<td>🧰 <strong>安全设备与工具</strong></td>
+<td>一次性手套、护目镜、口罩</td>
+</tr>
+<tr>
+<td></td>
+<td>模型支撑移除工具、模型表面修复工具</td>
+</tr>
+<tr>
+<td>💡 <strong>软件与数字工具</strong></td>
+<td>切片软件 (Chitubox、Lychee、PrusaSlicer)</td>
+</tr>
+<tr>
+<td></td>
+<td>3D 建模软件 (Blender、ZBrush、Fusion 360)</td>
+</tr>
+<tr>
+<td></td>
+<td>打印机固件和控制软件 (如 OctoPrint)</td>
+</tr>
+</tbody></table>
+<h3 id="珠宝"><a href="#珠宝" class="headerlink" title="珠宝"></a>珠宝</h3><p>光敏铸造树脂<br>种蜡树<br>倒石膏<br>然后铸造</p>
+<h1 id="水培蔬菜"><a href="#水培蔬菜" class="headerlink" title="水培蔬菜"></a>水培蔬菜</h1><a href="/2025/11/27/house-vegetable/" title="水培蔬菜">水培蔬菜</a>
         </div>
     
 
@@ -1253,19 +2313,19 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
         <ul>
             
             <li>
-                <a class="footer-post" href="/2025/07/08/selenium/">Selenium</a>
+                <a class="footer-post" href="/2025/11/27/vue2vsvue3/">vue2 对比 vue3</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/07/08/seo/">SEO</a>
+                <a class="footer-post" href="/2025/11/27/vue-big-file-upload/">vue2 大文件上传component(做成组件)</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/07/08/shell/">Shell</a>
+                <a class="footer-post" href="/2025/11/27/wireshark/">Wireshark</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2025/07/08/social-engineering/">社工库工具</a>
+                <a class="footer-post" href="/2025/11/27/xss/">XSS跨站脚本攻击</a>
             </li>
             
         </ul>
@@ -1279,19 +2339,19 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
     <ul>
         
         <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/">数据分析</a>
+        </li>
+        
+        <li>
             <a class="footer-post" href="/categories/Blog/">Blog</a>
         </li>
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
-        </li>
-        
-        <li>
-            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
-        </li>
-        
-        <li>
-            <a class="footer-post" href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/">网络协议</a>
         </li>
         
     </ul>
