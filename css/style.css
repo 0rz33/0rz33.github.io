@@ -442,33 +442,35 @@ section.main .post .content .video-container embed {
 }
 .search-bg .search-container {
   position: fixed;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 560px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   border-left: 1px solid #d7ecff;
   border-right: 1px solid #d7ecff;
-  top: 15%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 40px 0px;
   z-index: 9999;
-  max-width: 500px;
-  width: 100%;
-  max-height: calc(80vh - 30px);
-  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 20px 40px;
 }
 @media (max-width: 768px) {
   .search-bg .search-container {
-    top: 10%;
-    padding: 30px 0;
-    max-height: calc(80vh - 40px);
+    width: 95%;
+    padding: 20px;
   }
 }
-@media (max-width: 480px) {
-  .search-bg .search-container {
-    top: 10%;
-    padding: 20px 0;
-    max-height: calc(80vh - 40px);
-  }
+.search-bg .search-container .alpha-search {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 .search-bg .search-container .alpha-search .site-search-form {
+  flex-shrink: 0;
   text-align: center;
 }
 .search-bg .search-container .alpha-search .site-search-form input {
@@ -476,6 +478,8 @@ section.main .post .content .video-container embed {
   border: 1px solid #d7ecff;
   background-color: transparent;
   font-family: "Orbitron", sans-serif;
+  width: 100%;
+  box-sizing: border-box;
 }
 .search-bg .search-container .alpha-search .site-search-form input:focus {
   border: 1px solid #d7ecff;
@@ -483,8 +487,10 @@ section.main .post .content .video-container embed {
   text-shadow: 0 0 1px #fff, 0 0 5px #fff, 0 0 15px #222;
 }
 .search-bg .search-container .alpha-search #local-search-result {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 10px;
 }
 .search-bg .search-container .alpha-search #local-search-result #local-search-close {
   font-size: 22.5px;
@@ -497,9 +503,9 @@ section.main .post .content .video-container embed {
   list-style: none;
 }
 .search-bg .search-container .alpha-search #local-search-result ul li {
-  display: inline-block;
-  text-overflow: clip;
-  padding: 5px;
+  display: block;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(215,236,255,0.1);
 }
 .search-bg .search-container .alpha-search #local-search-result ul li a {
   font-family: "Orbitron", sans-serif;
@@ -507,10 +513,12 @@ section.main .post .content .video-container embed {
   text-shadow: 0 0 1px #fff, 0 0 5px #fff, 0 0 15px #222;
 }
 .search-bg .search-container .alpha-search #local-search-result ul li p {
+  margin: 4px 0 0;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 .search-bg .search-container .alpha-search #local-search-result ul li p em {
   color: #d7ecff;

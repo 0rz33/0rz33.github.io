@@ -72,12 +72,9 @@ var alphaDust = function () {
         $('search a').addClass('menu-active');
         $('nav a').hide();
         $('.search-bg').show();
-        TweenLite.to('.search-container', 1, {padding: '0 40px'});
-        TweenLite.to('.search-bg', 1, {opacity: '0.92'});
-        var path = "/search.xml";
+        TweenLite.to('.search-bg', 0.5, {opacity: '0.92'});
         _searchOn = true;
         _menuOn = false;
-        
 
         $('.search-bg').hover(function () {
             $('search a').toggleClass('menu-close-hover');
@@ -90,7 +87,6 @@ var alphaDust = function () {
         TweenLite.to('.search-bg', 0.5, {opacity: '0', onComplete: function () {
             $('.search-bg').hide();
         }});
-        TweenLite.to('.search-container', 0.5, {padding: '0 100px'});
         _searchOn = false;
         _menuOn = false;
     }
