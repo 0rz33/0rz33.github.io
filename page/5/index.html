@@ -184,6 +184,140 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/mysql-migrate/">
+                Mysql-数据迁移-基础篇
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
+<p>首先把 mysq.ini 配置打开</p>
+</blockquote>
+<ul>
+<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
+</li>
+<li><p>重启数据库 并可启用 secure_file_priv</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>bash脚本 并进行数据提取  -(数据导出)</p>
+<blockquote>
+<p> export_data.sh</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>python脚本 数据批量插入 -(数据插入)</p>
+<blockquote>
+<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/mysql/">
+                Mysql-basic
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><h3 id="常用mysql语句"><a href="#常用mysql语句" class="headerlink" title="常用mysql语句"></a>常用mysql语句</h3><ul>
+<li>添加字段</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE <span class="built_in">users</span></span><br><span class="line">ADD COLUMN username VARCHAR(255);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>所有字段更新</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UPDATE  <span class="built_in">users</span> SET role_id=<span class="string">&quot;1&quot;</span>;</span><br><span class="line"><span class="comment">##更新部分字段</span></span><br><span class="line"><span class="built_in">where</span> XXX</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>批量替换   旧的 -》新的</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UPDATE your_table</span><br><span class="line">SET your_column = REPLACE(your_column, <span class="string">&#x27;http://107.148.73.24:83/uploads/tool/202409/&#x27;</span>, <span class="string">&#x27;http://aaa.com/uploads/tool/202409/&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="mysql-删除重复记录-去重"><a href="#mysql-删除重复记录-去重" class="headerlink" title="mysql 删除重复记录 去重"></a>mysql 删除重复记录 去重</h3><p>peopleId 去重</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">DELETE </span><br><span class="line">FROM </span><br><span class="line">    people </span><br><span class="line">WHERE </span><br><span class="line">    peopleId IN (</span><br><span class="line">		SELECT	</span><br><span class="line">            peopleId </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY </span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">	)</span><br><span class="line">AND </span><br><span class="line">    rowid </span><br><span class="line">    NOT IN ( </span><br><span class="line">        SELECT </span><br><span class="line">            min(rowid) </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY	</span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DELETE</span><br><span class="line">FROM</span><br><span class="line">	user</span><br><span class="line">WHERE</span><br><span class="line">	<span class="built_in">id</span> NOT IN (</span><br><span class="line">SELECT <span class="built_in">id</span> FROM (</span><br><span class="line">		SELECT</span><br><span class="line">			MAX(<span class="built_in">id</span>) AS <span class="built_in">id</span></span><br><span class="line">		FROM</span><br><span class="line">			user</span><br><span class="line">		GROUP BY</span><br><span class="line">			username</span><br><span class="line">	) AS d</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据二进制备份-binlog"><a href="#数据二进制备份-binlog" class="headerlink" title="数据二进制备份 binlog"></a>数据二进制备份 binlog</h3><p> binlog，也称为二进制日志，记录对数据发生或潜在发生更改的SQL语句，并以二进制的形式保存在磁盘中，可以用来查看数据库的变更历史（具体的时间点所有的SQL操作）、数据库增量备份和恢复（增量备份和基于时间点的恢复）、Mysql的复制（主主数据库的复制、主从数据库的复制）。</p>
+<ul>
+<li>查看是否开启binlog</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like <span class="string">&#x27;%bin%&#x27;</span>  </span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>开启binlog<br>只需要打开mysql的配置文件my.ini（也可能是my.cnf），找到log-bin</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log-bin=mysql-bin </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>mysqlbinlog 导入二进制binlog文件</li>
+</ul>
+<h3 id="数据备份"><a href="#数据备份" class="headerlink" title="数据备份"></a>数据备份</h3><p>mysqldump 只适用于数据备份 选择性的（加条件）数据不能使用<br>只能用 excel 进行 数据插入</p>
+<ul>
+<li><p>选择性导出 (加条件)<br>mysqldump -u root -p heitang post –where&#x3D;”id &gt; 14192” &gt; post.sql</p>
+<ul>
+<li>{heitang} 数据库名</li>
+<li>{post} table</li>
+<li>–where&#x3D;”id &gt; 14192” 条件</li>
+<li>post.sql 导出sql</li>
+</ul>
+</li>
+<li><p>excel<br>SELECT name, age, email INTO OUTFILE ‘&#x2F;path&#x2F;to&#x2F;output.csv’<br>FIELDS TERMINATED BY ‘,’<br>ENCLOSED BY ‘“‘<br>LINES TERMINATED BY ‘\n’<br>FROM users;</p>
+</li>
+<li><p>数据误update 数据没了</p>
+</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/natcat/">
                 Natcat
             </a>
@@ -339,7 +473,7 @@
 <li>A 将域名指向一个 IPv4 地址，如 106.55.75.123。 A记录归属地是埃文科技的付费接口，为了防止盗刷，每个用户有查询限制，请节省使用。</li>
 <li>AAAA 将域名指向一个 IPv6 地址，如 2402:4e00:1013:e500:0:9671:f018:4947。同一个主机名可以同时解析到 IPv4(A记录)地址 和 IPv6(AAAA 记录)地址上，当只有IPv4 地址的用户会解析到 IPv4 地址，一般情况下有 IPv6 地址的用户会优先解析到 IPv6 地址。</li>
 <li>CNAME 将域名指向另一个域名地址，与其保持相同解析，如 static.ipw.cn 别名到 static.ipw.cn.cdn.dnsv1.com</li>
-<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#116;&#x65;&#115;&#x74;&#64;&#x69;&#x70;&#119;&#46;&#x63;&#x6e;">test@ipw.cn</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#x74;&#101;&#115;&#x74;&#x40;&#x6d;&#97;&#x69;&#108;&#46;&#105;&#x70;&#119;&#x2e;&#99;&#110;">test@mail.ipw.cn</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
+<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#x74;&#101;&#115;&#116;&#64;&#105;&#112;&#119;&#46;&#x63;&#x6e;">test@ipw.cn</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#x74;&#x65;&#x73;&#x74;&#64;&#109;&#x61;&#x69;&#x6c;&#x2e;&#x69;&#112;&#119;&#46;&#99;&#x6e;">test@mail.ipw.cn</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
 <li>TXT 附加文本信息，常用于域名所有权验证，如在申请 HTTPS 证书时需要增加记录、</li>
 <li>PTR IP 的反向解析记录，例如 159.75.190.197 反解析到 ipw.cn，一般用于提升自建域名邮件服务器的可信度，可提单找云服务商添加。</li>
 <li>NS 域名的 DNS 服务器地址，例如 ns3.dnsv2.com，推荐 DNSPod.</li>
@@ -732,8 +866,8 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/ops-basic/">
-                Devops
+            <a href="/2026/09/19/golang-structure/">
+                Golang 深浅
             </a>
         </h1>
         <div class="post-info">
@@ -743,7 +877,7 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
             
             
                 <span class="category">
-                    <a href="/categories/运维/">运维</a>
+                    <a href="/categories/后端/">后端</a>
                 </span>
             
         </div>
@@ -751,252 +885,78 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     
         <div class="content">
-            <p><a target="_blank" rel="noopener" href="https://roadmap.sh/devops">Devops之路</a></p>
-<ul>
-<li><a href="#%E7%90%90%E7%A2%8E">琐碎</a><ul>
-<li><a href="#Nginx%E9%99%90%E6%B5%81%E4%B8%8E%E9%98%B2%E7%88%AC%E8%99%AB%E9%85%8D%E7%BD%AE%E6%96%B9%E6%A1%88">Nginx限流与防爬虫配置方案</a></li>
+            <!-- * [基础](#1)
+    * [进程、线程、Goroutine(协程)区别](#1.1)
+    * [make和new区别](#1.2)
+    * [数组和切片区别](#1.3)
+* [GMP协程调度器](#2)
+    * [调度器策略](#2.1)
+    * [调度器的生命周期](#2.2)
+* [并发 sync](#3)
+    * [通道 - channel](#3.1)
+    * [互斥锁 Mutex 与 读写锁 RWMutex 区别](#3.2)
+    * [并发Map - sync.Map](#3.3)
+    * [线程池 - sync.Pool](#3.4)
+* [内存](#4)
+    * [CG](#4.1)
+* [微服务之间通信方式 rpc Grpc http](#4) -->
+
+<h3 id="1">基础</h3>
+
+<p><a target="_blank" rel="noopener" href="https://s1nec-1o.github.io/2024/04/28/GO-Pwn/">GO-PWN</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/hack-note/">
+                笔记
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="收集目标信息"><a href="#收集目标信息" class="headerlink" title="收集目标信息"></a>收集目标信息</h2><ul>
+<li>Gitdorker 使用 - 从github里面找代码 是否有敏感信息泄漏</li>
+<li><a target="_blank" rel="noopener" href="https://en.fofa.info/">FOFA</a> - 了解更多目标信息产品</li>
 </ul>
-</li>
-<li><a href="#AWS">AWS</a><ul>
-<li><a href="#EC2">EC2</a></li>
-<li><a href="#Amazon-Linux-2023">Amazon Linux 2023</a></li>
-<li><a href="#AWS-%E4%B8%8E-Github-Action">AWS 与 GitHub Action</a></li>
-</ul>
-</li>
-<li><a href="#%E8%BF%9C%E7%A8%8B%E5%A4%9A%E4%BA%BA%E5%90%88%E4%BD%9C%E5%BC%80%E5%8F%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%BF%AB%E9%80%9F%E4%B8%8A%E7%BA%BF%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">远程多人协作开发服务器快速上线解决方案</a><ul>
-<li><a href="#SSH-%E6%9D%83%E9%99%90%E4%B8%8E%E7%9B%AE%E5%BD%95%E6%9D%83%E9%99%90%E9%97%AE%E9%A2%98">SSH 权限与目录权限问题</a></li>
-<li><a href="#ACL-%E6%9B%B4%E7%BB%86%E7%B2%92%E5%BA%A6%E7%9A%84%E6%9D%83%E9%99%90%E7%AE%A1%E6%8E%A7">ACL 更细粒度的权限管控</a></li>
-<li><a href="#%E8%BF%90%E8%A1%8C%E7%9A%84docker%E6%9B%B4%E6%96%B0%E5%9F%BA%E7%A1%80%E5%8A%9F%E8%83%BD">运行的docker更新基础功能</a></li>
-<li><a href="#%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7%E9%A1%B9%E7%9B%AE%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E4%BA%A4%E4%BB%98">三方工具项目持续集成交付</a></li>
-<li><a href="#journalctl-%E6%9F%A5%E8%AF%A2%E5%92%8C%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E6%97%A5%E5%BF%97%E5%B7%A5%E5%85%B7">journalctl 查询和管理系统日志工具</a></li>
-</ul>
-</li>
-<li><a href="#%E5%86%85%E9%83%A8%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E7%BA%BF%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">内部协作开发服务器上线解决方案</a></li>
-<li><a href="#%E7%BD%91%E8%B7%AF%E6%8E%92%E6%9F%A5">网路排查</a></li>
-<li><a href="#%E7%A1%AC%E7%9B%98%E5%8A%A8%E6%80%81%E6%89%A9%E5%AE%B9-LVM">硬盘动态扩容 LVM</a><ul>
-<li><a href="#%E7%89%A9%E7%90%86%E5%8D%B7-%E5%8D%B7%E7%BB%84-%E9%80%BB%E8%BE%91%E5%8D%B7-%E5%85%B3%E7%B3%BB">物理卷 卷组 逻辑卷 关系</a></li>
-<li><a href="#%F0%9F%A7%BE-xfs-vs-ext4%EF%BC%9ALVM-%E4%B8%8B%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%AF%B9%E6%AF%94">🧾 xfs vs ext4：LVM 下文件系统对比</a></li>
-<li><a href="#%E6%89%A9%E5%AE%B9%E6%AD%A5%E9%AA%A4">扩容步骤</a></li>
-<li><a href="#%E6%9C%AA%E6%9D%A5%E6%89%A9%E5%AE%B9%E6%B5%81%E7%A8%8B-%E6%B7%BB%E5%8A%A0%E6%96%B0%E7%A1%AC%E7%9B%98">未来扩容流程 添加新硬盘</a></li>
-</ul>
-</li>
-<li><a href="#Ubuntu">Ubuntu</a></li>
-<li><a href="#Centos">Centos</a><ul>
-<li><a href="#SELinux">SELinux</a></li>
-</ul>
-</li>
-</ul>
-<h1 id="琐碎"><a href="#琐碎" class="headerlink" title="琐碎"></a>琐碎</h1><h3 id="国内访问国外服务器加速BBR-（bbr魔改脚本）"><a href="#国内访问国外服务器加速BBR-（bbr魔改脚本）" class="headerlink" title="国内访问国外服务器加速BBR -（bbr魔改脚本）"></a>国内访问国外服务器加速BBR -（bbr魔改脚本）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://gist.githubusercontent.com/zeruns/a0ec603f20d1b86de6a774a8ba27588f/raw/4f9957ae23f5efb2bb7c57a198ae2cffebfb1c56/tcp.sh</span><br></pre></td></tr></table></figure>
-
-<h3 id="DNS缓存清理"><a href="#DNS缓存清理" class="headerlink" title="DNS缓存清理"></a>DNS缓存清理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="域名重定向"><a href="#域名重定向" class="headerlink" title="域名重定向"></a>域名重定向</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">加cdn ssl 加载证书</span><br><span class="line">网站删除后在添加证书 证书不一致 会造成重定向</span><br><span class="line">cdn回溯？？</span><br></pre></td></tr></table></figure>
-
-<h3 id="nginx-header跨域问题"><a href="#nginx-header跨域问题" class="headerlink" title="nginx - header跨域问题"></a>nginx - header跨域问题</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">关键字大写</span><br><span class="line">在ng上加 </span><br><span class="line">add_header Access-Control-Allow-Headers <span class="string">&#x27;DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,Token&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="nginx-404"><a href="#nginx-404" class="headerlink" title="nginx - 404"></a>nginx - 404</h3><p>指定目录 &#x2F;home&#x2F;dev1&#x2F;www</p>
-<p>dev1 属于dev1<br>www 属于www<br>会有404报错 找不到文件 因为在dev1就已经进不去了</p>
-<h3 id="session-问题-》CDN"><a href="#session-问题-》CDN" class="headerlink" title="session 问题 -》CDN"></a>session 问题 -》CDN</h3><p>由于Session数据存储在服务器端，而CDN节点是分布式的，<br>因此在多个节点之间共享Session数据时，可能会出现数据不一致的情况。<br>这主要是因为Session数据是基于服务器的，而CDN节点是基于客户端的，<br>因此在不同节点之间进行数据同步时，可能会出现延迟或者丢失的情况。</p>
-<p>解决办法：<br>用redis存储session</p>
-<h3 id="进程守护-Systemd"><a href="#进程守护-Systemd" class="headerlink" title="进程守护 Systemd"></a>进程守护 Systemd</h3><h2 id="Nginx限流与防爬虫配置方案"><a href="#Nginx限流与防爬虫配置方案" class="headerlink" title="Nginx限流与防爬虫配置方案"></a>Nginx限流与防爬虫配置方案</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wuyang-1990/p/13288170.html">Nginx限流与防爬虫配置方案</a></p>
-<h1 id="AWS"><a href="#AWS" class="headerlink" title="AWS"></a>AWS</h1><pre class="mermaid">graph TB
-    A[计算] --EC2--> B[操作系统]
-    B[操作系统] --网络与安全--> C[安全组-端口]
-    B[操作系统] --存储(扩容)--> D[S3]
-    B[操作系统] --安全性，身份--> E[IAM-资源访问与授权]</pre>
-
-<h2 id="EC2"><a href="#EC2" class="headerlink" title="EC2"></a>EC2</h2><h3 id="Amazon-Linux-2023"><a href="#Amazon-Linux-2023" class="headerlink" title="Amazon Linux 2023"></a>Amazon Linux 2023</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 将用户 myuser 添加到 developer 组</span></span><br><span class="line"><span class="built_in">sudo</span> usermod -aG developer myuser</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 developer 组的所有成员</span></span><br><span class="line">getent group developer</span><br><span class="line"></span><br><span class="line"><span class="comment">### developer 组改为dev-backend组</span></span><br><span class="line"><span class="comment">## 1. 创建 dev-backend 组</span></span><br><span class="line"><span class="built_in">sudo</span> groupadd dev-backend</span><br><span class="line"></span><br><span class="line"><span class="comment">## 2. 将用户从 developer 组转移到 dev-backend 组</span></span><br><span class="line"><span class="comment"># passwd 或 usermod 来移除用户</span></span><br><span class="line"><span class="built_in">sudo</span> gpasswd -d username developer</span><br><span class="line"></span><br><span class="line"><span class="comment"># usermod 命令将该用户添加到 dev-backend 组</span></span><br><span class="line"><span class="built_in">sudo</span> usermod -aG dev-backend username</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除 developer 组</span></span><br><span class="line"><span class="built_in">sudo</span> groupdel developer</span><br><span class="line"></span><br><span class="line"><span class="comment">## 权限</span></span><br><span class="line"><span class="comment"># 将 /docker/dnmp/www/backend 目录的组更改为 developer</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R :dev-backend /docker/dnmp/www/backend</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> 400 XX.pem</span><br><span class="line">ssh -i /XX/XX.pem [user]@[公有 IPv4 DNS]</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Docker-开发"><a href="#Docker-开发" class="headerlink" title="Docker 开发"></a>Docker 开发</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## docker</span></span><br><span class="line"><span class="built_in">sudo</span> yum update -y</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> yum install -y docker</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> systemctl start docker</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> usermod -a -G docker ec2-user</span><br><span class="line"></span><br><span class="line"><span class="comment">## docker-compose</span></span><br><span class="line"><span class="built_in">sudo</span> curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(<span class="built_in">uname</span> -s)-$(<span class="built_in">uname</span> -m) -o /usr/local/bin/docker-compose</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> +x /usr/local/bin/docker-compose</span><br><span class="line"></span><br><span class="line">docker-compose version</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> /docker</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Docker-开发者-【test】"><a href="#Docker-开发者-【test】" class="headerlink" title="Docker 开发者 【test】"></a>Docker 开发者 【test】</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">docker run -dit --name dev-container -p 2222:22 ubuntu:22.04 bash</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it dev-container bash</span><br><span class="line"></span><br><span class="line">apt update &amp;&amp; apt install -y openssh-server vim</span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> /run/sshd</span><br><span class="line"></span><br><span class="line">vi /etc/ssh/sshd_config</span><br><span class="line"><span class="comment">## vi</span></span><br><span class="line">PermitRootLogin <span class="built_in">yes</span></span><br><span class="line">PasswordAuthentication <span class="built_in">yes</span></span><br><span class="line"><span class="comment">## vi</span></span><br><span class="line"></span><br><span class="line">passwd root</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 开用户devuser</span></span><br><span class="line">useradd -m -s /bin/bash devuser</span><br><span class="line">passwd devuser </span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> /home/devuser/.ssh</span><br><span class="line"><span class="built_in">chown</span> -R devuser:devuser /home/devuser/.ssh</span><br><span class="line"><span class="built_in">chmod</span> 700 /home/devuser/.ssh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果容器已经在运行并且端口已经映射（如 2222:22），则可以跳过此步骤。如果没有，请确保在运行容器时正确映射端口：</span></span><br><span class="line">docker run -dit --name dev-container -p 2222:22 ubuntu:22.04 bash</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="mysql-开发"><a href="#mysql-开发" class="headerlink" title="mysql 开发"></a>mysql 开发</h3><p>GRANT ALL PRIVILEGES ON hl_develop_db.* TO ‘hl‘@’%’;<br>FLUSH PRIVILEGES;</p>
-<h2 id="AWS-与-Github-Action"><a href="#AWS-与-Github-Action" class="headerlink" title="AWS 与 Github Action"></a>AWS 与 Github Action</h2><p><img src="/images/github-cicd.png"></p>
-<h3 id="OpenID-Connect-OIDC-的云提供商提供的资源"><a href="#OpenID-Connect-OIDC-的云提供商提供的资源" class="headerlink" title="OpenID Connect (OIDC) 的云提供商提供的资源"></a>OpenID Connect (OIDC) 的云提供商提供的资源</h3><p>如果 GitHub Actions 工作流需要访问支持 OpenID Connect (OIDC) 的云提供商提供的资源，则可以将工作流配置为直接向云提供商进行身份验证。 这样就可以停止将这些凭据存储为长期存在的机密，并提供其他安全优势。</p>
-<h3 id="在-Amazon-Web-Services-中配置-OpenID-Connect"><a href="#在-Amazon-Web-Services-中配置-OpenID-Connect" class="headerlink" title="在 Amazon Web Services 中配置 OpenID Connect"></a>在 <a target="_blank" rel="noopener" href="https://docs.github.com/zh/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services">Amazon Web Services 中配置 OpenID Connect</a></h3><p><a target="_blank" rel="noopener" href="https://docfunc.com/posts/114/%E5%9C%A8-github-action-%E4%B8%AD%E4%BD%BF%E7%94%A8-oidc-%E5%8F%96%E5%BE%97%E6%93%8D%E4%BD%9C-aws-%E8%B3%87%E6%BA%90%E7%9A%84%E6%AC%8A%E9%99%90-post#heading-2">在 GitHub Action 中使用 OIDC 取得操作 AWS 資源的權限</a></p>
-<h3 id="AWS中的IAM是什么"><a href="#AWS中的IAM是什么" class="headerlink" title="AWS中的IAM是什么"></a>AWS中的IAM是什么</h3><p>权限控制有两个基本概念：</p>
-<ul>
-<li>Authentication - 确认是否为有效用户，是否允许登录&#x2F;接入</li>
-<li>Authorization - 确认用户当前请求的操作（读写资源），是否合法</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://docs.aws.amazon.com/zh_cn/IAM/latest/UserGuide/introduction_attribute-based-access-control.html">ABAC与RBAC模型比较</a></p>
-<p>IAM Identity Center 通过创建 IAM 角色，向用户提供资源访问权限。当您分配权限集时，IAM Identity Center 会在每个账户中创建由 IAM Identity Center 控制的相应 IAM 角色，并将权限集中指定的策略附加给这些角色。IAM Identity Center 管理角色，并允许您定义的授权用户使用 AWS 访问门户或代入该角色。 AWS CLI在您修改权限集时，IAM Identity Center 会确保相应的 IAM 策略和角色也相应更新。</p>
-<p>如果你开发的系统需要操作 AWS 资源，比如说上传文件到 S3，那你需要用的是 Federated User。通过 OpenID Connect（如 Google&#x2F;Facebook）或者 SAML 2.0（如 Microsoft AD），你的系统用户可以在登录后换取代表某个 AWS Role 的临时 token 来访问 AWS 资源。</p>
-<h1 id="远程多人合作开发服务器快速上线解决方案"><a href="#远程多人合作开发服务器快速上线解决方案" class="headerlink" title="远程多人合作开发服务器快速上线解决方案"></a>远程多人合作开发服务器快速上线解决方案</h1><ul>
-<li>多人协作不同项目<br>建议：开多个账户，docker用于多个项目不同服务</li>
-<li>多人协作同一项目<br>建议：开多个账户，自己安装服务然后开多个服务账户</li>
-<li>持续备份</li>
-</ul>
-<h2 id="SSH-权限与目录权限问题"><a href="#SSH-权限与目录权限问题" class="headerlink" title="SSH 权限与目录权限问题"></a>SSH 权限与目录权限问题</h2><h3 id="使用公钥登陆"><a href="#使用公钥登陆" class="headerlink" title="使用公钥登陆"></a>使用公钥登陆</h3><ol>
-<li>SSH 服务的配置<br>登录到服务器并检查 SSH 配置文件 <code>/etc/ssh/sshd_config</code></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PubkeyAuthentication <span class="built_in">yes</span></span><br><span class="line">AuthorizedKeysFile .ssh/authorized_keys</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新启动 SSH 服务：</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart sshd</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>加入对于的 <code>/home/user/.ssh/authorized_keys</code></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;XXXX&quot;</span> &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line"></span><br><span class="line"><span class="comment"># authorized_keys 文件权限是正确的</span></span><br><span class="line"><span class="built_in">chmod</span> 600 ~/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">chmod</span> 700 ~/.ssh</span><br></pre></td></tr></table></figure>
-
-<h3 id="文件权限问题"><a href="#文件权限问题" class="headerlink" title="文件权限问题"></a>文件权限问题</h3><ul>
-<li>主使用者加入 <code>root</code> 组</li>
-<li>想使用的可以加入特殊组 如 <code>developer</code> 组</li>
-<li>每个文件都要去定义（重点）</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 770 /docker/dnmp/www/localhost</span><br></pre></td></tr></table></figure>
-<p>解释：</p>
-<ul>
-<li>770 表示权限设置为：<ul>
-<li>所有者（root）：rwx（读、写、执行）</li>
-<li>用户组（root）：rwx（读、写、执行）</li>
-<li>其他用户（other）：—（没有任何权限）</li>
-</ul>
-</li>
-</ul>
-<h2 id="ACL-更细粒度的权限管控"><a href="#ACL-更细粒度的权限管控" class="headerlink" title="ACL 更细粒度的权限管控"></a>ACL 更细粒度的权限管控</h2><p>创建用户和用户组</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/0rz33/opts-tools/blob/main/interactive_acl_multiple_users.sh</span><br></pre></td></tr></table></figure>
-
-<h2 id="三方工具项目持续集成交付"><a href="#三方工具项目持续集成交付" class="headerlink" title="三方工具项目持续集成交付"></a>三方工具项目持续集成交付</h2><h3 id="Github-CICD-（nodejs案例）"><a href="#Github-CICD-（nodejs案例）" class="headerlink" title="Github CICD （nodejs案例）"></a>Github CICD （nodejs案例）</h3><p><code>.github/workflows/deploy.yml</code></p>
-<p>SSH_PRIVATE_KEY 获取<br>服务器 生成 <code>id_rsa</code> 密钥对</p>
-<p>id_rsa -&gt; github -&gt; SSH_PRIVATE_KEY<br>id_rsa.pub -&gt; 服务器 <code>~/.ssh/authorized_keys</code></p>
-<p>丢弃本地修改，直接同步远程 <code>dev</code>，适用于 CI&#x2F;CD 或无状态环境</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- name: Sync with dev branch</span><br><span class="line">  run: |</span><br><span class="line">    git fetch origin dev</span><br><span class="line">    git reset --hard origin/dev</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy to Server</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - dev</span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    permissions:  <span class="comment"># 添加这部分</span></span><br><span class="line">      id-token: write</span><br><span class="line">      contents: <span class="built_in">read</span></span><br><span class="line">    steps:</span><br><span class="line">    - name: Checkout code</span><br><span class="line">      uses: actions/checkout@v4</span><br><span class="line"></span><br><span class="line">    - name: Set up Node.js</span><br><span class="line">      uses: actions/setup-node@v4</span><br><span class="line">      with:</span><br><span class="line">        node-version: 23</span><br><span class="line">        cache: <span class="string">&#x27;yarn&#x27;</span></span><br><span class="line"></span><br><span class="line">    - name: Install dependencies</span><br><span class="line">      run: yarn install</span><br><span class="line"></span><br><span class="line">    - name: Build project (<span class="keyword">if</span> needed)</span><br><span class="line">      run: yarn build</span><br><span class="line"></span><br><span class="line">    - name: Set up SSH key</span><br><span class="line">      uses: webfactory/ssh-agent@v0.5.3</span><br><span class="line">      with:</span><br><span class="line">        ssh-private-key: <span class="variable">$&#123;&#123; secrets.SSH_PRIVATE_KEY &#125;</span>&#125;</span><br><span class="line"></span><br><span class="line">    - name: Install PHP dependencies</span><br><span class="line">      <span class="built_in">env</span>:</span><br><span class="line">        AWS_ADDRESS: <span class="variable">$&#123;&#123; secrets.AWS_ADDRESS &#125;</span>&#125;</span><br><span class="line">      run: |</span><br><span class="line">        ssh -o StrictHostKeyChecking=no  ec2-user@<span class="variable">$AWS_ADDRESS</span> &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">          <span class="built_in">cd</span> /docker/dnmp/www/frontend</span><br><span class="line">          git fetch origin dev </span><br><span class="line">          git reset --hard origin/dev</span><br><span class="line">          docker run --<span class="built_in">rm</span> -v $(<span class="built_in">pwd</span>):/www/frontend -w /www/frontend dnmp-node23 yarn install </span><br><span class="line">          docker run --<span class="built_in">rm</span> -v $(<span class="built_in">pwd</span>):/www/frontend -w /www/frontend dnmp-node23 yarn build</span><br><span class="line">        EOF</span><br></pre></td></tr></table></figure>
-
-<h2 id="运行的docker更新基础功能"><a href="#运行的docker更新基础功能" class="headerlink" title="运行的docker更新基础功能"></a>运行的docker更新基础功能</h2><h2 id="journalctl-查询和管理系统日志工具"><a href="#journalctl-查询和管理系统日志工具" class="headerlink" title="journalctl 查询和管理系统日志工具"></a>journalctl 查询和管理系统日志工具</h2><p>journalctl 是 Linux 系统中用于查询和管理系统日志的一种工具，主要用于与 systemd journal 日志系统进行交互。systemd 是现代 Linux 系统的初始化系统和服务管理器，而 systemd journal 是 systemd 提供的日志记录功能，用于收集和存储系统服务和应用程序的日志信息</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 你可以通过 -u 参数查看特定服务的日志，例如查看 MongoDB 服务的日志</span></span><br><span class="line">journalctl -u mongod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时查看日志（类似 tail -f）</span></span><br><span class="line">journalctl -f</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看内核日志： 通过 -k 参数</span></span><br><span class="line">journalctl -k</span><br></pre></td></tr></table></figure>
-
-<h1 id="内部协作开发服务器上线解决方案"><a href="#内部协作开发服务器上线解决方案" class="headerlink" title="内部协作开发服务器上线解决方案"></a>内部协作开发服务器上线解决方案</h1><ul>
-<li>使用git仓库</li>
-<li>CI&#x2F;CD持续集成</li>
-<li>测试介入</li>
-<li>项目管理</li>
-</ul>
-<h1 id="网路排查"><a href="#网路排查" class="headerlink" title="网路排查"></a>网路排查</h1><h2 id="域名排查"><a href="#域名排查" class="headerlink" title="域名排查"></a>域名排查</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># DNS解析</span></span><br><span class="line">dig baidu.com</span><br><span class="line">nslookup baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 线路排查 路由经过</span></span><br><span class="line">traceroute baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">### 是否能连上服务</span></span><br><span class="line"><span class="comment">## GET</span></span><br><span class="line">curl -X GET -H  baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## POST </span></span><br><span class="line"><span class="comment"># 带上制定标头</span></span><br><span class="line">curl -X POST -H <span class="string">&#x27;User-Agent: XXX&#x27;</span> baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理</span></span><br><span class="line">curl -A <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36&#x27;</span> baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 请求的数据体</span></span><br><span class="line">curl -d<span class="string">&#x27;login=emma＆password=123&#x27;</span>-X POST baidu.com</span><br></pre></td></tr></table></figure>
-
-<h1 id="硬盘动态扩容-LVM"><a href="#硬盘动态扩容-LVM" class="headerlink" title="硬盘动态扩容 LVM"></a>硬盘动态扩容 LVM</h1><p>查看指定目录的大小</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">du</span> -sh /XXX</span><br></pre></td></tr></table></figure>
-
-<p>传统的文件系统是基于分区的, 一个文件系统对应一个分区, 这种方式比较直观, 但不易改变：</p>
+<h2 id="SQL手工注入"><a href="#SQL手工注入" class="headerlink" title="SQL手工注入"></a>SQL手工注入</h2><h2 id="docker-逃逸"><a href="#docker-逃逸" class="headerlink" title="docker 逃逸"></a>docker 逃逸</h2><p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/425455.html">引用 容器逃逸——配置不当</a></p>
+<p><img src="/images/hack-note-1.png"></p>
+<p>先了解 Linux 中的 Capabilities 机制</p>
+<p>Capabilities是一种细粒度的权限控制机制，将 root 的超级权限拆分为多个独立的能力模块，允许进程或线程按需获取特定权限，而非直接拥有完整的 root 权限。用来替代传统的“全有或全无”的超级用户（root）权限模型，大约分为 40+ 种不同的权限。</p>
+<p>安装 capsh 命令：<code>sudo apt install libcap2-bin</code></p>
 <ol>
-<li>不同的分区相互独立, 单独的文件不能跨分区存储, 容易出现硬盘的利用率不均衡;</li>
-<li>当一个文件系统&#x2F;分区装满时, 是不能对其进行扩容的, 只能采用重新分区&#x2F;建立文件系统, 重新分区会丢失数据, 就要<br>  ① 做数据的迁移和备份;<br>  ② 或者把分区中的数据移到另一个更大的分区中;<br>  ③ 或者采用符号连接的方式使用其它分区的空间 —— 都非常麻烦;</li>
-<li>如果要把硬盘上的多个分区合并在一起使用, 只能采用重新分区的方式, —— 需要做好数据的备份与恢复.</li>
+<li>Privileged</li>
 </ol>
-<h2 id="物理卷-卷组-逻辑卷-关系"><a href="#物理卷-卷组-逻辑卷-关系" class="headerlink" title="物理卷 卷组 逻辑卷 关系"></a>物理卷 卷组 逻辑卷 关系</h2><h2 id="🧾-xfs-vs-ext4：LVM-下文件系统对比"><a href="#🧾-xfs-vs-ext4：LVM-下文件系统对比" class="headerlink" title="🧾 xfs vs ext4：LVM 下文件系统对比"></a>🧾 xfs vs ext4：LVM 下文件系统对比</h2><table>
-<thead>
-<tr>
-<th><strong>特性</strong></th>
-<th><strong><code>xfs</code>（推荐用于 LVM）</strong></th>
-<th><strong><code>ext4</code>（通用稳定）</strong></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>📦 文件系统最大支持</td>
-<td>数 PB（更大）</td>
-<td>通常为几十 TB，略小于 XFS</td>
-</tr>
-<tr>
-<td>📈 在线扩容</td>
-<td>✅ 支持（使用 <code>xfs_growfs</code>）</td>
-<td>✅ 支持（使用 <code>resize2fs</code>）</td>
-</tr>
-<tr>
-<td>🔄 在线缩容</td>
-<td>❌ 不支持（需重建）</td>
-<td>✅ 支持（但过程较复杂）</td>
-</tr>
-<tr>
-<td>🚀 性能表现</td>
-<td>更适合大文件、高并发写入场景</td>
-<td>通用场景表现良好，小文件表现更均衡</td>
-</tr>
-<tr>
-<td>🧮 inode 处理</td>
-<td>inode 动态分配，适合超多小文件或海量目录</td>
-<td>inode 固定分配，创建时需估算数量</td>
-</tr>
-<tr>
-<td>🔐 日志机制</td>
-<td>高效日志写入机制，可靠性好</td>
-<td>稳定日志机制，但写入效率略低</td>
-</tr>
-<tr>
-<td>🧰 工具兼容性</td>
-<td>RHEL&#x2F;CentOS 默认文件系统，企业级支持多</td>
-<td>更广泛兼容于桌面和轻量发行版系统</td>
-</tr>
-<tr>
-<td>🛠️ 文件系统工具</td>
-<td><code>xfs_growfs</code>, <code>xfs_repair</code></td>
-<td><code>resize2fs</code>, <code>e2fsck</code>, <code>tune2fs</code> 等</td>
-</tr>
-</tbody></table>
-<h2 id="扩容步骤"><a href="#扩容步骤" class="headerlink" title="扩容步骤"></a>扩容步骤</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装 LVM 工具</span></span><br><span class="line"><span class="built_in">sudo</span> dnf install lvm2</span><br><span class="line"></span><br><span class="line"><span class="comment">## ① 卸载旧挂载点</span></span><br><span class="line"><span class="built_in">sudo</span> umount /data1</span><br><span class="line"><span class="built_in">sudo</span> umount /data2</span><br><span class="line"></span><br><span class="line"><span class="comment">## ② 清除旧文件系统签名（⚠️ 数据会被清空）</span></span><br><span class="line"><span class="built_in">sudo</span> wipefs -a /dev/vdb1</span><br><span class="line"><span class="built_in">sudo</span> wipefs -a /dev/vdc1</span><br><span class="line"></span><br><span class="line"><span class="comment">## ③ 创建 LVM</span></span><br><span class="line"><span class="comment"># 初始化物理卷</span></span><br><span class="line"><span class="built_in">sudo</span> pvcreate /dev/vdb1 /dev/vdc1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建卷组 datavg</span></span><br><span class="line"><span class="built_in">sudo</span> vgcreate datavg /dev/vdb1 /dev/vdc1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建逻辑卷 datalv，使用全部空间</span></span><br><span class="line"><span class="built_in">sudo</span> lvcreate -l 100%FREE -n datalv datavg</span><br><span class="line"></span><br><span class="line"><span class="comment"># 格式化为 xfs 文件系统（推荐用于 LVM）</span></span><br><span class="line"><span class="built_in">sudo</span> mkfs.xfs /dev/datavg/datalv</span><br><span class="line"></span><br><span class="line"><span class="comment">## ④ 创建挂载点并挂载</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> -p /data</span><br><span class="line"><span class="built_in">sudo</span> mount /dev/datavg/datalv /data</span><br><span class="line"></span><br><span class="line"><span class="comment">## ⑤ 设置开机自动挂载</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;/dev/datavg/datalv /data xfs defaults 0 0&#x27;</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> -a /etc/fstab</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>✅ 验收</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">df</span> -hT /data</span><br><span class="line">lsblk</span><br></pre></td></tr></table></figure>
-
-<h2 id="未来扩容流程-添加新硬盘"><a href="#未来扩容流程-添加新硬盘" class="headerlink" title="未来扩容流程 添加新硬盘"></a>未来扩容流程 添加新硬盘</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 为磁盘创建 GPT 分区表</span></span><br><span class="line"><span class="built_in">sudo</span> parted /dev/vdd -- mklabel gpt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个新的分区，整个磁盘用作 xfs 文件系统</span></span><br><span class="line"><span class="built_in">sudo</span> parted -a optimal /dev/vdd -- mkpart primary xfs 0% 100%</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加入 LVM</span></span><br><span class="line"><span class="built_in">sudo</span> pvcreate /dev/vdd1  <span class="comment">## pv</span></span><br><span class="line"><span class="built_in">sudo</span> vgextend datavg /dev/vdd1 <span class="comment">## vg</span></span><br><span class="line"><span class="built_in">sudo</span> lvextend -l +100%FREE /dev/datavg/datalv <span class="comment">## lv</span></span><br><span class="line"><span class="built_in">sudo</span> xfs_growfs /data</span><br></pre></td></tr></table></figure>
-
-<h1 id="Ubuntu"><a href="#Ubuntu" class="headerlink" title="Ubuntu"></a>Ubuntu</h1><h1 id="Centos"><a href="#Centos" class="headerlink" title="Centos"></a>Centos</h1><h2 id="SELinux"><a href="#SELinux" class="headerlink" title="SELinux"></a>SELinux</h2><p>SELinux（Security-Enhanced Linux）是由美国国家安全局（NSA）开发的一个 Linux 内核安全模块。它为 Linux 系统提供了强制访问控制（MAC）功能，目的是提高操作系统的安全性，防止不良程序或攻击者对系统造成危害</p>
-<p>SELinux 和 ACL 的对比</p>
-<table>
-<thead>
-<tr>
-<th><strong>特性</strong></th>
-<th><strong>SELinux</strong></th>
-<th><strong>ACL</strong></th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>控制模型</strong></td>
-<td>强制访问控制（MAC）</td>
-<td>自主访问控制（DAC）</td>
-</tr>
-<tr>
-<td><strong>控制粒度</strong></td>
-<td>对进程、文件、网络端口等的 <strong>全局控制</strong></td>
-<td>对文件和目录的 <strong>访问控制</strong></td>
-</tr>
-<tr>
-<td><strong>安全性</strong></td>
-<td>高，具有强制性控制，即使是 root 用户也无法绕过</td>
-<td>相对较低，root 用户可以修改 ACL 配置，权限可被绕过</td>
-</tr>
-<tr>
-<td><strong>管理方式</strong></td>
-<td>使用策略文件和安全上下文进行管理，需要额外工具（如 <code>semanage</code>）</td>
-<td>使用命令行工具（如 <code>setfacl</code>、<code>getfacl</code>）直接管理文件和目录</td>
-</tr>
-<tr>
-<td><strong>配置复杂度</strong></td>
-<td>配置复杂，适合需要强安全性控制的环境</td>
-<td>配置简单，适合文件级别的用户权限管理</td>
-</tr>
-<tr>
-<td><strong>适用场景</strong></td>
-<td>需要强制控制、进程间权限管理的高安全性环境</td>
-<td>多用户环境中的文件和目录权限控制</td>
-</tr>
-<tr>
-<td><strong>功能</strong></td>
-<td>控制进程与文件、进程与进程之间的访问权限</td>
-<td>控制文件和目录对不同用户的访问权限</td>
-</tr>
-<tr>
-<td><strong>示例</strong></td>
-<td>设置文件上下文：<br> <code>sudo semanage fcontext -a -t httpd_sys_content_t &quot;/var/www/html(/.*)?&quot;</code><br> <code>sudo restorecon -Rv /var/www/html</code></td>
-<td>设置文件 ACL：<br> <code>sudo setfacl -m u:username:rwx file.txt</code></td>
-</tr>
-</tbody></table>
-
+<p><code>--privileged=true</code><br>这会导致容器与宿主机共享内核，容器可直接访问宿主机的设备和内核，且任何容器内的内核级操作均会直接影响宿主机</p>
+<ol start="2">
+<li><p>CAP_SYS_ADMIN</p>
+</li>
+<li><p>CAP_SYS_PTRACE</p>
+</li>
+<li><p>CAP_SYS_MODULE</p>
+</li>
+</ol>
+<p>…</p>
+<h2 id="CTF"><a href="#CTF" class="headerlink" title="CTF"></a>CTF</h2><h2 id="二进制"><a href="#二进制" class="headerlink" title="二进制"></a>二进制</h2><h2 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h2><h3 id="提权"><a href="#提权" class="headerlink" title="提权"></a>提权</h3>
         </div>
     
 
@@ -1007,8 +967,55 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/house-electric/">
-                家庭-电力节能
+            <a href="/2026/09/19/hexo/">
+                hexo
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Blog/">Blog</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>hexo + github 自动部署，解决index.html不更新问题</p>
+<h2 id="hexo-github-自动部署"><a href="#hexo-github-自动部署" class="headerlink" title="hexo + github 自动部署"></a>hexo + github 自动部署</h2><h3 id="创建-Hexo-项目-（ndoejs环境）"><a href="#创建-Hexo-项目-（ndoejs环境）" class="headerlink" title="创建 Hexo 项目 （ndoejs环境）"></a>创建 Hexo 项目 （ndoejs环境）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> blog</span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init</span><br><span class="line">hexo s //预览blog</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="创建-username-github-io-仓库"><a href="#创建-username-github-io-仓库" class="headerlink" title="创建 {username}.github.io 仓库"></a>创建 {username}.github.io 仓库</h3><ul>
+<li>创建个人访问令牌（Personal Access Token） – blog项目</li>
+</ul>
+<p>1 点击右上角头像 -&gt; 打开 Settings -&gt; 左边栏滚到最后找到 Develop Setting 打开，如图<br><img src="/images/personal-access-token.png"></p>
+<p>2 找到 Personal Access Token 点击 Tokens（classic） -&gt; 选择 Generate new token (classic) ，如图<br><img src="/images/personal-access-tokens-click.png"></p>
+<p>3 给令牌起个名字并且勾选红框中的 repo 的访问权限，然后点击生成 token（注意： 确保复制并安全地保存这个令牌。GitHub 不会再次显示这个令牌，所以这是你唯一的机会复制它），如图<br><img src="/images/new-personal-access-token-1.png"></p>
+<p>4 将生成的 PAT 添加到你的博客源代码仓库的 Secrets，名字填入 PERSONAL_TOKEN 后面会用到这个变量名，如图<br><img src="/images/personal-access-secret.png"></p>
+<ul>
+<li>创建.github&#x2F;workflow 自动化部署 – blog项目 page.yml</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy Hexo to GitHub Pages</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - main <span class="comment"># 或你使用的默认分支名称</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line"></span><br><span class="line">    steps:</span><br><span class="line">      - name: Checkout blog <span class="built_in">source</span></span><br><span class="line">        uses: actions/checkout@v4  <span class="comment">#git升级为v4 这样可以解决index.html不更新问题</span></span><br><span class="line">        with:</span><br><span class="line">          submodules: recursive</span><br><span class="line"></span><br><span class="line">      - name: Set up Node.js</span><br><span class="line">        uses: actions/setup-node@v1</span><br><span class="line">        with:</span><br><span class="line">          node-version: <span class="string">&quot;21&quot;</span> <span class="comment"># 设置 Node.js 版本</span></span><br><span class="line"></span><br><span class="line">      - name: Cache dependencies</span><br><span class="line">        uses: actions/cache@v2</span><br><span class="line">        with:</span><br><span class="line">          path: node_modules</span><br><span class="line">          key: <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-<span class="variable">$&#123;&#123; hashFiles(&#x27;**/package-lock.json&#x27;) &#125;</span>&#125;</span><br><span class="line">          restore-keys: |</span><br><span class="line">            <span class="variable">$&#123;&#123; runner.os &#125;</span>&#125;-node-</span><br><span class="line"></span><br><span class="line">      - name: Install dependencies</span><br><span class="line">        run: npm install</span><br><span class="line"></span><br><span class="line">      - name: Install Hexo CLI</span><br><span class="line">        run: npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line">      - name: Generate static pages</span><br><span class="line">        run: hexo clean &amp;&amp; hexo generate --output ./public</span><br><span class="line"></span><br><span class="line">      - name: Deploy to GitHub Pages</span><br><span class="line">        uses: peaceiris/actions-gh-pages@v3</span><br><span class="line">        with:</span><br><span class="line">          personal_token: <span class="variable">$&#123;&#123; secrets.PERSONAL_TOKEN &#125;</span>&#125;</span><br><span class="line">          publish_dir: ./public</span><br><span class="line">          external_repository: 0rz33/0rz33.github.io <span class="comment"># 更改为你的 GitHub Pages 仓库, username 是你的用户名</span></span><br><span class="line">          publish_branch: main <span class="comment"># GitHub Pages 分支  </span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="username-github-io-page页面设置"><a href="#username-github-io-page页面设置" class="headerlink" title="{username}.github.io page页面设置"></a>{username}.github.io page页面设置</h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/house-condo/">
+                家庭-公寓
             </a>
         </h1>
         <div class="post-info">
@@ -1027,1280 +1034,131 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
     
         <div class="content">
             <ul>
-<li><a href="#%E8%8A%82%E8%83%BD%E6%96%B9%E6%A1%88">节能方案</a></li>
-<li><a href="#%E5%AF%BC%E5%85%89%E5%99%A8%E5%88%B6%E4%BD%9C">导光器制作</a></li>
-<li><a href="#%E5%85%89%E4%BC%8F%E5%82%A8%E8%83%BD%E6%B7%B7%E5%90%88%E7%B3%BB%E7%BB%9F">光伏储能混合系统</a></li>
-<li><a href="#%E7%94%B5%E5%8A%9B%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">电力节能设计方案</a></li>
+<li><a href="#%E5%8A%9F%E8%83%BD%E5%8C%BA">功能区</a></li>
+<li><a href="#%E5%AE%A4%E5%86%85%E8%A3%85%E4%BF%AE">室内装修</a></li>
 </ul>
-<h1 id="节能方案"><a href="#节能方案" class="headerlink" title="节能方案"></a>节能方案</h1><h2 id="公寓节能-东南亚环境"><a href="#公寓节能-东南亚环境" class="headerlink" title="公寓节能 东南亚环境"></a>公寓节能 东南亚环境</h2><ol>
-<li>白天光伏+储能 → 主要供夜晚和小家电使用</li>
-<li>小型风力或人体动能 → 辅助应急或小功率设备</li>
-<li>光导照明 → 白天节省照明电力</li>
-<li>智能节电+遮阳通风 → 降低整体用电</li>
-<li>热空气 → 被动通风&#x2F;热能收集</li>
-</ol>
-<h1 id="导光器制作"><a href="#导光器制作" class="headerlink" title="导光器制作"></a>导光器制作</h1><p>反光杯 + 聚光透镜 + 光纤 &#x3D; 高效导光器</p>
-<p>反光杯：手电筒的灯胆<br>聚光透镜就是：一半的凸透镜<br>光纤：导光的</p>
-<p>优势：光强高、光斑小、光纤耦合效率高<br>限制：光源功率、焦点热量、光纤耐热、精密对准<br>可以说这是 DIY 高效率光纤引光器的最佳组合之一，比单透镜或单反光杯效率高很多。</p>
-<h1 id="光伏储能混合系统（Hybrid-PV-System）"><a href="#光伏储能混合系统（Hybrid-PV-System）" class="headerlink" title="光伏储能混合系统（Hybrid PV System）"></a>光伏储能混合系统（Hybrid PV System）</h1><p>其实就是 “太阳能板 + 电池 + 混合逆变器 + 家用电网” 的综合解决方案。</p>
-<pre class="mermaid">flowchart TB
-  subgraph PV_SIDE["光伏侧 PV Side"]
-    A["光伏阵列\nPV Array"] --> B["直流汇流箱\nDC Combiner"]
-    B --> C["直流断路器/隔离开关\nDC Isolator"]
-    C --> D["混合逆变器\nHybrid Inverter (MPPT)"]
-  end
-
-  subgraph STORAGE["储能 Storage"]
-    E["电池组\nBattery Bank (LiFePO4)"] --> F["BMS"]
-    F --> D
-  end
-
-  subgraph AC_SIDE["交流侧 AC Side"]
-    D --> G["交流输出\nAC Output"]
-    G --> H["总配电箱\nMain Distribution Panel"]
-    H --> I["日常负载\nHousehold Loads"]
-    H --> J["重要负载子配电箱\nCritical Loads (Backup)\nvia ATS/Transfer Switch"]
-    H --> K["双向电表\nBi-directional Meter"]
-    K --> L["电网\nUtility Grid"]
-  end</pre>
-
-<h2 id="所需硬件"><a href="#所需硬件" class="headerlink" title="所需硬件"></a>所需硬件</h2><h3 id="核心部件"><a href="#核心部件" class="headerlink" title="核心部件"></a>核心部件</h3><ul>
-<li><p>光伏组件（Solar PV Modules &#x2F; Solar Panels）<br>作用：把太阳光转为直流电（DC）。<br>要点：选单晶硅、高转换效率（≥19% 更优）、带 PID 抗衰能力。组件功率按屋顶面积&#x2F;需求选择（如 300–540 W&#x2F;panel）。<br>数量 &#x3D; 目标系统容量（kW） ÷ 单板功率（kW）。</p>
-</li>
-<li><p>混合逆变器（Hybrid Inverter &#x2F; PV Inverter with ESS）<br>作用：DC→AC、MPPT、管理电池充放电、并网与离网切换。<br>要点：支持双向充放电、并网认证、离网&#x2F;备电输出、通信（RS485 &#x2F; CAN &#x2F; Wi-Fi）、峰值输出能力要匹配家中最大同时功率。<br>常见规格：3kW &#x2F; 5kW &#x2F; 10kW 等；直流输入电压&#x2F;最大 MPPT 电流要能接入你的 PV 阵列。</p>
-</li>
-<li><p>储能电池（Battery Bank） — 推荐 LiFePO4（磷酸铁锂）<br>作用：存储白天多余电能，用于夜间或停电时供电。<br>要点：选择带 BMS 的电池包；标注循环寿命（≥3000 次@80% DOD 更好）；额定电压（48V 系统常见）或模块化 400V 系统（取决逆变器）。<br>容量建议（家庭参考）：5 kWh &#x2F; 10 kWh &#x2F; 20 kWh。</p>
-</li>
-<li><p>电池管理系统（BMS）<br>作用：电池保护（过充、过放、均衡、温度保护）和与逆变器通讯。<br>要点：必须与电池和逆变器兼容，支持报警与远程通信。</p>
-</li>
-</ul>
-<h2 id="电力节能设计方案"><a href="#电力节能设计方案" class="headerlink" title="电力节能设计方案"></a>电力节能设计方案</h2><h3 id="☀️-主动节能设备"><a href="#☀️-主动节能设备" class="headerlink" title="☀️ 主动节能设备"></a>☀️ 主动节能设备</h3><ul>
-<li>太阳能板（光伏发电系统）。</li>
-<li>太阳能热水器（辅助电加热）。</li>
-<li>LED 节能灯具 + 红外&#x2F;光控感应装置。</li>
-<li>高能效空调（EER ≥ 3.5，支持变频与定时功能）。</li>
-<li>智能用电控制系统（外出一键断电、自动温控）。</li>
-</ul>
-<h3 id="❄️-被动节能设计"><a href="#❄️-被动节能设计" class="headerlink" title="❄️ 被动节能设计"></a>❄️ 被动节能设计</h3><ul>
-<li>屋顶加隔热层、使用双层中空玻璃。</li>
-<li>交叉通风、中庭风道设计。</li>
-<li>高反射屋面材料（如白色瓦&#x2F;反光涂层）。</li>
-<li>插座集中控制，防止待机耗电。</li>
-</ul>
-<hr>
-<h2 id="光伏板安装"><a href="#光伏板安装" class="headerlink" title="光伏板安装"></a>光伏板安装</h2><h2 id=""><a href="#" class="headerlink" title=""></a></h2>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/house-maker/">
-                家庭-自建房
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#%E4%B8%9C%E5%8D%97%E4%BA%9A%E5%88%AB%E5%A2%85%E5%BB%BA%E8%AE%BE%E4%B8%8E%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%94%BB%E7%95%A5">东南亚别墅建设与节能设计全攻略</a><ul>
-<li><a href="#%E5%9C%B0%E5%9F%BA%E9%98%B6%E6%AE%B5%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">地基阶段注意事项</a></li>
-<li><a href="#%E7%94%B5%E5%8A%9B%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">电力节能设计方案</a></li>
-<li><a href="#%E6%B0%B4%E8%B5%84%E6%BA%90%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">水资源节能设计方案</a></li>
-<li><a href="#%E5%AE%A4%E5%86%85%E8%A3%85%E4%BF%AE%E9%98%B6%E6%AE%B5%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">室内装修阶段注意事项</a></li>
-</ul>
-</li>
-<li><a href="#%E5%85%AC%E5%AF%93%E5%AE%A4%E5%86%85%E8%A3%85%E4%BF%AE">公寓室内装修</a></li>
-<li><a href="#%E4%BA%91%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">云操作系统</a></li>
-<li><a href="#DIY">DIY</a></li>
-<li><a href="#%E6%B0%B4%E5%9F%B9%E8%94%AC%E8%8F%9C">水培蔬菜</a></li>
-<li><a href="#%E7%94%9F%E6%80%81%E9%B1%BC%E7%BC%B8">生态鱼缸</a></li>
-</ul>
-<p>基础配置</p>
-<ul>
-<li>楼高-两层半足矣</li>
-<li>一楼：厨房、餐厅、客厅、停车位、老人房、公用洗手间、蓄电房</li>
-<li>二楼：主卧、次卧、次卧</li>
-</ul>
-<h1 id="东南亚别墅建设与节能设计全攻略"><a href="#东南亚别墅建设与节能设计全攻略" class="headerlink" title="东南亚别墅建设与节能设计全攻略"></a>东南亚别墅建设与节能设计全攻略</h1><h2 id="地基阶段注意事项"><a href="#地基阶段注意事项" class="headerlink" title="地基阶段注意事项"></a>地基阶段注意事项</h2><h3 id="防水处理"><a href="#防水处理" class="headerlink" title="防水处理"></a>防水处理</h3><ul>
-<li>关键节点加强防水：厨房、卫生间的地面与墙面交界处，务必采用聚氨酯或水泥基防水涂料，并向上返高≥30cm。</li>
-<li>设置防潮层：一楼地面下应预铺防潮膜（如PVC或自粘式沥青卷材），有效阻隔地气上升。</li>
-<li>户外地面坡度设计：屋外地坪应高于周边排水沟至少10cm，地面向外倾斜2~3%，防止雨水回流。</li>
-</ul>
-<h3 id="热水-供水布局"><a href="#热水-供水布局" class="headerlink" title="热水&#x2F;供水布局"></a>热水&#x2F;供水布局</h3><ul>
-<li>热水管道预埋：采用PPR或PE-RT热水专用管，外包保温棉，防止热量流失。</li>
-<li>太阳能热水系统预留：<ul>
-<li>上水、回水、溢水管道预埋；</li>
-<li>储水箱位置尽量设于高处以确保自然水压；</li>
-</ul>
-</li>
-<li>泵系统智能化：<ul>
-<li>安装断电自停功能，避免干烧；</li>
-<li>可选变频恒压泵以提升用水舒适度与节能效果。</li>
-</ul>
-</li>
-</ul>
-<h3 id="防蚊虫叮咬"><a href="#防蚊虫叮咬" class="headerlink" title="防蚊虫叮咬"></a>防蚊虫叮咬</h3><ul>
-<li>高离地设计：将地面层抬高 40–80 cm，有效减少地面湿气与虫害滋生源。</li>
-<li>水沟与排水坡度设计：避免积水死角，是预防蚊虫滋生的核心设计。</li>
-<li>屋顶排水顺畅设计：设置排水沟槽、防堵落叶网，防止雨后积水孳生蚊子。</li>
-<li>无死角阴暗空间：减少蚊虫栖息区域，尤其在厨房、厕所、天花板边缘。</li>
-</ul>
-<h3 id="节能导向的地基设计"><a href="#节能导向的地基设计" class="headerlink" title="节能导向的地基设计"></a>节能导向的地基设计</h3><ul>
-<li>保温层预留：在地坪施工前铺设XPS 挤塑板或泡沫混凝土，减少地面热传导；</li>
-<li>太阳能系统预布线：地基预留光伏电缆通道、电池房管线槽；</li>
-<li>雨水收集系统接口：预埋雨水排入储水池的管道，用于冲厕、浇花等二次利用。</li>
-</ul>
-<hr>
-<h2 id="电力节能设计方案"><a href="#电力节能设计方案" class="headerlink" title="电力节能设计方案"></a>电力节能设计方案</h2><a href="/2026/09/19/house-electric/" title="家庭-电力节能">家庭-电力节能</a>
-
-<h2 id="水资源节能设计方案"><a href="#水资源节能设计方案" class="headerlink" title="水资源节能设计方案"></a>水资源节能设计方案</h2><table>
-<thead>
-<tr>
-<th>级别</th>
-<th>水质要求</th>
-<th>用水场景</th>
-<th>推荐水源</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>✅ 一级水</td>
-<td><strong>可直接饮用</strong></td>
-<td>饮水、做饭</td>
-<td>自来水 &#x2F; 反渗透（RO）处理后的雨水或地下水</td>
-</tr>
-<tr>
-<td>✅ 二级水</td>
-<td><strong>可接触皮肤</strong></td>
-<td>洗澡、泳池、洗手</td>
-<td>雨水+三级过滤杀菌 &#x2F; 污水深度处理水</td>
-</tr>
-<tr>
-<td>✅ 三级水</td>
-<td><strong>无皮肤接触</strong></td>
-<td>冲厕、洗衣机、室内清洁</td>
-<td>雨水+普通过滤 &#x2F; 灰水处理出水</td>
-</tr>
-<tr>
-<td>✅ 四级水</td>
-<td><strong>非接触景观水</strong></td>
-<td>浇花、冲地、喷泉、景观池补水</td>
-<td>荷花池雨水原水 &#x2F; 简单过滤的灰水</td>
-</tr>
-</tbody></table>
-<p>🔧 每级水处理建议方案</p>
-<ul>
-<li>🥇 一级水（饮用）<ul>
-<li>推荐：自来水 或<ul>
-<li>RO膜+UV消毒雨水系统</li>
-<li>末端设置净水龙头（饮水分开）</li>
-</ul>
-</li>
-<li>用于：厨房饮用水、泡茶、做饭</li>
-</ul>
-</li>
-<li>🥈 二级水（洗澡 &#x2F; 泳池）<ul>
-<li>雨水处理需：<ul>
-<li>多级砂滤 + 活性炭 + 紫外线（或臭氧）</li>
-</ul>
-</li>
-<li>池水需循环过滤系统 + 定期杀菌</li>
-</ul>
-</li>
-<li>🥉 三级水（冲厕 &#x2F; 洗衣）<ul>
-<li>雨水+简单过滤即可；</li>
-<li>或使用处理后的灰水（洗澡水）</li>
-</ul>
-</li>
-<li>🧯 四级水（浇花 &#x2F; 景观）<ul>
-<li>不需杀菌；</li>
-<li>可直接从荷花池抽取或雨水初滤水</li>
-</ul>
-</li>
-</ul>
-<p><img src="/images/house-maker-1.png"></p>
-<h3 id="🌧️-雨水管理与回用"><a href="#🌧️-雨水管理与回用" class="headerlink" title="🌧️ 雨水管理与回用"></a>🌧️ 雨水管理与回用</h3><ul>
-<li>屋顶雨水收集系统（落水管 + 滤网 + 蓄水桶）。</li>
-<li>灰水（洗澡&#x2F;洗衣水）过滤后回用：冲厕、浇花。</li>
-<li>智能水表 + 水流实时监控，漏水报警。</li>
-</ul>
-<h3 id="🚿-节水设备与生活用水优化"><a href="#🚿-节水设备与生活用水优化" class="headerlink" title="🚿 节水设备与生活用水优化"></a>🚿 节水设备与生活用水优化</h3><ul>
-<li>节水型洁具（双档马桶、节水花洒、起泡龙头）。</li>
-<li>可降解洗涤剂（适配灰水系统，避免堵塞&#x2F;污染）。</li>
-<li>花园微滴灌系统，减少水耗、提高效率。</li>
-</ul>
-<h3 id="♻️-污水处理与再利用"><a href="#♻️-污水处理与再利用" class="headerlink" title="♻️ 污水处理与再利用"></a>♻️ 污水处理与再利用</h3><ul>
-<li><p><strong>处理方式</strong>：</p>
-<ul>
-<li>三格式化粪池：基础版，适用于1~3户。</li>
-<li>一体化小型污水处理设备：出水可灌溉&#x2F;冲厕。</li>
-<li>MBR 膜处理系统：可达中水标准，回用广泛。</li>
-</ul>
-</li>
-<li><p><strong>运行优化</strong>：</p>
-<ul>
-<li>使用电曝气或风曝气系统提升处理效率。</li>
-<li>搭配太阳能曝气机节能运行。</li>
-</ul>
-</li>
-<li><p><strong>回用建议</strong>：</p>
-<ul>
-<li>出水仅用于非饮用途，如景观、花园、厕所冲水。</li>
-<li>设置绿植过滤带&#x2F;湿地吸收，提升生态安全性。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="室内装修阶段注意事项"><a href="#室内装修阶段注意事项" class="headerlink" title="室内装修阶段注意事项"></a>室内装修阶段注意事项</h2><h3 id="🚽-卫生间设计"><a href="#🚽-卫生间设计" class="headerlink" title="🚽 卫生间设计"></a>🚽 卫生间设计</h3><ul>
-<li>洗手台面应有微斜排水设计，避免水滞留。</li>
-<li>地面坡度 ≥1.5%，设置地漏 ≥2个，防止积水。</li>
-<li>建议做干湿分离（玻璃隔断&#x2F;推拉门）。</li>
-</ul>
-<h3 id="🪟-窗户设计"><a href="#🪟-窗户设计" class="headerlink" title="🪟 窗户设计"></a>🪟 窗户设计</h3><ul>
-<li>落地窗滑轮推荐安装于上方，更防尘易维护。</li>
-<li>建议使用中空双层玻璃 + 隔热断桥铝材料。</li>
-<li>窗户加装密封条，提升隔音与保温性能。</li>
-</ul>
-<h3 id="🍳-厨房设计"><a href="#🍳-厨房设计" class="headerlink" title="🍳 厨房设计"></a>🍳 厨房设计</h3><ul>
-<li>选 ≥17m³&#x2F;min 吸力油烟机，配备止回阀。</li>
-<li>抽油烟口向外，带防虫防雨罩。</li>
-<li>橱柜下方设计通风口或百叶门，防潮防霉。</li>
-</ul>
-<h3 id="照明与配电系统设计"><a href="#照明与配电系统设计" class="headerlink" title="照明与配电系统设计"></a>照明与配电系统设计</h3><p>配电安全</p>
-<ul>
-<li>强电&#x2F;弱电分离布线，避免干扰，布线使用阻燃线管。</li>
-<li>所有空调、热水器、厨房电器应设置独立回路 + 空气开关；</li>
-<li>建议安装漏电保护器（ELCB）+ 电涌保护器（SPD），应对雷击等风险。</li>
-</ul>
-<p>照明布局</p>
-<ul>
-<li>主照明建议使用LED 吸顶灯或筒灯，高效节能；</li>
-<li>卧室、走廊、卫生间建议搭配感应灯或夜灯，便捷又节能；</li>
-<li>考虑预埋智能照明控制系统（如 Zigbee、Wi-Fi、KNX），后期可接入 Home Assistant 等智能中枢。</li>
-</ul>
-<hr>
-<h2 id="🌿-节能建筑设计辅助方案"><a href="#🌿-节能建筑设计辅助方案" class="headerlink" title="🌿 节能建筑设计辅助方案"></a>🌿 节能建筑设计辅助方案</h2><h3 id="🍃-通风与遮阳设计"><a href="#🍃-通风与遮阳设计" class="headerlink" title="🍃 通风与遮阳设计"></a>🍃 通风与遮阳设计</h3><ul>
-<li>中庭通风井、开窗对流、屋檐挑出 ≥0.8m。</li>
-<li>百叶窗与高位排气窗配合，增强排热与遮阳效果。</li>
-</ul>
-<h3 id="🧱-材料与结构选择"><a href="#🧱-材料与结构选择" class="headerlink" title="🧱 材料与结构选择"></a>🧱 材料与结构选择</h3><ul>
-<li>使用本地天然建材（竹、柚木、红土砖），低碳环保。</li>
-<li>坡屋顶利于排水与热对流。</li>
-<li>设置独立“设备房”：集中布置电池、泵、过滤设备等，方便维护与检修。</li>
-</ul>
-<hr>
-<h2 id="✅-附加建议（施工实用）"><a href="#✅-附加建议（施工实用）" class="headerlink" title="✅ 附加建议（施工实用）"></a>✅ 附加建议（施工实用）</h2><ul>
-<li>插座预留合理，避免后期拖线。</li>
-<li>弱电布线提前规划：摄像头、Wi-Fi、门禁等。</li>
-<li>屋顶可加绿植或设凉亭，降温又美观。</li>
-<li>建议双管排水（黑水&#x2F;灰水分离），提升回用系统效率。</li>
-</ul>
-<h1 id="云操作系统"><a href="#云操作系统" class="headerlink" title="云操作系统"></a>云操作系统</h1><a href="/2026/09/19/house-system/" title="家庭-中控系统">家庭-中控系统</a>
-
-<h1 id="公寓室内装修"><a href="#公寓室内装修" class="headerlink" title="公寓室内装修"></a>公寓室内装修</h1><a href="/2026/09/19/house-condo/" title="家庭-公寓">家庭-公寓</a>
-
-
-<h1 id="DIY"><a href="#DIY" class="headerlink" title="DIY"></a>DIY</h1><a href="/2026/09/19/house-diy/" title="家庭-DIY">家庭-DIY</a>
-
-
-<h4 id="投影仪"><a href="#投影仪" class="headerlink" title="投影仪"></a>投影仪</h4><p>小米 1S 激光</p>
-<h1 id="水培蔬菜"><a href="#水培蔬菜" class="headerlink" title="水培蔬菜"></a>水培蔬菜</h1><a href="/2026/09/19/house-vegetable/" title="家庭-阳台生态">家庭-阳台生态</a>
-
-<h1 id="生态鱼缸"><a href="#生态鱼缸" class="headerlink" title="生态鱼缸"></a>生态鱼缸</h1><h2 id="阳光充足房-面朝南"><a href="#阳光充足房-面朝南" class="headerlink" title="阳光充足房 面朝南"></a>阳光充足房 面朝南</h2><h3 id="所需"><a href="#所需" class="headerlink" title="所需"></a>所需</h3><ul>
-<li>鱼 (功能：观赏,粪便可为花园提供养分)</li>
-<li>淡水蚬 (功能：帮助净化水质,人可食用)</li>
-<li>黑壳虾 (功能：可以吃死鱼和死蚬)</li>
-<li>迷你睡莲 (功能：观赏)</li>
-<li>水草 (功能：帮助净化水质,给鱼当食物)</li>
-<li>假山 上面有天湖荽</li>
-<li>瀑布</li>
-<li>鱼缸底部 是火山石 小沙粒(淡水蚬需要)</li>
-</ul>
-<h2 id="生态鱼缸系统总结与维护要点"><a href="#生态鱼缸系统总结与维护要点" class="headerlink" title="生态鱼缸系统总结与维护要点"></a>生态鱼缸系统总结与维护要点</h2><p>这个系统之所以能接近“不用护理”的状态，核心在于构建了一个功能完备的食物链和分解链，实现了养分在系统内部的良性循环：</p>
-<h3 id="核心优势：完整的生态循环链"><a href="#核心优势：完整的生态循环链" class="headerlink" title="核心优势：完整的生态循环链"></a>核心优势：完整的生态循环链</h3><ul>
-<li><p><strong>生产者：</strong></p>
-<ul>
-<li>水草和睡莲利用阳光和鱼的粪便生长。</li>
-</ul>
-</li>
-<li><p><strong>初级消费者：</strong></p>
-<ul>
-<li>鱼和虾吃藻类和水草（少量）。</li>
-</ul>
-</li>
-<li><p><strong>分解者（关键）：</strong></p>
-<ul>
-<li>黑壳虾是吃死鱼、死虾和死蚬的“主力军”，防止尸体腐烂污染水质。</li>
-<li>蚬滤食水中的微生物和碎屑。</li>
-<li>细菌最终分解所有有机物。</li>
-</ul>
-</li>
-<li><p><strong>养分循环：</strong></p>
-<ul>
-<li>植物吸收分解后的废物，水质保持清澈，形成良性循环。</li>
-</ul>
-</li>
-</ul>
-<h3 id="还需要注意什么？"><a href="#还需要注意什么？" class="headerlink" title="还需要注意什么？"></a>还需要注意什么？</h3><p>虽然系统设计得很完善，但要实现<strong>完全“不用护理”是不可能的</strong>。您依然需要进行最基础的维护：</p>
-<ul>
-<li><p><strong>光照管理：</strong></p>
-<ul>
-<li>阳光充足的南向房是优势，但需要注意<strong>遮阳</strong>，避免阳光直射时间过长导致夏天水温过高或藻类大爆发。您可能需要拉一下窗帘。</li>
-</ul>
-</li>
-<li><p><strong>水量补充：</strong></p>
-<ul>
-<li>瀑布蒸发会带走水分，需要定期（比如每周）补充蒸发掉的水分。</li>
-</ul>
-</li>
-<li><p><strong>生物密度控制：</strong></p>
-<ul>
-<li>如果鱼和虾繁殖过多，系统可能会不堪重负，需要适度捕捞或移出部分生物。</li>
-</ul>
-</li>
-<li><p><strong>偶尔的清理：</strong></p>
-<ul>
-<li>睡莲枯叶、堆积过多的螺壳（如前所述）等，偶尔需要手动清除一下。</li>
-</ul>
-</li>
-</ul>
-<h3 id="结论："><a href="#结论：" class="headerlink" title="结论："></a>结论：</h3><p>这个配置方案非常棒，只要您控制好生物数量和光照，它确实能实现极低维护的状态，是您想要的“生态鱼缸”的理想模型。</p>
-<h3 id="水培和鱼缸共通-让黑壳虾随去自由"><a href="#水培和鱼缸共通-让黑壳虾随去自由" class="headerlink" title="水培和鱼缸共通 让黑壳虾随去自由"></a>水培和鱼缸共通 让黑壳虾随去自由</h3><p><img src="/images/%E6%B0%B4%E5%9F%B9%E9%B1%BC%E7%BC%B8.png" alt="蓝色为鱼缸水 红色为营养液"></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/house-recycling/">
-                家庭-♻️废物循环利用
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="家庭生活垃圾分类0浪费"><a href="#家庭生活垃圾分类0浪费" class="headerlink" title="家庭生活垃圾分类0浪费"></a>家庭生活垃圾分类0浪费</h1><ul>
-<li>蔬菜瓜果 -&gt; 做土肥 需发酵 味道是个重点</li>
-<li>塑料袋 -&gt; 回收 1.大的垃圾桶袋子 2.小的装小垃圾</li>
-<li>香水瓶 -&gt; 做芳香瓶 </li>
+<h1 id="功能区"><a href="#功能区" class="headerlink" title="功能区"></a>功能区</h1><ul>
+<li>客厅<ul>
+<li>休息 多人互动 放松</li>
+<li>喝茶</li>
 <li></li>
 </ul>
-<h1 id="3D打印机废料"><a href="#3D打印机废料" class="headerlink" title="3D打印机废料"></a>3D打印机废料</h1><p>3d打印机拉丝<br><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=TllsEMdKOmA&t=50s">https://www.youtube.com/watch?v=TllsEMdKOmA&amp;t=50s</a></p>
-<p>粉碎</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/house-system/">
-                家庭-中控系统
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#%E5%AE%B6%E5%BA%AD%E4%B8%AD%E6%8E%A7%E7%B3%BB%E7%BB%9F">家庭中控系统</a></li>
-<li><a href="#AI-Agent">AI Agent</a></li>
-<li><a href="#%E5%88%9D%E7%BA%A7AI%E7%AE%A1%E5%AE%B6">初级AI管家</a><ul>
-<li><a href="#%E5%8A%9F%E8%83%BD%E8%A6%81%E6%B1%82">功能要求</a></li>
-<li><a href="#%E7%A1%AC%E4%BB%B6%E9%9C%80%E6%B1%82">硬件需求</a></li>
-<li><a href="#%E6%9E%B6%E6%9E%84">架构</a></li>
-<li><a href="#%E6%AD%A5%E9%AA%A4%E6%8C%87%E5%8D%97">步骤指南</a></li>
+</li>
+<li>卧室<ul>
+<li>衣帽间</li>
+<li>厕所</li>
+<li>睡觉</li>
 </ul>
 </li>
-<li><a href="#%E5%AE%B6%E5%BA%AD%E5%8A%A9%E6%89%8B">家庭助手</a><ul>
-<li><a href="#Home+Assistant">Home Assistant</a></li>
-<li><a href="#%E4%B8%AA%E4%BA%BA%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B">个人语音助手</a></li>
-<li><a href="#%E9%9F%B3%E7%AE%B1DIY">音箱DIY</a></li>
-<li><a href="#AI%E4%B8%AD%E6%8E%A7%E7%B3%BB%E7%BB%9F">AI中控系统</a></li>
+<li>工作室<ul>
+<li>工作</li>
 </ul>
 </li>
-<li><a href="#%E5%B7%A5%E4%BD%9C%E7%AB%99">工作站</a></li>
-<li><a href="#%E5%8D%87%E7%BA%A7%E7%89%88NAS">升级版NAS</a></li>
+<li>厨房<ul>
+<li>干货</li>
+<li>原材料</li>
+<li>冰箱</li>
+<li>做食物的机器</li>
+<li>沥干区</li>
 </ul>
-<h1 id="家庭中控系统"><a href="#家庭中控系统" class="headerlink" title="家庭中控系统"></a>家庭中控系统</h1><p>CasaOS 偏向家庭<br><a target="_blank" rel="noopener" href="https://casaos.zimaspace.com/">文件管理器 - casaOS</a></p>
-<p>Sealos 偏向专业<br><a target="_blank" rel="noopener" href="https://github.com/labring/sealos">集群 使用文件管理器Sealos k8s</a><br><a target="_blank" rel="noopener" href="https://sealos.io/">Sealos</a></p>
-<p>Sealos -&gt; CasaOS -&gt; Home Assistant</p>
-<p>SeaOS 是一个专为家庭设计的中控系统（Home Control System &#x2F; Smart Home Hub），核心目标是把家里的各种智能设备、存储、网络服务整合在一个平台上，实现统一管理和自动化</p>
+</li>
+</ul>
+<h1 id="室内装修"><a href="#室内装修" class="headerlink" title="室内装修"></a>室内装修</h1><h2 id="方案1-🏡-家装整体方案-—-黑白灰-木纹（极简高级）"><a href="#方案1-🏡-家装整体方案-—-黑白灰-木纹（极简高级）" class="headerlink" title="方案1  🏡 家装整体方案 — 黑白灰 + 木纹（极简高级）"></a>方案1  🏡 家装整体方案 — 黑白灰 + 木纹（极简高级）</h2><p><strong>主色调</strong>：白、浅灰<br><strong>点缀色</strong>：黑色（金属黑、小面积）<br><strong>地板</strong>：木纹（浅色）<br><strong>风格</strong>：极简、轻盈、高级感</p>
+<p>✔ 主色：白、浅灰<br>✔ 点缀：黑色（金属黑、小面积）</p>
+<h3 id="🛋-客厅-Living-Room"><a href="#🛋-客厅-Living-Room" class="headerlink" title="🛋 客厅 Living Room"></a>🛋 客厅 Living Room</h3><p><strong>主调</strong>：白 + 浅灰 + 木纹地板，点缀黑色金属、黑框玻璃</p>
+<p><strong>家具建议</strong>：</p>
 <ul>
-<li>跨设备支持：可以控制智能灯、智能门锁、摄像头、传感器等。</li>
-<li>家庭自动化：支持条件触发、场景设置、定时任务。</li>
-<li>本地化存储：可与 NAS 或家庭服务器结合，避免云端依赖。</li>
-<li>开放接口：可以与第三方系统或自建程序对接。</li>
+<li><strong>沙发</strong>：浅灰布艺（哑光纹理）或浅米灰皮革<br>→ 低靠背、极简线条，更显轻盈高级。</li>
+<li><strong>茶几</strong>：黑色金属框 + 灰色玻璃&#x2F;烟灰色镜面玻璃台面<br>→ 简洁几何结构，与轨道灯呼应。</li>
+<li><strong>电视柜</strong>：白橡木贴皮或灰色岩板台面 + 黑色金属脚架<br>→ 开放与封闭储物混搭，避免厚重。</li>
+<li><strong>窗帘</strong>：浅灰遮光 + 白纱双层（落地款）</li>
 </ul>
-<h5 id="所要实现的功能-AI智能管家"><a href="#所要实现的功能-AI智能管家" class="headerlink" title="所要实现的功能 AI智能管家"></a>所要实现的功能 AI智能管家</h5><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[树莓派<span class="operator">+</span><span class="type">AI解决方案</span>](https:<span class="comment">//shumeipai.nxez.com/2024/10/28/raspberry-pi-ai-hat.html)</span></span><br><span class="line">[<span class="type">AI树莓派</span>](https:<span class="comment">//pidoc.cn/docs/accessories/ai-kit)</span></span><br><span class="line"></span><br><span class="line">[语音麦克风]</span><br><span class="line">       <span class="operator">│</span></span><br><span class="line">       <span class="operator">▼</span></span><br><span class="line">[树莓派 <span class="operator">+</span> <span class="type">NPU</span>]</span><br><span class="line">       <span class="operator">│</span> 处理语音 <span class="operator">/</span> 推理</span><br><span class="line">       <span class="operator">▼</span></span><br><span class="line">[家电控制接口] <span class="operator">-----&gt;</span> 灯光<span class="regexp">/插座/</span>空调等</span><br><span class="line">       <span class="operator">│</span></span><br><span class="line">       <span class="operator">▼</span></span><br><span class="line">[可选云端 <span class="operator">/</span> <span class="type">GPU</span>] <span class="operator">&lt;--</span> 处理复杂对话 <span class="operator">/</span> <span class="type">AI</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h1 id="AI-Agent"><a href="#AI-Agent" class="headerlink" title="AI Agent"></a>AI Agent</h1><p>层次,核心组件,功能描述,对应你的 Agent OS 模块建议</p>
-<ol>
-<li>接入层 (API),REST &#x2F; WebSocket,接收自然语言指令（如：“去 GitHub 帮我点个 Star”）。,internal&#x2F;adapter&#x2F;http.go</li>
-<li>调度层 (Orchestrator),Task Manager,任务拆解：将大目标拆分为“打开链接、点击、提取、返回”等原子步骤。,internal&#x2F;core&#x2F;kernel.go</li>
-<li>执行层 (Executor),Playwright &#x2F; Chromium,物理操作：真实的浏览器内核，处理页面渲染、JS 执行、Cookie 持久化。,internal&#x2F;tools&#x2F;browser&#x2F;</li>
-<li>理解层 (Cognition),LLM (Ollama &#x2F; GPT),语义决策：将清洗后的 HTML&#x2F;DOM 结构喂给模型，让模型决定下一步的动作。,internal&#x2F;llm&#x2F;ollama.go</li>
-</ol>
-<p><em><strong>观察 (Observe) -&gt; 思考 (Think) -&gt; 决策 (Decide) -&gt; 执行 (Act) 的闭环。</strong></em></p>
+<p><strong>灯具</strong>：</p>
 <ul>
-<li>Observe (观察)：提取当前页面的可交互元素列表（Button, Input, Link）。</li>
-<li>Think (思考)：LLM 根据当前任务目标分析这些元素。</li>
-<li>Decide (决策)：LLM 输出标准格式的操作指令（例如：{“action”: “click”, “selector”: “#submit-btn”}）。</li>
-<li>Act (执行)：调用 Playwright 执行动作并等待页面刷新，进入下一轮循环。</li>
-</ul>
-<ol>
-<li>Prompt 对你的架构<br>帮助对ai的理解</li>
-</ol>
-<h1 id="初级AI管家"><a href="#初级AI管家" class="headerlink" title="初级AI管家"></a>初级AI管家</h1><h2 id="功能要求"><a href="#功能要求" class="headerlink" title="功能要求"></a>功能要求</h2><h4 id="外出-在家场景"><a href="#外出-在家场景" class="headerlink" title="外出&#x2F;在家场景"></a>外出&#x2F;在家场景</h4><ol>
-<li>HomeAssistant 控制室内智能家电</li>
-<li>手机容量不足 可以存储图片在家里</li>
-<li>可云办公 上传下载</li>
-<li>监控植物系统</li>
-<li>(在家场景)可呼叫语音助手</li>
-</ol>
-<h2 id="硬件需求"><a href="#硬件需求" class="headerlink" title="硬件需求"></a>硬件需求</h2><h4 id="树莓派-4B"><a href="#树莓派-4B" class="headerlink" title="树莓派 4B"></a>树莓派 4B</h4><ul>
-<li><p><strong>系统：</strong> RPi OS</p>
-</li>
-<li><p><strong>核心功能：</strong></p>
-<ul>
-<li>HomeAssistant（家庭自动化核心中枢）</li>
-<li>MQTT &#x2F; Zigbee2MQTT 网关</li>
-<li>本地语音助手（控制家居 + 调用 AI）</li>
-<li>Nextcloud（轻量云盘 → 云办公 &#x2F; 文件同步）</li>
-<li>AI 前端代理：将语音&#x2F;文本请求转发到 PC 工作站 AI 模型</li>
-<li>控制全家 Zigbee &#x2F; WiFi 智能家电</li>
-<li>外出时通过 VPN 访问树莓派，统一管理家庭设备</li>
-</ul>
-</li>
-<li><p><strong>需要外壳（配件）：</strong></p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com.cn/zh/models/1607404-jvc-3100rfu-gu-zao-xing-for-macmini-m4?from=search#profileId-1758486">3D 打印外壳：JVC3100r</a></li>
-<li>显示触摸屏 + 键盘｜（AI 管家界面）</li>
-<li>pi4 respeaker（声控） + USB 音频（声控 喇叭 ）｜ 已具备：喇叭 + 麦克风（用于语音助手）</li>
-</ul>
-</li>
+<li><strong>顶部</strong>：黑色线条灯或轨道灯（重点照射装饰画）</li>
+<li><strong>辅助</strong>：黑色金属落地灯，细杆造型</li>
 </ul>
 <hr>
-<h4 id="PC-AI-工作站"><a href="#PC-AI-工作站" class="headerlink" title="PC AI 工作站"></a>PC AI 工作站</h4><ul>
-<li><strong>系统：</strong> Linux &#x2F; Windows（推荐 Linux）</li>
-<li><strong>核心功能：</strong><ul>
-<li>GPU 推理（大模型计算核心）</li>
-<li>托管私有大模型（LLM &#x2F; Vision &#x2F; TTS &#x2F; ASR &#x2F; RVC）</li>
-<li>接收树莓派发来的 AI API 请求</li>
-<li>为 HomeAssistant 提供视觉识别、自动化推理</li>
-<li>家庭主要大文件存储区：<ul>
-<li>素材</li>
-<li>数据</li>
-<li>AI 模型</li>
-<li>多媒体文件</li>
+<h3 id="🛏-卧室-Bedroom"><a href="#🛏-卧室-Bedroom" class="headerlink" title="🛏 卧室 Bedroom"></a>🛏 卧室 Bedroom</h3><p><strong>主调</strong>：白 + 浅灰墙面 + 木纹地板，黑色点缀少量</p>
+<p><strong>家具建议</strong>：</p>
+<ul>
+<li><strong>床</strong>：浅灰布艺床或浅木色床架，低靠背</li>
+<li><strong>床头柜</strong>：黑色金属框 + 木纹台面</li>
+<li><strong>衣柜</strong>：灰色哑光推拉门 + 白橡木内饰</li>
+<li><strong>窗帘</strong>：浅灰遮光 + 白纱双层</li>
 </ul>
-</li>
-<li>高性能 Worker：处理 AI 任务</li>
-<li>可被 HomeAssistant 调用执行识图、识物、自动化联动</li>
-</ul>
-</li>
-<li><strong>需要外壳（配件）：</strong><ul>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013711?from=search#profileId-993508">GP02A半身像1</a></li>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013735#profileId-993524">GP02A半身像2</a></li>
-<li>最好能抽拉出主机</li>
-<li>ITX主板</li>
-</ul>
-</li>
-<li><strong>硬件需求：</strong><ul>
-<li>强力 GPU（RTX 4070 &#x2F; 4080 &#x2F; 4090 或更高）</li>
-<li>至少 32GB RAM</li>
-<li>NVMe SSD（1TB–2TB，模型加载更快）</li>
-<li>良好散热系统</li>
-<li>稳定供电</li>
-</ul>
-</li>
+<p><strong>灯具</strong>：</p>
+<ul>
+<li><strong>主灯</strong>：黑色简约吊灯或吸顶灯</li>
+<li><strong>床头灯</strong>：黑色金属壁灯，细杆或简约圆形灯</li>
 </ul>
 <hr>
-<h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line">🌍 外网（<span class="type">Outside</span> <span class="operator">+</span> <span class="type">VPN）</span></span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line"></span><br><span class="line">          <span class="operator">┌──────────────────────────────┐</span></span><br><span class="line">          <span class="operator">│</span> 🌍 外出设备（手机<span class="operator">、</span>笔电）     <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 访问 <span class="type">Nextcloud（树莓派）</span>   <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 问 <span class="type">AI（PC</span> 工作站 经树莓派） <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 控智能家居（<span class="type">HomeAssistant）</span> <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 上传备份照片<span class="operator">/</span>文档          <span class="operator">│</span></span><br><span class="line">          <span class="operator">└─────────────────────┬────────┘</span></span><br><span class="line">                                <span class="operator">│</span></span><br><span class="line">                    👑 <span class="type">Tailscale</span> <span class="operator">/</span> <span class="type">Zerotier</span> <span class="type">VPN</span></span><br><span class="line">                                <span class="operator">│</span></span><br><span class="line">                                <span class="operator">▼</span></span><br><span class="line">               家庭内网所有设备互通（树莓派 <span class="operator">=</span> 中控）</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line">🌍 外出设备（手机 <span class="operator">/</span> 平板 <span class="operator">/</span> 笔电）</span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">VPN</span> 回家</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 控 <span class="type">HomeAssistant</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">Nextcloud</span> 云盘访问</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 远程问 <span class="type">AI（PC</span> 计算）</span><br><span class="line"><span class="operator">▼</span></span><br><span class="line"><span class="operator">┌──────────────────────────────┐</span></span><br><span class="line"><span class="operator">│</span>  🌐 进入家庭内网 (<span class="number">192.168</span>.x.x) <span class="operator">│</span></span><br><span class="line"><span class="operator">└──────────────────────────────┘</span></span><br><span class="line">            <span class="operator">│</span></span><br><span class="line">            <span class="operator">▼</span></span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line">🍓 树莓派 4B —— 家庭中控（核心）</span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">HomeAssistant</span> 主控</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">Nextcloud</span> 小型云盘</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">MQTT</span> <span class="operator">/</span> <span class="type">Zigbee2MQTT</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 本地语音助手</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">AI</span> 请求代理（转发给 <span class="type">PC）</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 智能家居的总中枢</span><br><span class="line"><span class="operator">└───────────────┬──────────────────┘</span></span><br><span class="line">                <span class="operator">│</span></span><br><span class="line">     <span class="operator">┌──────────┴───────────┐</span></span><br><span class="line">     <span class="operator">│</span>                          <span class="operator">│</span></span><br><span class="line">     <span class="operator">▼</span>                          <span class="operator">▼</span></span><br><span class="line"><span class="operator">┌──────────────────┐</span>   <span class="operator">┌───────────────────────────┐</span></span><br><span class="line"><span class="operator">│</span> 🏡 智能家居设备    <span class="operator">│</span>   <span class="operator">│</span> 🖥️ <span class="type">PC</span> <span class="type">AI</span> 工作站            <span class="operator">│</span></span><br><span class="line"><span class="operator">│──────────────────│</span>   <span class="operator">│───────────────────────────│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 灯光 <span class="operator">/</span> 空调      <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> <span class="type">GPU</span> 推理                <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 门锁 <span class="operator">/</span> 摄像头    <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> 本地大模型推理           <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 植物监控系统     <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> 接收树莓派的 <span class="type">AI</span> 请求     <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">Zigbee</span> <span class="operator">/</span> <span class="type">MQTT</span>    <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> <span class="type">AI</span> 计算结果返回树莓派     <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 全部由树莓派控制 <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> 大文件主要存储位置        <span class="operator">│</span></span><br><span class="line"><span class="operator">└──────────────────┘</span>   <span class="operator">└───────────────────────────┘</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="步骤指南"><a href="#步骤指南" class="headerlink" title="步骤指南"></a>步骤指南</h2><h3 id="1️⃣-树莓派-4B-——-家庭中控"><a href="#1️⃣-树莓派-4B-——-家庭中控" class="headerlink" title="1️⃣ 树莓派 4B —— 家庭中控"></a>1️⃣ 树莓派 4B —— 家庭中控</h3><ol>
-<li><p><strong>硬件组装</strong></p>
+<h3 id="🛁-卫浴-Bathroom"><a href="#🛁-卫浴-Bathroom" class="headerlink" title="🛁 卫浴 Bathroom"></a>🛁 卫浴 Bathroom</h3><p><strong>主调</strong>：浅灰 + 白色瓷砖 + 黑色金属配件</p>
+<p><strong>配置建议</strong>：</p>
 <ul>
-<li>使用 <a target="_blank" rel="noopener" href="https://makerworld.com.cn/zh/models/1607404-jvc-3100rfu-gu-zao-xing-for-macmini-m4?from=search#profileId-1758486">JVC3100r 3D 打印外壳</a></li>
-<li>安装小型显示屏（作为 AI 管家界面）</li>
-<li>接入喇叭 + 麦克风（语音助手）</li>
-<li>可选：风扇 &#x2F; 铜片散热</li>
-</ul>
-</li>
-<li><p><strong>系统安装</strong></p>
-<ul>
-<li>安装 RPi OS（64 位版本，推荐 Raspberry Pi OS Lite + GUI 可选）</li>
-<li>配置网络：静态 IP &#x2F; DHCP 保留，确保在家庭内网可访问</li>
-<li>有键盘和显示屏</li>
-</ul>
-</li>
-<li><p><strong>软件安装</strong></p>
-<ul>
-<li>Docker &amp; Docker Compose</li>
-<li>HomeAssistant 容器：<ul>
-<li>核心自动化中枢</li>
-<li>配置 Zigbee &#x2F; MQTT 网关</li>
-</ul>
-</li>
-<li>Nextcloud 容器：<ul>
-<li>轻量云盘，实现文件同步 &#x2F; 云办公</li>
-</ul>
-</li>
-<li>Rhasspy &#x2F; OpenVoiceOS：<ul>
-<li>本地语音助手 &#x3D; Home Assistant + ReSpeaker + Rhasspy + Vosk</li>
-<li>可调用 AI 服务</li>
-</ul>
-</li>
-<li>Mosquitto (MQTT broker)</li>
-<li>Zigbee2MQTT（控制 Zigbee 设备）</li>
-<li>VPN 客户端：<ul>
-<li>Tailscale &#x2F; WireGuard &#x2F; Zerotier，用于外网访问</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>AI 前端代理</strong></p>
-<ul>
-<li>配置树莓派将语音&#x2F;文本请求通过 API 转发给 PC AI 工作站</li>
-<li>确保返回结果能被 HomeAssistant 或语音助手处理</li>
-</ul>
-</li>
-<li><p><strong>智能家居集成</strong></p>
-<ul>
-<li>配置所有 Zigbee &#x2F; WiFi 设备</li>
-<li>创建基础自动化规则</li>
-<li>外出时可通过手机 &#x2F; 平板 &#x2F; 笔电控制</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="2️⃣-PC-AI-工作站-——-AI-计算中心"><a href="#2️⃣-PC-AI-工作站-——-AI-计算中心" class="headerlink" title="2️⃣ PC AI 工作站 —— AI &#x2F; 计算中心"></a>2️⃣ PC AI 工作站 —— AI &#x2F; 计算中心</h3><ol>
-<li><p><strong>硬件组装</strong></p>
-<ul>
-<li>使用半身像机箱（GP02A 或可抽拉式 ITX 机箱）<ul>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013711?from=search#profileId-993508">GP02A半身像1</a></li>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013735#profileId-993524">GP02A半身像2</a></li>
-</ul>
-</li>
-<li>安装强力 GPU（如 RTX 4070&#x2F;4080&#x2F;4090）</li>
-<li>配置 NVMe SSD（1–2TB）</li>
-<li>至少 32GB RAM</li>
-<li>良好散热 + 稳定电源</li>
-</ul>
-</li>
-<li><p><strong>系统安装</strong></p>
-<ul>
-<li>Linux（Ubuntu &#x2F; Pop!_OS &#x2F; Debian 推荐）</li>
-<li>安装 GPU 驱动 + CUDA &#x2F; cuDNN（支持 AI 推理）</li>
-<li>配置静态 IP（家庭内网访问）</li>
-</ul>
-</li>
-<li><p><strong>软件安装</strong></p>
-<ul>
-<li>Docker &amp; Docker Compose</li>
-<li>AI 模型部署：<ul>
-<li>LLM（如 LLaMA、MPT、本地 Whisper）</li>
-<li>Vision 模型（图像识别 &#x2F; 视频分析）</li>
-<li>TTS &#x2F; RVC &#x2F; ASR 模型</li>
-</ul>
-</li>
-<li>REST &#x2F; WebSocket API 服务：<ul>
-<li>接收树莓派发来的请求</li>
-<li>返回 AI 推理结果</li>
-</ul>
-</li>
-<li>可选：VNC &#x2F; RDP，用于远程桌面管理</li>
-</ul>
-</li>
-<li><p><strong>与树莓派集成</strong></p>
-<ul>
-<li>配置树莓派作为前端：<ul>
-<li>API 请求通过家庭内网发送</li>
-<li>结果回传到树莓派供 HomeAssistant 或语音助手使用</li>
-</ul>
-</li>
-<li>监控 AI 任务负载</li>
-<li>存储大文件、素材、模型权重</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="3️⃣-外网访问与安全"><a href="#3️⃣-外网访问与安全" class="headerlink" title="3️⃣ 外网访问与安全"></a>3️⃣ 外网访问与安全</h3><ol>
-<li><p><strong>VPN 设置</strong></p>
-<ul>
-<li>在树莓派或路由器端配置 Tailscale &#x2F; WireGuard</li>
-<li>手机 &#x2F; 笔电通过 VPN 进入家庭内网</li>
-<li>访问 HomeAssistant、Nextcloud、AI 服务</li>
-</ul>
-</li>
-<li><p><strong>文件访问</strong></p>
-<ul>
-<li>Nextcloud 提供 SFTP &#x2F; WebDAV 接口</li>
-<li>上传、下载、备份工作文件</li>
-<li>支持外出办公</li>
-</ul>
-</li>
-<li><p><strong>智能家居控制</strong></p>
-<ul>
-<li>HomeAssistant WebUI 或手机 App</li>
-<li>可控制灯光、空调、门锁、植物监控系统</li>
-<li>触发自动化场景</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="4️⃣-流程概览"><a href="#4️⃣-流程概览" class="headerlink" title="4️⃣ 流程概览"></a>4️⃣ 流程概览</h3><ol>
-<li>手机 &#x2F; 笔电 → VPN → 树莓派</li>
-<li>树莓派：<ul>
-<li>处理 HomeAssistant 控制</li>
-<li>Nextcloud 文件同步</li>
-<li>AI 请求转发 → PC 工作站</li>
-</ul>
-</li>
-<li>PC 工作站：<ul>
-<li>GPU 进行 AI 推理</li>
-<li>返回结果给树莓派</li>
-</ul>
-</li>
-<li>树莓派执行智能家居或语音助手动作</li>
-<li>外出可上传 &#x2F; 下载重要文件，远程管理家居</li>
-</ol>
-<hr>
-<p>✅ 这样就形成了一个完整的家庭 AI 管家系统：</p>
-<ul>
-<li>树莓派 &#x3D; 前端中控 + 轻量云盘 + HomeAssistant</li>
-<li>PC 工作站 &#x3D; 后端 AI 核心 + 高性能存储</li>
-<li>VPN &#x3D; 安全远程访问</li>
-<li>Nextcloud &#x3D; 云办公 &#x2F; 文件同步</li>
-<li>HomeAssistant + Zigbee &#x2F; MQTT &#x3D; 智能家居控制</li>
-</ul>
-<h1 id="家庭助手"><a href="#家庭助手" class="headerlink" title="家庭助手"></a>家庭助手</h1><h1 id="Home-Assistant"><a href="#Home-Assistant" class="headerlink" title="Home Assistant"></a>Home Assistant</h1><h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><h2 id="需要硬件"><a href="#需要硬件" class="headerlink" title="需要硬件"></a>需要硬件</h2><h3 id="🧩-一、总体架构与接入方式概览"><a href="#🧩-一、总体架构与接入方式概览" class="headerlink" title="🧩 一、总体架构与接入方式概览"></a>🧩 一、总体架构与接入方式概览</h3><table>
-<thead>
-<tr>
-<th>模块</th>
-<th>推荐通信协议</th>
-<th>接入方式</th>
-<th>备注</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>电表</td>
-<td>Modbus&#x2F;Tuya&#x2F;MQTT&#x2F;LoRa</td>
-<td>智能电表或智能插座</td>
-<td>有些电表支持 RS485&#x2F;Modbus</td>
-</tr>
-<tr>
-<td>水表</td>
-<td>Modbus&#x2F;脉冲&#x2F;Tuya</td>
-<td>脉冲水表+采集器</td>
-<td>可用 ESPHome 转接</td>
-</tr>
-<tr>
-<td>太阳能蓄电池</td>
-<td>Modbus&#x2F;MQTT</td>
-<td>RS485 转 WiFi 网关</td>
-<td>比如 Pylontech&#x2F;逆变器</td>
-</tr>
-<tr>
-<td>太阳能热水</td>
-<td>温控器+阀门控制</td>
-<td>Zigbee&#x2F;WiFi</td>
-<td>可控制电加热、温度采集</td>
-</tr>
-<tr>
-<td>蓄水池</td>
-<td>液位传感器+泵控制</td>
-<td>GPIO&#x2F;ESPHome</td>
-<td>液位监控+自动抽水</td>
-</tr>
-<tr>
-<td>污水池</td>
-<td>液位+PH+泵</td>
-<td>ESP32&#x2F;Modbus</td>
-<td>工业传感器接入</td>
-</tr>
-<tr>
-<td>安保系统</td>
-<td>Zigbee&#x2F;WiFi&#x2F;RTSP</td>
-<td>摄像头&#x2F;门磁&#x2F;报警器</td>
-<td>常接 Hikvision、小米</td>
-</tr>
-</tbody></table>
-<h3 id="🧱-总体架构示意"><a href="#🧱-总体架构示意" class="headerlink" title="🧱 总体架构示意"></a>🧱 总体架构示意</h3><pre class="mermaid">graph TD
-    HA["Home Assistant<br/>(运行在树莓派/NAS)"]
-    电表["电表<br/>(Modbus)"]
-    水表["水表<br/>(脉冲)"]
-    电池["太阳能电池"]
-    热水["热水系统"]
-    安防["Zigbee网关/摄像头"]
-
-    电表接口["RS485转USB"]
-    水表接口["GPIO输入"]
-    电池接口["RS485转TCP"]
-    热水接口["温控+继电器"]
-    安防接口["Zigbee传感器<br/>(门磁/人体/烟雾等)"]
-
-    HA --> 电表 --> 电表接口
-    HA --> 水表 --> 水表接口
-    HA --> 电池 --> 电池接口
-    HA --> 热水 --> 热水接口
-    HA --> 安防 --> 安防接口</pre>
-
-
-<h2 id="个人语音助手"><a href="#个人语音助手" class="headerlink" title="个人语音助手"></a>个人语音助手</h2><h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3><h6 id="1️⃣-硬件准备"><a href="#1️⃣-硬件准备" class="headerlink" title="1️⃣ 硬件准备"></a>1️⃣ 硬件准备</h6><p>树莓派 4B（推荐 4GB 以上）<br>麦克风阵列（例如 ReSpeaker 2-Mics 或 4-Mics HAT）<br>小音箱（用于 TTS 播报）</p>
-<h6 id="2️⃣-安装-Rhasspy（离线语音助手）"><a href="#2️⃣-安装-Rhasspy（离线语音助手）" class="headerlink" title="2️⃣ 安装 Rhasspy（离线语音助手）"></a>2️⃣ 安装 Rhasspy（离线语音助手）</h6><p>Rhasspy 是一个离线语音助手框架，可以识别语音并转化为意图</p>
-<h6 id="3️⃣-配置-STT（语音识别）"><a href="#3️⃣-配置-STT（语音识别）" class="headerlink" title="3️⃣ 配置 STT（语音识别）"></a>3️⃣ 配置 STT（语音识别）</h6><ol>
-<li>安装 Vosk</li>
-<li>下载中文模型</li>
-</ol>
-<h6 id="4️⃣-配置意图（Intent）"><a href="#4️⃣-配置意图（Intent）" class="headerlink" title="4️⃣ 配置意图（Intent）"></a>4️⃣ 配置意图（Intent）</h6><ol>
-<li>在 Rhasspy WebUI → Intent Handling → Sentences 添加句子：</li>
-<li>配置意图动作： 通过 MQTT</li>
-</ol>
-<h6 id="5️⃣-配置-TTS（语音反馈）"><a href="#5️⃣-配置-TTS（语音反馈）" class="headerlink" title="5️⃣ 配置 TTS（语音反馈）"></a>5️⃣ 配置 TTS（语音反馈）</h6><ol>
-<li>安装 TTS 引擎：</li>
-<li>在 Rhasspy 中设置：</li>
-<li>测试</li>
-</ol>
-<h6 id="7️⃣-测试流程"><a href="#7️⃣-测试流程" class="headerlink" title="7️⃣ 测试流程"></a>7️⃣ 测试流程</h6><ol>
-<li>启动：<br> Home Assistant<br> Rhasspy<br> ReSpeaker</li>
-<li>对麦克风说：</li>
-<li>流程：<br> 3.1 ReSpeaker 采集语音<br> 3.2 Rhasspy 调用 Vosk 识别成文本<br> 3.3 Rhasspy 匹配意图 → 发送 MQTT&#x2F;Webhook 命令给 Home Assistant<br> 3.4 Home Assistant 执行开灯动作<br> 3.5 Rhasspy TTS 播报反馈 → “客厅灯已打开”</li>
-</ol>
-<h3 id="一、语音验证（说话人识别）"><a href="#一、语音验证（说话人识别）" class="headerlink" title="一、语音验证（说话人识别）"></a>一、语音验证（说话人识别）</h3><table>
-<thead>
-<tr>
-<th>方案</th>
-<th>方法</th>
-<th>优点</th>
-<th>适用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Vosk + X-vector</strong></td>
-<td>离线语音验证</td>
-<td>轻量级，树莓派可运行</td>
-<td>本地语音助手</td>
-</tr>
-<tr>
-<td><strong>DeepSpeaker (D-vector)</strong></td>
-<td>深度学习模型</td>
-<td>高准确率</td>
-<td>复杂应用，如智能门禁</td>
-</tr>
-<tr>
-<td><strong>ECAPA-TDNN</strong></td>
-<td>SOTA 声纹识别</td>
-<td>最新算法，高精度</td>
-<td>多用户识别</td>
-</tr>
-</tbody></table>
-<h3 id="二、语音唤醒（Wake-Word-Detection）"><a href="#二、语音唤醒（Wake-Word-Detection）" class="headerlink" title="二、语音唤醒（Wake Word Detection）"></a>二、语音唤醒（Wake Word Detection）</h3><ul>
-<li>需要一个始终在监听的“唤醒词”（如 Siri 监听“Hey Siri”）。</li>
-<li>解决方案：<ul>
-<li>Porcupine（轻量级，支持离线）</li>
-<li>Snowboy（不再维护，但仍可用）</li>
-<li>Mycroft Precise（开源，可训练自定义唤醒词）</li>
-<li>Vosk + KeywordSpotter → 自定义关键词检测</li>
-</ul>
-</li>
-</ul>
-<h3 id="三、自然语言理解（Natural-Language-Understanding-NLU）"><a href="#三、自然语言理解（Natural-Language-Understanding-NLU）" class="headerlink" title="三、自然语言理解（Natural Language Understanding, NLU）"></a>三、自然语言理解（Natural Language Understanding, NLU）</h3><ul>
-<li>解析用户的意图，比如“今天天气怎么样？” → 解析出“查询天气”。</li>
-<li>方案：<ul>
-<li>Rasa NLU（开源，可离线运行）</li>
-<li>Snips NLU（轻量级，但 Snips 已被 Sonos 收购）</li>
-<li>OpenAI GPT-4（需要联网，但效果强大）</li>
-</ul>
-</li>
-</ul>
-<h3 id="四、工作流程"><a href="#四、工作流程" class="headerlink" title="四、工作流程"></a>四、工作流程</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[麦克风输入]</span><br><span class="line">      ↓</span><br><span class="line">[Ring Buffer 缓存]</span><br><span class="line">      ↓</span><br><span class="line">[唤醒词检测]（Porcupine / Precise / Vosk+KeywordSpotter）</span><br><span class="line">      ↓（匹配成功）</span><br><span class="line">[提取音频片段]（如1~2秒）</span><br><span class="line">      ↓</span><br><span class="line">[X-vector 说话人识别]</span><br><span class="line">      ↓</span><br><span class="line">[身份确认后 → 激活系统 / 否则忽略]</span><br><span class="line">      ↓</span><br><span class="line">[完整语音识别（ASR）: Vosk]</span><br><span class="line">      ↓</span><br><span class="line">[NLU → 服务层 → 响应结果]</span><br><span class="line">      ↓</span><br><span class="line">[TTS → 音箱播报]</span><br></pre></td></tr></table></figure>
-
-<h3 id="硬件需求-1"><a href="#硬件需求-1" class="headerlink" title="硬件需求"></a>硬件需求</h3><ul>
-<li>树莓派 4B &#x2F; 5<ul>
-<li>推荐至少 4GB RAM，运行 ASR + 说话人识别时比较流畅。</li>
-</ul>
-</li>
-<li>麦克风<ul>
-<li>USB 麦克风（简单易用，例如 TONOR TC-777）</li>
-<li>或 麦克风阵列（推荐 ReSpeaker 2&#x2F;4&#x2F;6-Mic Array for Raspberry Pi，带有降噪&#x2F;回声消除）</li>
-<li>如果对说话人识别准确率要求高，阵列效果更好。</li>
-</ul>
-</li>
-<li>存储<ul>
-<li>至少 32GB microSD</li>
-<li>或者外接 SSD，ASR 模型会比较大。</li>
-</ul>
-</li>
-<li>（可选）扬声器&#x2F;耳机：做语音交互时需要输出。</li>
-</ul>
-<h3 id="软件与模块对应"><a href="#软件与模块对应" class="headerlink" title="软件与模块对应"></a>软件与模块对应</h3><p>对应你流程里的各个步骤：</p>
-<ol>
-<li>麦克风输入<ul>
-<li>用 pyaudio &#x2F; sounddevice 采集音频流。</li>
-<li>设置为 16kHz 单声道 PCM。</li>
-</ul>
-</li>
-<li>Ring Buffer 缓存<ul>
-<li>可以用 collections.deque 或者 sounddevice.RawInputStream 自带的回调缓存。</li>
-<li>缓存 1~3 秒的音频，保证唤醒词检测和语音片段提取。</li>
-</ul>
-</li>
-<li>唤醒词检测<ul>
-<li>轻量：Porcupine（低资源占用，树莓派友好）</li>
-<li>可训练：Mycroft Precise</li>
-<li>自定义词：Vosk + KeywordSpotter</li>
-</ul>
-</li>
-<li>提取音频片段（1~2秒）<ul>
-<li>当检测到唤醒词，立刻把 Ring Buffer 里的最后 1~2 秒 dump 出来保存为 .wav。</li>
-</ul>
-</li>
-<li>说话人识别（X-vector）<ul>
-<li>依赖 pyannote.audio 或 SpeechBrain，输入音频片段，输出 speaker embedding → 与本地数据库比对。</li>
-<li>树莓派 4&#x2F;5 能跑，但建议用轻量模型或外接 USB TPU（Coral USB Accelerator）。</li>
-</ul>
-</li>
-<li>身份确认<ul>
-<li>如果 embedding 相似度 &gt; 阈值（如 0.75），则确认说话人。</li>
-<li>否则忽略唤醒，避免被陌生人触发。</li>
-</ul>
-</li>
-<li>完整语音识别（ASR）<ul>
-<li>用 Vosk（支持离线运行，中文&#x2F;英文等都有预训练模型）。</li>
-<li>Vosk-pi 版本可在树莓派直接跑，速度较慢，但可以用小模型（如 vosk-model-small-cn-0.3）。</li>
-</ul>
-</li>
-</ol>
-<h3 id="音箱DIY"><a href="#音箱DIY" class="headerlink" title="音箱DIY"></a>音箱DIY</h3><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1VvFrecEww/?share_source=copy_web">1.5寸便携小音箱 -3D打印DIY-</a></p>
-<p>音箱 是由喇叭决定的和箱子提及无关</p>
-<h2 id="AI中控系统"><a href="#AI中控系统" class="headerlink" title="AI中控系统"></a>AI中控系统</h2><p>树莓派为AI中控</p>
-<h3 id="搭建AI中控系统"><a href="#搭建AI中控系统" class="headerlink" title="搭建AI中控系统"></a>搭建AI中控系统</h3><ol>
-<li>准备硬件：准备树莓派&#x2F;NUC + Zigbee网关 + 插座&#x2F;传感器；</li>
-<li>树莓派安装 CasaOS</li>
-<li>CasaOS 安装 Home Assistant</li>
-<li>接入设备（Zigbee、WiFi、Modbus)</li>
-<li>创建自动化与AI场景（用 Node-RED 或 YAML）；</li>
-<li>搭建 Web&#x2F;手机控制界面；</li>
-<li>集成语音助手或AI识别模型（进阶）；</li>
-<li>设置远程访问与告警通知（Nabu Casa 或反向代理）。</li>
-</ol>
-<h3 id="中控界面示例"><a href="#中控界面示例" class="headerlink" title="中控界面示例"></a>中控界面示例</h3><ol>
-<li>你可以设计一个包含以下模块的主界面：</li>
-<li>今日用电图表（Grafana）</li>
-<li>灯光&#x2F;插座状态面板（按房间划分）</li>
-<li>空调&#x2F;风扇控制（带温湿度曲线）</li>
-<li>安防警报 + 摄像头预览</li>
-<li>语音助手入口按钮</li>
-<li>自动化场景切换（如“离家模式”、“就寝模式”）</li>
-</ol>
-<h1 id="工作站"><a href="#工作站" class="headerlink" title="工作站"></a>工作站</h1><h1 id="升级版NAS"><a href="#升级版NAS" class="headerlink" title="升级版NAS"></a>升级版NAS</h1><p>家庭nas 即插即拔</p>
-<p>TrueNAS 系统 可玩性强</p>
-<h2 id="macmini-m4"><a href="#macmini-m4" class="headerlink" title="macmini m4"></a>macmini m4</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">终极 AI Agent 架构</span><br><span class="line">User</span><br><span class="line"> ↓</span><br><span class="line">Telegram / VSCode</span><br><span class="line"> ↓</span><br><span class="line">Agent Controller</span><br><span class="line"> ↓</span><br><span class="line">Planner（任务规划）</span><br><span class="line"> ↓</span><br><span class="line">Router（模型选择）</span><br><span class="line"> ↓</span><br><span class="line">Tool Executor（执行能力 ）</span><br><span class="line"> ↓</span><br><span class="line">Memory（长期记忆）</span><br><span class="line"> ↓</span><br><span class="line">Ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># homebrew</span></span><br><span class="line">/bin/bash -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot;&#x27;</span> &gt;&gt; ~/.zprofile</span><br><span class="line"><span class="built_in">eval</span> <span class="string">&quot;<span class="subst">$(/opt/homebrew/bin/brew shellenv)</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ollama</span></span><br><span class="line">brew install ollama</span><br><span class="line"><span class="comment"># 脚本</span></span><br><span class="line">sh ollama.sh start</span><br><span class="line">ollama pull deepseek-coder</span><br><span class="line"><span class="comment"># Ollama 永久在线运行</span></span><br><span class="line">brew services start ollama</span><br><span class="line">brew services list</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># OpenClaw</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/OpenClaw/OpenClaw.git</span><br><span class="line"><span class="built_in">cd</span> OpenClaw</span><br><span class="line">pip3 install -r requirements.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># docker</span></span><br><span class="line">brew install --cask docker</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/house-vegetable/">
-                家庭-阳台生态
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#%E6%A0%B8%E5%BF%83%E9%9C%80%E6%B1%82">核心需求</a></li>
-<li><a href="#%E7%B3%BB%E7%BB%9F%E6%90%AD%E5%BB%BA%E6%AD%A5%E9%AA%A4">系统搭建步骤</a></li>
-<li><a href="#%E9%98%B3%E5%8F%B0%E7%94%9F%E6%80%81%E5%BE%AA%E7%8E%AF%E7%B3%BB%E7%BB%9F%E5%AE%8C%E6%95%B4%E6%96%B9%E6%A1%88">阳台生态循环系统完整方案</a><ul>
-<li><a href="#%E6%95%B4%E4%BD%93%E7%94%9F%E6%80%81%E7%BB%93%E6%9E%84">整体生态结构</a></li>
-<li><a href="#%E9%98%B3%E5%8F%B0%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%92">阳台分区规划</a></li>
-<li><a href="#%E5%8E%A8%E4%BD%99%E4%BA%A7%E7%94%9F%E5%88%A9%E7%94%A8">厨余产生利用</a></li>
-<li><a href="#%E6%8E%A8%E8%8D%90%E7%A7%8D%E6%A4%8D">推荐种植</a></li>
-<li><a href="#%E9%B1%BC%E8%8F%9C%E5%85%B1%E7%94%9F%E7%B3%BB%E7%BB%9F">鱼菜共生系统</a></li>
-<li><a href="#%E7%BB%B4%E6%8A%A4">维护</a></li>
-</ul>
-</li>
-<li><a href="#%E5%9C%9F%E5%A3%A4%E7%A7%8D%E6%A4%8D">土壤种植</a><ul>
-<li><a href="#%E6%A4%8D%E7%89%A9%E7%94%9F%E7%97%85">植物生病</a></li>
-<li><a href="#%E8%82%A5%E6%96%99%E8%8E%B7%E5%8F%96-%E5%8E%A8%E6%88%BF%E5%BA%9F%E6%96%99">肥料获取-厨房废料</a></li>
-<li><a href="#%E5%88%9D%E9%98%B6%E5%9C%9F%E5%9F%B9">初阶土培</a></li>
-<li><a href="#%E9%AB%98%E9%98%B6%E5%9C%9F%E5%9F%B9">高阶土培</a></li>
-</ul>
-</li>
-<li><a href="#%E6%B0%B4%E5%9F%B9%E7%A7%8D%E6%A4%8D">水培种植</a><ul>
-<li><a href="#%E5%88%9D%E9%98%B6%E6%B0%B4%E5%9F%B9">初阶水培</a></li>
-</ul>
-</li>
-</ul>
-<h1 id="核心需求"><a href="#核心需求" class="headerlink" title="核心需求"></a>核心需求</h1><ol>
-<li>蔬菜水果的自给自足 （小）</li>
-<li>能够靠种菜来维持生活 - 卖菜 (大)</li>
-</ol>
-<p>过程：从半自动到全自动</p>
-<h1 id="阳台生态循环系统完整方案"><a href="#阳台生态循环系统完整方案" class="headerlink" title="阳台生态循环系统完整方案"></a>阳台生态循环系统完整方案</h1><p>🌱 阳台生态循环系统完整方案（低成本 · 低维护 · 无异味）</p>
-<blockquote>
-<p><strong>目标</strong>：构建家庭阳台微型生态闭环</p>
-<ul>
-<li>厨余 → 肥料 | 肥料水</li>
-<li>鱼缸 → 植物营养水</li>
-<li>水培 + 土培共存</li>
-<li>长期稳定、可持续</li>
-</ul>
-</blockquote>
-<hr>
-<h2 id="整体生态结构"><a href="#整体生态结构" class="headerlink" title="整体生态结构"></a>整体生态结构</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">厨房厨余</span><br><span class="line">├─ 植物性湿垃圾</span><br><span class="line">│   ↓</span><br><span class="line">│   发酵液肥 / 密封堆肥桶</span><br><span class="line">│   ↓</span><br><span class="line">│   土培植物吸收</span><br><span class="line">│   ↓</span><br><span class="line">│   修剪残渣 / 枯叶</span><br><span class="line">│   └──────→ 回到堆肥桶</span><br><span class="line">│</span><br><span class="line">├─ 鸡蛋壳</span><br><span class="line">│   ↓ 清洗 · 晾干 · 炒干 · 碾粉</span><br><span class="line">│   ↓ 补钙 / 改良土壤</span><br><span class="line">│</span><br><span class="line">└─ 其他厨余（分流处理）</span><br><span class="line"></span><br><span class="line">鱼缸系统</span><br><span class="line">鱼 / 虾</span><br><span class="line">↓ 排泄物（氨氮）</span><br><span class="line">↓ 过滤 + 水草硝化</span><br><span class="line">↓ 定期换水</span><br><span class="line">↓</span><br><span class="line">水培植物吸收</span><br><span class="line">↓</span><br><span class="line">剩余营养水</span><br><span class="line">↓</span><br><span class="line">土培植物</span><br><span class="line"></span><br><span class="line">♻ 最终形成双循环：</span><br><span class="line">厨余 → 肥料 → 植物 → 残渣 → 肥料</span><br><span class="line">鱼 → 营养水 → 植物 → 净化 → 再利用</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="阳台分区规划"><a href="#阳台分区规划" class="headerlink" title="阳台分区规划"></a>阳台分区规划</h2><h3 id="🅐-厨余处理区（源头）"><a href="#🅐-厨余处理区（源头）" class="headerlink" title="🅐 厨余处理区（源头）"></a>🅐 厨余处理区（源头）</h3><ul>
-<li>密封式堆肥桶（防虫防臭）</li>
-<li>发酵液肥瓶（带放气）</li>
-</ul>
-<h3 id="🅑-土培区（主产出）"><a href="#🅑-土培区（主产出）" class="headerlink" title="🅑 土培区（主产出）"></a>🅑 土培区（主产出）</h3><ul>
-<li>🌱幼苗成长区</li>
-<li>花盆 &#x2F; 种植箱</li>
-<li>使用自制堆肥 + 蛋壳粉</li>
-</ul>
-<h3 id="🅒-水培区（吸收营养水）"><a href="#🅒-水培区（吸收营养水）" class="headerlink" title="🅒 水培区（吸收营养水）"></a>🅒 水培区（吸收营养水）</h3><ul>
-<li>静态水培瓶 &#x2F; PVC 水培槽</li>
-<li>直接使用鱼缸换水</li>
-</ul>
-<h3 id="🅓-鱼缸区（生态核心）"><a href="#🅓-鱼缸区（生态核心）" class="headerlink" title="🅓 鱼缸区（生态核心）"></a>🅓 鱼缸区（生态核心）</h3><ul>
-<li>鱼缸 + 过滤 + 水草</li>
-<li>稳定供给氮源</li>
+<li><strong>洗手台</strong>：白色陶瓷盆 + 灰色岩板台面 + 黑色金属龙头</li>
+<li><strong>浴室柜</strong>：浅木色或灰色哑光柜体</li>
+<li><strong>淋浴区</strong>：黑色框玻璃门，墙面浅灰防滑砖</li>
+<li><strong>镜子</strong>：黑色薄框镜</li>
+<li><strong>配件</strong>：黑色毛巾杆、置物架、挂钩</li>
 </ul>
 <hr>
-<h2 id="厨余产生利用"><a href="#厨余产生利用" class="headerlink" title="厨余产生利用"></a>厨余产生利用</h2><h3 id="分类原则"><a href="#分类原则" class="headerlink" title="分类原则"></a>分类原则</h3><ul>
-<li><strong>能变肥的一定变肥</strong></li>
-<li><strong>需处理的先处理再进生态</strong></li>
-<li><strong>高风险物质分流</strong></li>
+<h3 id="🍳-厨房-Kitchen"><a href="#🍳-厨房-Kitchen" class="headerlink" title="🍳 厨房 Kitchen"></a>🍳 厨房 Kitchen</h3><p><strong>主调</strong>：白色橱柜 + 灰色台面 + 木纹地板 + 黑色金属拉手</p>
+<p><strong>家具与配置</strong>：</p>
+<ul>
+<li><strong>橱柜</strong>：白色哑光 + 黑色把手，开放隔板可放装饰品</li>
+<li><strong>台面</strong>：灰色岩板或仿石材</li>
+<li><strong>水槽&#x2F;龙头</strong>：黑色金属</li>
+<li><strong>灶台</strong>：嵌入式黑色钢化玻璃灶</li>
+<li><strong>吊柜</strong>：浅灰或白色，高低错落，避免压抑</li>
 </ul>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">① 可直接堆肥</span><br><span class="line">② 可加工再利用</span><br><span class="line">③ 可二次利用但不进生态</span><br><span class="line">④ 必须丢弃（极少）</span><br></pre></td></tr></table></figure>
-
+<p><strong>灯具</strong>：</p>
+<ul>
+<li><strong>主灯</strong>：线条吊灯或嵌入式筒灯</li>
+<li><strong>辅助灯</strong>：橱柜底灯（照亮操作台）</li>
+</ul>
 <hr>
-<h3 id="①-可直接堆肥（阳台生态能源）"><a href="#①-可直接堆肥（阳台生态能源）" class="headerlink" title="① 可直接堆肥（阳台生态能源）"></a>① 可直接堆肥（阳台生态能源）</h3><p><strong>植物性湿垃圾</strong></p>
+<h3 id="🌿-阳台花园-Balcony"><a href="#🌿-阳台花园-Balcony" class="headerlink" title="🌿 阳台花园 Balcony"></a>🌿 阳台花园 Balcony</h3><p><strong>整体风格</strong>：木纹地板 + 白色墙面 + 黑色金属花架或栏杆<br><strong>主题元素</strong>：山水瀑布 + 各类花草盆栽，营造自然、舒适的休闲空间  </p>
+<p><strong>家具与配置</strong>：</p>
 <ul>
-<li>水果皮 &#x2F; 果渣</li>
-<li>蔬菜边角 &#x2F; 烂叶</li>
-<li>米饭、面食（少量）</li>
-<li>茶渣、咖啡渣</li>
-</ul>
-<p>❌ 避免：</p>
-<ul>
-<li>高油、高盐、重辣</li>
-</ul>
-<p>👉 处理方式：</p>
-<h3 id="懒人阳台堆肥操作流程（无液肥版）"><a href="#懒人阳台堆肥操作流程（无液肥版）" class="headerlink" title="懒人阳台堆肥操作流程（无液肥版）"></a>懒人阳台堆肥操作流程（无液肥版）</h3><ol>
-<li><p><strong>底层铺土</strong>  </p>
-<ul>
-<li>使用普通园土，厚度覆盖桶底即可</li>
+<li><strong>休闲椅</strong>：黑色金属框架 + 浅灰色坐垫  </li>
+<li><strong>小桌</strong>：黑色金属桌腿 + 木纹桌面  </li>
+<li><strong>花草布局</strong>：<ul>
+<li><strong>大型盆栽</strong>：放置角落或瀑布周围，增加层次感  </li>
+<li><strong>小型盆栽</strong>：排列在栏杆、花架或桌面  </li>
+<li><strong>植物材质</strong>：简约陶瓷或黑色花器</li>
 </ul>
 </li>
-<li><p><strong>投入湿垃圾</strong>  </p>
-<ul>
-<li>做饭前不要的菜叶、果渣、茶渣等</li>
+<li><strong>储物</strong>：浅木色或灰色小柜，用于存放园艺工具和清洁用品</li>
 </ul>
-</li>
-<li><p><strong>覆盖土层</strong>  </p>
+<p><strong>水景设计</strong>：</p>
 <ul>
-<li>完全盖住湿垃圾，确保看不到垃圾</li>
+<li><strong>瀑布</strong>：壁挂式或落地式小型瀑布，带循环水泵  </li>
+<li><strong>水循环系统</strong>：隐藏储水箱 + 滤水装置，保证水清洁  </li>
+<li><strong>夜间氛围</strong>：瀑布旁可加小夜灯或 LED 灯条</li>
 </ul>
-</li>
-</ol>
-<hr>
-<h3 id="②-可加工再利用（处理后进生态）"><a href="#②-可加工再利用（处理后进生态）" class="headerlink" title="② 可加工再利用（处理后进生态）"></a>② 可加工再利用（处理后进生态）</h3><p><strong>🥚 鸡蛋壳</strong></p>
+<p><strong>灯具设计</strong>：</p>
 <ul>
-<li>清洗 → 晾干 → 炒干 → 碾粉</li>
-<li>作用：补钙、调节酸碱、防虫</li>
+<li><strong>顶部</strong>：黑色简约壁灯或吊灯  </li>
+<li><strong>辅助照明</strong>：小夜灯或太阳能灯，营造氛围</li>
 </ul>
-<p><strong>🦐 虾壳 &#x2F; 蟹壳（进阶）</strong></p>
+<p><strong>遮阳与微气候管理</strong>：</p>
 <ul>
-<li>煮去盐 → 晒干 → 粉碎</li>
-<li>少量混土（缓释钙、甲壳素）</li>
+<li><strong>垂直遮阳板 &#x2F; 百叶</strong>：阻挡强光，保护植物  电动的</li>
+<li><strong>自然通风</strong>：保证空气流通，保持舒适温度  </li>
+<li><strong>喷雾 &#x2F; 雾化系统</strong>（可选）：增加空气湿度，适合热带植物</li>
 </ul>
-<hr>
-<h3 id="③-可再利用但不进生态"><a href="#③-可再利用但不进生态" class="headerlink" title="③ 可再利用但不进生态"></a>③ 可再利用但不进生态</h3><p><strong>🛍 塑料袋 &#x2F; 包装袋</strong></p>
+<p><strong>整体效果</strong>：</p>
 <ul>
-<li>分类收纳</li>
-<li>用途：垃圾袋、防潮垫、临时种植袋</li>
+<li>休闲 + 观赏 + 微气候舒适  </li>
+<li>山水瀑布和花草错落有致，光影与水声营造自然放松氛围</li>
 </ul>
 <hr>
-<h3 id="④-必须丢弃（不进阳台系统）"><a href="#④-必须丢弃（不进阳台系统）" class="headerlink" title="④ 必须丢弃（不进阳台系统）"></a>④ 必须丢弃（不进阳台系统）</h3><ul>
-<li>重油肉汤</li>
-<li>高盐腌制品</li>
-<li>化学污染食物</li>
-</ul>
-<hr>
-<h2 id="推荐种植"><a href="#推荐种植" class="headerlink" title="推荐种植"></a>推荐种植</h2><h3 id="土培推荐植物"><a href="#土培推荐植物" class="headerlink" title="土培推荐植物"></a>土培推荐植物</h3><ul>
-<li>九层塔（罗勒）</li>
-<li>蒜苗</li>
-<li>青柠</li>
-<li>辣椒</li>
-<li>小番茄</li>
-<li>泰国小茄子</li>
-</ul>
-<h3 id="水培推荐植物"><a href="#水培推荐植物" class="headerlink" title="水培推荐植物"></a>水培推荐植物</h3><ul>
-<li>生菜</li>
-<li>葱苗</li>
-<li>空心菜</li>
-<li>薄荷</li>
-</ul>
-<h3 id="水培推荐植物（升级版-AB液）"><a href="#水培推荐植物（升级版-AB液）" class="headerlink" title="水培推荐植物（升级版 AB液）"></a>水培推荐植物（升级版 AB液）</h3><ul>
-<li>高产果菜</li>
-</ul>
-<hr>
-<h2 id="鱼菜共生系统"><a href="#鱼菜共生系统" class="headerlink" title="鱼菜共生系统"></a>鱼菜共生系统</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">============================================================</span><br><span class="line">              全自动“两站式”极简循环架构</span><br><span class="line">============================================================</span><br><span class="line"></span><br><span class="line">       +--------------------------+</span><br><span class="line">       |   【 蔬菜种植床 】        |  &lt;-- 自动虹吸钟 (核心)</span><br><span class="line">       |   (铺满陶粒+细菌)         |      满水自动排，干水自动停</span><br><span class="line">       +------------|-------------+</span><br><span class="line">             ▲      |</span><br><span class="line">             |      | (干净的水经重力流下)</span><br><span class="line">    [水泵向上送水]    ▼</span><br><span class="line">             |    +-----------------------+</span><br><span class="line">             |    |     【 鱼 缸 】       | </span><br><span class="line">             +----|  (兼作集水仓/生化池)   |</span><br><span class="line">                  +-----------------------+</span><br><span class="line">============================================================</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="维护"><a href="#维护" class="headerlink" title="维护"></a>维护</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">每日：丢厨余进堆肥桶</span><br><span class="line">每周：收集鱼缸换水 → 浇水培</span><br><span class="line">每月：翻堆肥 / 补蛋壳粉</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h1 id="土壤种植"><a href="#土壤种植" class="headerlink" title="土壤种植"></a>土壤种植</h1><h2 id="植物生病"><a href="#植物生病" class="headerlink" title="植物生病"></a>植物生病</h2><blockquote>
-<p>糖水 - 促进根部生长</p>
-</blockquote>
-<hr>
-<h2 id="肥料获取-厨房废料"><a href="#肥料获取-厨房废料" class="headerlink" title="肥料获取-厨房废料"></a>肥料获取-厨房废料</h2><h3 id="获取方法"><a href="#获取方法" class="headerlink" title="获取方法"></a>获取方法</h3><ol>
-<li>多准备土壤  </li>
-<li>每次吃饭前，将果渣、菜渣丢进肥料桶  </li>
-<li>在废料上铺一层土  </li>
-<li>重复：丢果渣&#x2F;菜渣 → 铺土，直至桶满</li>
-</ol>
-<h3 id="桶的准备"><a href="#桶的准备" class="headerlink" title="桶的准备"></a>桶的准备</h3><ul>
-<li><strong>桶A</strong>：储存土壤  </li>
-<li><strong>桶B</strong>：堆肥桶，用于发酵厨房废料</li>
-</ul>
-<hr>
-<h2 id="初阶土培"><a href="#初阶土培" class="headerlink" title="初阶土培"></a>初阶土培</h2><p><em><strong>适合种植：蒜</strong></em> </p>
-<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><ol>
-<li><strong>水培阶段</strong></li>
-</ol>
+<h3 id="🪜-Loft-楼梯走道设计"><a href="#🪜-Loft-楼梯走道设计" class="headerlink" title="🪜 Loft 楼梯走道设计"></a>🪜 Loft 楼梯走道设计</h3><p><strong>空间设计</strong>  </p>
 <ul>
-<li>果核 - 清理核上的果肉残渣避免菌种繁殖污染幼苗的水质 </li>
-<li>根系 - 先用水培方式培育出蔬菜根系</li>
+<li>一盆植物点缀</li>
 </ul>
-<ol start="2">
-<li><strong>转入土壤</strong></li>
-</ol>
-<ul>
-<li>将水培成苗的蔬菜移入土壤  </li>
-<li>适量添加自制肥料，提高营养</li>
-</ul>
-<h2 id="高阶土培"><a href="#高阶土培" class="headerlink" title="高阶土培"></a>高阶土培</h2><p><em><strong>适合种植：辣椒</strong></em></p>
-<h4 id="步骤-1"><a href="#步骤-1" class="headerlink" title="步骤"></a>步骤</h4><ol>
-<li><strong>幼苗阶段</strong></li>
-</ol>
-<ul>
-<li>把种子放入土肥中 离地1-2cm</li>
-<li>浇水 浇透</li>
-<li>用塑料袋包裹着 使其温度 处于温室状态</li>
-<li>记得一定要水</li>
-<li>幼苗 （温度，水）</li>
-</ul>
-<ol start="2">
-<li><strong>转入土壤</strong></li>
-</ol>
-<ul>
-<li>此阶段重要 注意</li>
-</ul>
-<h1 id="水培种植"><a href="#水培种植" class="headerlink" title="水培种植"></a>水培种植</h1><h2 id="初阶水培"><a href="#初阶水培" class="headerlink" title="初阶水培"></a>初阶水培</h2><p><em><strong>适合种植：生菜, 空心菜, 洋葱</strong></em> </p>
-<h1 id="中级水培种植"><a href="#中级水培种植" class="headerlink" title="中级水培种植"></a>中级水培种植</h1><h4 id="✅-特点"><a href="#✅-特点" class="headerlink" title="✅ 特点"></a>✅ 特点</h4><ul>
-<li>小型循环系统，提升效率</li>
-<li>半自动化管理</li>
-<li>可持续多种蔬菜</li>
-</ul>
-<h4 id="🍀-推荐蔬菜"><a href="#🍀-推荐蔬菜" class="headerlink" title="🍀 推荐蔬菜"></a>🍀 推荐蔬菜</h4><ul>
-<li>菠菜</li>
-<li>茼蒿</li>
-<li>芥蓝</li>
-<li>西洋菜</li>
-<li>紫苏 &#x2F; 九层塔</li>
-</ul>
-<h4 id="🛠-方法"><a href="#🛠-方法" class="headerlink" title="🛠 方法"></a>🛠 方法</h4><ul>
-<li>系统：NFT（营养液膜技术）管道循环系统</li>
-<li>设备：微型水泵、定时器、LED 补光灯、pH&#x2F;EC 计</li>
-<li>营养液管理：每 1014 天更换一次，EC 控制在 0.81.4，pH 在 5.5~6.5</li>
-<li>光照：自然光 + LED 补光（每天 8~12 小时）</li>
-<li>环境控制：建议放在阳台&#x2F;封闭阳光房中</li>
-</ul>
-<h1 id="Arduino-自制-自动检测并起补充营养"><a href="#Arduino-自制-自动检测并起补充营养" class="headerlink" title="Arduino 自制 - 自动检测并起补充营养"></a>Arduino 自制 - 自动检测并起补充营养</h1><p>传感器监控 + 泵时间控制 + EC&#x2F;pH目标设定</p>
-<h3 id="🌿-系统结构（推荐架构）"><a href="#🌿-系统结构（推荐架构）" class="headerlink" title="🌿 系统结构（推荐架构）"></a>🌿 系统结构（推荐架构）</h3><table>
-<thead>
-<tr>
-<th>模块</th>
-<th>功能</th>
-<th>建议型号</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Arduino UNO &#x2F; MEGA</td>
-<td>主控制板</td>
-<td>ESP32（集成Wi-Fi和蓝牙）</td>
-</tr>
-<tr>
-<td><strong>EC 传感器</strong></td>
-<td>检测营养液浓度</td>
-<td>Gravity EC Sensor（DFRobot）</td>
-</tr>
-<tr>
-<td><strong>pH 传感器</strong></td>
-<td>检测酸碱度</td>
-<td>Gravity pH Sensor</td>
-</tr>
-<tr>
-<td><strong>温度传感器</strong></td>
-<td>修正EC读数</td>
-<td>DS18B20</td>
-</tr>
-<tr>
-<td><strong>蠕动泵 × 4</strong></td>
-<td>A液、B液、pH-、pH+</td>
-<td>12V 微型蠕动泵</td>
-</tr>
-<tr>
-<td><strong>继电器模块</strong></td>
-<td>控制泵通断</td>
-<td>4通道继电器</td>
-</tr>
-<tr>
-<td><strong>搅拌马达（可选）</strong></td>
-<td>混合营养液</td>
-<td>5V&#x2F;12V 直流电机</td>
-</tr>
-<tr>
-<td><strong>LCD&#x2F;OLED 屏幕</strong></td>
-<td>显示 EC、pH、状态</td>
-<td>1602 或 0.96 OLED</td>
-</tr>
-<tr>
-<td><strong>按钮或Wi-Fi模块（ESP8266）</strong></td>
-<td>设定目标参数</td>
-<td>方便远程调节</td>
-</tr>
-</tbody></table>
-<h3 id="⚙️-工作逻辑（核心控制思路）"><a href="#⚙️-工作逻辑（核心控制思路）" class="headerlink" title="⚙️ 工作逻辑（核心控制思路）"></a>⚙️ 工作逻辑（核心控制思路）</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Loop:</span><br><span class="line">  读取当前 EC 与 pH</span><br><span class="line">  如果 EC &lt; 目标值：</span><br><span class="line">      启动 A泵 和 B泵（时间相同）</span><br><span class="line">      停止后搅拌5秒</span><br><span class="line">  如果 pH &gt; 6.5：</span><br><span class="line">      启动 pH- 泵（加酸）</span><br><span class="line">  如果 pH &lt; 5.5：</span><br><span class="line">      启动 pH+ 泵（加碱）</span><br><span class="line">  等待30秒，重复检测</span><br></pre></td></tr></table></figure>
-
-<h3 id="可直接运行的-Arduino-自动水培营养液控制程序。"><a href="#可直接运行的-Arduino-自动水培营养液控制程序。" class="headerlink" title="可直接运行的 Arduino 自动水培营养液控制程序。"></a>可直接运行的 Arduino 自动水培营养液控制程序。</h3><p>这个程序包括：</p>
-<p>✅ EC检测<br>✅ pH检测<br>✅ A&#x2F;B营养液自动配比<br>✅ pH自动调节<br>✅ 搅拌控制<br>✅ 参数可修改</p>
-<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p><a target="_blank" rel="noopener" href="https://www.reddit.com/r/Hydroponics/comments/nbii8y/next_step_in_hydroponics_greenhouse_ph_ec_temp/?tl=zh-hans">水培温室的下一步。带液晶显示屏的 pH 值、EC 值、温度计。将来会通过 i2c 将数据发送到树莓派。</a></p>
-<h1 id="🥦-高级水培种植"><a href="#🥦-高级水培种植" class="headerlink" title="🥦 高级水培种植"></a>🥦 高级水培种植</h1><h4 id="✅-特点-1"><a href="#✅-特点-1" class="headerlink" title="✅ 特点"></a>✅ 特点</h4><ul>
-<li>全自动控制系统</li>
-<li>稳定高产，适合商业</li>
-<li>技术要求高，可远程管理</li>
-</ul>
-<h4 id="🍀-推荐蔬菜-作物"><a href="#🍀-推荐蔬菜-作物" class="headerlink" title="🍀 推荐蔬菜 &#x2F; 作物"></a>🍀 推荐蔬菜 &#x2F; 作物</h4><ul>
-<li>番茄</li>
-<li>黄瓜</li>
-<li>青椒、彩椒</li>
-<li>草莓</li>
-<li>香草（罗勒、百里香等）</li>
-</ul>
-<h4 id="🛠-方法-1"><a href="#🛠-方法-1" class="headerlink" title="🛠 方法"></a>🛠 方法</h4><ul>
-<li>系统类型：<ul>
-<li>DWC（深水培）</li>
-<li>滴灌式</li>
-<li>雾培（AeroPonics）</li>
-</ul>
-</li>
-<li>控制系统：<ul>
-<li>自动营养液配比</li>
-<li>温湿度传感器、pH&#x2F;EC 自动监控</li>
-<li>接入 Home Assistant &#x2F; Node-RED 实现自动化</li>
-</ul>
-</li>
-<li>光照管理：LED植物灯 + 光照时控系统</li>
-<li>CO₂&#x2F;环境控制：封闭温室或小型 Grow Tent</li>
-</ul>
-<p>📈 晋级路线建议</p>
-<table>
-<thead>
-<tr>
-<th>当前级别</th>
-<th>升级方式</th>
-<th>所需技能</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>初级 → 中级</td>
-<td>添加 NFT 循环系统 + 简单补光</td>
-<td>简单电工，照明布线</td>
-</tr>
-<tr>
-<td>中级 → 高级</td>
-<td>增加传感器，接入自动化控制系统</td>
-<td>YAML 配置，HA 自动化基础</td>
-</tr>
-<tr>
-<td>高级 → 商业</td>
-<td>建立温室，部署全环境智能控制系统</td>
-<td>IoT + 农业自动化系统知识</td>
-</tr>
-</tbody></table>
+<hr>
 
         </div>
     
@@ -2349,11 +1207,11 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
             </li>
             
             <li>

@@ -184,6 +184,599 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/ops-basic/">
+                Devops
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p><a target="_blank" rel="noopener" href="https://roadmap.sh/devops">Devops之路</a></p>
+<ul>
+<li><a href="#%E7%90%90%E7%A2%8E">琐碎</a><ul>
+<li><a href="#Nginx%E9%99%90%E6%B5%81%E4%B8%8E%E9%98%B2%E7%88%AC%E8%99%AB%E9%85%8D%E7%BD%AE%E6%96%B9%E6%A1%88">Nginx限流与防爬虫配置方案</a></li>
+</ul>
+</li>
+<li><a href="#AWS">AWS</a><ul>
+<li><a href="#EC2">EC2</a></li>
+<li><a href="#Amazon-Linux-2023">Amazon Linux 2023</a></li>
+<li><a href="#AWS-%E4%B8%8E-Github-Action">AWS 与 GitHub Action</a></li>
+</ul>
+</li>
+<li><a href="#%E8%BF%9C%E7%A8%8B%E5%A4%9A%E4%BA%BA%E5%90%88%E4%BD%9C%E5%BC%80%E5%8F%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%BF%AB%E9%80%9F%E4%B8%8A%E7%BA%BF%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">远程多人协作开发服务器快速上线解决方案</a><ul>
+<li><a href="#SSH-%E6%9D%83%E9%99%90%E4%B8%8E%E7%9B%AE%E5%BD%95%E6%9D%83%E9%99%90%E9%97%AE%E9%A2%98">SSH 权限与目录权限问题</a></li>
+<li><a href="#ACL-%E6%9B%B4%E7%BB%86%E7%B2%92%E5%BA%A6%E7%9A%84%E6%9D%83%E9%99%90%E7%AE%A1%E6%8E%A7">ACL 更细粒度的权限管控</a></li>
+<li><a href="#%E8%BF%90%E8%A1%8C%E7%9A%84docker%E6%9B%B4%E6%96%B0%E5%9F%BA%E7%A1%80%E5%8A%9F%E8%83%BD">运行的docker更新基础功能</a></li>
+<li><a href="#%E4%B8%89%E6%96%B9%E5%B7%A5%E5%85%B7%E9%A1%B9%E7%9B%AE%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90%E4%BA%A4%E4%BB%98">三方工具项目持续集成交付</a></li>
+<li><a href="#journalctl-%E6%9F%A5%E8%AF%A2%E5%92%8C%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E6%97%A5%E5%BF%97%E5%B7%A5%E5%85%B7">journalctl 查询和管理系统日志工具</a></li>
+</ul>
+</li>
+<li><a href="#%E5%86%85%E9%83%A8%E5%8D%8F%E4%BD%9C%E5%BC%80%E5%8F%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E7%BA%BF%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">内部协作开发服务器上线解决方案</a></li>
+<li><a href="#%E7%BD%91%E8%B7%AF%E6%8E%92%E6%9F%A5">网路排查</a></li>
+<li><a href="#%E7%A1%AC%E7%9B%98%E5%8A%A8%E6%80%81%E6%89%A9%E5%AE%B9-LVM">硬盘动态扩容 LVM</a><ul>
+<li><a href="#%E7%89%A9%E7%90%86%E5%8D%B7-%E5%8D%B7%E7%BB%84-%E9%80%BB%E8%BE%91%E5%8D%B7-%E5%85%B3%E7%B3%BB">物理卷 卷组 逻辑卷 关系</a></li>
+<li><a href="#%F0%9F%A7%BE-xfs-vs-ext4%EF%BC%9ALVM-%E4%B8%8B%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E5%AF%B9%E6%AF%94">🧾 xfs vs ext4：LVM 下文件系统对比</a></li>
+<li><a href="#%E6%89%A9%E5%AE%B9%E6%AD%A5%E9%AA%A4">扩容步骤</a></li>
+<li><a href="#%E6%9C%AA%E6%9D%A5%E6%89%A9%E5%AE%B9%E6%B5%81%E7%A8%8B-%E6%B7%BB%E5%8A%A0%E6%96%B0%E7%A1%AC%E7%9B%98">未来扩容流程 添加新硬盘</a></li>
+</ul>
+</li>
+<li><a href="#Ubuntu">Ubuntu</a></li>
+<li><a href="#Centos">Centos</a><ul>
+<li><a href="#SELinux">SELinux</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="琐碎"><a href="#琐碎" class="headerlink" title="琐碎"></a>琐碎</h1><h3 id="国内访问国外服务器加速BBR-（bbr魔改脚本）"><a href="#国内访问国外服务器加速BBR-（bbr魔改脚本）" class="headerlink" title="国内访问国外服务器加速BBR -（bbr魔改脚本）"></a>国内访问国外服务器加速BBR -（bbr魔改脚本）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://gist.githubusercontent.com/zeruns/a0ec603f20d1b86de6a774a8ba27588f/raw/4f9957ae23f5efb2bb7c57a198ae2cffebfb1c56/tcp.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="DNS缓存清理"><a href="#DNS缓存清理" class="headerlink" title="DNS缓存清理"></a>DNS缓存清理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="域名重定向"><a href="#域名重定向" class="headerlink" title="域名重定向"></a>域名重定向</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">加cdn ssl 加载证书</span><br><span class="line">网站删除后在添加证书 证书不一致 会造成重定向</span><br><span class="line">cdn回溯？？</span><br></pre></td></tr></table></figure>
+
+<h3 id="nginx-header跨域问题"><a href="#nginx-header跨域问题" class="headerlink" title="nginx - header跨域问题"></a>nginx - header跨域问题</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">关键字大写</span><br><span class="line">在ng上加 </span><br><span class="line">add_header Access-Control-Allow-Headers <span class="string">&#x27;DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,Token&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="nginx-404"><a href="#nginx-404" class="headerlink" title="nginx - 404"></a>nginx - 404</h3><p>指定目录 &#x2F;home&#x2F;dev1&#x2F;www</p>
+<p>dev1 属于dev1<br>www 属于www<br>会有404报错 找不到文件 因为在dev1就已经进不去了</p>
+<h3 id="session-问题-》CDN"><a href="#session-问题-》CDN" class="headerlink" title="session 问题 -》CDN"></a>session 问题 -》CDN</h3><p>由于Session数据存储在服务器端，而CDN节点是分布式的，<br>因此在多个节点之间共享Session数据时，可能会出现数据不一致的情况。<br>这主要是因为Session数据是基于服务器的，而CDN节点是基于客户端的，<br>因此在不同节点之间进行数据同步时，可能会出现延迟或者丢失的情况。</p>
+<p>解决办法：<br>用redis存储session</p>
+<h3 id="进程守护-Systemd"><a href="#进程守护-Systemd" class="headerlink" title="进程守护 Systemd"></a>进程守护 Systemd</h3><h2 id="Nginx限流与防爬虫配置方案"><a href="#Nginx限流与防爬虫配置方案" class="headerlink" title="Nginx限流与防爬虫配置方案"></a>Nginx限流与防爬虫配置方案</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wuyang-1990/p/13288170.html">Nginx限流与防爬虫配置方案</a></p>
+<h1 id="AWS"><a href="#AWS" class="headerlink" title="AWS"></a>AWS</h1><pre class="mermaid">graph TB
+    A[计算] --EC2--> B[操作系统]
+    B[操作系统] --网络与安全--> C[安全组-端口]
+    B[操作系统] --存储(扩容)--> D[S3]
+    B[操作系统] --安全性，身份--> E[IAM-资源访问与授权]</pre>
+
+<h2 id="EC2"><a href="#EC2" class="headerlink" title="EC2"></a>EC2</h2><h3 id="Amazon-Linux-2023"><a href="#Amazon-Linux-2023" class="headerlink" title="Amazon Linux 2023"></a>Amazon Linux 2023</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 将用户 myuser 添加到 developer 组</span></span><br><span class="line"><span class="built_in">sudo</span> usermod -aG developer myuser</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 developer 组的所有成员</span></span><br><span class="line">getent group developer</span><br><span class="line"></span><br><span class="line"><span class="comment">### developer 组改为dev-backend组</span></span><br><span class="line"><span class="comment">## 1. 创建 dev-backend 组</span></span><br><span class="line"><span class="built_in">sudo</span> groupadd dev-backend</span><br><span class="line"></span><br><span class="line"><span class="comment">## 2. 将用户从 developer 组转移到 dev-backend 组</span></span><br><span class="line"><span class="comment"># passwd 或 usermod 来移除用户</span></span><br><span class="line"><span class="built_in">sudo</span> gpasswd -d username developer</span><br><span class="line"></span><br><span class="line"><span class="comment"># usermod 命令将该用户添加到 dev-backend 组</span></span><br><span class="line"><span class="built_in">sudo</span> usermod -aG dev-backend username</span><br><span class="line"></span><br><span class="line"><span class="comment">## 删除 developer 组</span></span><br><span class="line"><span class="built_in">sudo</span> groupdel developer</span><br><span class="line"></span><br><span class="line"><span class="comment">## 权限</span></span><br><span class="line"><span class="comment"># 将 /docker/dnmp/www/backend 目录的组更改为 developer</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R :dev-backend /docker/dnmp/www/backend</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">chmod</span> 400 XX.pem</span><br><span class="line">ssh -i /XX/XX.pem [user]@[公有 IPv4 DNS]</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Docker-开发"><a href="#Docker-开发" class="headerlink" title="Docker 开发"></a>Docker 开发</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## docker</span></span><br><span class="line"><span class="built_in">sudo</span> yum update -y</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> yum install -y docker</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> systemctl start docker</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> usermod -a -G docker ec2-user</span><br><span class="line"></span><br><span class="line"><span class="comment">## docker-compose</span></span><br><span class="line"><span class="built_in">sudo</span> curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(<span class="built_in">uname</span> -s)-$(<span class="built_in">uname</span> -m) -o /usr/local/bin/docker-compose</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> +x /usr/local/bin/docker-compose</span><br><span class="line"></span><br><span class="line">docker-compose version</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> /docker</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Docker-开发者-【test】"><a href="#Docker-开发者-【test】" class="headerlink" title="Docker 开发者 【test】"></a>Docker 开发者 【test】</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">docker run -dit --name dev-container -p 2222:22 ubuntu:22.04 bash</span><br><span class="line"></span><br><span class="line">docker <span class="built_in">exec</span> -it dev-container bash</span><br><span class="line"></span><br><span class="line">apt update &amp;&amp; apt install -y openssh-server vim</span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> /run/sshd</span><br><span class="line"></span><br><span class="line">vi /etc/ssh/sshd_config</span><br><span class="line"><span class="comment">## vi</span></span><br><span class="line">PermitRootLogin <span class="built_in">yes</span></span><br><span class="line">PasswordAuthentication <span class="built_in">yes</span></span><br><span class="line"><span class="comment">## vi</span></span><br><span class="line"></span><br><span class="line">passwd root</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">## 开用户devuser</span></span><br><span class="line">useradd -m -s /bin/bash devuser</span><br><span class="line">passwd devuser </span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> /home/devuser/.ssh</span><br><span class="line"><span class="built_in">chown</span> -R devuser:devuser /home/devuser/.ssh</span><br><span class="line"><span class="built_in">chmod</span> 700 /home/devuser/.ssh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果容器已经在运行并且端口已经映射（如 2222:22），则可以跳过此步骤。如果没有，请确保在运行容器时正确映射端口：</span></span><br><span class="line">docker run -dit --name dev-container -p 2222:22 ubuntu:22.04 bash</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="mysql-开发"><a href="#mysql-开发" class="headerlink" title="mysql 开发"></a>mysql 开发</h3><p>GRANT ALL PRIVILEGES ON hl_develop_db.* TO ‘hl‘@’%’;<br>FLUSH PRIVILEGES;</p>
+<h2 id="AWS-与-Github-Action"><a href="#AWS-与-Github-Action" class="headerlink" title="AWS 与 Github Action"></a>AWS 与 Github Action</h2><p><img src="/images/github-cicd.png"></p>
+<h3 id="OpenID-Connect-OIDC-的云提供商提供的资源"><a href="#OpenID-Connect-OIDC-的云提供商提供的资源" class="headerlink" title="OpenID Connect (OIDC) 的云提供商提供的资源"></a>OpenID Connect (OIDC) 的云提供商提供的资源</h3><p>如果 GitHub Actions 工作流需要访问支持 OpenID Connect (OIDC) 的云提供商提供的资源，则可以将工作流配置为直接向云提供商进行身份验证。 这样就可以停止将这些凭据存储为长期存在的机密，并提供其他安全优势。</p>
+<h3 id="在-Amazon-Web-Services-中配置-OpenID-Connect"><a href="#在-Amazon-Web-Services-中配置-OpenID-Connect" class="headerlink" title="在 Amazon Web Services 中配置 OpenID Connect"></a>在 <a target="_blank" rel="noopener" href="https://docs.github.com/zh/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services">Amazon Web Services 中配置 OpenID Connect</a></h3><p><a target="_blank" rel="noopener" href="https://docfunc.com/posts/114/%E5%9C%A8-github-action-%E4%B8%AD%E4%BD%BF%E7%94%A8-oidc-%E5%8F%96%E5%BE%97%E6%93%8D%E4%BD%9C-aws-%E8%B3%87%E6%BA%90%E7%9A%84%E6%AC%8A%E9%99%90-post#heading-2">在 GitHub Action 中使用 OIDC 取得操作 AWS 資源的權限</a></p>
+<h3 id="AWS中的IAM是什么"><a href="#AWS中的IAM是什么" class="headerlink" title="AWS中的IAM是什么"></a>AWS中的IAM是什么</h3><p>权限控制有两个基本概念：</p>
+<ul>
+<li>Authentication - 确认是否为有效用户，是否允许登录&#x2F;接入</li>
+<li>Authorization - 确认用户当前请求的操作（读写资源），是否合法</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://docs.aws.amazon.com/zh_cn/IAM/latest/UserGuide/introduction_attribute-based-access-control.html">ABAC与RBAC模型比较</a></p>
+<p>IAM Identity Center 通过创建 IAM 角色，向用户提供资源访问权限。当您分配权限集时，IAM Identity Center 会在每个账户中创建由 IAM Identity Center 控制的相应 IAM 角色，并将权限集中指定的策略附加给这些角色。IAM Identity Center 管理角色，并允许您定义的授权用户使用 AWS 访问门户或代入该角色。 AWS CLI在您修改权限集时，IAM Identity Center 会确保相应的 IAM 策略和角色也相应更新。</p>
+<p>如果你开发的系统需要操作 AWS 资源，比如说上传文件到 S3，那你需要用的是 Federated User。通过 OpenID Connect（如 Google&#x2F;Facebook）或者 SAML 2.0（如 Microsoft AD），你的系统用户可以在登录后换取代表某个 AWS Role 的临时 token 来访问 AWS 资源。</p>
+<h1 id="远程多人合作开发服务器快速上线解决方案"><a href="#远程多人合作开发服务器快速上线解决方案" class="headerlink" title="远程多人合作开发服务器快速上线解决方案"></a>远程多人合作开发服务器快速上线解决方案</h1><ul>
+<li>多人协作不同项目<br>建议：开多个账户，docker用于多个项目不同服务</li>
+<li>多人协作同一项目<br>建议：开多个账户，自己安装服务然后开多个服务账户</li>
+<li>持续备份</li>
+</ul>
+<h2 id="SSH-权限与目录权限问题"><a href="#SSH-权限与目录权限问题" class="headerlink" title="SSH 权限与目录权限问题"></a>SSH 权限与目录权限问题</h2><h3 id="使用公钥登陆"><a href="#使用公钥登陆" class="headerlink" title="使用公钥登陆"></a>使用公钥登陆</h3><ol>
+<li>SSH 服务的配置<br>登录到服务器并检查 SSH 配置文件 <code>/etc/ssh/sshd_config</code></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PubkeyAuthentication <span class="built_in">yes</span></span><br><span class="line">AuthorizedKeysFile .ssh/authorized_keys</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新启动 SSH 服务：</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl restart sshd</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>加入对于的 <code>/home/user/.ssh/authorized_keys</code></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;XXXX&quot;</span> &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line"></span><br><span class="line"><span class="comment"># authorized_keys 文件权限是正确的</span></span><br><span class="line"><span class="built_in">chmod</span> 600 ~/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">chmod</span> 700 ~/.ssh</span><br></pre></td></tr></table></figure>
+
+<h3 id="文件权限问题"><a href="#文件权限问题" class="headerlink" title="文件权限问题"></a>文件权限问题</h3><ul>
+<li>主使用者加入 <code>root</code> 组</li>
+<li>想使用的可以加入特殊组 如 <code>developer</code> 组</li>
+<li>每个文件都要去定义（重点）</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chmod</span> 770 /docker/dnmp/www/localhost</span><br></pre></td></tr></table></figure>
+<p>解释：</p>
+<ul>
+<li>770 表示权限设置为：<ul>
+<li>所有者（root）：rwx（读、写、执行）</li>
+<li>用户组（root）：rwx（读、写、执行）</li>
+<li>其他用户（other）：—（没有任何权限）</li>
+</ul>
+</li>
+</ul>
+<h2 id="ACL-更细粒度的权限管控"><a href="#ACL-更细粒度的权限管控" class="headerlink" title="ACL 更细粒度的权限管控"></a>ACL 更细粒度的权限管控</h2><p>创建用户和用户组</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/0rz33/opts-tools/blob/main/interactive_acl_multiple_users.sh</span><br></pre></td></tr></table></figure>
+
+<h2 id="三方工具项目持续集成交付"><a href="#三方工具项目持续集成交付" class="headerlink" title="三方工具项目持续集成交付"></a>三方工具项目持续集成交付</h2><h3 id="Github-CICD-（nodejs案例）"><a href="#Github-CICD-（nodejs案例）" class="headerlink" title="Github CICD （nodejs案例）"></a>Github CICD （nodejs案例）</h3><p><code>.github/workflows/deploy.yml</code></p>
+<p>SSH_PRIVATE_KEY 获取<br>服务器 生成 <code>id_rsa</code> 密钥对</p>
+<p>id_rsa -&gt; github -&gt; SSH_PRIVATE_KEY<br>id_rsa.pub -&gt; 服务器 <code>~/.ssh/authorized_keys</code></p>
+<p>丢弃本地修改，直接同步远程 <code>dev</code>，适用于 CI&#x2F;CD 或无状态环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- name: Sync with dev branch</span><br><span class="line">  run: |</span><br><span class="line">    git fetch origin dev</span><br><span class="line">    git reset --hard origin/dev</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">name: Deploy to Server</span><br><span class="line"></span><br><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:</span><br><span class="line">      - dev</span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    permissions:  <span class="comment"># 添加这部分</span></span><br><span class="line">      id-token: write</span><br><span class="line">      contents: <span class="built_in">read</span></span><br><span class="line">    steps:</span><br><span class="line">    - name: Checkout code</span><br><span class="line">      uses: actions/checkout@v4</span><br><span class="line"></span><br><span class="line">    - name: Set up Node.js</span><br><span class="line">      uses: actions/setup-node@v4</span><br><span class="line">      with:</span><br><span class="line">        node-version: 23</span><br><span class="line">        cache: <span class="string">&#x27;yarn&#x27;</span></span><br><span class="line"></span><br><span class="line">    - name: Install dependencies</span><br><span class="line">      run: yarn install</span><br><span class="line"></span><br><span class="line">    - name: Build project (<span class="keyword">if</span> needed)</span><br><span class="line">      run: yarn build</span><br><span class="line"></span><br><span class="line">    - name: Set up SSH key</span><br><span class="line">      uses: webfactory/ssh-agent@v0.5.3</span><br><span class="line">      with:</span><br><span class="line">        ssh-private-key: <span class="variable">$&#123;&#123; secrets.SSH_PRIVATE_KEY &#125;</span>&#125;</span><br><span class="line"></span><br><span class="line">    - name: Install PHP dependencies</span><br><span class="line">      <span class="built_in">env</span>:</span><br><span class="line">        AWS_ADDRESS: <span class="variable">$&#123;&#123; secrets.AWS_ADDRESS &#125;</span>&#125;</span><br><span class="line">      run: |</span><br><span class="line">        ssh -o StrictHostKeyChecking=no  ec2-user@<span class="variable">$AWS_ADDRESS</span> &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">          <span class="built_in">cd</span> /docker/dnmp/www/frontend</span><br><span class="line">          git fetch origin dev </span><br><span class="line">          git reset --hard origin/dev</span><br><span class="line">          docker run --<span class="built_in">rm</span> -v $(<span class="built_in">pwd</span>):/www/frontend -w /www/frontend dnmp-node23 yarn install </span><br><span class="line">          docker run --<span class="built_in">rm</span> -v $(<span class="built_in">pwd</span>):/www/frontend -w /www/frontend dnmp-node23 yarn build</span><br><span class="line">        EOF</span><br></pre></td></tr></table></figure>
+
+<h2 id="运行的docker更新基础功能"><a href="#运行的docker更新基础功能" class="headerlink" title="运行的docker更新基础功能"></a>运行的docker更新基础功能</h2><h2 id="journalctl-查询和管理系统日志工具"><a href="#journalctl-查询和管理系统日志工具" class="headerlink" title="journalctl 查询和管理系统日志工具"></a>journalctl 查询和管理系统日志工具</h2><p>journalctl 是 Linux 系统中用于查询和管理系统日志的一种工具，主要用于与 systemd journal 日志系统进行交互。systemd 是现代 Linux 系统的初始化系统和服务管理器，而 systemd journal 是 systemd 提供的日志记录功能，用于收集和存储系统服务和应用程序的日志信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 你可以通过 -u 参数查看特定服务的日志，例如查看 MongoDB 服务的日志</span></span><br><span class="line">journalctl -u mongod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时查看日志（类似 tail -f）</span></span><br><span class="line">journalctl -f</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看内核日志： 通过 -k 参数</span></span><br><span class="line">journalctl -k</span><br></pre></td></tr></table></figure>
+
+<h1 id="内部协作开发服务器上线解决方案"><a href="#内部协作开发服务器上线解决方案" class="headerlink" title="内部协作开发服务器上线解决方案"></a>内部协作开发服务器上线解决方案</h1><ul>
+<li>使用git仓库</li>
+<li>CI&#x2F;CD持续集成</li>
+<li>测试介入</li>
+<li>项目管理</li>
+</ul>
+<h1 id="网路排查"><a href="#网路排查" class="headerlink" title="网路排查"></a>网路排查</h1><h2 id="域名排查"><a href="#域名排查" class="headerlink" title="域名排查"></a>域名排查</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># DNS解析</span></span><br><span class="line">dig baidu.com</span><br><span class="line">nslookup baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 线路排查 路由经过</span></span><br><span class="line">traceroute baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">### 是否能连上服务</span></span><br><span class="line"><span class="comment">## GET</span></span><br><span class="line">curl -X GET -H  baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## POST </span></span><br><span class="line"><span class="comment"># 带上制定标头</span></span><br><span class="line">curl -X POST -H <span class="string">&#x27;User-Agent: XXX&#x27;</span> baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理</span></span><br><span class="line">curl -A <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36&#x27;</span> baidu.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 请求的数据体</span></span><br><span class="line">curl -d<span class="string">&#x27;login=emma＆password=123&#x27;</span>-X POST baidu.com</span><br></pre></td></tr></table></figure>
+
+<h1 id="硬盘动态扩容-LVM"><a href="#硬盘动态扩容-LVM" class="headerlink" title="硬盘动态扩容 LVM"></a>硬盘动态扩容 LVM</h1><p>查看指定目录的大小</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">du</span> -sh /XXX</span><br></pre></td></tr></table></figure>
+
+<p>传统的文件系统是基于分区的, 一个文件系统对应一个分区, 这种方式比较直观, 但不易改变：</p>
+<ol>
+<li>不同的分区相互独立, 单独的文件不能跨分区存储, 容易出现硬盘的利用率不均衡;</li>
+<li>当一个文件系统&#x2F;分区装满时, 是不能对其进行扩容的, 只能采用重新分区&#x2F;建立文件系统, 重新分区会丢失数据, 就要<br>  ① 做数据的迁移和备份;<br>  ② 或者把分区中的数据移到另一个更大的分区中;<br>  ③ 或者采用符号连接的方式使用其它分区的空间 —— 都非常麻烦;</li>
+<li>如果要把硬盘上的多个分区合并在一起使用, 只能采用重新分区的方式, —— 需要做好数据的备份与恢复.</li>
+</ol>
+<h2 id="物理卷-卷组-逻辑卷-关系"><a href="#物理卷-卷组-逻辑卷-关系" class="headerlink" title="物理卷 卷组 逻辑卷 关系"></a>物理卷 卷组 逻辑卷 关系</h2><h2 id="🧾-xfs-vs-ext4：LVM-下文件系统对比"><a href="#🧾-xfs-vs-ext4：LVM-下文件系统对比" class="headerlink" title="🧾 xfs vs ext4：LVM 下文件系统对比"></a>🧾 xfs vs ext4：LVM 下文件系统对比</h2><table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong><code>xfs</code>（推荐用于 LVM）</strong></th>
+<th><strong><code>ext4</code>（通用稳定）</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>📦 文件系统最大支持</td>
+<td>数 PB（更大）</td>
+<td>通常为几十 TB，略小于 XFS</td>
+</tr>
+<tr>
+<td>📈 在线扩容</td>
+<td>✅ 支持（使用 <code>xfs_growfs</code>）</td>
+<td>✅ 支持（使用 <code>resize2fs</code>）</td>
+</tr>
+<tr>
+<td>🔄 在线缩容</td>
+<td>❌ 不支持（需重建）</td>
+<td>✅ 支持（但过程较复杂）</td>
+</tr>
+<tr>
+<td>🚀 性能表现</td>
+<td>更适合大文件、高并发写入场景</td>
+<td>通用场景表现良好，小文件表现更均衡</td>
+</tr>
+<tr>
+<td>🧮 inode 处理</td>
+<td>inode 动态分配，适合超多小文件或海量目录</td>
+<td>inode 固定分配，创建时需估算数量</td>
+</tr>
+<tr>
+<td>🔐 日志机制</td>
+<td>高效日志写入机制，可靠性好</td>
+<td>稳定日志机制，但写入效率略低</td>
+</tr>
+<tr>
+<td>🧰 工具兼容性</td>
+<td>RHEL&#x2F;CentOS 默认文件系统，企业级支持多</td>
+<td>更广泛兼容于桌面和轻量发行版系统</td>
+</tr>
+<tr>
+<td>🛠️ 文件系统工具</td>
+<td><code>xfs_growfs</code>, <code>xfs_repair</code></td>
+<td><code>resize2fs</code>, <code>e2fsck</code>, <code>tune2fs</code> 等</td>
+</tr>
+</tbody></table>
+<h2 id="扩容步骤"><a href="#扩容步骤" class="headerlink" title="扩容步骤"></a>扩容步骤</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装 LVM 工具</span></span><br><span class="line"><span class="built_in">sudo</span> dnf install lvm2</span><br><span class="line"></span><br><span class="line"><span class="comment">## ① 卸载旧挂载点</span></span><br><span class="line"><span class="built_in">sudo</span> umount /data1</span><br><span class="line"><span class="built_in">sudo</span> umount /data2</span><br><span class="line"></span><br><span class="line"><span class="comment">## ② 清除旧文件系统签名（⚠️ 数据会被清空）</span></span><br><span class="line"><span class="built_in">sudo</span> wipefs -a /dev/vdb1</span><br><span class="line"><span class="built_in">sudo</span> wipefs -a /dev/vdc1</span><br><span class="line"></span><br><span class="line"><span class="comment">## ③ 创建 LVM</span></span><br><span class="line"><span class="comment"># 初始化物理卷</span></span><br><span class="line"><span class="built_in">sudo</span> pvcreate /dev/vdb1 /dev/vdc1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建卷组 datavg</span></span><br><span class="line"><span class="built_in">sudo</span> vgcreate datavg /dev/vdb1 /dev/vdc1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建逻辑卷 datalv，使用全部空间</span></span><br><span class="line"><span class="built_in">sudo</span> lvcreate -l 100%FREE -n datalv datavg</span><br><span class="line"></span><br><span class="line"><span class="comment"># 格式化为 xfs 文件系统（推荐用于 LVM）</span></span><br><span class="line"><span class="built_in">sudo</span> mkfs.xfs /dev/datavg/datalv</span><br><span class="line"></span><br><span class="line"><span class="comment">## ④ 创建挂载点并挂载</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mkdir</span> -p /data</span><br><span class="line"><span class="built_in">sudo</span> mount /dev/datavg/datalv /data</span><br><span class="line"></span><br><span class="line"><span class="comment">## ⑤ 设置开机自动挂载</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;/dev/datavg/datalv /data xfs defaults 0 0&#x27;</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> -a /etc/fstab</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>✅ 验收</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">df</span> -hT /data</span><br><span class="line">lsblk</span><br></pre></td></tr></table></figure>
+
+<h2 id="未来扩容流程-添加新硬盘"><a href="#未来扩容流程-添加新硬盘" class="headerlink" title="未来扩容流程 添加新硬盘"></a>未来扩容流程 添加新硬盘</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 为磁盘创建 GPT 分区表</span></span><br><span class="line"><span class="built_in">sudo</span> parted /dev/vdd -- mklabel gpt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个新的分区，整个磁盘用作 xfs 文件系统</span></span><br><span class="line"><span class="built_in">sudo</span> parted -a optimal /dev/vdd -- mkpart primary xfs 0% 100%</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加入 LVM</span></span><br><span class="line"><span class="built_in">sudo</span> pvcreate /dev/vdd1  <span class="comment">## pv</span></span><br><span class="line"><span class="built_in">sudo</span> vgextend datavg /dev/vdd1 <span class="comment">## vg</span></span><br><span class="line"><span class="built_in">sudo</span> lvextend -l +100%FREE /dev/datavg/datalv <span class="comment">## lv</span></span><br><span class="line"><span class="built_in">sudo</span> xfs_growfs /data</span><br></pre></td></tr></table></figure>
+
+<h1 id="Ubuntu"><a href="#Ubuntu" class="headerlink" title="Ubuntu"></a>Ubuntu</h1><h1 id="Centos"><a href="#Centos" class="headerlink" title="Centos"></a>Centos</h1><h2 id="SELinux"><a href="#SELinux" class="headerlink" title="SELinux"></a>SELinux</h2><p>SELinux（Security-Enhanced Linux）是由美国国家安全局（NSA）开发的一个 Linux 内核安全模块。它为 Linux 系统提供了强制访问控制（MAC）功能，目的是提高操作系统的安全性，防止不良程序或攻击者对系统造成危害</p>
+<p>SELinux 和 ACL 的对比</p>
+<table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>SELinux</strong></th>
+<th><strong>ACL</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>控制模型</strong></td>
+<td>强制访问控制（MAC）</td>
+<td>自主访问控制（DAC）</td>
+</tr>
+<tr>
+<td><strong>控制粒度</strong></td>
+<td>对进程、文件、网络端口等的 <strong>全局控制</strong></td>
+<td>对文件和目录的 <strong>访问控制</strong></td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>高，具有强制性控制，即使是 root 用户也无法绕过</td>
+<td>相对较低，root 用户可以修改 ACL 配置，权限可被绕过</td>
+</tr>
+<tr>
+<td><strong>管理方式</strong></td>
+<td>使用策略文件和安全上下文进行管理，需要额外工具（如 <code>semanage</code>）</td>
+<td>使用命令行工具（如 <code>setfacl</code>、<code>getfacl</code>）直接管理文件和目录</td>
+</tr>
+<tr>
+<td><strong>配置复杂度</strong></td>
+<td>配置复杂，适合需要强安全性控制的环境</td>
+<td>配置简单，适合文件级别的用户权限管理</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>需要强制控制、进程间权限管理的高安全性环境</td>
+<td>多用户环境中的文件和目录权限控制</td>
+</tr>
+<tr>
+<td><strong>功能</strong></td>
+<td>控制进程与文件、进程与进程之间的访问权限</td>
+<td>控制文件和目录对不同用户的访问权限</td>
+</tr>
+<tr>
+<td><strong>示例</strong></td>
+<td>设置文件上下文：<br> <code>sudo semanage fcontext -a -t httpd_sys_content_t &quot;/var/www/html(/.*)?&quot;</code><br> <code>sudo restorecon -Rv /var/www/html</code></td>
+<td>设置文件 ACL：<br> <code>sudo setfacl -m u:username:rwx file.txt</code></td>
+</tr>
+</tbody></table>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/ops-interview/">
+                运维面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ol>
+<li>Linux如何挂载windows下的共享目录？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mount.cifs //IP地址/server /mnt/server -o user=administrator,password=123456</span><br><span class="line"><span class="comment"># linux 下的server需要自己手动建一个 后面的user与pass 是windows主机的账号和密码 注意空格 和逗号</span></span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>如何查看http的并发请求数与其TCP连接状态？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;++b[<span class="variable">$NF</span>]&#125;’ END &#123;<span class="keyword">for</span>(a <span class="keyword">in</span> b) <span class="built_in">print</span> a,b[a]&#125;’</span><br><span class="line"></span><br><span class="line"><span class="built_in">ulimit</span> -n <span class="comment"># 查看linux系统打开最大的文件描述符，这里默认1024，不修改这里web服务器修改再大也没用。若要用就修改很几个办法，这里说其中一个：</span></span><br><span class="line">修改/etc/security/limits.conf</span><br><span class="line">* soft nofile 10240</span><br><span class="line">* hard nofile 10240</span><br><span class="line">重启后生效</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>如何用tcpdump嗅探80端口的访问看看谁最高？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i eth0 -tnn dst port 80 -c 1000 | awk -F”.” ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>″.”<span class="variable">$2</span>″.”<span class="variable">$3</span>″.”<span class="variable">$4</span>″.”&#125;’ | <span class="built_in">sort</span> |<span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr | head-5</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>如何查看&#x2F;var&#x2F;log目录下的文件数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /var/log/ -1R | grep “-” | <span class="built_in">wc</span> -l</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>如何查看Linux系统每个ip的连接数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -n | awk ‘/^tcp/ &#123;<span class="built_in">print</span> <span class="variable">$5</span>&#125;’ | awk -F: ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>shell下生成32位随机密码？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /dev/urandom | <span class="built_in">head</span> -1 | <span class="built_in">md5sum</span> | <span class="built_in">head</span> -c 32 &gt;&gt; /pass</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>统计出apache的access.log中访问量最多的5个ip？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> access.log | awk ‘&#123;<span class="built_in">print</span> <span class="variable">$1</span>&#125;’ | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -n -r | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure>
+<ol start="8">
+<li>如何查看二进制文件的内容？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 我们一般通过hexdump命令 来查看二进制文件的内容。</span></span><br><span class="line">hexdump -C XXX(文件名) -C是参数 不同的参数有不同的意义</span><br><span class="line"><span class="comment"># -C 是比较规范的 十六进制和ASCII码显示</span></span><br><span class="line"><span class="comment"># -c 是单字节字符显示</span></span><br><span class="line"><span class="comment"># -b 单字节八进制显示</span></span><br><span class="line"><span class="comment"># -o 是双字节八进制显示</span></span><br><span class="line"><span class="comment"># -d 是双字节十进制显示</span></span><br><span class="line"><span class="comment"># -x 是双字节十六进制显示</span></span><br></pre></td></tr></table></figure>
+
+<ol start="9">
+<li>ps aux 中的VSZ代表什么意思，RSS代表什么意思？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">**VSZ：**虚拟内存集，进程占用的虚拟内存空间。</span><br><span class="line"></span><br><span class="line">**RSS：**物理内存集，进程战用实际物理内存空间。</span><br></pre></td></tr></table></figure>
+
+<ol start="10">
+<li>如何检测并修复&#x2F;dev&#x2F;hda5？</li>
+</ol>
+<p><code>fsck</code>用来检查和维护不一致的文件系统。若系统掉电或磁盘发生问题，可利用<code>fsck</code>命令对文件系统进行检查。</p>
+<ol start="11">
+<li>介绍下Linux系统的开机启动顺序？</li>
+</ol>
+<p>加载BIOS–&gt;读取MBR–&gt;Boot Loader–&gt;加载内核–&gt;用户层init一句inittab文件来设定系统运行的等级(一般3或者5，3是多用户命令行，5是界面)–&gt;init进程执行rc.syninit–&gt;启动内核模块–&gt;执行不同级别运行的脚本程序–&gt;执行&#x2F;etc&#x2F;rc.d&#x2F;rc.local(本地运行服务)–&gt;执行&#x2F;bin&#x2F;login，就可以登录了。</p>
+<ol start="12">
+<li>符号链接与硬链接的区别？<br>我们可以把符号链接，也就是软连接，当做是 Windows系统里的快捷方式。</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 硬链接 就好像是 又复制了一份，举例说明：</span></span><br><span class="line"><span class="built_in">ln</span> 3.txt 4.txt <span class="comment"># 这是硬链接，相当于复制，不可以跨分区，但修改3，4会跟着变，若删除3，4不受任何影响。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ln</span> -s 3.txt 4.txt <span class="comment"># 这是软连接，相当于快捷方式。修改4，3也会跟着变，若删除3，4就坏掉了，不可以用了。</span></span><br></pre></td></tr></table></figure>
+
+<ol start="13">
+<li>保存当前磁盘分区的分区表？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dd</span> <span class="comment"># 命令是以个强大的命令，在复制的同时进行转换。</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/sda of=./mbr.txt bs=1 count=512</span><br></pre></td></tr></table></figure>
+
+<ol start="14">
+<li>如何在文本里面进行复制、粘贴，删除行，删除全部，按行查找和按字母查找？</li>
+</ol>
+<p>以下操作全部在命令行状态操作，不要在编辑状态操作。<br>在文本里移动到想要复制的行 按 yy 想复制到哪就移动到哪，然后按 <code>P</code> 就粘贴了。<br>删除行 移动到改行 按<code>dd</code>。</p>
+<p>删除全部 <code>dG</code> 这里注意G一定要大写。</p>
+<p>按行查找<code>：90</code> 这样就是找到第90行。</p>
+<p>按字母查找 <code>/path</code> 这样就是 找到path这个单词所在的位置，文本里可能存在多个,多次查找会显示在不同的位置。</p>
+<ol start="15">
+<li>手动安装grub？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grub-install /dev/sda</span><br></pre></td></tr></table></figure>
+<ol start="16">
+<li>修改内核参数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/sysctl.conf <span class="comment"># 这里修改参数</span></span><br><span class="line">sysctl -p <span class="comment"># 刷新后可用</span></span><br></pre></td></tr></table></figure>
+
+<ol start="17">
+<li>在1-39内取随机数？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">expr</span> $[RANDOM%39] +1</span><br><span class="line"><span class="comment"># RANDOM随机数</span></span><br><span class="line"><span class="comment"># %39取余数范围0-38</span></span><br></pre></td></tr></table></figure>
+
+<ol start="18">
+<li>限制apache每秒新建连接数为1，峰值为3？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每秒新建连接数一般都是由防火墙来做，apache本身好像无法设置每秒新建连接数，只能设置最大连接：</span></span><br><span class="line">iptables -A INPUT -d 172.16.100.1 -p tcp –dport 80 -m <span class="built_in">limit</span> –<span class="built_in">limit</span> 1/second -j ACCEPT</span><br></pre></td></tr></table></figure>
+
+<ol start="19">
+<li>FTP的主动模式和被动模式</li>
+</ol>
+<p>FTP协议有两种工作方式：PORT方式和PASV方式，中文意思为主动式和被动式。</p>
+<p>PORT（主动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，客户端在命令链路上用 PORT 命令告诉服务器：“我打开了XX端口，你过来连接我”。于是服务器从20端口向客户端的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>PASV（被动）方式的连接过程是：客户端向服务器的FTP端口（默认是21）发送连接请求，服务器接受连接，建立一条命令链路。当需要传送数据时，服务器在命令链路上用 PASV 命令告诉客户端：“我打开了XX端口，你过来连接我”。于是客户端向服务器的 XX 端口发送连接请求，建立一条数据链路来传送数据。</p>
+<p>从上面可以看出，两种方式的命令链路连接方法是一样的，而数据链路的建立方法就完全不同。</p>
+<ol start="20">
+<li>显示&#x2F;etc&#x2F;inittab中以#开头，且后面跟了一个或者多个空白字符，而后又跟了任意非空白字符的行？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “^#&#123;1,&#125;[^]” /etc/inittab</span><br></pre></td></tr></table></figure>
+
+<ol start="21">
+<li>显示&#x2F;etc&#x2F;inittab中包含了：一个数字：(即两个冒号中间一个数字)的行？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep “:[0-9]&#123;1&#125;:” /etc/inittab</span><br></pre></td></tr></table></figure>
+
+<ol start="22">
+<li>怎么把脚本添加到系统服务里，即用service来调用？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在脚本里加入：</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">chkconfig: 345 85 15</span><br><span class="line">description: httpd</span><br><span class="line"><span class="comment"># 然后保存，chkconfig httpd –add 创建系统服务，现在就可以使用service 来 start or restart。</span></span><br></pre></td></tr></table></figure>
+
+<ol start="23">
+<li>写一个脚本，实现批量添加20个用户，用户名为user01-20，密码为user后面跟5个随机字符？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment">#description: useradd</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> `<span class="built_in">seq</span> -f”%02g” 1 20`;<span class="keyword">do</span></span><br><span class="line">useradd user<span class="variable">$i</span></span><br><span class="line"><span class="built_in">echo</span> “user<span class="variable">$i</span>-`<span class="built_in">echo</span> <span class="variable">$RANDOM</span>|<span class="built_in">md5sum</span>|<span class="built_in">cut</span> -c 1-5`”|passwd –stdinuser<span class="variable">$i</span> &gt;/dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<ol start="24">
+<li>写一个脚本，实现判断192.168.1.0&#x2F;24网络里，当前在线的IP有哪些，能ping通则认为在线？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">for</span> ip <span class="keyword">in</span> `<span class="built_in">seq</span> 1 255`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">ping -c 1 192.168.1.<span class="variable">$ip</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> UP</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> 192.168.1.<span class="variable">$ip</span> DOWN</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;&amp;</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">wait</span></span><br></pre></td></tr></table></figure>
+
+<ol start="25">
+<li>写一个脚本，判断一个指定的脚本是否是语法错误；如果有错误，则提醒用户键入Q或者q无视错误并退出其它任何键可以通过vim打开这个指定的脚本？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> checksh.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="built_in">read</span> -p “please input check script-&gt; ” file</span><br><span class="line"><span class="keyword">if</span> [ -f <span class="variable">$file</span> ]; <span class="keyword">then</span></span><br><span class="line">sh -n <span class="variable">$file</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “You input <span class="variable">$file</span> syntax error,[Type q to <span class="built_in">exit</span> or Type vim to edit]” answer</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$answer</span> <span class="keyword">in</span></span><br><span class="line">q | Q)</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line">vim )</span><br><span class="line">vim <span class="variable">$file</span></span><br><span class="line">;;</span><br><span class="line">*）</span><br><span class="line"><span class="built_in">exit</span> 0</span><br><span class="line">;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> “<span class="variable">$file</span> not exist”</span><br><span class="line"><span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<ol start="26">
+<li>写一个脚本，要求如何？</li>
+</ol>
+<p>创建一个函数，能接受两个参数：</p>
+<p>1）第一个参数为URL，即可下载的文件；第二个参数为目录，即下载后保存的位置；</p>
+<p>2）如果用户给的目录不存在，则提示用户是否创建；如果创建就继续执行，否则，函数返回一个51的错误值给调用脚本；</p>
+<p>3）如果给的目录存在，则下载文件；下载命令执行结束后测试文件下载成功与否；如果成功，则返回0给调用脚本，否则，返回52给调用脚本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost tmp]# <span class="built_in">cat</span> downfile.sh</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line">url=<span class="variable">$1</span></span><br><span class="line"><span class="built_in">dir</span>=<span class="variable">$2</span></span><br><span class="line"><span class="function"><span class="title">download</span></span>()</span><br><span class="line">&#123;</span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span> &gt;&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">read</span> -p “<span class="variable">$dir</span> No such file or directory,create?(y/n)” answer</span><br><span class="line"><span class="keyword">if</span> [ “<span class="variable">$answer</span>” == “y” ];<span class="keyword">then</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$dir</span></span><br><span class="line">wget <span class="variable">$url</span> 1&gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">return</span> “51”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line"><span class="built_in">return</span> “52”</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line">download <span class="variable">$url</span> <span class="variable">$dir</span></span><br><span class="line"><span class="built_in">echo</span> $?</span><br></pre></td></tr></table></figure>
+
+<ol start="27">
+<li>写一个脚本，详细需求如下？<br>1、创建一个函数，可以接受一个磁盘设备路径（如&#x2F;dev&#x2F;sdb）作为参数；在真正开始后面步骤之前提醒用户有危险，并让用户选择是否继续；而后将此磁盘设备上的所有分区清空（提示，使用命令dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;&#x2F;dev&#x2F;sdb bs&#x3D;512 count&#x3D;1实现，注意其中的设备路径不要写错了；</li>
+</ol>
+<p>如果此步骤失败，返回67给主程序；</p>
+<p>接着在此磁盘设备上创建两个主分区，一个大小为100M，一个大小为1G；如果此步骤失败，返回68给主程序；</p>
+<p>格式化此两分区，文件系统类型为ext3；如果此步骤失败，返回69给主程序；</p>
+<p>如果上述过程都正常，返回0给主程序；</p>
+<p>2、调用此函数；并通过接收函数执行的返回值来判断其执行情况，并将信息显示出来。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">local</span> Darray=(`<span class="built_in">ls</span> /dev/sd[a-z]`)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="variable">$&#123;Darray&#125;</span>;<span class="keyword">do</span></span><br><span class="line">[[ “<span class="variable">$i</span>” == “<span class="variable">$1</span>” ]] &amp;&amp; Sd=<span class="variable">$i</span> &amp;&amp;<span class="built_in">break</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">return66</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#当匹配成功，进入选择，告诉用户，是否继续，输错的话进入无限循环，当用户选择Y,则清空目标分区，且跳出while循环</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> :;<span class="keyword">do</span></span><br><span class="line"><span class="built_in">read</span> -p “Warning!!!This operation will clean <span class="variable">$Sd</span> data.Next=y,Quit=n [y|n]:” Choice</span><br><span class="line"><span class="keyword">case</span> <span class="variable">$Choice</span> <span class="keyword">in</span></span><br><span class="line">y)</span><br><span class="line"><span class="built_in">dd</span> <span class="keyword">if</span>=/dev/zero of=<span class="variable">$Sd</span> bs=512 count=1 &amp;&gt; /dev/null &amp;&amp;<span class="built_in">break</span> || <span class="built_in">return</span> 67 ;;</span><br><span class="line">n)</span><br><span class="line"><span class="built_in">exit</span> 88 ;;</span><br><span class="line">*)</span><br><span class="line"><span class="built_in">echo</span> “Invalid choice,please choice again.” ;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#使用echo传递给fdisk进行分区，如果此命令失败，则跳转出去，错误值68，需要注意的是，有时候这个返回值很诡异，笔者之前成功与否都是返回的1，后来重启之后，就好了，如果慎重的话，可以对创建的分区，进行判断，不过就需要使用其他工具截取相关字段了，虽有些小麻烦，但无大碍</span></span><br><span class="line"></span><br><span class="line">echo-e “np1+100Mnp2+1024Mw”|fdisk /dev/sdb&amp;&gt; /dev/null || || <span class="built_in">return</span> 68</span><br><span class="line"></span><br><span class="line"><span class="comment">#格式化之前，让内核重新读取磁盘分区表，值得注意的是，有的系统版本，使用partprobe无效，譬如笔者的环境是rhel5.8，而rhel6.0以后，这个命令就很危险了，而使用partx -a /dev/sdb则效果更好…此项需慎重，如果格式化失败，则告知把失败的分区定义成变量，且跳出函数，并带出错误值69</span></span><br><span class="line"></span><br><span class="line">`partprobe`</span><br><span class="line">Part=`fdisk -l /dev/<span class="variable">$Sd</span>|<span class="built_in">tail</span> -2|<span class="built_in">cut</span> -d” ” -f1`</span><br><span class="line"><span class="keyword">for</span> M <span class="keyword">in</span> <span class="variable">$&#123;Part&#125;</span>;<span class="keyword">do</span></span><br><span class="line">mke2fs -j <span class="variable">$M</span> &amp;&gt; /dev/null &amp;&amp; ErrorPart=<span class="variable">$M</span> &amp;&amp;<span class="built_in">return</span> 69</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">return</span> 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#下面代码，调用函数，接收函数返回值，根据返回值进行判断哪里出错。</span></span><br><span class="line"></span><br><span class="line">Disk_Mod <span class="variable">$1</span></span><br><span class="line">Res=$?</span><br><span class="line">[ <span class="variable">$Res</span>-eq 0 ] &amp;&amp; <span class="built_in">exit</span> 0</span><br><span class="line">[ <span class="variable">$Res</span>-eq 66 ] &amp;&amp; <span class="built_in">echo</span> “Error! Invalid input.”</span><br><span class="line">[ <span class="variable">$Res</span>-eq 67 ] &amp;&amp; <span class="built_in">echo</span> “Error! Command -&gt; <span class="built_in">dd</span> fdisk mke2fs</span><br></pre></td></tr></table></figure>
+
+<ol start="28">
+<li>如何让history命令显示具体时间？</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">HISTTIMEFORMAT=”%Y-%m-%d %H:%M:%S”</span><br><span class="line"><span class="built_in">export</span> HISTTIMEFORMAT</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新开机后会还原，可以写/etc/profile</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://dockerworld.cn/?id=392">https://dockerworld.cn/?id=392</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/martin-huang/p/13606761.html">https://www.cnblogs.com/martin-huang/p/13606761.html</a><br><a target="_blank" rel="noopener" href="https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html">https://fang.readthedocs.io/zh-cn/latest/%E8%BF%90%E7%BB%B4%E4%BA%BA%E7%94%9F/%E8%BF%90%E7%BB%B4%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98%E5%90%88%E9%9B%86.html</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2407138">https://cloud.tencent.com/developer/article/2407138</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/pantesting-Intranet/">
+                内网渗透
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h2><p>内网基础环境分析<br>内网基础环境判断<br>IP、网关、DNS、是否能连通外网、网络连接及端口、本机host文件、机器的代理、是否在域内，域名是什么。</p>
+<p>分析机器所处位置区域<br>DMZ区、办公区、生产区、核心DB等等</p>
+<p>DMZ（Demilitarized Zone，非军事区或隔离区）是网络安全架构中的一种设计，用于增强网络的安全性。它通常指在内部网络和外部网络（如互联网）之间设置的一个中间区域，用于放置公共访问的服务和设备。</p>
+<p>分析机器的角色<br>普通WEB服务器、开发服务器、文件服务器、代理服务器、DNS服务器、数据存储服务器等等</p>
+<p>分析进出口流量是否能连通<br>协议的判断：常见的TCP、DNS、HTTP、ICMP等协议</p>
+<p>端口判断：外网vps做监听，内网机器测试常见端口，常见能出去的端口有 80,8080,443,53,110,123 等。</p>
+<ol>
+<li><p>TCP协议：</p>
+<blockquote>
+<p>vps：nc -lvvp 8888<br>target：nc vps-ip 8888</p>
+</blockquote>
+</li>
+<li><p>HTTP协议：</p>
+<blockquote>
+<p>vps：nc -lvvp 80<br>target：curl vps-ip 80</p>
+</blockquote>
+</li>
+<li><p>ICMP协议：</p>
+<blockquote>
+<p>vps：tcpdump icmp （tcpdump是一个抓包工具，用于捕获和分析通过网络接口传输的数据包。）<br>target：ping vps-ip<br>ping 命令属于 互联网控制消息协议（ICMP, Internet Control Message Protocol）。</p>
+</blockquote>
+</li>
+<li><p>DNS协议：</p>
+<blockquote>
+<p>vps：nc -u -lvp 53<br>target：nslookup <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a> vps-ip<br>dig @vsp-ip <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a><br>（dig 是一个用于查询 DNS（域名系统）信息的命令行工具，广泛用于网络管理和故障排查，可以获取有关域名的不同类型的 DNS 记录。在Windows系统中不内置，在Linux则有内置）</p>
+</blockquote>
+</li>
+</ol>
+<h4 id="本机的-hosts-文件用于映射主机名（域名）到-IP-地址。"><a href="#本机的-hosts-文件用于映射主机名（域名）到-IP-地址。" class="headerlink" title="本机的 hosts 文件用于映射主机名（域名）到 IP 地址。"></a>本机的 hosts 文件用于映射主机名（域名）到 IP 地址。</h4><ol>
+<li>基本功能<br>域名解析：hosts 文件可以手动指定某个域名对应的 IP 地址，优先于 DNS 服务器的解析结果。<br>本地测试：在开发和测试环境中，可以将域名指向本地 IP 地址（如 127.0.0.1），方便开发者在不影响外部网络的情况下进行测试。</li>
+<li>使用场景<br>屏蔽网站：可以将某些网站的域名指向 0.0.1，从而阻止访问该网站。<br>快速访问：将常用的域名映射到本地 IP 地址，可以加快访问速度，尤其是在 DNS 服务不稳定的情况下。<br>替代 DNS：在没有 DNS 服务的网络中，可以使用 hosts 文件进行简单的域名解析。</li>
+<li>文件位置<br>Windows：通常位于 C:\Windows\System32\drivers\etc\hosts<br>Linux 和 macOS：通常位于 &#x2F;etc&#x2F;hosts</li>
+<li>文件格式<br>hosts 文件的格式较为简单，每行包含一个 IP 地址和一个或多个主机名，例如：<br>127.0.0.1 localhost 192.168.1.10 mylocaldev</li>
+<li>优缺点<br>优点:<br>提高解析速度，减少对 DNS 服务器的依赖。<br>简单易用，适合快速配置。<br>缺点:<br>不易于管理，特别是在需要频繁更改时。<br>在大型网络中，维护 hosts 文件可能变得复杂且不高效。</li>
+</ol>
+<h3 id="本机信息收集"><a href="#本机信息收集" class="headerlink" title="本机信息收集"></a>本机信息收集</h3><p>操作系统、权限、内网IP地址段、杀软、端口、服务、补丁情况、网络环境情况、共享、会话等</p>
+<p>如果是域内主机，那么操作系统、应用软件、补丁、服务、杀软一般都是批量安装的。</p>
+<h3 id="内网网段信息收集"><a href="#内网网段信息收集" class="headerlink" title="内网网段信息收集"></a>内网网段信息收集</h3><p>只有找到不同网段才能进行纵向渗透，否则只能横向渗透</p>
+<p>纵向渗透关注的是权限的提升，从低权限向高权限移动，旨在获取更深层次的控制。<br>横向渗透则是在同一权限层级内扩展访问，旨在访问更多的目标或资源。</p>
+<ol>
+<li>内网网段扫描</li>
+<li>文件共享、FTP连接记录、浏览器访问记录、mstsc连接记录<br>拓展：mstsc 是 Windows 系统中用于远程桌面连接的工具。按 Win + R 输入mstsc即可启动。</li>
+<li>渗透路由器、交换机</li>
+</ol>
+<h3 id="用户信息（用CMD）"><a href="#用户信息（用CMD）" class="headerlink" title="用户信息（用CMD）"></a>用户信息（用CMD）</h3><ul>
+<li>查看本机用户列表：<blockquote>
+<p>net user</p>
+</blockquote>
+</li>
+<li>获取本地管理员信息：<blockquote>
+<p>net localgroup administrators</p>
+</blockquote>
+</li>
+<li>查看当前在线用户：<blockquote>
+<p>quser query user query user || qwinsta</p>
+</blockquote>
+</li>
+<li>查看当前用户在目标系统中的具体权限：<blockquote>
+<p>whoami &#x2F;all</p>
+</blockquote>
+</li>
+<li>查看当前权限：<blockquote>
+<p>whoami &amp;&amp; whoami &#x2F;priv</p>
+</blockquote>
+</li>
+<li>查看当前机器中所有的组名，了解不同组的职能，如 IT、HR、ADMIN、FILE：<blockquote>
+<p>net localgroup</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="系统信息"><a href="#系统信息" class="headerlink" title="系统信息"></a>系统信息</h3><ul>
+<li>查询网络配置信息，进行IP地址段信息收集：<blockquote>
+<p>ipconfig &#x2F;all</p>
+</blockquote>
+</li>
+<li>查询操作系统及软件信息（当然也可以直接运行：systeminfo）：<blockquote>
+<p>systeminfo | findstr &#x2F;B &#x2F;C:”OS 名称” &#x2F;C:”OS 版本” #中文系统</p>
+</blockquote>
+</li>
+<li>查看当前系统版本：<blockquote>
+<p>wmic OS get Caption,CSDVersion,OSArchitecture,Version</p>
+</blockquote>
+</li>
+</ul>
+<p>上面这个命令使用 WMIC 工具来获取 Windows 操作系统的相关信息。具体来说，它的作用是提取以下几个属性：</p>
+<blockquote>
+<p>wmic：调用 Windows Management Instrumentation Command-line 工具。<br>OS：指定要查询的对象类型为操作系统（Operating System）。<br>get：表示获取指定的属性。<br>Caption：操作系统的名称（如 Windows 10）。<br>CSDVersion：操作系统的服务包版本（如 Service Pack 1），如果没有安装服务包则可能为空。<br>OSArchitecture：操作系统的架构（如 32 位或 64 位）。<br>Version：操作系统的版本号（如 10.0.19041）。</p>
+</blockquote>
+<ul>
+<li>查看系统体系结构：<blockquote>
+<p>echo %PROCESSOR_ARCHITECTURE%</p>
+</blockquote>
+</li>
+<li>查询本机服务信息：<blockquote>
+<p>wmic service list brief</p>
+</blockquote>
+</li>
+<li>查看安装的软件的版本、路径等：<blockquote>
+<p>wmic product get name,version powershell “Get-WmiObject -class Win32_Product | Select-Object -Property name, version”</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Windows-内网渗透"><a href="#Windows-内网渗透" class="headerlink" title="Windows 内网渗透"></a>Windows 内网渗透</h2><h3 id="工作组和域"><a href="#工作组和域" class="headerlink" title="工作组和域"></a>工作组和域</h3><p>工作组和域的区别：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw">https://mp.weixin.qq.com/s/5wgCGHrE5MNsKvN9rChBsw</a><br>查看本机工作组的方法：右键“此电脑”，找到“域或工作组”，此时便会显示本机工作组。<br>发现在同一个组的计算机方法：开启 “ 网络发现 ”。</p>
+<h3 id="工作组简介"><a href="#工作组简介" class="headerlink" title="工作组简介"></a>工作组简介</h3><p>工作组是最常见最简单最普通的资源管理模式，就是将不同的电脑按功能分别列入不同的组中，以方便管理。</p>
+<p>默认情况下所有计算机都处在名为 WORKGROUP 的工作组中，工作组资源管理模式适合于网络中计算机不多，对管理要求不严格的情况。它的建立步骤简单，使用起来也很好上手。</p>
+<p>大部分中小公司都采取工作组的方式对资源进行权限分配和目录共享相同组中的不同用户通过对方主机的用户名和密码可以査看对方共享的文件夹，默认共享的是 Users 目录。</p>
+<p>不同组的不同用户通过对方主机的用户名和密码也可以査看对方共享的文件夹,工作组并不存在真正的集中管理作用，工作组里的所有计算机都是对等的，也就是没有服务器和客户机之分的。</p>
+<h2 id="Linux-内网渗透"><a href="#Linux-内网渗透" class="headerlink" title="Linux 内网渗透"></a>Linux 内网渗透</h2><h2 id="mac-内网渗透"><a href="#mac-内网渗透" class="headerlink" title="mac 内网渗透"></a>mac 内网渗透</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p>引用 ：<br><a target="_blank" rel="noopener" href="https://github.com/wjl110/MacGosh-Pro">https://github.com/wjl110/MacGosh-Pro</a><br><a target="_blank" rel="noopener" href="https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86">https://github.com/Ridter/Intranet_Penetration_Tips?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86">https://github.com/r0eXpeR/pentest?tab=readme-ov-file#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86</a><br><a target="_blank" rel="noopener" href="https://github.com/r0eXpeR/pentest?tab=readme-ov-file">https://github.com/r0eXpeR/pentest?tab=readme-ov-file</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254884.html">https://www.freebuf.com/articles/system/254884.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/backlion/p/16850277.html">https://www.cnblogs.com/backlion/p/16850277.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/system/254826.html">https://www.freebuf.com/articles/system/254826.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/network/177493.html">https://www.freebuf.com/articles/network/177493.html</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus2024/#google_vignette">https://www.ddosi.org/nessus2024/#google_vignette</a><br><a target="_blank" rel="noopener" href="https://www.ddosi.org/nessus-plugin-pro-3/">https://www.ddosi.org/nessus-plugin-pro-3/</a><br><a target="_blank" rel="noopener" href="https://github.com/Hack-with-Github/Awesome-Hacking">https://github.com/Hack-with-Github/Awesome-Hacking</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/pantesting-getinfo/">
                 信息收集
             </a>
@@ -1550,348 +2143,6 @@
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/raspberry-pi/">
-                Raspberry Pi 树莓派
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/单片机/">单片机</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
-<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
-<p>树莓派系统连接原理</p>
-<blockquote>
-<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
-</blockquote>
-</blockquote>
-<ul>
-<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
-</li>
-<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>开机启动树莓派即可连接WIFI</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/redis/">
-                Redis
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/rust/">
-                Rust
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Rust/">Rust</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="Rust学习"><a href="#Rust学习" class="headerlink" title="Rust学习"></a>Rust学习</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cargo update       # 更新依赖</span><br><span class="line">cargo build        # 测试是否能 build</span><br><span class="line">cargo clean        # 清理后重新编译 run</span><br><span class="line">cargo run          # 运行 loka-server</span><br></pre></td></tr></table></figure>
-
-<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3><ol>
-<li>不能随便命名 因为rust会严格检查</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pub(crate) mod loka_api &#123;</span><br><span class="line">    tonic::include_proto!(&quot;loka_rpc&quot;);</span><br><span class="line">&#125;</span><br><span class="line">Rust 和 Tonic 结合 gRPC 的核心机制，你会发现它和其他语言（比如 JS/TS、Python）完全不同，因为 Rust 是 编译时严格类型检查 的语言</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>i32&#x2F;i64&#x2F;isize&#x2F;usize 这几个区别和用途</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">i32 和 i64 主要区别是 占用字节和数值范围</span><br><span class="line"></span><br><span class="line">i32：32 位有符号整数</span><br><span class="line">    占 4 字节</span><br><span class="line">    范围：-2_147_483_648 到 2_147_483_647</span><br><span class="line"></span><br><span class="line">i64：64 位有符号整数</span><br><span class="line">    占 8 字节</span><br><span class="line">    范围：-9_223_372_036_854_775_808 到 9_223_372_036_854_775_807</span><br><span class="line"></span><br><span class="line">想随 CPU 架宽变化，使用 isize / usize</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li>函数和宏区别</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">函数 = 类型安全、运行时逻辑封装 (严格)</span><br><span class="line">宏 = 编译期代码生成、元编程工具 </span><br><span class="line">函数适用场景</span><br><span class="line">    封装逻辑、计算、操作</span><br><span class="line">    需要类型安全</span><br><span class="line">    函数调用开销可以忽略或者通过 #[inline] 优化</span><br><span class="line"></span><br><span class="line">宏适用场景</span><br><span class="line">    生成重复代码（如 impl 一大堆 trait）</span><br><span class="line">    DSL / 语法扩展（例如 serde 的 #[derive(Serialize)] 是宏）</span><br><span class="line">    日志/调试（println!、dbg!）</span><br><span class="line">    可变参数（函数参数数量固定，宏可任意）</span><br></pre></td></tr></table></figure>
-<h3 id="系统对比-Go-Golang-、Rust-和-C"><a href="#系统对比-Go-Golang-、Rust-和-C" class="headerlink" title="系统对比 Go (Golang)、Rust 和 C++"></a>系统对比 Go (Golang)、Rust 和 C++</h3><p>1️⃣ 语言概览</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>Go (Golang)</th>
-<th>Rust</th>
-<th>C++</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>发布年份</strong></td>
-<td>2009</td>
-<td>2015</td>
-<td>1985</td>
-</tr>
-<tr>
-<td><strong>设计目标</strong></td>
-<td>简单、高效、并发友好</td>
-<td>安全、零开销抽象、并发 &amp; 系统级</td>
-<td>高性能、通用系统编程</td>
-</tr>
-<tr>
-<td><strong>编译模式</strong></td>
-<td>静态编译</td>
-<td>静态编译</td>
-<td>静态编译</td>
-</tr>
-<tr>
-<td><strong>内存管理</strong></td>
-<td>GC（垃圾回收）</td>
-<td>所有权 + 借用系统（无 GC）</td>
-<td>手动管理（可选智能指针）</td>
-</tr>
-<tr>
-<td><strong>并发模型</strong></td>
-<td>Goroutines + Channel（轻量线程）</td>
-<td>async&#x2F;await + Send&#x2F;Sync trait</td>
-<td>std::thread + 原生线程库</td>
-</tr>
-<tr>
-<td><strong>安全性</strong></td>
-<td>编译时类型安全，但有 GC</td>
-<td>编译时内存 &amp; 并发安全</td>
-<td>编译时类型安全，但容易悬挂指针和 UB</td>
-</tr>
-<tr>
-<td><strong>性能</strong></td>
-<td>高，但有 GC 开销</td>
-<td>接近 C++，零开销抽象</td>
-<td>极高，可手动优化到极致</td>
-</tr>
-<tr>
-<td><strong>泛型</strong></td>
-<td>1.18+ 支持泛型</td>
-<td>强大泛型 + trait</td>
-<td>模板（template）</td>
-</tr>
-<tr>
-<td><strong>易用性</strong></td>
-<td>简单易学、上手快</td>
-<td>学习曲线陡峭，但安全性高</td>
-<td>学习曲线陡峭，容易踩坑</td>
-</tr>
-<tr>
-<td><strong>生态</strong></td>
-<td>云服务、微服务、网络库</td>
-<td>系统编程、嵌入式、WebAssembly、区块链</td>
-<td>系统、游戏、图形、高性能库</td>
-</tr>
-</tbody></table>
-<p>2️⃣ 内存管理对比</p>
-<table>
-<thead>
-<tr>
-<th>方面</th>
-<th>Go</th>
-<th>Rust</th>
-<th>C++</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>管理方式</strong></td>
-<td>GC（自动回收）</td>
-<td>所有权 &amp; 借用 + 生命周期</td>
-<td>手动 delete &#x2F; new 或智能指针</td>
-</tr>
-<tr>
-<td><strong>悬挂指针</strong></td>
-<td>基本不会</td>
-<td>编译器保证不会</td>
-<td>很容易出现</td>
-</tr>
-<tr>
-<td><strong>内存泄漏</strong></td>
-<td>GC 避免大部分</td>
-<td>编译器保证 RAII（几乎不会）</td>
-<td>可能出现，需手动管理</td>
-</tr>
-<tr>
-<td><strong>性能影响</strong></td>
-<td>GC 停顿可能影响延迟</td>
-<td>无 GC，性能可控</td>
-<td>高性能，但需小心内存管理</td>
-</tr>
-</tbody></table>
-<p>3️⃣ 并发对比</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>并发模型</th>
-<th>优缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Go</td>
-<td>Goroutines + Channels</td>
-<td>轻量级、易用、调度由 runtime 管理；可能 GC 暂停影响延迟</td>
-</tr>
-<tr>
-<td>Rust</td>
-<td>async&#x2F;await + Send&#x2F;Sync</td>
-<td>安全、零成本抽象，但需要掌握生命周期和 trait，学习曲线高</td>
-</tr>
-<tr>
-<td>C++</td>
-<td>std::thread &#x2F; Boost &#x2F; 原生线程</td>
-<td>高度可控，性能最好，但容易出现死锁、数据竞争，需要手动管理同步</td>
-</tr>
-</tbody></table>
-<p>4️⃣ 安全性</p>
-<table>
-<thead>
-<tr>
-<th>安全性方面</th>
-<th>Go</th>
-<th>Rust</th>
-<th>C++</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>类型安全</td>
-<td>是</td>
-<td>是</td>
-<td>是</td>
-</tr>
-<tr>
-<td>内存安全</td>
-<td>依赖 GC</td>
-<td>编译期保证</td>
-<td>依赖开发者</td>
-</tr>
-<tr>
-<td>并发安全</td>
-<td>简单但不严格</td>
-<td>编译期借用检查保证</td>
-<td>开发者自己保证</td>
-</tr>
-<tr>
-<td>越界访问</td>
-<td>runtime panic</td>
-<td>编译器 &amp; borrow checker 阻止</td>
-<td>可能出现 UB</td>
-</tr>
-</tbody></table>
-<p>5️⃣ 性能比较<br>C++：原生指针 + 零开销抽象 → 最快<br>Rust：接近 C++，无 GC，优化非常强<br>Go：有 GC，但 Goroutine 调度极快，适合网络&#x2F;IO密集型</p>
-<p>6️⃣ 泛型与抽象</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>泛型 &#x2F; 模板</th>
-<th>特点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Go</td>
-<td>1.18+ 泛型</td>
-<td>类型安全，但语法简单</td>
-</tr>
-<tr>
-<td>Rust</td>
-<td>trait + 泛型</td>
-<td>零开销抽象，函数和类型都可以泛型化</td>
-</tr>
-<tr>
-<td>C++</td>
-<td>template</td>
-<td>功能强大，但错误信息复杂，模板元编程复杂</td>
-</tr>
-</tbody></table>
-<p>7️⃣ 应用场景</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>常见应用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Go</td>
-<td>云服务、微服务、网络服务、CLI 工具</td>
-</tr>
-<tr>
-<td>Rust</td>
-<td>系统编程、嵌入式、WebAssembly、区块链、性能关键库</td>
-</tr>
-<tr>
-<td>C++</td>
-<td>系统底层、游戏开发、图形渲染、高性能计算</td>
-</tr>
-</tbody></table>
-<p>🔹 总结建议</p>
-<ol>
-<li>想快速上手、开发网络&#x2F;服务端应用 → Go</li>
-<li>想追求内存安全、零成本抽象、系统级开发 → Rust</li>
-<li>极致性能、硬件控制、游戏或图形开发 → C++</li>
-</ol>
-
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1934,11 +2185,11 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
             </li>
             
             <li>
