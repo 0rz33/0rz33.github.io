@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+原始问题: CloudFront distribution 跨账号迁移最容易踩的坑
+
+CloudFront Distribution 跨账号迁移的生产级实践与深度避坑指南背景与场景CloudFront di">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
+                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
+<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
+</blockquote>
+<h1 id="CloudFront-Distribution-跨账号迁移的生产级实践与深度避坑指南"><a href="#CloudFront-Distribution-跨账号迁移的生产级实践与深度避坑指南" class="headerlink" title="CloudFront Distribution 跨账号迁移的生产级实践与深度避坑指南"></a>CloudFront Distribution 跨账号迁移的生产级实践与深度避坑指南</h1><h2 id="背景与场景"><a href="#背景与场景" class="headerlink" title="背景与场景"></a>背景与场景</h2><p>CloudFront distribution 跨账号迁移通常发生在企业组织架构调整、业务单元拆分、安全合规要求或多云战略实施场景。核心挑战在于 CloudFront 的 CNAME 绑定具有全局唯一性约束——同一 CNAME 在 AWS 全球范围内只能关联到一个 distribution。这意味着在目标账号创建新 distribution 并绑定 CNAME 之前,必须先从源账号解绑,这个窗口期会导致服务中断。典型场景包括:从共享服务账号迁移到业务独立账号、从开发账号迁移到生产账号、或因收购兼并导致的资源整合。迁移过程需要同步处理 SSL 证书(ACM)、Origin 配置、Cache Behavior、Lambda@Edge 函数等多个依赖组件,任何环节的疏漏都可能导致长时间停机或功能降级。</p>
+<h2 id="诊断与预检步骤"><a href="#诊断与预检步骤" class="headerlink" title="诊断与预检步骤"></a>诊断与预检步骤</h2><p>在执行任何变更前,必须通过只读命令完整采集源 distribution 的配置快照和依赖关系。首先使用 <code>aws cloudfront get-distribution --id E1234567890ABC</code> 导出完整配置 JSON,特别关注 <code>Aliases</code>(CNAME 列表)、<code>ViewerCertificate</code>(SSL 证书 ARN)、<code>Origins</code> 配置和 <code>CacheBehaviors</code>。验证 ACM 证书状态:<code>aws acm describe-certificate --certificate-arn arn:aws:acm:us-east-1:111111111111:certificate/xxx</code>,确认证书在 us-east-1 区域且状态为 ISSUED。检查 DNS 当前解析:<code>dig cdn.example.com</code> 确认 CNAME 指向的 CloudFront 域名(格式 d111111abcdef8.cloudfront.net)。</p>
+<p>使用 <code>aws cloudfront list-distributions --query &quot;DistributionList.Items[?contains(Aliases.Items, &#39;cdn.example.com&#39;)]&quot;</code> 确认 CNAME 当前绑定状态。检查 Origin 的访问权限:如果使用 S3 作为 Origin,验证 OAI(Origin Access Identity)或 OAC(Origin Access Control)配置;如果使用自定义 Origin,确认目标账号的 ALB&#x2F;EC2 安全组规则允许 CloudFront IP 范围访问。验证 Lambda@Edge 函数:<code>aws lambda get-function --function-name arn:aws:lambda:us-east-1:111111111111:function:edge-function</code>,确认函数代码和 IAM 角色可在目标账号重建。检查 WAF Web ACL 关联:<code>aws wafv2 list-web-acls --scope CLOUDFRONT --region us-east-1</code>,记录 ACL ID 和规则配置。最后通过 CloudWatch 查询过去 7 天的请求量和错误率基线:<code>aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E1234567890ABC --start-time 2024-01-01T00:00:00Z --end-time 2024-01-08T00:00:00Z --period 3600 --statistics Sum</code>,建立 SLO 基准。</p>
+<h2 id="迁移方案-备份与准备阶段"><a href="#迁移方案-备份与准备阶段" class="headerlink" title="迁移方案:备份与准备阶段"></a>迁移方案:备份与准备阶段</h2><p>在目标账号 B 完成所有依赖资源的预创建,确保迁移窗口期只需执行 CNAME 切换。首先在账号 B 的 us-east-1 区域申请新的 ACM 证书,覆盖所有需要的域名(包括主域名和备用域名),使用 DNS 验证方式:<code>aws acm request-certificate --domain-name cdn.example.com --subject-alternative-names *.cdn.example.com --validation-method DNS --region us-east-1</code>。将验证所需的 CNAME 记录添加到 Route 53 或外部 DNS,等待证书状态变为 ISSUED(通常 5-30 分钟)。</p>
+<p>如果使用 S3 作为 Origin,在账号 B 创建新 bucket 并配置跨账号复制,或使用 <code>aws s3 sync</code> 同步数据。配置新的 OAC:<code>aws cloudfront create-origin-access-control --origin-access-control-config &#39;&#123;&quot;Name&quot;:&quot;oac-for-migration&quot;,&quot;SigningProtocol&quot;:&quot;sigv4&quot;,&quot;SigningBehavior&quot;:&quot;always&quot;,&quot;OriginAccessControlOriginType&quot;:&quot;s3&quot;&#125;&#39;</code>,并更新 S3 bucket policy 允许该 OAC 访问。如果使用 Lambda@Edge,在账号 B 重新部署函数(必须在 us-east-1 区域)并发布版本:<code>aws lambda publish-version --function-name edge-function</code>,记录带版本号的 ARN(格式 arn:aws:lambda:us-east-1:222222222222:function:edge-function:1)。</p>
+<p>在账号 B 创建新 distribution,使用从账号 A 导出的配置 JSON 作为模板,但<strong>暂时不添加 CNAME</strong>:<code>aws cloudfront create-distribution --distribution-config file://distribution-config.json</code>。修改 JSON 中的 <code>Aliases.Quantity</code> 为 0,<code>Aliases.Items</code> 为空数组,更新 <code>ViewerCertificate.ACMCertificateArn</code> 为账号 B 的证书 ARN,更新 <code>Origins</code> 配置指向账号 B 的资源。等待新 distribution 状态变为 Deployed(通常 15-30 分钟):<code>aws cloudfront wait distribution-deployed --id E9876543210XYZ</code>。使用 CloudFront 默认域名(d222222abcdef8.cloudfront.net)进行功能验证,通过 curl 测试关键路径:<code>curl -H &quot;Host: cdn.example.com&quot; https://d222222abcdef8.cloudfront.net/index.html -v</code>,确认响应头、缓存行为和内容正确性。</p>
+<h2 id="迁移方案-执行切换阶段"><a href="#迁移方案-执行切换阶段" class="headerlink" title="迁移方案:执行切换阶段"></a>迁移方案:执行切换阶段</h2><p>在计划的维护窗口,按严格顺序执行 CNAME 解绑和绑定操作。首先降低 DNS TTL 至最小值(60 秒):<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch &#39;&#123;&quot;Changes&quot;:[&#123;&quot;Action&quot;:&quot;UPSERT&quot;,&quot;ResourceRecordSet&quot;:&#123;&quot;Name&quot;:&quot;cdn.example.com&quot;,&quot;Type&quot;:&quot;CNAME&quot;,&quot;TTL&quot;:60,&quot;ResourceRecords&quot;:[&#123;&quot;Value&quot;:&quot;d111111abcdef8.cloudfront.net&quot;&#125;]&#125;&#125;]&#125;&#39;</code>,等待 2 倍原 TTL 时间让全球 DNS 缓存过期。</p>
+<p>从账号 A 的 distribution 移除 CNAME:先获取当前 ETag <code>aws cloudfront get-distribution-config --id E1234567890ABC --query &#39;ETag&#39; --output text</code>,然后更新配置 <code>aws cloudfront update-distribution --id E1234567890ABC --if-match &lt;ETag&gt; --distribution-config file://config-without-cname.json</code>。配置 JSON 中将 <code>Aliases.Quantity</code> 改为 0,<code>Aliases.Items</code> 改为空数组。等待更新完成(3-5 分钟):<code>aws cloudfront wait distribution-deployed --id E1234567890ABC</code>。此时 CNAME 已全局释放,立即在账号 B 添加 CNAME:获取账号 B distribution 的 ETag,更新配置添加 <code>Aliases</code>:<code>aws cloudfront update-distribution --id E9876543210XYZ --if-match &lt;ETag&gt; --distribution-config file://config-with-cname.json</code>。等待部署完成后,更新 DNS 记录指向新 distribution:<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch &#39;&#123;&quot;Changes&quot;:[&#123;&quot;Action&quot;:&quot;UPSERT&quot;,&quot;ResourceRecordSet&quot;:&#123;&quot;Name&quot;:&quot;cdn.example.com&quot;,&quot;Type&quot;:&quot;CNAME&quot;,&quot;TTL&quot;:60,&quot;ResourceRecords&quot;:[&#123;&quot;Value&quot;:&quot;d222222abcdef8.cloudfront.net&quot;&#125;]&#125;&#125;]&#125;&#39;</code>。</p>
+<p>整个切换窗口期控制在 5-10 分钟内,期间通过 CloudWatch 实时监控两个 distribution 的请求量:<code>aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(date -u -d &#39;5 minutes ago&#39; +%Y-%m-%dT%H:%M:%S) --end-time $(date -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Sum</code>。观察账号 A 的流量下降和账号 B 的流量上升曲线,确认流量完全切换后,将 DNS TTL 恢复至正常值(300-3600 秒)。保留账号 A 的 distribution 处于禁用状态至少 72 小时,作为快速回滚路径,期间持续监控 4xx&#x2F;5xx 错误率和延迟指标。</p>
+<h2 id="迁移方案-回滚预案"><a href="#迁移方案-回滚预案" class="headerlink" title="迁移方案:回滚预案"></a>迁移方案:回滚预案</h2><p>任何生产变更都必须准备完整回滚方案,CloudFront 迁移的回滚窗口分为三个阶段。<strong>阶段一(切换后 10 分钟内)</strong>:如果发现账号 B 的 distribution 出现严重错误(5xx &gt; 1%),立即执行 DNS 回滚,将 CNAME 记录改回指向账号 A 的 CloudFront 域名 d111111abcdef8.cloudfront.net,无需修改 distribution 配置。由于 DNS TTL 已降至 60 秒,流量将在 2-3 分钟内回切,此时账号 A 的 distribution 仍保留完整配置(虽然 CNAME 已解绑,但通过 CloudFront 默认域名仍可访问)。</p>
+<p><strong>阶段二(切换后 10-60 分钟)</strong>:如果需要完全恢复账号 A 的 CNAME 绑定,先从账号 B 移除 CNAME(update-distribution 设置 Aliases 为空),等待部署完成后,在账号 A 重新添加 CNAME,然后更新 DNS。这个过程需要 8-15 分钟,期间服务会短暂中断,但可恢复到迁移前状态。<strong>阶段三(切换后 60 分钟以上)</strong>:如果已观察到部分用户流量切换成功,但存在局部问题(如特定地理区域缓存异常),采用 DNS 加权路由策略,将 10% 流量导向账号 B,90% 保留在账号 A,逐步调整权重比例。Route 53 配置示例:<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch file://weighted-routing.json</code>,JSON 中定义两条 CNAME 记录,SetIdentifier 分别为 “account-a” 和 “account-b”,Weight 设置为 90 和 10。</p>
+<p>所有回滚操作必须在执行前通过 <code>aws cloudfront get-distribution-config</code> 重新获取最新 ETag,避免因并发修改导致 PreconditionFailed 错误。回滚后立即触发全链路健康检查,验证关键 API 端点、静态资源加载和动态内容生成,确认 RTO(恢复时间目标)&lt; 15 分钟,RPO(恢复点目标)&#x3D; 0(无数据丢失)。</p>
+<h2 id="五大典型踩坑与规避方案"><a href="#五大典型踩坑与规避方案" class="headerlink" title="五大典型踩坑与规避方案"></a>五大典型踩坑与规避方案</h2><p><strong>坑一:ACM 证书区域错误</strong>。CloudFront 只能使用 us-east-1 区域的 ACM 证书,即使在其他区域申请了相同域名的证书也无法使用。症状:创建 distribution 时报错 “The specified SSL certificate doesn’t exist, isn’t in us-east-1 region, isn’t valid, or doesn’t include a valid certificate chain”。规避:在目标账号的 us-east-1 区域预先申请证书,使用 <code>--region us-east-1</code> 参数强制指定区域,验证时检查 <code>aws acm list-certificates --region us-east-1</code> 输出。</p>
+<p><strong>坑二:CNAME 绑定竞态条件</strong>。从账号 A 解绑 CNAME 到账号 B 绑定之间存在时间窗口,如果操作不够快,可能被其他 AWS 账号抢注(虽然概率极低,但在自动化脚本中可能因重试逻辑触发)。症状:账号 B 执行 update-distribution 时报错 “One or more of the CNAMEs you provided are already associated with a different resource”。规避:使用脚本将解绑和绑定操作串联执行,中间间隔 &lt; 30 秒,并添加指数退避重试逻辑(最多重试 3 次,间隔 10&#x2F;20&#x2F;40 秒)。在企业环境中,通过 AWS Organizations SCP(Service Control Policy)限制其他账号创建 CloudFront distribution,降低冲突风险。</p>
+<p><strong>坑三:Lambda@Edge 版本引用错误</strong>。Lambda@Edge 必须使用带版本号的 ARN(如 :1、:2),不能使用 $LATEST 或别名。症状:distribution 创建成功但部署卡在 “InProgress” 状态超过 1 小时,或报错 “The function ARN must reference a specific version”。规避:在账号 B 部署 Lambda 函数后,立即执行 <code>aws lambda publish-version</code> 并记录返回的版本号,在 distribution 配置中使用完整 ARN(arn:aws:lambda:us-east-1:222222222222:function:edge-function:1)。注意 Lambda@Edge 的 IAM 角色必须包含信任策略允许 edgelambda.amazonaws.com 和 lambda.amazonaws.com 两个服务主体。</p>
+<p><strong>坑四:Origin 访问权限未同步</strong>。迁移后 CloudFront 可以访问 Origin,但返回 403 错误,因为新 distribution 的 OAI&#x2F;OAC 未被 S3 bucket policy 授权,或 ALB 安全组未放行新 distribution 的 IP 范围。症状:CloudFront 返回 “Access Denied” 或 “403 Forbidden”,CloudWatch Logs 显示 “OriginAccessDenied”。规避:在账号 B 创建 OAC 后,立即更新 S3 bucket policy 添加 <code>&quot;Service&quot;: &quot;cloudfront.amazonaws.com&quot;</code> 和 <code>&quot;Condition&quot;: &#123;&quot;StringEquals&quot;: &#123;&quot;AWS:SourceArn&quot;: &quot;arn:aws:cloudfront::222222222222:distribution/E9876543210XYZ&quot;&#125;&#125;</code>。对于 ALB Origin,使用 AWS 托管前缀列表 <code>com.amazonaws.global.cloudfront.origin-facing</code> 更新安全组入站规则,避免手动维护 IP 范围。</p>
+<p><strong>坑五:缓存失效策略遗漏</strong>。迁移后新 distribution 的缓存为空,首次请求会全部回源,导致 Origin 负载激增和延迟飙升。症状:迁移后 5-10 分钟内 Origin 服务器 CPU&#x2F;网络带宽打满,CloudFront CacheHitRate 指标降至 0%。规避:在切换前预热新 distribution 的缓存,使用脚本批量请求热点 URL:<code>for url in $(cat hot-urls.txt); do curl -s &quot;https://d222222abcdef8.cloudfront.net$url&quot; -H &quot;Host: cdn.example.com&quot; &gt; /dev/null; done</code>。或在切换后立即创建失效请求,将账号 A 的热点路径标记为失效,触发账号 B 主动回源填充缓存:<code>aws cloudfront create-invalidation --distribution-id E9876543210XYZ --paths &quot;/*&quot;</code>(注意失效请求有配额限制,每月前 1000 个路径免费)。</p>
+<h2 id="架构优化与可观测性建议"><a href="#架构优化与可观测性建议" class="headerlink" title="架构优化与可观测性建议"></a>架构优化与可观测性建议</h2><p>在企业级场景中,应采用蓝绿部署或金丝雀发布策略降低迁移风险。通过 Route 53 加权路由策略,初始将 5% 流量导向账号 B 的新 distribution,观察 30 分钟后逐步提升至 10%&#x2F;25%&#x2F;50%&#x2F;100%,每个阶段设置 SLO 门槛(如 P99 延迟 &lt; 200ms,错误率 &lt; 0.1%)。使用 CloudWatch Synthetics Canary 创建持续监控任务,每分钟从全球多个区域发起测试请求,验证 SSL 握手、DNS 解析、内容完整性和响应时间:<code>aws synthetics create-canary --name cdn-migration-canary --artifact-s3-location s3://canary-results/ --execution-role-arn arn:aws:iam::222222222222:role/CanaryRole --schedule Expression=&quot;rate(1 minute)&quot; --runtime-version syn-nodejs-puppeteer-3.9</code>。</p>
+<p>在 CloudWatch 中配置复合告警,关联多个指标(Requests、4xxErrorRate、5xxErrorRate、OriginLatency)设置动态阈值,当任一指标偏离基线 2 个标准差时触发 SNS 通知和自动回滚 Lambda。启用 CloudFront 实时日志(Real-time Logs)推送到 Kinesis Data Streams,使用 Kinesis Data Analytics 实时计算滑动窗口内的错误率和延迟分位数,实现秒级异常检测。对于关键业务,部署多区域主备架构,使用 Route 53 健康检查和故障转移路由策略,当主 distribution 健康检查失败时自动切换到备用 distribution,RTO &lt; 60 秒。</p>
+<p>建立迁移后的持续验证机制,通过 AWS Config 规则检测 distribution 配置漂移(如 CNAME 被意外修改、SSL 证书过期),通过 EventBridge 监听 CloudFront API 调用事件,任何非授权的配置变更触发告警和自动修复。在成本优化方面,对比迁移前后的 CloudFront 数据传输费用和请求费用,使用 Cost Explorer 按 distribution ID 分组分析,识别异常流量来源。定期审计 Origin Shield 配置,对于高缓存命中率的内容启用 Origin Shield 降低回源成本,选择靠近 Origin 的最优区域(如 Origin 在 us-east-1,则 Origin Shield 选择 us-east-1)。</p>
+<h2 id="参考-Runbook-与命令速查"><a href="#参考-Runbook-与命令速查" class="headerlink" title="参考 Runbook 与命令速查"></a>参考 Runbook 与命令速查</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出源 distribution 完整配置</span></span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234567890ABC &gt; dist-config.json</span><br><span class="line">jq <span class="string">&#x27;.DistributionConfig&#x27;</span> dist-config.json &gt; dist-config-only.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 CNAME 当前绑定状态</span></span><br><span class="line">aws cloudfront list-distributions --query <span class="string">&quot;DistributionList.Items[?Aliases.Items!=null] | [].&#123;ID:Id,CNAMEs:Aliases.Items&#125;&quot;</span> --output table</span><br><span class="line"></span><br><span class="line"><span class="comment"># 申请 ACM 证书(us-east-1)</span></span><br><span class="line">aws acm request-certificate --domain-name cdn.example.com --validation-method DNS --region us-east-1 --query <span class="string">&#x27;CertificateArn&#x27;</span> --output text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 OAC</span></span><br><span class="line">aws cloudfront create-origin-access-control --origin-access-control-config <span class="string">&#x27;&#123;&quot;Name&quot;:&quot;migration-oac&quot;,&quot;SigningProtocol&quot;:&quot;sigv4&quot;,&quot;SigningBehavior&quot;:&quot;always&quot;,&quot;OriginAccessControlOriginType&quot;:&quot;s3&quot;&#125;&#x27;</span> --query <span class="string">&#x27;OriginAccessControl.Id&#x27;</span> --output text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新 distribution 移除 CNAME(需先获取 ETag)</span></span><br><span class="line">ETAG=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234567890ABC --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> E1234567890ABC --if-match <span class="variable">$ETAG</span> --distribution-config file://config-no-cname.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 等待 distribution 部署完成</span></span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> E9876543210XYZ</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建缓存失效</span></span><br><span class="line">aws cloudfront create-invalidation --distribution-id E9876543210XYZ --paths <span class="string">&quot;/index.html&quot;</span> <span class="string">&quot;/static/*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时监控请求量(最近 5 分钟)</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;5 min ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Sum</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询错误率</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name 5xxErrorRate --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;10 min ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Average</span><br></pre></td></tr></table></figure>
+
+<p>关键运维检查点:迁移前验证 ACM 证书状态(ISSUED)和区域(us-east-1),确认 Origin 可达性和访问权限,备份源 distribution 完整配置;迁移中严格控制 CNAME 解绑到绑定的时间窗口 &lt; 30 秒,实时监控两侧流量切换曲线;迁移后持续观察 72 小时,对比错误率、延迟和缓存命中率基线,保留源 distribution 作为快速回滚路径。所有操作记录审计日志,通过 CloudTrail 追溯配置变更历史,建立标准化 runbook 和自动化脚本,降低人为失误风险。</p>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">[expanded] [blog] Linux命令</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-ollama/">[expanded] [blog] Ollama</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/vue2vsvue3/">vue2 对比 vue3</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
