@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] [blog] Ollama
+原始问题: [blog] Ollama
+
+Ollama 本地大模型运行框架：从部署到生产级实践一、背景：为什么需要本地 LLM 运行时在云端 LLM API 成本高企、数据隐私合规要求严格的场景下，本地部署大语言模型成为刚需。典型场景包括：金融机构内">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] Ollama"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] Ollama - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-blog-ollama/">
+                [expanded] [blog] Ollama
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-blog-Ollama"><a href="#expanded-blog-Ollama" class="headerlink" title="[expanded] [blog] Ollama"></a>[expanded] [blog] Ollama</h1><blockquote>
+<p>原始问题: [blog] Ollama</p>
+</blockquote>
+<h1 id="Ollama-本地大模型运行框架：从部署到生产级实践"><a href="#Ollama-本地大模型运行框架：从部署到生产级实践" class="headerlink" title="Ollama 本地大模型运行框架：从部署到生产级实践"></a>Ollama 本地大模型运行框架：从部署到生产级实践</h1><h2 id="一、背景：为什么需要本地-LLM-运行时"><a href="#一、背景：为什么需要本地-LLM-运行时" class="headerlink" title="一、背景：为什么需要本地 LLM 运行时"></a>一、背景：为什么需要本地 LLM 运行时</h2><p>在云端 LLM API 成本高企、数据隐私合规要求严格的场景下，本地部署大语言模型成为刚需。典型场景包括：金融机构内网环境无法访问公网 API、医疗行业需满足 HIPAA 合规、研发团队需要离线代码补全能力、以及高频调用场景下云端 API 成本不可控。Ollama 作为轻量级 LLM 运行时，通过 Go 实现跨平台支持（macOS&#x2F;Linux&#x2F;Windows），内置模型量化与推理优化，提供 REST API 与 CLI 双接口，成为本地部署的首选方案。</p>
+<p>相比传统方案（如直接使用 Transformers + PyTorch），Ollama 的核心优势在于：开箱即用的模型管理（pull&#x2F;run&#x2F;rm）、自动内存管理（根据硬件动态调整量化策略）、统一的 API 接口（兼容 OpenAI Chat Completions 格式）。但需注意其局限性：模型选择受限于官方仓库、推理性能不如 vLLM 等专用框架、缺乏分布式推理能力。在选型时需根据实际场景权衡易用性与性能。</p>
+<h2 id="二、诊断步骤：验证环境与模型可用性"><a href="#二、诊断步骤：验证环境与模型可用性" class="headerlink" title="二、诊断步骤：验证环境与模型可用性"></a>二、诊断步骤：验证环境与模型可用性</h2><p>在正式部署前，必须通过 read-only 命令验证硬件资源与模型兼容性，避免运行时 OOM 或性能瓶颈：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 验证 Ollama 服务状态</span></span><br><span class="line">curl http://localhost:11434/api/tags  <span class="comment"># 返回已安装模型列表</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 检查系统资源（以 7B 模型为例，需 8GB+ 可用内存）</span></span><br><span class="line">free -h | grep Mem  <span class="comment"># Linux</span></span><br><span class="line">vm_stat | grep free  <span class="comment"># macOS</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 测试模型推理延迟（baseline 性能）</span></span><br><span class="line"><span class="keyword">time</span> ollama run llama3.2 <span class="string">&quot;Hello&quot;</span> --verbose</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 验证 GPU 可用性（如有）</span></span><br><span class="line">nvidia-smi  <span class="comment"># NVIDIA GPU</span></span><br><span class="line">system_profiler SPDisplaysDataType | grep Metal  <span class="comment"># Apple Silicon</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 检查模型文件完整性</span></span><br><span class="line">ollama show llama3.2 --modelfile  <span class="comment"># 查看量化配置与参数规模</span></span><br></pre></td></tr></table></figure>
+
+<p>关键指标：模型加载时间（应 &lt; 30s）、首 token 延迟（应 &lt; 2s）、内存占用（7B 模型约 4-6GB）。若加载超时或 OOM，需切换更小模型（如 3B）或调整量化参数。</p>
+<h2 id="三、生产部署：容器化与高可用配置"><a href="#三、生产部署：容器化与高可用配置" class="headerlink" title="三、生产部署：容器化与高可用配置"></a>三、生产部署：容器化与高可用配置</h2><h3 id="3-1-Docker-Compose-标准部署"><a href="#3-1-Docker-Compose-标准部署" class="headerlink" title="3.1 Docker Compose 标准部署"></a>3.1 Docker Compose 标准部署</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&#x27;3.8&#x27;</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">ollama:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">ollama/ollama:0.1.29</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">ollama-prod</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;11434:11434&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./models:/root/.ollama</span>  <span class="comment"># 持久化模型文件</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/dev/shm:/dev/shm</span>       <span class="comment"># 共享内存加速</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_MODELS=/root/.ollama/models</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">OLLAMA_NUM_PARALLEL=2</span>   <span class="comment"># 并发请求数</span></span><br><span class="line">    <span class="attr">deploy:</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">limits:</span></span><br><span class="line">          <span class="attr">memory:</span> <span class="string">16G</span>           <span class="comment"># 防止 OOM</span></span><br></pre></td></tr></table></figure>
+
+<p>生产环境必须配置：健康检查（<code>/api/tags</code> 端点）、日志轮转（避免磁盘打满）、资源限制（防止单容器耗尽宿主机资源）。模型文件通过 volume 持久化，避免容器重启后重新下载。</p>
+<h3 id="3-2-模型预热与版本管理"><a href="#3-2-模型预热与版本管理" class="headerlink" title="3.2 模型预热与版本管理"></a>3.2 模型预热与版本管理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 预拉取生产模型（避免首次请求冷启动）</span></span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama pull llama3.2:7b</span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama pull qwen2.5:7b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建模型别名（便于灰度切换）</span></span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama <span class="built_in">cp</span> llama3.2:7b llama3-stable</span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod ollama <span class="built_in">cp</span> qwen2.5:7b qwen-canary</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证模型可用性</span></span><br><span class="line">curl -X POST http://localhost:11434/api/generate \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3-stable&quot;,&quot;prompt&quot;:&quot;test&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过别名机制实现模型版本管理：生产流量指向 <code>llama3-stable</code>，新模型验证使用 <code>qwen-canary</code>，验证通过后通过 <code>ollama cp</code> 原子切换。</p>
+<h3 id="3-3-反向代理与限流"><a href="#3-3-反向代理与限流" class="headerlink" title="3.3 反向代理与限流"></a>3.3 反向代理与限流</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">upstream</span> ollama_backend &#123;</span><br><span class="line">    <span class="attribute">server</span> <span class="number">127.0.0.1:11434</span> max_fails=<span class="number">3</span> fail_timeout=<span class="number">30s</span>;</span><br><span class="line">    <span class="attribute">keepalive</span> <span class="number">32</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">8080</span>;</span><br><span class="line">    <span class="section">location</span> /v1/ &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://ollama_backend/api/;</span><br><span class="line">        <span class="attribute">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Connection <span class="string">&quot;&quot;</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 限流：每 IP 每秒 10 请求</span></span><br><span class="line">        <span class="attribute">limit_req</span> zone=ollama_limit burst=<span class="number">20</span> nodelay;</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 超时控制</span></span><br><span class="line">        <span class="attribute">proxy_read_timeout</span> <span class="number">120s</span>;</span><br><span class="line">        <span class="attribute">proxy_send_timeout</span> <span class="number">120s</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>生产环境必须通过 Nginx&#x2F;Envoy 实现：请求限流（防止单用户打爆服务）、超时控制（长文本生成需调整 timeout）、连接复用（keepalive 减少握手开销）。</p>
+<h2 id="四、常见坑与排查手册"><a href="#四、常见坑与排查手册" class="headerlink" title="四、常见坑与排查手册"></a>四、常见坑与排查手册</h2><h3 id="4-1-内存泄漏与-OOM"><a href="#4-1-内存泄漏与-OOM" class="headerlink" title="4.1 内存泄漏与 OOM"></a>4.1 内存泄漏与 OOM</h3><p><strong>现象</strong>：运行数小时后容器被 OOM Killer 杀死，日志显示 <code>signal: killed</code>。</p>
+<p><strong>根因</strong>：Ollama 0.1.x 版本存在内存泄漏，长时间运行后未释放推理缓存。</p>
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 临时方案：定时重启容器</span></span><br><span class="line">0 */6 * * * docker restart ollama-prod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根本方案：升级到 0.1.29+ 并启用内存限制</span></span><br><span class="line">docker update --memory=12G --memory-swap=12G ollama-prod</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-模型加载失败"><a href="#4-2-模型加载失败" class="headerlink" title="4.2 模型加载失败"></a>4.2 模型加载失败</h3><p><strong>现象</strong>：<code>ollama run</code> 卡住或报错 <code>failed to load model</code>。</p>
+<p><strong>排查步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查磁盘空间（模型文件可能损坏）</span></span><br><span class="line"><span class="built_in">df</span> -h /root/.ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证模型文件完整性</span></span><br><span class="line"><span class="built_in">sha256sum</span> /root/.ollama/models/blobs/sha256-*</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理损坏模型重新拉取</span></span><br><span class="line">ollama <span class="built_in">rm</span> llama3.2 &amp;&amp; ollama pull llama3.2</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-推理性能退化"><a href="#4-3-推理性能退化" class="headerlink" title="4.3 推理性能退化"></a>4.3 推理性能退化</h3><p><strong>现象</strong>：首 token 延迟从 1s 增加到 10s+。</p>
+<p><strong>根因</strong>：CPU 模式下未启用 AVX2&#x2F;AVX512 指令集，或 GPU 显存碎片化。</p>
+<p><strong>优化方案</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 验证 CPU 指令集支持</span></span><br><span class="line">lscpu | grep -E <span class="string">&#x27;avx|fma&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 强制使用 GPU（如有）</span></span><br><span class="line">OLLAMA_GPU=1 ollama run llama3.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理 GPU 缓存</span></span><br><span class="line">docker <span class="built_in">exec</span> ollama-prod sh -c <span class="string">&#x27;echo 3 &gt; /proc/sys/vm/drop_caches&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-并发请求阻塞"><a href="#4-4-并发请求阻塞" class="headerlink" title="4.4 并发请求阻塞"></a>4.4 并发请求阻塞</h3><p><strong>现象</strong>：单请求正常，并发 5+ 请求时全部超时。</p>
+<p><strong>根因</strong>：默认 <code>OLLAMA_NUM_PARALLEL=1</code>，无法处理并发。</p>
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 调整并发数（需重启容器）</span></span><br><span class="line">docker run -e OLLAMA_NUM_PARALLEL=4 ollama/ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证并发能力</span></span><br><span class="line"><span class="built_in">seq</span> 10 | xargs -P 10 -I &#123;&#125; curl -X POST http://localhost:11434/api/generate \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;prompt&quot;:&quot;test &#123;&#125;&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5-流式输出中断"><a href="#4-5-流式输出中断" class="headerlink" title="4.5 流式输出中断"></a>4.5 流式输出中断</h3><p><strong>现象</strong>：使用 <code>/api/generate</code> 流式接口时，输出到一半断开连接。</p>
+<p><strong>根因</strong>：Nginx 默认 <code>proxy_buffering on</code> 导致流式响应被缓冲。</p>
+<p><strong>修复配置</strong>：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">location</span> /api/generate &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://ollama_backend;</span><br><span class="line">    <span class="attribute">proxy_buffering</span> <span class="literal">off</span>;           <span class="comment"># 关键配置</span></span><br><span class="line">    <span class="attribute">proxy_cache</span> <span class="literal">off</span>;</span><br><span class="line">    <span class="attribute">chunked_transfer_encoding</span> <span class="literal">on</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、架构建议：可观测性与-SLO-保障"><a href="#五、架构建议：可观测性与-SLO-保障" class="headerlink" title="五、架构建议：可观测性与 SLO 保障"></a>五、架构建议：可观测性与 SLO 保障</h2><h3 id="5-1-监控指标体系"><a href="#5-1-监控指标体系" class="headerlink" title="5.1 监控指标体系"></a>5.1 监控指标体系</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Prometheus 采集配置</span></span><br><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">&#x27;ollama&#x27;</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> [<span class="string">&#x27;localhost:11434&#x27;</span>]</span><br><span class="line">    <span class="attr">metrics_path:</span> <span class="string">&#x27;/metrics&#x27;</span>  <span class="comment"># 需自行实现 exporter</span></span><br></pre></td></tr></table></figure>
+
+<p>关键指标：</p>
+<ul>
+<li><strong>推理延迟</strong>：P50&#x2F;P95&#x2F;P99（目标：P95 &lt; 3s）</li>
+<li><strong>吞吐量</strong>：QPS（目标：单实例 10+ QPS）</li>
+<li><strong>资源利用率</strong>：GPU 利用率 &gt; 70%，内存 &lt; 80%</li>
+<li><strong>错误率</strong>：5xx 错误 &lt; 0.1%</li>
+</ul>
+<p>通过 Grafana 配置告警：P95 延迟 &gt; 5s 触发 PagerDuty，错误率 &gt; 1% 自动回滚。</p>
+<h3 id="5-2-灰度发布策略"><a href="#5-2-灰度发布策略" class="headerlink" title="5.2 灰度发布策略"></a>5.2 灰度发布策略</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 部署 Canary 实例（新模型）</span></span><br><span class="line">docker run -d --name ollama-canary \</span><br><span class="line">  -e OLLAMA_MODELS=/models/canary \</span><br><span class="line">  ollama/ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. Nginx 配置流量分割（5% 流量到 Canary）</span></span><br><span class="line">split_clients <span class="variable">$request_id</span> <span class="variable">$backend</span> &#123;</span><br><span class="line">    5%     canary;</span><br><span class="line">    *      stable;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证 Canary 指标（运行 1 小时）</span></span><br><span class="line"><span class="comment"># 若 P95 延迟 &lt; stable 且错误率 &lt; 0.1%，则全量切换</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-容量规划"><a href="#5-3-容量规划" class="headerlink" title="5.3 容量规划"></a>5.3 容量规划</h3><table>
+<thead>
+<tr>
+<th>模型规模</th>
+<th>单实例 QPS</th>
+<th>内存需求</th>
+<th>GPU 需求</th>
+<th>推荐部署</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3B</td>
+<td>20</td>
+<td>4GB</td>
+<td>可选</td>
+<td>2 实例</td>
+</tr>
+<tr>
+<td>7B</td>
+<td>10</td>
+<td>8GB</td>
+<td>推荐</td>
+<td>3 实例</td>
+</tr>
+<tr>
+<td>13B</td>
+<td>5</td>
+<td>16GB</td>
+<td>必需</td>
+<td>4 实例</td>
+</tr>
+</tbody></table>
+<p>按峰值 QPS 100 计算：7B 模型需 10 实例（考虑 N+2 冗余），总内存 80GB，建议使用 4 台 32GB 内存机器。</p>
+<h2 id="六、参考-Runbook"><a href="#六、参考-Runbook" class="headerlink" title="六、参考 Runbook"></a>六、参考 Runbook</h2><h3 id="6-1-日常运维命令"><a href="#6-1-日常运维命令" class="headerlink" title="6.1 日常运维命令"></a>6.1 日常运维命令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看运行状态</span></span><br><span class="line">docker ps | grep ollama</span><br><span class="line">curl http://localhost:11434/api/tags</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看资源占用</span></span><br><span class="line">docker stats ollama-prod --no-stream</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看推理日志</span></span><br><span class="line">docker logs -f --<span class="built_in">tail</span> 100 ollama-prod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 手动触发模型预热</span></span><br><span class="line">curl -X POST http://localhost:11434/api/generate \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;llama3.2&quot;,&quot;prompt&quot;:&quot;warmup&quot;,&quot;stream&quot;:false&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理未使用模型</span></span><br><span class="line">ollama list | grep -v <span class="string">&#x27;llama3.2\|qwen2.5&#x27;</span> | awk <span class="string">&#x27;&#123;print $1&#125;&#x27;</span> | xargs -I &#123;&#125; ollama <span class="built_in">rm</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-故障恢复流程"><a href="#6-2-故障恢复流程" class="headerlink" title="6.2 故障恢复流程"></a>6.2 故障恢复流程</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 备份当前模型文件</span></span><br><span class="line">tar -czf ollama-models-$(<span class="built_in">date</span> +%Y%m%d).tar.gz /root/.ollama/models</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 停止服务</span></span><br><span class="line">docker stop ollama-prod</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 恢复到上一个稳定版本</span></span><br><span class="line">docker run -d --name ollama-prod \</span><br><span class="line">  -v ./models-backup:/root/.ollama \</span><br><span class="line">  ollama/ollama:0.1.28</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 验证服务可用性</span></span><br><span class="line">curl http://localhost:11434/api/tags</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-性能调优参考"><a href="#6-3-性能调优参考" class="headerlink" title="6.3 性能调优参考"></a>6.3 性能调优参考</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CPU 优化：启用 AVX512</span></span><br><span class="line">OLLAMA_LLM_LIBRARY=cpu_avx512 ollama run llama3.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># GPU 优化：调整批处理大小</span></span><br><span class="line">OLLAMA_MAX_BATCH_SIZE=512 ollama run llama3.2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 内存优化：启用 8-bit 量化</span></span><br><span class="line">ollama run llama3.2:7b-q8_0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 网络优化：调整 keep-alive</span></span><br><span class="line">curl -H <span class="string">&quot;Connection: keep-alive&quot;</span> http://localhost:11434/api/generate</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-相关文档"><a href="#6-4-相关文档" class="headerlink" title="6.4 相关文档"></a>6.4 相关文档</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/ollama/ollama/tree/main/docs">Ollama 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ggerganov/llama.cpp#quantization">模型量化对比</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.vllm.ai/2023/06/20/vllm.html">vLLM 性能对比</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/hiyouga/LLaMA-Factory">LLaMA Factory 微调指南</a></li>
+</ul>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-ollama/">[expanded] [blog] Ollama</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/shell/">Shell</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/social-engineering/">社工库工具</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/software-structure/">软件架构演变</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
