@@ -184,6 +184,108 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
+                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
+<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
+</blockquote>
+<h1 id="CloudFront-Distribution-跨账号迁移的深度实践与避坑指南"><a href="#CloudFront-Distribution-跨账号迁移的深度实践与避坑指南" class="headerlink" title="CloudFront Distribution 跨账号迁移的深度实践与避坑指南"></a>CloudFront Distribution 跨账号迁移的深度实践与避坑指南</h1><h2 id="背景与场景"><a href="#背景与场景" class="headerlink" title="背景与场景"></a>背景与场景</h2><p>CloudFront distribution 跨账号迁移通常发生在企业组织架构调整、业务单元拆分、或安全合规要求下的资源隔离场景。核心挑战在于 CloudFront 的 CNAME 记录具有全局唯一性约束——同一 CNAME 在 AWS 全球范围内只能关联到一个 distribution。这意味着在目标账号 B 创建新 distribution 并配置相同 CNAME 时,必须先从源账号 A 的 distribution 中移除该 CNAME,这个操作窗口会直接导致服务中断。</p>
+<p>典型场景包括:多品牌业务整合后需要统一到独立 AWS Organization;收购兼并后的技术栈迁移;或因 PCI-DSS&#x2F;SOC2 合规要求需要将生产环境隔离到专用账号。迁移过程需要协调 DNS TTL、SSL 证书验证、Origin 访问权限、Lambda@Edge 函数复制等多个维度,任何环节的疏漏都可能导致长时间服务降级。</p>
+<h2 id="诊断与预检步骤"><a href="#诊断与预检步骤" class="headerlink" title="诊断与预检步骤"></a>诊断与预检步骤</h2><p>在执行任何变更前,必须通过 read-only 命令完整采集现有配置状态。首先获取源 distribution 的完整配置清单:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws cloudfront get-distribution --<span class="built_in">id</span> E1234EXAMPLE --profile account-a &gt; dist-config-backup.json</span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234EXAMPLE --profile account-a &gt; dist-config-raw.json</span><br></pre></td></tr></table></figure>
+
+<p>验证关键依赖项的跨账号可访问性。检查 S3 Origin 的 bucket policy 是否允许目标账号的 OAI&#x2F;OAC 访问;检查 ACM 证书是否在 us-east-1 区域且目标账号可访问;列出所有关联的 Lambda@Edge 函数及其版本:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws s3api get-bucket-policy --bucket origin-bucket --profile account-a</span><br><span class="line">aws acm list-certificates --region us-east-1 --profile account-b</span><br><span class="line">aws lambda list-functions --region us-east-1 --profile account-a | jq <span class="string">&#x27;.Functions[] | select(.FunctionName | contains(&quot;edge&quot;))&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>记录当前 DNS 配置和 TTL 值,这将决定迁移窗口的最小时长。使用 <code>dig</code> 或 <code>nslookup</code> 确认 CNAME 当前解析目标和 TTL,同时检查是否存在多层 CNAME 链:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dig +nocmd cdn.example.com CNAME +noall +answer</span><br><span class="line">aws route53 list-resource-record-sets --hosted-zone-id Z1234 --query <span class="string">&quot;ResourceRecordSets[?Name==&#x27;cdn.example.com.&#x27;]&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="迁移方案-备份与准备阶段"><a href="#迁移方案-备份与准备阶段" class="headerlink" title="迁移方案:备份与准备阶段"></a>迁移方案:备份与准备阶段</h2><p>制定完整的回滚预案是跨账号迁移的生命线。导出源 distribution 的完整配置,包括 ETag 用于后续原子更新操作:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ETAG=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234EXAMPLE --profile account-a --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234EXAMPLE --profile account-a --query <span class="string">&#x27;DistributionConfig&#x27;</span> &gt; dist-config-backup.json</span><br></pre></td></tr></table></figure>
+
+<p>在目标账号 B 预先创建所有依赖资源。如果使用 S3 作为 Origin,需要配置 bucket policy 允许新的 Origin Access Control 访问;如果使用自定义 Origin,确保 security group 和 NACLs 允许 CloudFront IP 范围。ACM 证书必须在 us-east-1 区域申请并完成验证:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws acm request-certificate --domain-name cdn.example.com --validation-method DNS --region us-east-1 --profile account-b</span><br><span class="line">aws s3api put-bucket-policy --bucket origin-bucket --policy file://cross-account-policy.json --profile account-b</span><br></pre></td></tr></table></figure>
+
+<p>创建目标 distribution 配置文件,但<strong>暂不包含 CNAME</strong>。这是关键步骤——先创建不带 CNAME 的 distribution,待其完全部署后再添加 CNAME,可以最小化服务中断窗口:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jq <span class="string">&#x27;del(.Aliases.Items) | .Aliases.Quantity=0&#x27;</span> dist-config-backup.json &gt; dist-config-new.json</span><br><span class="line">aws cloudfront create-distribution --distribution-config file://dist-config-new.json --profile account-b</span><br></pre></td></tr></table></figure>
+
+<h2 id="迁移方案-执行切换窗口"><a href="#迁移方案-执行切换窗口" class="headerlink" title="迁移方案:执行切换窗口"></a>迁移方案:执行切换窗口</h2><p>等待目标账号的 distribution 状态变为 <code>Deployed</code>,这通常需要 15-30 分钟。使用 waiter 命令自动轮询状态:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NEW_DIST_ID=$(aws cloudfront list-distributions --profile account-b --query <span class="string">&quot;DistributionList.Items[0].Id&quot;</span> --output text)</span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b</span><br></pre></td></tr></table></figure>
+
+<p>在维护窗口开始时,按顺序执行原子操作:先从源 distribution 移除 CNAME,等待配置生效后立即在目标 distribution 添加 CNAME。使用 ETag 确保并发安全:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从账号 A 移除 CNAME</span></span><br><span class="line">jq <span class="string">&#x27;.Aliases.Quantity=0 | del(.Aliases.Items)&#x27;</span> dist-config-backup.json &gt; dist-config-no-cname.json</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> E1234EXAMPLE --distribution-config file://dist-config-no-cname.json --if-match <span class="variable">$ETAG</span> --profile account-a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 等待配置传播(约 5-10 分钟)</span></span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> E1234EXAMPLE --profile account-a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在账号 B 添加 CNAME</span></span><br><span class="line">NEW_ETAG=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">jq <span class="string">&#x27;.Aliases.Quantity=1 | .Aliases.Items=[&quot;cdn.example.com&quot;]&#x27;</span> dist-config-new.json &gt; dist-config-with-cname.json</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://dist-config-with-cname.json --if-match <span class="variable">$NEW_ETAG</span> --profile account-b</span><br></pre></td></tr></table></figure>
+
+<p>立即更新 DNS 记录指向新的 CloudFront domain name,使用低 TTL(如 60 秒)加速传播。如果使用 Route53,可以通过 API 原子更新:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aws route53 change-resource-record-sets --hosted-zone-id Z1234 --change-batch file://dns-update.json</span><br></pre></td></tr></table></figure>
+
+<h2 id="迁移方案-验证与回滚机制"><a href="#迁移方案-验证与回滚机制" class="headerlink" title="迁移方案:验证与回滚机制"></a>迁移方案:验证与回滚机制</h2><p>部署后立即执行多维度验证。使用 <code>curl</code> 强制解析到新 distribution 的边缘节点,绕过 DNS 缓存:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NEW_DOMAIN=$(aws cloudfront get-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b --query <span class="string">&#x27;Distribution.DomainName&#x27;</span> --output text)</span><br><span class="line">curl -H <span class="string">&quot;Host: cdn.example.com&quot;</span> https://<span class="variable">$NEW_DOMAIN</span>/health-check -v</span><br><span class="line">curl -I https://cdn.example.com --resolve cdn.example.com:443:$(dig +short <span class="variable">$NEW_DOMAIN</span> | <span class="built_in">head</span> -1)</span><br></pre></td></tr></table></figure>
+
+<p>监控 CloudFront 实时指标,对比迁移前后的 4xx&#x2F;5xx 错误率、缓存命中率、Origin 延迟。设置 CloudWatch Alarm 在错误率超过基线 2 倍时触发告警:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name 4xxErrorRate \</span><br><span class="line">  --dimensions Name=DistributionId,Value=<span class="variable">$NEW_DIST_ID</span> --statistics Average \</span><br><span class="line">  --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;10 minutes ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --profile account-b</span><br></pre></td></tr></table></figure>
+
+<p>如果出现严重问题,回滚流程为反向操作:从账号 B 移除 CNAME,恢复到账号 A,并回滚 DNS。关键是保留原始配置的 ETag 和完整 JSON 备份,确保可以在 5 分钟内完成回滚:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 紧急回滚</span></span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://dist-config-no-cname.json --if-match <span class="variable">$NEW_ETAG</span> --profile account-b</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> E1234EXAMPLE --distribution-config file://dist-config-backup.json --if-match <span class="variable">$ORIGINAL_ETAG</span> --profile account-a</span><br><span class="line">aws route53 change-resource-record-sets --hosted-zone-id Z1234 --change-batch file://dns-rollback.json</span><br></pre></td></tr></table></figure>
+
+<h2 id="五大典型踩坑与闭合方案"><a href="#五大典型踩坑与闭合方案" class="headerlink" title="五大典型踩坑与闭合方案"></a>五大典型踩坑与闭合方案</h2><p><strong>坑 1: Lambda@Edge 函数跨账号复制失败</strong>。Lambda@Edge 必须在 us-east-1 区域,且函数版本(非 $LATEST)会被 CloudFront 锁定无法删除。闭合方案是在目标账号重新部署函数,使用相同代码但不同函数名,并在 distribution 配置中更新 ARN。注意 IAM role 的信任关系必须包含 <code>edgelambda.amazonaws.com</code> 和 <code>lambda.amazonaws.com</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws lambda create-function --function-name edge-function-new --runtime nodejs18.x --role arn:aws:iam::ACCOUNT-B:role/lambda-edge-role \</span><br><span class="line">  --handler index.handler --zip-file fileb://function.zip --region us-east-1 --profile account-b</span><br><span class="line">VERSION=$(aws lambda publish-version --function-name edge-function-new --region us-east-1 --profile account-b --query <span class="string">&#x27;Version&#x27;</span> --output text)</span><br></pre></td></tr></table></figure>
+
+<p><strong>坑 2: ACM 证书区域错误或验证超时</strong>。CloudFront 只接受 us-east-1 区域的 ACM 证书,且 DNS 验证记录必须在迁移前完成。闭合方案是提前 24 小时在目标账号申请证书,使用 Route53 自动验证,并在迁移前确认证书状态为 <code>ISSUED</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aws acm describe-certificate --certificate-arn arn:aws:acm:us-east-1:ACCOUNT-B:certificate/xxx --region us-east-1 --profile account-b --query <span class="string">&#x27;Certificate.Status&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>坑 3: Origin Access Identity (OAI) 权限未同步</strong>。旧 distribution 使用的 OAI 无法跨账号共享,必须在目标账号创建新 OAI 并更新 S3 bucket policy。闭合方案是使用新的 Origin Access Control (OAC) 替代 OAI,OAC 支持更细粒度的权限控制和 SSE-KMS 加密:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws cloudfront create-origin-access-control --origin-access-control-config file://oac-config.json --profile account-b</span><br><span class="line"><span class="comment"># 更新 S3 bucket policy 允许新 OAC</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>坑 4: CNAME 冲突导致 CNAMEAlreadyExists 错误</strong>。在源 distribution 的 CNAME 移除操作未完全传播前(通常需 5-15 分钟),目标 distribution 添加相同 CNAME 会失败。闭合方案是在自动化脚本中加入轮询等待逻辑,每 30 秒检查一次源 distribution 状态,确认 <code>Deployed</code> 后再执行目标 distribution 更新:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span></span><br><span class="line">  STATUS=$(aws cloudfront get-distribution --<span class="built_in">id</span> E1234EXAMPLE --profile account-a --query <span class="string">&#x27;Distribution.Status&#x27;</span> --output text)</span><br><span class="line">  [[ <span class="string">&quot;<span class="variable">$STATUS</span>&quot;</span> == <span class="string">&quot;Deployed&quot;</span> ]] &amp;&amp; <span class="built_in">break</span></span><br><span class="line">  <span class="built_in">sleep</span> 30</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>坑 5: WAF WebACL 关联丢失</strong>。CloudFront 关联的 WAF WebACL 必须在同一账号,跨账号迁移后需要重新创建或关联。闭合方案是使用 AWS Firewall Manager 在目标账号预先部署相同规则集,或导出 WAF 规则为 JSON 后在目标账号重建。注意 WAF 有 rate-based 规则时,需要重新初始化计数器:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws wafv2 get-web-acl --name prod-waf --scope CLOUDFRONT --region us-east-1 --profile account-a &gt; waf-backup.json</span><br><span class="line">aws wafv2 create-web-acl --cli-input-json file://waf-backup.json --region us-east-1 --profile account-b</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://dist-with-waf.json --if-match <span class="variable">$ETAG</span> --profile account-b</span><br></pre></td></tr></table></figure>
+
+<h2 id="架构建议与可观测性"><a href="#架构建议与可观测性" class="headerlink" title="架构建议与可观测性"></a>架构建议与可观测性</h2><p>对于高可用性要求的生产环境,建议采用蓝绿部署策略而非直接切换。在目标账号创建完整的 distribution 后,先通过修改本地 <code>/etc/hosts</code> 或使用测试域名进行端到端验证,确认 Origin 连接、缓存行为、Lambda@Edge 执行均正常后再切换 DNS。</p>
+<p>使用 Route53 的加权路由策略实现灰度发布。初始将 10% 流量路由到新 distribution,监控 1 小时后逐步提升至 50%、100%。配置 CloudWatch Contributor Insights 分析 Top N 请求路径的错误率分布:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">aws route53 change-resource-record-sets --hosted-zone-id Z1234 --change-batch <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;Changes&quot;: [&#123;</span></span><br><span class="line"><span class="string">    &quot;Action&quot;: &quot;CREATE&quot;,</span></span><br><span class="line"><span class="string">    &quot;ResourceRecordSet&quot;: &#123;</span></span><br><span class="line"><span class="string">      &quot;Name&quot;: &quot;cdn.example.com&quot;,</span></span><br><span class="line"><span class="string">      &quot;Type&quot;: &quot;CNAME&quot;,</span></span><br><span class="line"><span class="string">      &quot;SetIdentifier&quot;: &quot;new-dist&quot;,</span></span><br><span class="line"><span class="string">      &quot;Weight&quot;: 10,</span></span><br><span class="line"><span class="string">      &quot;TTL&quot;: 60,</span></span><br><span class="line"><span class="string">      &quot;ResourceRecords&quot;: [&#123;&quot;Value&quot;: &quot;&#x27;</span><span class="variable">$NEW_DOMAIN</span><span class="string">&#x27;&quot;&#125;]</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">  &#125;]</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>建立多层监控体系:CloudFront 原生指标(请求数、字节传输、错误率)+ 自定义 Lambda@Edge 日志 + Real User Monitoring。定义明确的 SLO:P99 延迟 &lt; 200ms,可用性 &gt; 99.9%,缓存命中率 &gt; 85%。在迁移窗口设置 15 分钟的 error budget 豁免期,但任何超过 1% 的 5xx 错误率必须立即触发回滚。</p>
+<p>对于全球分布的用户,考虑使用 CloudFront Functions(更轻量)替代 Lambda@Edge 处理简单逻辑如 URL 重写、header 注入,可降低冷启动延迟。在迁移后保留源账号的 distribution 7 天作为应急备份,期间持续对比两个 distribution 的指标差异,确认无异常后再清理。</p>
+<h2 id="参考-Runbook-与命令库"><a href="#参考-Runbook-与命令库" class="headerlink" title="参考 Runbook 与命令库"></a>参考 Runbook 与命令库</h2><p>完整的迁移 runbook 应包含预检、执行、验证、回滚四个阶段的命令清单。预检阶段核心命令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出完整配置</span></span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --profile account-a &gt; src-dist.json</span><br><span class="line">aws s3api get-bucket-policy --bucket <span class="variable">$ORIGIN_BUCKET</span> --profile account-a &gt; bucket-policy.json</span><br><span class="line">aws acm list-certificates --region us-east-1 --profile account-b</span><br><span class="line">aws wafv2 get-web-acl --name <span class="variable">$WAF_NAME</span> --scope CLOUDFRONT --region us-east-1 --profile account-a &gt; waf.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证跨账号访问</span></span><br><span class="line">aws sts assume-role --role-arn arn:aws:iam::ACCOUNT-B:role/migration-role --role-session-name <span class="built_in">test</span> --profile account-a</span><br></pre></td></tr></table></figure>
+
+<p>执行阶段关键操作序列(建议封装为 bash 脚本并加入幂等性检查):</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 创建目标资源</span></span><br><span class="line">aws cloudfront create-origin-access-control --origin-access-control-config file://oac.json --profile account-b</span><br><span class="line">aws cloudfront create-distribution --distribution-config file://dist-no-cname.json --profile account-b</span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 原子切换 CNAME</span></span><br><span class="line">ETAG_SRC=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --profile account-a --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --distribution-config file://src-no-cname.json --if-match <span class="variable">$ETAG_SRC</span> --profile account-a</span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --profile account-a</span><br><span class="line"></span><br><span class="line">ETAG_NEW=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://new-with-cname.json --if-match <span class="variable">$ETAG_NEW</span> --profile account-b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 更新 DNS</span></span><br><span class="line">aws route53 change-resource-record-sets --hosted-zone-id <span class="variable">$ZONE_ID</span> --change-batch file://dns-change.json</span><br></pre></td></tr></table></figure>
+
+<p>验证与监控命令集:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 健康检查</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> &#123;1..10&#125;; <span class="keyword">do</span> curl -w <span class="string">&quot;%&#123;http_code&#125;\n&quot;</span> -o /dev/null -s https://cdn.example.com/health; <span class="built_in">sleep</span> 1; <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时指标</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests \</span><br><span class="line">  --dimensions Name=DistributionId,Value=<span class="variable">$NEW_DIST_ID</span> --statistics Sum --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;5 minutes ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) \</span><br><span class="line">  --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --profile account-b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志分析(如启用 access logs)</span></span><br><span class="line">aws s3 <span class="built_in">sync</span> s3://<span class="variable">$LOG_BUCKET</span>/<span class="variable">$NEW_DIST_ID</span>/ ./logs/ --profile account-b</span><br><span class="line">zcat logs/*.gz | awk <span class="string">&#x27;&#123;print $9&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn | <span class="built_in">head</span> -20  <span class="comment"># Top 20 状态码</span></span><br></pre></td></tr></table></figure>
+
+<p>紧急回滚 runbook(应打印并放在运维手册中):</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ROLLBACK PROCEDURE - Execute in order</span></span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://new-no-cname.json --if-match <span class="variable">$ETAG_NEW</span> --profile account-b</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --distribution-config file://src-original.json --if-match <span class="variable">$ETAG_SRC</span> --profile account-a</span><br><span class="line">aws route53 change-resource-record-sets --hosted-zone-id <span class="variable">$ZONE_ID</span> --change-batch file://dns-rollback.json</span><br><span class="line"><span class="comment"># Verify: curl -I https://cdn.example.com</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
                 [expanded] 一次性的蘸料小塑料盒怎么废物利用
             </a>
@@ -219,60 +321,6 @@
 <h2 id="6-运维-Runbook-与参考命令"><a href="#6-运维-Runbook-与参考命令" class="headerlink" title="6. 运维 Runbook 与参考命令"></a>6. 运维 Runbook 与参考命令</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 容器材质快速识别</span></span><br><span class="line"><span class="function"><span class="title">identify_material</span></span>() &#123; grep -oP <span class="string">&#x27;(?&lt;=♷)[0-9]&#x27;</span> container.label; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 批量清洗流程自动化</span></span><br><span class="line"><span class="function"><span class="title">batch_wash</span></span>() &#123;</span><br><span class="line">  <span class="keyword">for</span> container <span class="keyword">in</span> pool/*.box; <span class="keyword">do</span></span><br><span class="line">    rinse --temp=60C --duration=15m <span class="string">&quot;<span class="variable">$container</span>&quot;</span></span><br><span class="line">    disinfect --method=alcohol75 <span class="string">&quot;<span class="variable">$container</span>&quot;</span></span><br><span class="line">    log_event <span class="string">&quot;washed&quot;</span> <span class="string">&quot;<span class="variable">$container</span>&quot;</span> &gt;&gt; wash_log.csv</span><br><span class="line">  <span class="keyword">done</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 容器健康检查</span></span><br><span class="line"><span class="function"><span class="title">health_check</span></span>() &#123;</span><br><span class="line">  transparency=$(measure_light_transmission <span class="string">&quot;<span class="variable">$1</span>&quot;</span>)</span><br><span class="line">  <span class="keyword">if</span> (( $(echo &quot;<span class="variable">$transparency</span> &lt; <span class="number">70</span>&quot; | bc -l) )); <span class="keyword">then</span></span><br><span class="line">    retire_container <span class="string">&quot;<span class="variable">$1</span>&quot;</span> <span class="string">&quot;transparency_degraded&quot;</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生命周期追踪查询</span></span><br><span class="line"><span class="function"><span class="title">track_lifecycle</span></span>() &#123;</span><br><span class="line">  sqlite3 container.db <span class="string">&quot;SELECT * FROM lifecycle WHERE id=&#x27;<span class="variable">$1</span>&#x27;&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 回收点查询 API</span></span><br><span class="line"><span class="function"><span class="title">find_recycling</span></span>() &#123;</span><br><span class="line">  curl -s <span class="string">&quot;https://earth911.com/api/search?material=PP5&amp;zip=<span class="variable">$1</span>&quot;</span> | jq <span class="string">&#x27;.locations[]&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 容量规划计算器</span></span><br><span class="line"><span class="function"><span class="title">calc_capacity</span></span>() &#123;</span><br><span class="line">  volume_ml=<span class="variable">$1</span>; density=<span class="variable">$2</span></span><br><span class="line">  max_weight=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$volume_ml</span> * <span class="variable">$density</span> * 0.85&quot;</span> | bc)</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;Max safe load: <span class="variable">$&#123;max_weight&#125;</span>g&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>建立定期维护计划：每周执行容器池审计，每月更新材质兼容性矩阵，每季度 review 再利用效益报告。参考 ISO 14001 环境管理体系建立持续改进循环，将容器再利用纳入家庭碳足迹管理框架。</p>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
-                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
-<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
-</blockquote>
-<h1 id="CloudFront-Distribution-跨账号迁移的生产级实践与深度避坑指南"><a href="#CloudFront-Distribution-跨账号迁移的生产级实践与深度避坑指南" class="headerlink" title="CloudFront Distribution 跨账号迁移的生产级实践与深度避坑指南"></a>CloudFront Distribution 跨账号迁移的生产级实践与深度避坑指南</h1><h2 id="背景与场景"><a href="#背景与场景" class="headerlink" title="背景与场景"></a>背景与场景</h2><p>CloudFront distribution 跨账号迁移通常发生在企业组织架构调整、业务单元拆分、安全合规要求或多云战略实施场景。核心挑战在于 CloudFront 的 CNAME 绑定具有全局唯一性约束——同一 CNAME 在 AWS 全球范围内只能关联到一个 distribution。这意味着在目标账号创建新 distribution 并绑定 CNAME 之前,必须先从源账号解绑,这个窗口期会导致服务中断。典型场景包括:从共享服务账号迁移到业务独立账号、从开发账号迁移到生产账号、或因收购兼并导致的资源整合。迁移过程需要同步处理 SSL 证书(ACM)、Origin 配置、Cache Behavior、Lambda@Edge 函数等多个依赖组件,任何环节的疏漏都可能导致长时间停机或功能降级。</p>
-<h2 id="诊断与预检步骤"><a href="#诊断与预检步骤" class="headerlink" title="诊断与预检步骤"></a>诊断与预检步骤</h2><p>在执行任何变更前,必须通过只读命令完整采集源 distribution 的配置快照和依赖关系。首先使用 <code>aws cloudfront get-distribution --id E1234567890ABC</code> 导出完整配置 JSON,特别关注 <code>Aliases</code>(CNAME 列表)、<code>ViewerCertificate</code>(SSL 证书 ARN)、<code>Origins</code> 配置和 <code>CacheBehaviors</code>。验证 ACM 证书状态:<code>aws acm describe-certificate --certificate-arn arn:aws:acm:us-east-1:111111111111:certificate/xxx</code>,确认证书在 us-east-1 区域且状态为 ISSUED。检查 DNS 当前解析:<code>dig cdn.example.com</code> 确认 CNAME 指向的 CloudFront 域名(格式 d111111abcdef8.cloudfront.net)。</p>
-<p>使用 <code>aws cloudfront list-distributions --query &quot;DistributionList.Items[?contains(Aliases.Items, &#39;cdn.example.com&#39;)]&quot;</code> 确认 CNAME 当前绑定状态。检查 Origin 的访问权限:如果使用 S3 作为 Origin,验证 OAI(Origin Access Identity)或 OAC(Origin Access Control)配置;如果使用自定义 Origin,确认目标账号的 ALB&#x2F;EC2 安全组规则允许 CloudFront IP 范围访问。验证 Lambda@Edge 函数:<code>aws lambda get-function --function-name arn:aws:lambda:us-east-1:111111111111:function:edge-function</code>,确认函数代码和 IAM 角色可在目标账号重建。检查 WAF Web ACL 关联:<code>aws wafv2 list-web-acls --scope CLOUDFRONT --region us-east-1</code>,记录 ACL ID 和规则配置。最后通过 CloudWatch 查询过去 7 天的请求量和错误率基线:<code>aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E1234567890ABC --start-time 2024-01-01T00:00:00Z --end-time 2024-01-08T00:00:00Z --period 3600 --statistics Sum</code>,建立 SLO 基准。</p>
-<h2 id="迁移方案-备份与准备阶段"><a href="#迁移方案-备份与准备阶段" class="headerlink" title="迁移方案:备份与准备阶段"></a>迁移方案:备份与准备阶段</h2><p>在目标账号 B 完成所有依赖资源的预创建,确保迁移窗口期只需执行 CNAME 切换。首先在账号 B 的 us-east-1 区域申请新的 ACM 证书,覆盖所有需要的域名(包括主域名和备用域名),使用 DNS 验证方式:<code>aws acm request-certificate --domain-name cdn.example.com --subject-alternative-names *.cdn.example.com --validation-method DNS --region us-east-1</code>。将验证所需的 CNAME 记录添加到 Route 53 或外部 DNS,等待证书状态变为 ISSUED(通常 5-30 分钟)。</p>
-<p>如果使用 S3 作为 Origin,在账号 B 创建新 bucket 并配置跨账号复制,或使用 <code>aws s3 sync</code> 同步数据。配置新的 OAC:<code>aws cloudfront create-origin-access-control --origin-access-control-config &#39;&#123;&quot;Name&quot;:&quot;oac-for-migration&quot;,&quot;SigningProtocol&quot;:&quot;sigv4&quot;,&quot;SigningBehavior&quot;:&quot;always&quot;,&quot;OriginAccessControlOriginType&quot;:&quot;s3&quot;&#125;&#39;</code>,并更新 S3 bucket policy 允许该 OAC 访问。如果使用 Lambda@Edge,在账号 B 重新部署函数(必须在 us-east-1 区域)并发布版本:<code>aws lambda publish-version --function-name edge-function</code>,记录带版本号的 ARN(格式 arn:aws:lambda:us-east-1:222222222222:function:edge-function:1)。</p>
-<p>在账号 B 创建新 distribution,使用从账号 A 导出的配置 JSON 作为模板,但<strong>暂时不添加 CNAME</strong>:<code>aws cloudfront create-distribution --distribution-config file://distribution-config.json</code>。修改 JSON 中的 <code>Aliases.Quantity</code> 为 0,<code>Aliases.Items</code> 为空数组,更新 <code>ViewerCertificate.ACMCertificateArn</code> 为账号 B 的证书 ARN,更新 <code>Origins</code> 配置指向账号 B 的资源。等待新 distribution 状态变为 Deployed(通常 15-30 分钟):<code>aws cloudfront wait distribution-deployed --id E9876543210XYZ</code>。使用 CloudFront 默认域名(d222222abcdef8.cloudfront.net)进行功能验证,通过 curl 测试关键路径:<code>curl -H &quot;Host: cdn.example.com&quot; https://d222222abcdef8.cloudfront.net/index.html -v</code>,确认响应头、缓存行为和内容正确性。</p>
-<h2 id="迁移方案-执行切换阶段"><a href="#迁移方案-执行切换阶段" class="headerlink" title="迁移方案:执行切换阶段"></a>迁移方案:执行切换阶段</h2><p>在计划的维护窗口,按严格顺序执行 CNAME 解绑和绑定操作。首先降低 DNS TTL 至最小值(60 秒):<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch &#39;&#123;&quot;Changes&quot;:[&#123;&quot;Action&quot;:&quot;UPSERT&quot;,&quot;ResourceRecordSet&quot;:&#123;&quot;Name&quot;:&quot;cdn.example.com&quot;,&quot;Type&quot;:&quot;CNAME&quot;,&quot;TTL&quot;:60,&quot;ResourceRecords&quot;:[&#123;&quot;Value&quot;:&quot;d111111abcdef8.cloudfront.net&quot;&#125;]&#125;&#125;]&#125;&#39;</code>,等待 2 倍原 TTL 时间让全球 DNS 缓存过期。</p>
-<p>从账号 A 的 distribution 移除 CNAME:先获取当前 ETag <code>aws cloudfront get-distribution-config --id E1234567890ABC --query &#39;ETag&#39; --output text</code>,然后更新配置 <code>aws cloudfront update-distribution --id E1234567890ABC --if-match &lt;ETag&gt; --distribution-config file://config-without-cname.json</code>。配置 JSON 中将 <code>Aliases.Quantity</code> 改为 0,<code>Aliases.Items</code> 改为空数组。等待更新完成(3-5 分钟):<code>aws cloudfront wait distribution-deployed --id E1234567890ABC</code>。此时 CNAME 已全局释放,立即在账号 B 添加 CNAME:获取账号 B distribution 的 ETag,更新配置添加 <code>Aliases</code>:<code>aws cloudfront update-distribution --id E9876543210XYZ --if-match &lt;ETag&gt; --distribution-config file://config-with-cname.json</code>。等待部署完成后,更新 DNS 记录指向新 distribution:<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch &#39;&#123;&quot;Changes&quot;:[&#123;&quot;Action&quot;:&quot;UPSERT&quot;,&quot;ResourceRecordSet&quot;:&#123;&quot;Name&quot;:&quot;cdn.example.com&quot;,&quot;Type&quot;:&quot;CNAME&quot;,&quot;TTL&quot;:60,&quot;ResourceRecords&quot;:[&#123;&quot;Value&quot;:&quot;d222222abcdef8.cloudfront.net&quot;&#125;]&#125;&#125;]&#125;&#39;</code>。</p>
-<p>整个切换窗口期控制在 5-10 分钟内,期间通过 CloudWatch 实时监控两个 distribution 的请求量:<code>aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(date -u -d &#39;5 minutes ago&#39; +%Y-%m-%dT%H:%M:%S) --end-time $(date -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Sum</code>。观察账号 A 的流量下降和账号 B 的流量上升曲线,确认流量完全切换后,将 DNS TTL 恢复至正常值(300-3600 秒)。保留账号 A 的 distribution 处于禁用状态至少 72 小时,作为快速回滚路径,期间持续监控 4xx&#x2F;5xx 错误率和延迟指标。</p>
-<h2 id="迁移方案-回滚预案"><a href="#迁移方案-回滚预案" class="headerlink" title="迁移方案:回滚预案"></a>迁移方案:回滚预案</h2><p>任何生产变更都必须准备完整回滚方案,CloudFront 迁移的回滚窗口分为三个阶段。<strong>阶段一(切换后 10 分钟内)</strong>:如果发现账号 B 的 distribution 出现严重错误(5xx &gt; 1%),立即执行 DNS 回滚,将 CNAME 记录改回指向账号 A 的 CloudFront 域名 d111111abcdef8.cloudfront.net,无需修改 distribution 配置。由于 DNS TTL 已降至 60 秒,流量将在 2-3 分钟内回切,此时账号 A 的 distribution 仍保留完整配置(虽然 CNAME 已解绑,但通过 CloudFront 默认域名仍可访问)。</p>
-<p><strong>阶段二(切换后 10-60 分钟)</strong>:如果需要完全恢复账号 A 的 CNAME 绑定,先从账号 B 移除 CNAME(update-distribution 设置 Aliases 为空),等待部署完成后,在账号 A 重新添加 CNAME,然后更新 DNS。这个过程需要 8-15 分钟,期间服务会短暂中断,但可恢复到迁移前状态。<strong>阶段三(切换后 60 分钟以上)</strong>:如果已观察到部分用户流量切换成功,但存在局部问题(如特定地理区域缓存异常),采用 DNS 加权路由策略,将 10% 流量导向账号 B,90% 保留在账号 A,逐步调整权重比例。Route 53 配置示例:<code>aws route53 change-resource-record-sets --hosted-zone-id Z1234567890ABC --change-batch file://weighted-routing.json</code>,JSON 中定义两条 CNAME 记录,SetIdentifier 分别为 “account-a” 和 “account-b”,Weight 设置为 90 和 10。</p>
-<p>所有回滚操作必须在执行前通过 <code>aws cloudfront get-distribution-config</code> 重新获取最新 ETag,避免因并发修改导致 PreconditionFailed 错误。回滚后立即触发全链路健康检查,验证关键 API 端点、静态资源加载和动态内容生成,确认 RTO(恢复时间目标)&lt; 15 分钟,RPO(恢复点目标)&#x3D; 0(无数据丢失)。</p>
-<h2 id="五大典型踩坑与规避方案"><a href="#五大典型踩坑与规避方案" class="headerlink" title="五大典型踩坑与规避方案"></a>五大典型踩坑与规避方案</h2><p><strong>坑一:ACM 证书区域错误</strong>。CloudFront 只能使用 us-east-1 区域的 ACM 证书,即使在其他区域申请了相同域名的证书也无法使用。症状:创建 distribution 时报错 “The specified SSL certificate doesn’t exist, isn’t in us-east-1 region, isn’t valid, or doesn’t include a valid certificate chain”。规避:在目标账号的 us-east-1 区域预先申请证书,使用 <code>--region us-east-1</code> 参数强制指定区域,验证时检查 <code>aws acm list-certificates --region us-east-1</code> 输出。</p>
-<p><strong>坑二:CNAME 绑定竞态条件</strong>。从账号 A 解绑 CNAME 到账号 B 绑定之间存在时间窗口,如果操作不够快,可能被其他 AWS 账号抢注(虽然概率极低,但在自动化脚本中可能因重试逻辑触发)。症状:账号 B 执行 update-distribution 时报错 “One or more of the CNAMEs you provided are already associated with a different resource”。规避:使用脚本将解绑和绑定操作串联执行,中间间隔 &lt; 30 秒,并添加指数退避重试逻辑(最多重试 3 次,间隔 10&#x2F;20&#x2F;40 秒)。在企业环境中,通过 AWS Organizations SCP(Service Control Policy)限制其他账号创建 CloudFront distribution,降低冲突风险。</p>
-<p><strong>坑三:Lambda@Edge 版本引用错误</strong>。Lambda@Edge 必须使用带版本号的 ARN(如 :1、:2),不能使用 $LATEST 或别名。症状:distribution 创建成功但部署卡在 “InProgress” 状态超过 1 小时,或报错 “The function ARN must reference a specific version”。规避:在账号 B 部署 Lambda 函数后,立即执行 <code>aws lambda publish-version</code> 并记录返回的版本号,在 distribution 配置中使用完整 ARN(arn:aws:lambda:us-east-1:222222222222:function:edge-function:1)。注意 Lambda@Edge 的 IAM 角色必须包含信任策略允许 edgelambda.amazonaws.com 和 lambda.amazonaws.com 两个服务主体。</p>
-<p><strong>坑四:Origin 访问权限未同步</strong>。迁移后 CloudFront 可以访问 Origin,但返回 403 错误,因为新 distribution 的 OAI&#x2F;OAC 未被 S3 bucket policy 授权,或 ALB 安全组未放行新 distribution 的 IP 范围。症状:CloudFront 返回 “Access Denied” 或 “403 Forbidden”,CloudWatch Logs 显示 “OriginAccessDenied”。规避:在账号 B 创建 OAC 后,立即更新 S3 bucket policy 添加 <code>&quot;Service&quot;: &quot;cloudfront.amazonaws.com&quot;</code> 和 <code>&quot;Condition&quot;: &#123;&quot;StringEquals&quot;: &#123;&quot;AWS:SourceArn&quot;: &quot;arn:aws:cloudfront::222222222222:distribution/E9876543210XYZ&quot;&#125;&#125;</code>。对于 ALB Origin,使用 AWS 托管前缀列表 <code>com.amazonaws.global.cloudfront.origin-facing</code> 更新安全组入站规则,避免手动维护 IP 范围。</p>
-<p><strong>坑五:缓存失效策略遗漏</strong>。迁移后新 distribution 的缓存为空,首次请求会全部回源,导致 Origin 负载激增和延迟飙升。症状:迁移后 5-10 分钟内 Origin 服务器 CPU&#x2F;网络带宽打满,CloudFront CacheHitRate 指标降至 0%。规避:在切换前预热新 distribution 的缓存,使用脚本批量请求热点 URL:<code>for url in $(cat hot-urls.txt); do curl -s &quot;https://d222222abcdef8.cloudfront.net$url&quot; -H &quot;Host: cdn.example.com&quot; &gt; /dev/null; done</code>。或在切换后立即创建失效请求,将账号 A 的热点路径标记为失效,触发账号 B 主动回源填充缓存:<code>aws cloudfront create-invalidation --distribution-id E9876543210XYZ --paths &quot;/*&quot;</code>(注意失效请求有配额限制,每月前 1000 个路径免费)。</p>
-<h2 id="架构优化与可观测性建议"><a href="#架构优化与可观测性建议" class="headerlink" title="架构优化与可观测性建议"></a>架构优化与可观测性建议</h2><p>在企业级场景中,应采用蓝绿部署或金丝雀发布策略降低迁移风险。通过 Route 53 加权路由策略,初始将 5% 流量导向账号 B 的新 distribution,观察 30 分钟后逐步提升至 10%&#x2F;25%&#x2F;50%&#x2F;100%,每个阶段设置 SLO 门槛(如 P99 延迟 &lt; 200ms,错误率 &lt; 0.1%)。使用 CloudWatch Synthetics Canary 创建持续监控任务,每分钟从全球多个区域发起测试请求,验证 SSL 握手、DNS 解析、内容完整性和响应时间:<code>aws synthetics create-canary --name cdn-migration-canary --artifact-s3-location s3://canary-results/ --execution-role-arn arn:aws:iam::222222222222:role/CanaryRole --schedule Expression=&quot;rate(1 minute)&quot; --runtime-version syn-nodejs-puppeteer-3.9</code>。</p>
-<p>在 CloudWatch 中配置复合告警,关联多个指标(Requests、4xxErrorRate、5xxErrorRate、OriginLatency)设置动态阈值,当任一指标偏离基线 2 个标准差时触发 SNS 通知和自动回滚 Lambda。启用 CloudFront 实时日志(Real-time Logs)推送到 Kinesis Data Streams,使用 Kinesis Data Analytics 实时计算滑动窗口内的错误率和延迟分位数,实现秒级异常检测。对于关键业务,部署多区域主备架构,使用 Route 53 健康检查和故障转移路由策略,当主 distribution 健康检查失败时自动切换到备用 distribution,RTO &lt; 60 秒。</p>
-<p>建立迁移后的持续验证机制,通过 AWS Config 规则检测 distribution 配置漂移(如 CNAME 被意外修改、SSL 证书过期),通过 EventBridge 监听 CloudFront API 调用事件,任何非授权的配置变更触发告警和自动修复。在成本优化方面,对比迁移前后的 CloudFront 数据传输费用和请求费用,使用 Cost Explorer 按 distribution ID 分组分析,识别异常流量来源。定期审计 Origin Shield 配置,对于高缓存命中率的内容启用 Origin Shield 降低回源成本,选择靠近 Origin 的最优区域(如 Origin 在 us-east-1,则 Origin Shield 选择 us-east-1)。</p>
-<h2 id="参考-Runbook-与命令速查"><a href="#参考-Runbook-与命令速查" class="headerlink" title="参考 Runbook 与命令速查"></a>参考 Runbook 与命令速查</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出源 distribution 完整配置</span></span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234567890ABC &gt; dist-config.json</span><br><span class="line">jq <span class="string">&#x27;.DistributionConfig&#x27;</span> dist-config.json &gt; dist-config-only.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 CNAME 当前绑定状态</span></span><br><span class="line">aws cloudfront list-distributions --query <span class="string">&quot;DistributionList.Items[?Aliases.Items!=null] | [].&#123;ID:Id,CNAMEs:Aliases.Items&#125;&quot;</span> --output table</span><br><span class="line"></span><br><span class="line"><span class="comment"># 申请 ACM 证书(us-east-1)</span></span><br><span class="line">aws acm request-certificate --domain-name cdn.example.com --validation-method DNS --region us-east-1 --query <span class="string">&#x27;CertificateArn&#x27;</span> --output text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 OAC</span></span><br><span class="line">aws cloudfront create-origin-access-control --origin-access-control-config <span class="string">&#x27;&#123;&quot;Name&quot;:&quot;migration-oac&quot;,&quot;SigningProtocol&quot;:&quot;sigv4&quot;,&quot;SigningBehavior&quot;:&quot;always&quot;,&quot;OriginAccessControlOriginType&quot;:&quot;s3&quot;&#125;&#x27;</span> --query <span class="string">&#x27;OriginAccessControl.Id&#x27;</span> --output text</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新 distribution 移除 CNAME(需先获取 ETag)</span></span><br><span class="line">ETAG=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234567890ABC --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> E1234567890ABC --if-match <span class="variable">$ETAG</span> --distribution-config file://config-no-cname.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 等待 distribution 部署完成</span></span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> E9876543210XYZ</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建缓存失效</span></span><br><span class="line">aws cloudfront create-invalidation --distribution-id E9876543210XYZ --paths <span class="string">&quot;/index.html&quot;</span> <span class="string">&quot;/static/*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时监控请求量(最近 5 分钟)</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;5 min ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Sum</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询错误率</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name 5xxErrorRate --dimensions Name=DistributionId,Value=E9876543210XYZ --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;10 min ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --statistics Average</span><br></pre></td></tr></table></figure>
-
-<p>关键运维检查点:迁移前验证 ACM 证书状态(ISSUED)和区域(us-east-1),确认 Origin 可达性和访问权限,备份源 distribution 完整配置;迁移中严格控制 CNAME 解绑到绑定的时间窗口 &lt; 30 秒,实时监控两侧流量切换曲线;迁移后持续观察 72 小时,对比错误率、延迟和缓存命中率基线,保留源 distribution 作为快速回滚路径。所有操作记录审计日志,通过 CloudTrail 追溯配置变更历史,建立标准化 runbook 和自动化脚本,降低人为失误风险。</p>
 <hr>
 <p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
 
@@ -537,6 +585,194 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/shell/">
+                Shell
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
+<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
+<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
+</ul>
+<blockquote>
+<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
+</blockquote>
+<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
+
+<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
+<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
+<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
+
+<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
+<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
+
+<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/social-engineering/">
+                社工库工具
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>国外情报专家最常用的OSINT工具</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
+<ul>
+<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/software-structure/">
+                软件架构演变
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/架构/">架构</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="前端了解"><a href="#前端了解" class="headerlink" title="前端了解"></a>前端了解</h2><p>浏览器基本内核：</p>
+<ul>
+<li>IE(7,8,9,10 这几个版本难以兼容) -&gt; Trident内核 （目前淘汰）</li>
+<li>Chrome: Webkit内核 -&gt; Blink内核</li>
+<li>火狐: Gecko内核</li>
+<li>Safari: Webkit内核</li>
+<li>Opera: Presto -&gt; Webkit内核 -&gt; Blink内核</li>
+</ul>
+<h2 id="单体架构"><a href="#单体架构" class="headerlink" title="单体架构"></a>单体架构</h2><p>在单体架构的体系内，对象关系映射（ORM）框架是一个至关重要的组件，其主要功能在于抽象化和简化数据库的增删改查（CRUD）操作。ORM通过封装底层数据库操作的复杂性，显著提升了数据访问层的开发效率。ORM框架的核心功能在于将关系型数据库中的数据模型转换为应用程序中的对象模型，实现了数据访问的抽象化。此种映射机制有效地减少了开发者在进行数据库交互时所需编写的代码量，从而使得开发人员能够将更多的精力投入到业务逻辑的实现上，而非数据访问的具体技术细节。</p>
+<p><img src="/images/single-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
+<ul>
+<li>开发的便捷性、部署的简洁性以及相对易于管理的横向扩展能力</li>
+<li>开发人员能够在一个统一的代码库中进行快速的迭代和调试，从而加速了开发进程</li>
+</ul>
+<p><em><strong>缺点:</strong></em></p>
+<ul>
+<li>系统的任何微小改动都可能触发对整个应用程序的重新部署，这不仅加剧了维护工作的复杂性，也提高了系统潜在的错误风险</li>
+<li>单体架构在处理大规模用户或数据时，其横向扩展能力受到限制，性能瓶颈成为一个显著问题</li>
+</ul>
+<p><em><strong>基本框架：</strong></em></p>
+<ul>
+<li>前端 - angular jq 模版引擎ecshop(smart)</li>
+<li>后台 - Java(spring mvc, Struts2) PHP(Yii2 zendFramework2, thinkphp3.2)</li>
+</ul>
+<h2 id="多层架构"><a href="#多层架构" class="headerlink" title="多层架构"></a>多层架构</h2><p>应用程序被细分为多个层次，主要包括表现层（用户界面）、业务逻辑层和数据访问层，这一模式通常被称作模型-视图-控制器（MVC）。这种分层的设计方法允许每一层独立进行开发和测试，从而显著提升了代码的可管理性和可维护性。</p>
+<p>多层架构的设计理念体现了专业领域分工的细化，即所谓的垂直领域专业化。它是社会分工精细化趋势在软件开发领域的体现。在这种架构中，前后端的分离正是一种垂直拆分的实践，而MVC本身也是垂直架构的一个典型示例。</p>
+<p><img src="/images/mult-software-structure.png"></p>
+<p><em><strong>优点:</strong></em></p>
+<ul>
+<li>尽管层与层之间的耦合较单体架构有所减少<br><em><strong>缺点:</strong></em></li>
+<li>某一层的变更仍有可能引发连锁反应，影响到其他层的稳定性和功能。</li>
+</ul>
+<p>一般会采用敏捷开发杜绝此类现象，产品周期性迭代<br>逐渐有了devops的概念</p>
+<h3 id="读写分离的数据库架构"><a href="#读写分离的数据库架构" class="headerlink" title="读写分离的数据库架构"></a>读写分离的数据库架构</h3><p><img src="/images/rw-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>公司又增加了很多新的业务，系统也增加了更多的功能。预定蔬菜的商户也可以通过手机查看历史订单和各种统计信息了，即使怎么增加应用服务器，也会出现用户需要等待很长的时间，最终数据库也出现了瓶颈。</p>
+<p><em><strong>解决方案：读写分离</strong></em><br>数据库是分布式架构中最难的问题，因为不像应用服务器是不保存数据的。如果想要增加数据库服务器的数量，那么首先需要解决数据重复和一致性的问题。现实中对应的方案有很多，例如读写分离、数据库物理分区、逻辑分表、逻辑分库，但本质上讲只是拆分数据库操作的方式不同而已，而我们应对数据库性能最常用和性价比最高的方式是读写分离</p>
+<p>有了锁的概念 读写锁 乐观锁 悲观锁 </p>
+<h3 id="用消息队列的架构"><a href="#用消息队列的架构" class="headerlink" title="用消息队列的架构"></a>用消息队列的架构</h3><p><img src="/images/rw-cache-software-structure.png"></p>
+<p><em><strong>原因：</strong></em><br>相应的系统中往往存在这种类似的场景，当我们视频网站上传了一条视频后，视频网站往往会进行转码以便适合网络播放，这种操作需要耗费大量的服务器资源，不可能实时的在用户点击提交后处理完毕，否则用户需要等待很久，甚至连接超时。</p>
+<p><em><strong>解决方案：消息队列</strong></em><br>我们可以让此类任务不必是实时完成的。当用户提交请求后，系统会把任务添加到消息队列中，完成之后改变数据的状态，用户在刷新或接到通知后知道任务已经处理完毕。<br>随着业务的发展，公司开始向新的领域扩张，开发了拓展更多商户的代理平台和物流平台，甚至需要和和第三方平台对接，而且需要保证这些平台中一些通用的数据和逻辑是一致的。</p>
+<h3 id="过度阶段-面向服务的架构SOA"><a href="#过度阶段-面向服务的架构SOA" class="headerlink" title="过度阶段 面向服务的架构SOA"></a>过度阶段 面向服务的架构SOA</h3><p><em><strong>原因：</strong></em><br>软件系统变得越来越复杂，参与的开发者就越多，应用系统的分离和分化就变得很有意义了。面向前端的API应用服务器不再真正的处理业务逻辑而是调用专门的服务器来完成。</p>
+<p>单点登录（SSO）是一个典型的面向服务的架构，在互联网公司中被广泛使用。国内互联网巨头往往拥有多个系统，例如腾讯的QQ音乐、空间都可以使用同一个QQ号登陆。于是用户服务和认证服务被剥离开来，各个系统之间通过统一登录和管理用户信息，用户的体验得到了极大的提升，这就是面向服务架构的一个例子。</p>
+<p><img src="/images/SSO-software-structure.png"></p>
+<p>这些大厂不仅在自己的系统内完成了统一的认证和用户管理，并且把登录、授权的服务开放给第三方系统。例如很多网站支持微信登录，这样用户就可以使用一套用户名密码登录大量接入的系统。并且业界有一个通用规范，便于各种系接入，这就是OAuth标准。</p>
+<p><img src="/images/OAuth-software-structure.png"></p>
+<p>通过面向服务的架构改造，系统中分化出了用户服务、物流服务、订单服务等服务，通过OAuth的方式提供了收银机系统认证对接。一些收银机厂商也对接了这个系统，商户可以通过支持的收银设备进行下食材的预定操作了。</p>
+<h2 id="微服务架构"><a href="#微服务架构" class="headerlink" title="微服务架构"></a>微服务架构</h2><p>微服务架构（Microservices Architecture）的兴起源于对传统应用架构的局限性的突破。随着信息技术和互联网的快速发展，企业对于应用的扩展性、可靠性和维护性提出了更高的要求。传统应用架构由于其整体性和复杂性，逐渐难以满足这些需求。在这样的背景下，微服务架构应运而生，以其独特的优势，逐渐成为分布式系统设计的主流架构之一。</p>
+<p>微服务架构是一种分布式系统架构，其核心思想是将一个复杂的应用分解为一组相互协作的微小服务。每个微服务都是独立的业务单元，运行在自己的进程中，并通过轻量级的通信机制（如HTTP RESTful API）相互协作。这些服务围绕业务功能构建，每个服务都有自己的业务逻辑和数据存储，可以独立部署和扩展。</p>
+<p><img src="/images/micro-software-structure.png"></p>
+<p>不同应用和数据之间互相依赖，逻辑纠缠不清，项目的部署进入了混沌状态，对于大型、依赖关系复杂的系统需要一个更为有力的架构。为了解决系统复杂性和服务解耦的问题，这时候该微服务和领域驱动建模（DDD）出场了。</p>
+<p>将不同职责的服务独立部署，从而实现服务内部高内聚，服务之间低耦合的效果，让开发变得更为灵活。当然“分开是为了更好的在一起”，为了重新组合和稳定运行这些服务，人们发明了服务发现、熔断机制、服务部署监控等一篮子工具。</p>
+<p>优点:</p>
+<ul>
+<li>它通过模块化提高了系统的可维护性和可扩展性。每个微服务都是独立的模块，可以单独开发和部署，不会影响到其他服务。</li>
+<li>微服务架构通过服务之间的松耦合，提高了系统的可靠性</li>
+<li>每个服务都有自己的数据存储，避免了单点故障的风险。此外，微服务架构支持技术多样性，每个服务都可以选择最适合其业务需求的技术栈，从而充分发挥各种技术的优势。</li>
+</ul>
+<p>缺点: </p>
+<ul>
+<li>相较于传统应用架构，微服务架构更为复杂，需要更多的管理和协调工作。管理难度大</li>
+<li>微服务架构需要更多的工作量来设计、开发、测试、部署和管理多个小型服务，这增加了开发团队的负担 成本高</li>
+</ul>
+<h2 id="边缘计算架构"><a href="#边缘计算架构" class="headerlink" title="边缘计算架构"></a>边缘计算架构</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7368505674224238607">引用</a><br><a target="_blank" rel="noopener" href="https://shaogefenhao.com/posts/architecture/roamap-of-system.html#%E9%9D%A2%E5%90%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9E%B6%E6%9E%84-soa">引用</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/springboot/">
                 Springboot
             </a>
@@ -588,90 +824,6 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
     
         <div class="content">
             <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/stock/">
-                股市币市
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>本金 </p>
-<p>三折最多</p>
-<p>三折以上就是突发状况</p>
-<p>有信心可以all in 30%</p>
-<pre><code>信心一般可以先 20%
-</code></pre>
-<p>小试牛刀 10% </p>
-<pre><code>补刀 10%
-
-    收回本金 cl 1
-    或者收回补刀的钱 cl 2
-
-开始做空
-</code></pre>
-<p>一定要留补仓 40%</p>
-<p>本金越大 补仓率就要增高</p>
-<p>2&#x2F;24</p>
-<p>2684 200</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/system-migration/">
-                系统迁移
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
-
-<p>backup_and_migrate.sh</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
-<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
 
         </div>
     
@@ -1356,74 +1508,6 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/tree/">
-                树 ADT
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/AI/">AI</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <pre class="mermaid">graph LR
-    A[树] --> B[二叉树]
-    B[二叉树] --> C[完全二叉树]
-    C[完全二叉树] --> D[满二叉树]
-    C[完全二叉树] --> E[堆]
-    E[堆] --> F[大顶堆]
-    E[堆] --> G[小顶堆]
-    B[二叉树] --> H[二叉查找树]
-    B[二叉树] --> I[平衡二叉树]
-    B[二叉树] --> J[平衡二叉查找树]
-    J[平衡二叉查找树] --> K[红黑树]
-    J[平衡二叉查找树] --> L[AVL]
-    A[树] --> M[N叉树]
-    M[N叉树] --> N[B树]
-    M[N叉树] --> O[B+树]</pre>
-
-<p><img src="/images/tree.png"></p>
-<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
-<p><img src="/images/tree-ercha.png"></p>
-<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
-<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
-<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
-<p>满二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
-
-<p>完全二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
-
-<p>二叉查找树</p>
-<p><img src="/images/tree-erchachaozhao.png"></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
-
-<p>AVL树</p>
-<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
-<p>红黑树</p>
-<p><img src="/images/tree-honghei.png"></p>
-<p>B树</p>
-<p>B+树</p>
-
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1466,11 +1550,11 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
             </li>
             
             <li>
