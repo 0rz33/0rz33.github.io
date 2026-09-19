@@ -184,6 +184,104 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/mysql-migrate/">
+                Mysql-数据迁移-基础篇
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
+<p>首先把 mysq.ini 配置打开</p>
+</blockquote>
+<ul>
+<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
+</li>
+<li><p>重启数据库 并可启用 secure_file_priv</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>bash脚本 并进行数据提取  -(数据导出)</p>
+<blockquote>
+<p> export_data.sh</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>python脚本 数据批量插入 -(数据插入)</p>
+<blockquote>
+<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/natcat/">
+                Natcat
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>nc是netcat的简写，有着网络界的瑞士军刀美誉。因为它短小精悍、功能实用，被设计为一个简单、可靠的网络工具。 </p>
+<ul>
+<li>端口扫描工具， </li>
+<li>安全工具， </li>
+<li>监测工具， </li>
+<li>甚至可以做为一个简单的 TCP 代理</li>
+</ul>
+<h2 id="NC"><a href="#NC" class="headerlink" title="NC"></a>NC</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h2 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h2><ul>
+<li>正向连接 - 机器开放端口并可以主动连接目标机器端口 远程桌面、web服务、ssh、telnet等等都是正向连接</li>
+<li>反向连接 - 攻击者指定服务端，受害者主机主动连接攻击者的服务端程序</li>
+</ul>
+<p>反弹shell的方式有很多，那具体要用哪种方式还需要根据目标主机的环境来确定，比如目标主机上如果安装有netcat，那我们就可以利用netcat反弹shell，如果具有python环境，那我们可以利用python反弹shell。如果具有php环境，那我们可以利用php反弹shell。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/mysql/">
                 Mysql-basic
             </a>
@@ -251,6 +349,313 @@
 <li><p>数据误update 数据没了</p>
 </li>
 </ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/network-protocal/">
+                网络协议
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/网络协议/">网络协议</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p><img src="/images/network-basic.png" alt="网络协议"></p>
+<p><img src="/images/network-structure.png" alt="网络协议"></p>
+<ul>
+<li><a href="#1">http-协议</a><ul>
+<li><a href="#1.1">结构体</a></li>
+<li><a href="#1.2">请求方法</a></li>
+<li><a href="#1.3">响应状态码</a></li>
+<li><a href="#1.4">响应头部</a></li>
+</ul>
+</li>
+<li><a href="#2">https-协议</a></li>
+<li><a href="#3">DNS</a><ul>
+<li><a href="#3.1">域名解析</a></li>
+<li><a href="#3.2">DNS解析工具</a></li>
+<li><a href="#3.3">什么是DNS劫持</a></li>
+<li><a href="#3.4">什么是DNS污染</a></li>
+<li><a href="#3.5">为什么要DNS流量监控</a></li>
+</ul>
+</li>
+<li><a href="#4">TCP协议</a><ul>
+<li><a href="#4.1">TCP头部格式</a></li>
+<li><a href="#4.2">三次握手与四次挥手</a></li>
+<li><a href="#4.3">SYN攻击</a></li>
+<li><a href="#4.4">KeepAlive</a></li>
+<li><a href="#4.5">TCP和UDP的区别</a></li>
+</ul>
+</li>
+<li><a href="#5">Socket</a></li>
+</ul>
+<h3 id="1">http-协议</h3>
+<h4 id="1.1">结构体</h4>
+
+<p><img src="/images/http-request.png" alt="http请求结构体"></p>
+<p><img src="/images/http-request-demo.png" alt="http请求报文范例"></p>
+<h4 id="1.2">请求方法</h4>
+
+<ul>
+<li>GET</li>
+<li>POST</li>
+<li>HEAD</li>
+<li>DELETE</li>
+<li>OPTIONS</li>
+<li>PUT</li>
+<li>TRACE</li>
+<li>CONNECT</li>
+</ul>
+<h4 id="1.3">请求报文头</h4>
+
+<ul>
+<li>User-Agent : 产生请求的浏览器类型</li>
+<li>Accept : 客户端希望接受的数据类型，比如 Accept：text&#x2F;xml（application&#x2F;json）表示希望接受到的是xml（json）类型</li>
+<li>Content-Type：发送端发送的实体数据的数据类型。比如，Content-Type：text&#x2F;html（application&#x2F;json）表示发送的是html类型。</li>
+<li>Host : 请求的主机名，允许多个域名同处一个IP地址，即虚拟主机</li>
+</ul>
+<h4 id="1.4">响应状态码</h4>
+
+<ul>
+<li>状态代码由服务器发出，以响应客户端对服务器的请求。</li>
+<li>1xx（信息）：收到请求，继续处理</li>
+<li>2xx（成功）：请求已成功接收，理解和接受</li>
+<li>3xx（重定向）：需要采取进一步措施才能完成请求</li>
+<li>4xx（客户端错误）：请求包含错误的语法或无法满足</li>
+<li>5xx（服务器错误）：服务器无法满足明显有效的请求</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki">状态码详情请查阅</a></p>
+<h4 id="1.5">响应头部</h4>
+
+<p>响应头部主要是返回一些服务器的基本信息，以及一些Cookie值等。如上的响应头为:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Date: Sat, 01 Jul 2017 14:51:26 GMT</span><br><span class="line">Server: Apache/2.4.7 (Ubuntu)</span><br><span class="line">Set-Cookie: JSESSIONID=84C993F5E433C4DE9BFBA57150FFC065.ajp13_worker;path=/;HttpOnly</span><br><span class="line">Content-Language: zh-CN</span><br><span class="line">Vary: Accept-Encoding</span><br><span class="line">Content-Encoding: gzip</span><br><span class="line">Content-Length: 7333</span><br><span class="line">Keep-Alive: <span class="built_in">timeout</span>=5, max=100</span><br><span class="line">Connection: Keep-Alive</span><br><span class="line">Content-Type: text/html;charset=UTF-8</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/liujiarui/p/13253246.html">引鉴</a></p>
+</blockquote>
+<h3 id="2">https-协议</h3>
+
+<p><img src="/images/https-ssl.png" alt="http请求报文范例"></p>
+<h3 id="3">DNS</h3>
+
+<blockquote>
+<p>DNS 要解决的是域名和 IP 地址的映射问题</p>
+</blockquote>
+<p><img src="/images/domain-name-structure.png" alt="域名分层结构"></p>
+<p><img src="/images/domain-name-flow.png" alt="DNS解析过程"></p>
+<p>DNS 的查询解析过程分为两种模式：</p>
+<ul>
+<li>迭代 <img src="/images/dns-diedai.png" alt="迭代"></li>
+<li>递归 <img src="/images/dns-digui.png" alt="递归"></li>
+</ul>
+<h4 id="3.1">域名解析</h4>
+
+<ul>
+<li>A 将域名指向一个 IPv4 地址，如 106.55.75.123。 A记录归属地是埃文科技的付费接口，为了防止盗刷，每个用户有查询限制，请节省使用。</li>
+<li>AAAA 将域名指向一个 IPv6 地址，如 2402:4e00:1013:e500:0:9671:f018:4947。同一个主机名可以同时解析到 IPv4(A记录)地址 和 IPv6(AAAA 记录)地址上，当只有IPv4 地址的用户会解析到 IPv4 地址，一般情况下有 IPv6 地址的用户会优先解析到 IPv6 地址。</li>
+<li>CNAME 将域名指向另一个域名地址，与其保持相同解析，如 static.ipw.cn 别名到 static.ipw.cn.cdn.dnsv1.com</li>
+<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#116;&#x65;&#x73;&#116;&#x40;&#x69;&#112;&#119;&#46;&#x63;&#110;">test@ipw.cn</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#x74;&#101;&#x73;&#116;&#x40;&#x6d;&#97;&#x69;&#x6c;&#46;&#105;&#x70;&#x77;&#x2e;&#x63;&#110;">test@mail.ipw.cn</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
+<li>TXT 附加文本信息，常用于域名所有权验证，如在申请 HTTPS 证书时需要增加记录、</li>
+<li>PTR IP 的反向解析记录，例如 159.75.190.197 反解析到 ipw.cn，一般用于提升自建域名邮件服务器的可信度，可提单找云服务商添加。</li>
+<li>NS 域名的 DNS 服务器地址，例如 ns3.dnsv2.com，推荐 DNSPod.</li>
+</ul>
+<h4 id="3.2">DNS解析工具</h4>
+
+<p><code>dig</code></p>
+<blockquote>
+<p>dig baidu.com</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; baidu.com</span><br><span class="line">;; global options: +cmd</span><br><span class="line">;; Got answer:</span><br><span class="line">;; -&gt;&gt;HEADER&lt;&lt;- <span class="string">opcode: QUERY, status: NOERROR, id: 1675</span></span><br><span class="line"><span class="string">;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 询问 baidu.com 域名的 A 记录</span></span><br><span class="line"><span class="string">;; OPT PSEUDOSECTION:   </span></span><br><span class="line"><span class="string">; EDNS: version: 0, flags:; udp: 512</span></span><br><span class="line"><span class="string">;; QUESTION SECTION:</span></span><br><span class="line"><span class="string">;baidu.com.			IN	A</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## baidu.com. 域名的 A 记录指向了 39.156.66.10 和 110.242.68.66 这两个IP</span></span><br><span class="line"><span class="string">;; ANSWER SECTION:</span></span><br><span class="line"><span class="string">baidu.com.		406	IN	A	39.156.66.10</span></span><br><span class="line"><span class="string">baidu.com.		406	IN	A	110.242.68.66</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 查询耗时，本地DNS地址，查询时间，返回消息包大小</span></span><br><span class="line"><span class="string">;; Query time: 50 msec</span></span><br><span class="line"><span class="string">;; SERVER: 8.8.8.8#53(8.8.8.8)</span></span><br><span class="line"><span class="string">;; WHEN: Tue Dec 31 14:28:42 +07 2024</span></span><br><span class="line"><span class="string">;; MSG SIZE  rcvd: 70</span></span><br><span class="line"><span class="string"></span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<ul>
+<li>dig +short baidu.com   (直接显示DNS寻址结果)</li>
+<li>dig +trace baidu.com   (整个分级查询过程)</li>
+<li>dig @8.8.8.8 baidu.com   (向特定DNS服务器寻址)</li>
+<li>dig ns baidu.com   (ns记录)</li>
+<li>dig a baidu.com   (a记录)</li>
+<li>dig mx baidu.com   (mx记录)</li>
+<li>dig -x 192.30.252.153   (查询PTR记录)</li>
+</ul>
+</blockquote>
+<p><code>host</code> 用于逆向查询，即从IP地址查询域名，等同于dig -x {IP}</p>
+<blockquote>
+<p>host github.com</p>
+</blockquote>
+<p><code>host</code> nslookup 互动式地查询域名记录</p>
+<blockquote>
+<p>nslookup github.com</p>
+</blockquote>
+<p><code>whois</code> 查看域名的注册情况</p>
+<blockquote>
+<p>whois github.com</p>
+</blockquote>
+<h4 id="3.3">什么是DNS劫持</h4>
+
+<p>什么是DNS劫持DNS劫持就是通过劫持了DNS服务器，通过某些手段取得某域名的解析记录控制权，进而修改此域名的解析结果，导致对该域名的访问由原IP地址转入到修改后的指定IP，其结果就是对特定的网址不能访问或访问的是假网址，从而实现窃取资料或者破坏原有正常服务的目的。DNS劫持通过篡改DNS服务器上的数据返回给用户一个错误的查询结果来实现的。</p>
+<blockquote>
+<p>DNS劫持症状：在某些地区的用户在成功连接宽带后，首次打开任何页面都指向ISP提供的“电信互联星空”、“网通黄页广告”等内容页面。还有就是曾经出现过用户访问Google域名的时候出现了百度的网站。这些都属于DNS劫持。</p>
+</blockquote>
+<h4 id="3.4">什么是DNS污染</h4>
+
+<p>DNS污染是一种让一般用户由于得到虚假目标主机IP而不能与其通信的方法，是一种DNS缓存投毒攻击（DNS cache poisoning）。其工作方式是：由于通常的DNS查询没有任何认证机制，而且DNS查询通常基于的UDP是无连接不可靠的协议，因此DNS的查询非常容易被篡改，通过对UDP端口53上的DNS查询进行入侵检测，一经发现与关键词相匹配的请求则立即伪装成目标域名的解析服务器（NS，Name Server）给查询者返回虚假结果。而DNS污染则是发生在用户请求的第一步上，直接从协议上对用户的DNS请求进行干扰。DNS污染症状：目前一些被禁止访问的网站很多就是通过DNS污染来实现的，例如YouTube、Facebook等网站。</p>
+<p>解决方法:</p>
+<ul>
+<li>对于DNS劫持，可以采用使用国外免费公用的DNS服务器解决。例如OpenDNS（208.67.222.222）或GoogleDNS（8.8.8.8）。</li>
+<li>对于DNS污染，可以说，个人用户很难单单靠设置解决，通常可以使用VPN或者域名远程解析的方法解决，但这大多需要购买付费的VPN或SSH等，也可以通过修改Hosts的方法，手动设置域名正确的IP地址。</li>
+</ul>
+<h4 id="3.5">为什么要DNS流量监控</h4>
+
+<p>预示网络中正出现可疑或恶意代码的 DNS 组合查询或流量特征。例如：</p>
+<ol>
+<li>来自伪造源地址的 DNS 查询、或未授权使用且无出口过滤地址的 DNS 查询，若同时观察到异常大的 DNS 查询量或使用 TCP 而非 UDP 进行 DNS 查询，这可能表明网络内存在被感染的主机，受到了 DDoS 攻击。</li>
+<li>异常 DNS 查询可能是针对域名服务器或解析器（根据目标 IP 地址确定）的漏洞攻击的标志。与此同时，这些查询也可能表明网络中有不正常运行的设备。原因可能是恶意软件或未能成功清除恶意软件。</li>
+<li>在很多情况下，DNS 查询要求解析的域名如果是已知的恶意域名，或具有域名生成算法( DGA )（与非法僵尸网络有关）常见特征的域名，或者向未授权使用的解析器发送的查询，都是证明网络中存在被感染主机的有力证据。</li>
+<li>DNS 响应也能显露可疑或恶意数据在网络主机间传播的迹象。例如，DNS 响应的长度或组合特征可以暴露恶意或非法行为。例如，响应消息异常巨大（放大攻击），或响应消息的 Answer Section 或 Additional Section 非常可疑（缓存污染，隐蔽通道）。</li>
+<li>针对自身域名组合的 DNS 响应，如果解析至不同于你发布在授权区域中的 IP 地址，或来自未授权区域主机的域名服务器的响应，或解析为名称错误( NXDOMAIN )的对区域主机名的肯定响应，均表明域名或注册账号可能被劫持或 DNS 响应被篡改。</li>
+<li>来自可疑 IP 地址的 DNS 响应，例如来自分配给宽带接入网络 IP 段的地址、非标准端口上出现的 DNS 流量，异常大量的解析至短生存时间( TTL )域名的响应消息，或异常大量的包含“ name error ”( NXDOMAIN )的响应消息，往往是主机被僵尸网络控制、运行恶意软件或被感染的表现。</li>
+</ol>
+<h3 id="4">TCP协议</h3>
+<h4 id="4.1">TCP头部格式</h4>
+
+
+<p><img src="/images/tcp-header.png" alt="TCP头部格式"></p>
+<ul>
+<li>【端口号】：端口号，用于多路复用或者分解来自（送到）上层的数据；</li>
+<li>【序列号】：在连接建立时由计算机计算出的初始值，通过 SYN 包传给对端主机，每发送一次新的数据包，就累加一次该序列号的大小。用来解决网络包乱序问题；</li>
+<li>【确认应答号】：指下次期望收到的数据的序列号，发送端收到这个确认应答以后可以确认确认应答号-1的数据包已经被正常接收。主要用来解决不丢包的问；</li>
+<li>【标志字段】：<ul>
+<li>【ACK】：用以指示确认字段中的值是有效的，即该报文段包括一个对已被成功接收的报文段的确认；</li>
+<li>【RST】：用以指示连接的强制拆除，当接收到错误连接时会发送RST位置为1的报文；</li>
+<li>【SYN】：用以指示连接的建立，该位为1的报文表示希望建立连接；</li>
+<li>【FIN】：用以指示连接的终止，该位为1的报文表示希望断开连接；</li>
+</ul>
+</li>
+</ul>
+<h4 id="4.2">三次握手与四次挥手</h4>
+
+<p><img src="/images/shakehand3-end4.png" alt="三次握手与四次挥手"></p>
+<p>三次握手</p>
+<ul>
+<li><p><em><strong>第一次握手(SYN&#x3D;1, seq&#x3D;x):</strong></em><br>客户端发送一个 TCP 的 SYN 标志位置1的包，指明客户端打算连接的服务器的端口，以及初始序号 X,保存在包头的序列号(Sequence Number)字段里。<br>发送完毕后，客户端进入 <code>SYN_SEND</code> 状态。</p>
+</li>
+<li><p><em><strong>第二次握手(SYN&#x3D;1, ACK&#x3D;1, seq&#x3D;y, ACKnum&#x3D;x+1):</strong></em><br>服务器发回确认包(ACK)应答。即 SYN 标志位和 ACK 标志位均为1。服务器端选择自己 ISN 序列号，放到 Seq 域里，同时将确认序号(Acknowledgement Number)设置为客户的 ISN 加1，即X+1。 发送完毕后，服务器端进入 <code>SYN_RCVD</code> 状态。</p>
+</li>
+<li><p><em><strong>第三次握手(ACK&#x3D;1，ACKnum&#x3D;y+1):</strong></em><br>客户端再次发送确认包(ACK)，SYN 标志位为0，ACK 标志位为1，并且把服务器发来 ACK 的序号字段+1，放在确定字段中发送给对方，并且在数据段放写ISN的+1<br>发送完毕后，客户端进入 ESTABLISHED 状态，当服务器端接收到这个包时，也进入 <code>ESTABLISHED</code> 状态，TCP 握手结束。</p>
+</li>
+</ul>
+<p>四次挥手</p>
+<ul>
+<li><p><em><strong>第一次挥手(FIN&#x3D;1，seq&#x3D;x):</strong></em><br>假设客户端想要关闭连接，客户端发送一个 FIN 标志位置为1的包，表示自己已经没有数据可以发送了，但是仍然可以接受数据。<br>发送完毕后，客户端进入 <code>FIN_WAIT_1</code> 状态。</p>
+</li>
+<li><p><em><strong>第二次挥手(ACK&#x3D;1，ACKnum&#x3D;x+1):</strong></em><br>服务器端确认客户端的 FIN 包，发送一个确认包，表明自己接受到了客户端关闭连接的请求，但还没有准备好关闭连接。<br>发送完毕后，服务器端进入 <code>CLOSE_WAIT</code> 状态，客户端接收到这个确认包之后，进入 <code>FIN_WAIT_2</code> 状态，等待服务器端关闭连接。</p>
+</li>
+<li><p><em><strong>第三次挥手(FIN&#x3D;1，seq&#x3D;y):</strong></em><br>服务器端准备好关闭连接时，向客户端发送结束连接请求，FIN 置为1。<br>发送完毕后，服务器端进入 <code>LAST_ACK</code> 状态，等待来自客户端的最后一个ACK。</p>
+</li>
+<li><p><em><strong>第四次挥手(ACK&#x3D;1，ACKnum&#x3D;y+1):</strong></em><br>客户端接收到来自服务器端的关闭请求，发送一个确认包，并进入 TIME_WAIT状态，等待可能出现的要求重传的 ACK 包。<br>服务器端接收到这个确认包之后，关闭连接，进入 CLOSED 状态。<br>客户端等待了某个固定时间（两个最大段生命周期，2MSL，2 Maximum Segment Lifetime）之后，没有收到服务器端的 ACK ，认为服务器端已经正常关闭连接，于是自己也关闭连接，进入 CLOSED 状态。</p>
+</li>
+</ul>
+<h4 id="4.3">SYN攻击</h4>
+
+<ul>
+<li><p>什么是 SYN 攻击（SYN Flood）？<br>在三次握手过程中，服务器发送 SYN-ACK 之后，收到客户端的 ACK 之前的 TCP 连接称为半连接(half-open connect)。此时服务器处于 SYN_RCVD 状态。当收到 ACK 后，服务器才能转入 ESTABLISHED 状态.<br>SYN 攻击指的是，攻击客户端在短时间内伪造大量不存在的IP地址，向服务器不断地发送SYN包，服务器回复确认包，并等待客户的确认。由于源地址是不存在的，服务器需要不断的重发直至超时，这些伪造的SYN包将长时间占用未连接队列，正常的SYN请求被丢弃，导致目标系统运行缓慢，严重者会引起网络堵塞甚至系统瘫痪。<br>SYN 攻击是一种典型的 DoS&#x2F;DDoS 攻击。</p>
+</li>
+<li><p>如何检测 SYN 攻击？<br>检测 SYN 攻击非常的方便，当你在服务器上看到大量的半连接状态时，特别是源IP地址是随机的，基本上可以断定这是一次SYN攻击。在 Linux&#x2F;Unix 上可以使用系统自带的 netstats 命令来检测 SYN 攻击。</p>
+</li>
+<li><p>如何防御 SYN 攻击？<br>SYN攻击不能完全被阻止，除非将TCP协议重新设计。我们所做的是尽可能的减轻SYN攻击的危害，常见的防御 SYN 攻击的方法有如下几种：<br>缩短超时（SYN Timeout）时间<br>增加最大半连接数<br>过滤网关防护<br>SYN cookies技术</p>
+</li>
+</ul>
+<h4 id="4.4">KeepAlive</h4>
+TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，交互双方都有可能出现掉电、死机、异常重启等各种意外
+
+<p>TCP KeepAlive 的基本原理是，隔一段时间给连接对端发送一个探测包，如果收到对方回应的 ACK，则认为连接还是存活的，在超过一定重试次数之后还是没有收到对方的回应，则丢弃该 TCP 连接。</p>
+<p><a target="_blank" rel="noopener" href="https://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/">TCP-Keepalive-HOWTO</a> 有对 TCP KeepAlive 特性的详细介绍，有兴趣的同学可以参考。这里主要说一下，TCP KeepAlive 的局限。首先 TCP KeepAlive 监测的方式是发送一个 probe 包，会给网络带来额外的流量，另外 TCP KeepAlive 只能在内核层级监测连接的存活与否，而连接的存活不一定代表服务的可用。例如当一个服务器 CPU 进程服务器占用达到 100%，已经卡死不能响应请求了，此时 TCP KeepAlive 依然会认为连接是存活的。因此 TCP KeepAlive 对于应用层程序的价值是相对较小的。需要做连接保活的应用层程序，例如 QQ，往往会在应用层实现自己的心跳功能。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://hit-alibaba.github.io/interview/basic/network/TCP.html">引鉴</a></p>
+</blockquote>
+<h4 id="4.5">TCP和UDP的区别</h4>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>TCP</th>
+<th>UDP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接性</td>
+<td>面向连接</td>
+<td>无连接</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>可靠</td>
+<td>不可靠</td>
+</tr>
+<tr>
+<td>有序性</td>
+<td>有序</td>
+<td>无序</td>
+</tr>
+<tr>
+<td>有界性</td>
+<td>有界</td>
+<td>无界</td>
+</tr>
+<tr>
+<td>拥塞控制</td>
+<td>有</td>
+<td>无</td>
+</tr>
+<tr>
+<td>传输速度</td>
+<td>慢</td>
+<td>快</td>
+</tr>
+<tr>
+<td>量级</td>
+<td>重量级</td>
+<td>轻量级</td>
+</tr>
+<tr>
+<td>头部大小</td>
+<td>大</td>
+<td>小</td>
+</tr>
+</tbody></table>
+<h3 id="5">Socket</h3>
+
+<p>Socket 是 TCP 层的封装，通过 socket，我们就能进行 TCP 通信</p>
+<p><img src="/images/socket-network-model.png" alt="http请求报文范例"></p>
+<p>Socket通信实现步骤解析：</p>
+<ol>
+<li>创建ServerSocket和Socket</li>
+<li>打开连接到的Socket的输入&#x2F;输出流</li>
+<li>按照协议对Socket进行读&#x2F;写操作</li>
+<li>关闭输入输出流，以及Socket</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://pdai.tech/md/develop/protocol/dev-protocol-dns.html#%E4%BB%80%E4%B9%88%E6%98%AFdns%E5%8A%AB%E6%8C%81">引鉴</a></p>
 
         </div>
     
@@ -736,6 +1141,533 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/pantesting-getinfo/">
+                信息收集
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>信息收集是指通过各种方式获取所需要的信息，以便我们在后续的渗透过程更好的进行。比如目标站点IP、中间件、脚本语言、端口、邮箱等等。信息收集包含资产收集但不限于资产收集。</p>
+<ul>
+<li><p>主动信息收集<br>通过直接访问网站在网站上进行操作、对网站进行扫描等，这种是有网络流量经过目标服务器的信息收集方式。</p>
+</li>
+<li><p>被动信息收集<br>基于公开的渠道，比如搜索引擎等，在不与目标系统直接交互的情况下获取信息，并且尽量避免留下痕迹。</p>
+</li>
+<li><p><a href="#1">服务器信息</a></p>
+<ul>
+<li><a href="#1.1">域名信息</a><ul>
+<li><a href="#1.1.1">搜索引擎搜索</a></li>
+<li><a href="#1.1.2">子域名查询</a></li>
+<li><a href="#1.1.3">IP域名反查</a></li>
+<li><a href="#1.1.4">CDN</a></li>
+<li><a href="#1.1.5">扫描工具</a></li>
+<li><a href="#1.1.6">域名相关性总结</a></li>
+</ul>
+</li>
+<li><a href="#1.2">端口信息</a><ul>
+<li><a href="#1.2.1">端口扫描</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a href="#2">网站&#x2F;域名信息</a></p>
+<ul>
+<li><a href="#2.1">网络指纹识别</a></li>
+<li><a href="#2.2">网站服务 &#x2F; 容器类型</a></li>
+<li><a href="#2.3">敏感文件及目录探测</a></li>
+<li><a href="#2.4">网站备份文件</a></li>
+<li><a href="#2.5">网站WAF识别</a></li>
+<li><a href="#2.6">Windows主机信息收集</a></li>
+</ul>
+</li>
+<li><p><a href="#3">社会工程学-人员信息</a></p>
+<ul>
+<li><a href="#3.1">企业信息收集</a></li>
+<li><a href="#3.2">人员信息收集</a></li>
+<li><a href="#3.3">钓鱼</a></li>
+<li><a href="#3.4">其他信息</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="1">服务器信息</h3>
+
+<ul>
+<li><p>IP</p>
+<blockquote>
+<p>C段</p>
+</blockquote>
+</li>
+<li><p>线下网络</p>
+<blockquote>
+<p>Wi-Fi</p>
+<ul>
+<li>SSID</li>
+<li>认证信息</li>
+</ul>
+<p>bluetooth</p>
+</blockquote>
+</li>
+<li><p>VPN</p>
+<blockquote>
+<p>厂商<br>登录方式</p>
+</blockquote>
+</li>
+<li><p>邮件网关</p>
+</li>
+<li><p>手机APP</p>
+</li>
+<li><p>小程序后台</p>
+</li>
+<li><p>OA</p>
+</li>
+<li><p>SSO</p>
+</li>
+<li><p>边界网络设备</p>
+</li>
+<li><p>上游运营商</p>
+</li>
+</ul>
+<h4 id="1.1">域名信息</h4>
+
+<h5 id="1.1.1">搜索引擎搜索</h5>
+
+<p>用搜索引擎 搜索相关的域名和子域名 <code>site:[DomainName]</code></p>
+<ul>
+<li>site:<br>限定搜索结果只来自特定网站。<blockquote>
+<p>示例：<code>site:</code>wikipedia.org</p>
+</blockquote>
+</li>
+<li>filetype:<br>查找特定类型的文件。<blockquote>
+<p>示例：<code>filetype:</code>pdf 教学大纲</p>
+</blockquote>
+</li>
+<li>intitle:<br>查找标题中包含特定词语的页面。<blockquote>
+<p>示例：<code>intitle:</code>市场分析</p>
+</blockquote>
+</li>
+<li>inurl:<br>查找URL中包含特定词语的页面。<blockquote>
+<p>示例：<code>inurl:</code>blog</p>
+</blockquote>
+</li>
+<li>related:<br>查找与某个特定网站相似的网站。<blockquote>
+<p>示例：<code>related:</code>example.com</p>
+</blockquote>
+</li>
+<li>OR（要大写）<br>在搜索中使用逻辑“或”，查找包含任一关键词的结果。<blockquote>
+<p>示例：<code>苹果 OR 橙子</code></p>
+</blockquote>
+</li>
+<li>-（短横线）<br>排除某个词语，从搜索结果中剔除特定内容。<blockquote>
+<p>示例：<code>水果 -香蕉</code></p>
+</blockquote>
+</li>
+<li>“ “（引号）<br>精确匹配短语，查找包含确切词组的结果。<blockquote>
+<p>示例：<code>&quot;机器学习入门&quot;</code></p>
+</blockquote>
+</li>
+<li>*（星号）<br>用作通配符，可以替代一个或多个词。<blockquote>
+<p>示例：<code>&quot;我喜欢 * 的电影&quot;</code></p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 返回此目标站点被搜索引擎抓取收录的所有内容</span></span><br><span class="line">site:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回此目标站点被搜索引擎抓取收录的包含此关键词的所有页面</span></span><br><span class="line"><span class="comment">## 此处可以将关键词设定为网站后台，管理后台，密码修改，密码找回等</span></span><br><span class="line">site:www.hao123.com keyword</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回目标站点的地址中包含admin.php的所有页面，可以使用admin.php/manage.php或者其他关键词来寻找关键功能页面 </span></span><br><span class="line">site:www.hao123.com inurl:admin.php</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回所有包含目标站点链接的页面，其中包括其开发人员的个人博客，开发日志，或者开放这个站点的第三方公司，合作伙伴等</span></span><br><span class="line"><span class="built_in">link</span>:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 返回所有与目标站点”相似”的页面，可能会包含一些通用程序的信息等</span></span><br><span class="line">related:www.hao123.com</span><br><span class="line"></span><br><span class="line"><span class="comment">## 搜索出错的页面</span></span><br><span class="line">intitle:<span class="string">&quot;500 Internal Server Error&quot;</span> <span class="string">&quot;server at&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 查找代理服务器</span></span><br><span class="line">inurl:<span class="string">&quot;nph-proxy.cgi&quot;</span> <span class="string">&quot;Start browsing&quot;</span></span><br><span class="line"><span class="comment">## 除了以上的关键字，还有allintile / allinurl / allintext / inanchor / intext / filetype / info / numberange / cache等。</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="1.1.2">第三方查询</h5>
+
+<ul>
+<li><a target="_blank" rel="noopener" href="https://dnsdumpster.com/">子域名查询信息</a></li>
+<li><a href="virustotal.com">全球最大的免费在线查毒网站 virustotal</a></li>
+<li>[威胁信息挖掘](<a target="_blank" rel="noopener" href="https://www.threatminer.org)/">https://www.threatminer.org）</a></li>
+<li><a target="_blank" rel="noopener" href="https://search.censys.io/">联网设备信息的新型搜索引擎</a></li>
+</ul>
+<h5 id="1.1.2">子域名查询</h5>
+
+<ul>
+<li>SSL证书查询<ul>
+<li><a target="_blank" rel="noopener" href="https://crt.sh/">SSL查询网址</a></li>
+</ul>
+</li>
+<li>发现子域名工具<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Threezh1/JSFinder">JS子域名爬取工具</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/shmilylty/OneForAll">强大的子域搜集工具 - OneForAll</a></li>
+<li><a href="">Subdomainsbrute</a></li>
+<li><a target="_blank" rel="noopener" href="https://scan.javasec.cn/">在线爆破子域名</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.3">IP域名反查</h5>
+
+<ul>
+<li>IP反查域名<ul>
+<li><a target="_blank" rel="noopener" href="http://stool.chinaz.com/same">1</a></li>
+<li><a target="_blank" rel="noopener" href="https://tools.ipip.net/ipdomain.php">2</a></li>
+</ul>
+</li>
+<li>域名查询IP<ul>
+<li><a target="_blank" rel="noopener" href="https://ip.tool.chinaz.com/">3</a></li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.4">CDN</h5>
+
+<p>CDN即内容分发网络。CDN是构建在网络之上的内容分发网络，依靠部署在各地的边缘服务器，通过中心平台的负载均衡、内容分发、调度等功能模块，使用户就近获取所需内容，降低网络拥塞，提高用户访问响应速度和命中率。</p>
+<p>通俗来说，就是部署在本地的服务器，里面备用了想要访问的服务器的数据。</p>
+<ul>
+<li>多地ping判断CDN<ul>
+<li><a target="_blank" rel="noopener" href="http://ping.chinaz.com/">1</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.webkaka.com/Ping.aspx">2</a></li>
+</ul>
+</li>
+<li>Mx记录邮件服务<ul>
+<li>将IP输入到ping检测网址里</li>
+</ul>
+</li>
+<li>查询历史DNS记录<ul>
+<li><a target="_blank" rel="noopener" href="https://dnsdb.io/zh-cn">1</a></li>
+<li><a target="_blank" rel="noopener" href="https://securitytrails.com/">2</a></li>
+<li><a target="_blank" rel="noopener" href="https://x.threatbook.cn/">3</a></li>
+</ul>
+</li>
+<li>常见的几个DNS记录类型<ul>
+<li>A记录：将域名指向一个IPV4地址(例如:100.100.100.100)，需要增加A记录；</li>
+<li>NS记录：域名解析服务器记录，如果要将子域名指定某个域名服务器来解析，需要设置NS记录；</li>
+<li>SOA记录： SOA叫做起始授权机构记录，NS用于标识多台域名解析服务器，SOA记录用于在众多NS记录中标记哪一台是主服务器；</li>
+<li>MX记录：建立电子邮箱服务，将指向邮件服务器地址，需要设置MX记录。建立邮箱时，一般会根据邮箱服务商提供的MX记录填写此记录；</li>
+<li>TXT记录：可任意填写，可为空。一般做一些验证记录时会使用此项，如做SPF(反垃圾邮件)记录；</li>
+</ul>
+</li>
+</ul>
+<h5 id="1.1.5">扫描工具</h5>
+
+<ul>
+<li>nmap</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/se55i0n/Cwebscanner">Cwebscan</a></li>
+</ul>
+<h5 id="1.1.6">域名相关性总结</h5>
+
+<ul>
+<li>查询域名注册邮箱</li>
+<li>通过域名查询备案号</li>
+<li>通过备案号查询域名</li>
+<li>反查注册邮箱</li>
+<li>反查注册人</li>
+<li>通过注册人查询到的域名在查询邮箱</li>
+<li>通过上一步邮箱去查询域名</li>
+<li>查询以上获取出的域名的子域名</li>
+</ul>
+<h4 id="1.2">端口信息</h4>
+
+<ul>
+<li>端口类型<br>周知端口：众所周知的端口号，范围:0-1023，如80端口是WWW服务<br>动态端口：一般不固定分配某种服务，范围:49152-65535<br>注册端口：范围:1024-49151，用于分配给用户进程或程序</li>
+<li>各种端口介绍<ul>
+<li>FTP (21&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">FTP：文件传输协议，允许用户通过网络上传、下载和管理文件，使用TCP端口20、21。20用于传输数据，21用于传输控制信息。</span><br><span class="line"></span><br><span class="line">FTP 本身并不加密：数据以明文形式传输，容易被窃听。</span><br><span class="line"></span><br><span class="line">(1) ftp基础爆破：owasp 的 Bruter、hydra 以及 msf 中的 ftp 爆破模块。 暴力破解密码 默认用户名密码 anonymous:anonymous</span><br><span class="line"></span><br><span class="line">(2) ftp匿名访问：</span><br><span class="line">用户名: anonymous 密码: 为空或者任意邮箱</span><br><span class="line"></span><br><span class="line">(3) vsftpd后门：vsftpd 2到2.3.4版本存在后门漏洞，通过该漏洞获取root权限</span><br><span class="line"></span><br><span class="line">(4) 嗅探：ftp使用明文传输，使用 Cain 进行渗透。(但是探需要在局域网并需要欺骗或监听网关)</span><br><span class="line"></span><br><span class="line">(5) ftp远程代码溢出。</span><br><span class="line"></span><br><span class="line">(6) ftp跳转攻击。</span><br><span class="line"></span><br><span class="line">FTP跳转攻击:https://blog.csdn.net/mgxcool/article/details/48249473</span><br></pre></td></tr></table></figure>
+<ul>
+<li>SSH (22&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SSH:(secure shell)是目前较可靠，专为远程登录会话和其他网络服务提供安全性的协议。</span><br><span class="line"></span><br><span class="line">(1)弱口令，可使用工具hydra，msf中的ssh爆破模块。</span><br><span class="line"></span><br><span class="line">(2)SSH后门</span><br><span class="line"></span><br><span class="line">(3)openssh用户枚举 CVE-2018-15473.</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Telent (23&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Telnet 协议是 TCP/IP 协议族中的一员，是Internet远程登录服务的标准协议和主要方式。</span><br><span class="line"></span><br><span class="line">(1) 暴力破解，使用 hydra 或者 msf 中 teInet 模块对其进行破解。</span><br><span class="line"></span><br><span class="line">(2) 在linux系统中一般采用SSH进行远程访问，传输的敏感数据都是经过加密的。而对于windows下的 telnet 来说是脆弱的，因为默认没有经过任何加密就在网络中进行传输。使用cain等嗅探工具可轻松截获远程登录密码。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>SMTP (25&#x2F;TCP &amp; 465&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">smtp:邮件协议，在linux中默认开启这个服务，可发送钓鱼邮件</span><br><span class="line"></span><br><span class="line">默认端口:25(smtp)、465(smtps)</span><br><span class="line"></span><br><span class="line">(1)爆破:弱口令，使用hydra</span><br><span class="line"></span><br><span class="line">(2)SMTP 无认证伪造发件人</span><br></pre></td></tr></table></figure>
+<ul>
+<li>DNS (53&#x2F;UDP &amp; 53&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">域传送漏洞</span><br><span class="line">DNS劫持</span><br><span class="line">DNS缓存投毒</span><br><span class="line">DNS欺骗</span><br><span class="line">SPF / DMARC Check</span><br><span class="line">DDoS</span><br><span class="line">    DNS Query Flood</span><br><span class="line">    DNS 反弹</span><br><span class="line"></span><br><span class="line">DNS 隧道</span><br></pre></td></tr></table></figure>
+<ul>
+<li>DHCP 67 &amp; 68</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">劫持/欺骗</span><br></pre></td></tr></table></figure>
+<ul>
+<li>TFTP (69&#x2F;TCP)</li>
+<li>HTTP (80&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">为超文本传输协议(HTTP)开放的端口，主要用于万维网传输信息的协议</span><br><span class="line"></span><br><span class="line">(1) 通常80端口使用中间件漏洞进行攻击，如 llS、apache任意文件读写漏洞、nginx等</span><br><span class="line"></span><br><span class="line">(2) 80端口一般通过web应用程序的常见漏洞进行攻击</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Kerberos (88&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">主要用于监听KDC的票据请求</span><br><span class="line">用于进行黄金票据和白银票据的伪造</span><br></pre></td></tr></table></figure>
+<ul>
+<li>POP3 (110&#x2F;TCP &amp; 995&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">爆破</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RPC (135&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic 服务利用</span><br></pre></td></tr></table></figure>
+<ul>
+<li>NetBIOS (137&#x2F;UDP &amp; 138&#x2F;UDP) Samba (139&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">139用于提供windows文件和打印机共享及UNIX中的Samba服务</span><br><span class="line"></span><br><span class="line">445用于提供windows文件和打印机共享</span><br><span class="line"></span><br><span class="line">(1)对于开放139/445端口，尝试利用MS17010溢出漏洞进行攻击;</span><br><span class="line"></span><br><span class="line">(2)对于只开放445端口，尝试利用MS06040、MS08067溢出漏洞攻击;</span><br><span class="line"></span><br><span class="line">(3)利用IPC$连接进行渗透</span><br><span class="line">未授权访问</span><br><span class="line">弱口令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>IMAP (143&#x2F;TCP &amp; 993&#x2F;TCP)</li>
+<li>SNMP (161&#x2F;TCP &amp; 161&#x2F;UDP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Public 弱口令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>LDAP (389&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">用于域上的权限验证服务</span><br><span class="line">匿名访问</span><br><span class="line">注入</span><br></pre></td></tr></table></figure>
+<ul>
+<li>HTTPS (443&#x2F;TCP)</li>
+<li>SMB (445&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Windows 协议簇，主要功能为文件共享服务</span><br><span class="line">net use \\192.168.1.1 /user:xxx\username password</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Linux Rexec (512&#x2F;TCP &amp; 513&#x2F;TCP &amp; 514&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱口令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Rsync (873&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RPC (1025&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NFS匿名访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Java RMI (1090&#x2F;TCP &amp; 1099&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">反序列化远程命令执行漏洞</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MSSQL (1433&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br><span class="line">差异备份 GetShell</span><br><span class="line">SA 提权</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Oracle (1521&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>NFS (2049&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">权限设置不当</span><br><span class="line">showmount &lt;host&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ZooKeeper (2171&#x2F;TCP &amp; 2375&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无身份认证</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Docker Remote API (2375&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">未限制IP / 未启用TLS身份认证</span><br><span class="line">http://docker.addr:2375/version</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MySQL (3306&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">3306是MYSQL数据库默认的监听端口</span><br><span class="line"></span><br><span class="line">(1) mysql弱口令破解</span><br><span class="line"></span><br><span class="line">(2) 弱口令登录mysql，上传构造的恶意UDF自定义函数代码，通过调用注册的恶意函数执行系统命令</span><br><span class="line"></span><br><span class="line">(3) SQL注入获取数据库敏感信息，load_fie()函数读取系统文件，导出恶意代码到指定路径</span><br><span class="line">弱密码</span><br><span class="line">日志写WebShell</span><br><span class="line">UDF提权</span><br><span class="line">MOF提权</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RDP &#x2F; Terminal Services (3389&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">3389是windows远程桌面服务默认监听的端口</span><br><span class="line"></span><br><span class="line">(1) RDP暴力破解攻击</span><br><span class="line"></span><br><span class="line">(2) MS12_020死亡蓝屏攻击</span><br><span class="line"></span><br><span class="line">(3) RDP远程桌面漏洞(CVE-2019-0708)</span><br><span class="line"></span><br><span class="line">(4) MSF开启RDP、注册表开启RDP</span><br><span class="line">弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Postgres (5432&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br><span class="line">执行系统命令</span><br></pre></td></tr></table></figure>
+<ul>
+<li>VNC (5900&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>CouchDB (5984&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>WinRM (5985&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Windows对WS-Management的实现</span><br><span class="line">在Vista上需要手动启动，在Windows Server 2008中服务是默认开启的</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Redis (6379&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">开源的可基于内存的可持久化的日志型数据库，</span><br><span class="line"></span><br><span class="line">(1)爆破弱口令</span><br><span class="line"></span><br><span class="line">(2)redis未授权访问结合ssh key提权</span><br><span class="line"></span><br><span class="line">(3)主从复制 RCE</span><br><span class="line">无密码或弱密码</span><br><span class="line">绝对路径写 WebShell</span><br><span class="line">计划任务反弹 Shell</span><br><span class="line">写 SSH 公钥</span><br><span class="line">Windows 写启动项</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Kubernetes API Server (6443&#x2F;TCP &amp;&amp; 10250&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://Kubernetes:10250/pods</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Weblogic (7001&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(1)弱口令、爆破，弱密码一般为weblogic/Oracle@123 or weblogic</span><br><span class="line"></span><br><span class="line">(2)管理后台部署 war包后门</span><br><span class="line"></span><br><span class="line">(3)weblogic SSRF</span><br><span class="line"></span><br><span class="line">(4)反序列化漏洞</span><br></pre></td></tr></table></figure>
+<ul>
+<li>JDWP (8000&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">远程命令执行</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ActiveMQ (8061&#x2F;TCP)</li>
+<li>Jenkin (8080&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Tomcat-8080</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(1) Tomcat远程代码执行漏洞(CVE-2019-0232)</span><br><span class="line"></span><br><span class="line">(2) Tomcat任意文件上传(CVE-2017-12615)</span><br><span class="line"></span><br><span class="line">(3) tomcat 管理页面弱口令getshell</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Elasticsearch (9200&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">代码执行</span><br><span class="line">http://es.addr:9200/_plugin/head/</span><br><span class="line">http://es.addr:9200/_nodes</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Memcached (11211&#x2F;TCP &amp; 11211&#x2F;UDP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure>
+<ul>
+<li>RabbitMQ (15672&#x2F;TCP &amp; 15692&#x2F;TCP &amp; 25672&#x2F;TCP)</li>
+<li>MongoDB (27017&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">无密码或弱密码</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Hadoop (50070&#x2F;TCP &amp; 50075&#x2F;TCP)</li>
+</ul>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">未授权访问</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="1.2.1">端口扫描</h5>
+
+<a href="/2026/09/19/nmap/" title="NMAP">NMAP</a>
+
+
+<h3 id="2">网站信息</h3>
+<h4 id="2.1">网络指纹识别</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/aztecrabbit/bugscanner">备案</a></p>
+<ul>
+<li>判断网站操作系统<br>  Linux大小写敏感<br>  Windows大小写不敏感</li>
+<li>扫描敏感文件<br>  robots.txt<br>  crossdomain.xml<br>  sitemap.xml<br>  xx.tar.gz<br>  xx.bak 等</li>
+<li>确定网站采用的语言<br>  如PHP &#x2F; Java &#x2F; Python等<br>  找后缀，比如php&#x2F;asp&#x2F;jsp</li>
+<li>前端框架<br>  如jQuery &#x2F; BootStrap &#x2F; Vue &#x2F; React &#x2F; Angular等<br>  查看源代码</li>
+<li>中间服务器<br>  如 Apache &#x2F; Nginx &#x2F; IIS 等<br>  查看header中的信息<br>  根据报错信息判断<br>  根据默认页面判断</li>
+<li>Web容器服务器<br>  如Tomcat &#x2F; Jboss &#x2F; Weblogic等</li>
+<li>后端框架<br>  根据Cookie判断<br>  根据CSS &#x2F; 图片等资源的hash值判断<br>  根据URL路由判断</li>
+<li>如wp-admin<br>  根据网页中的关键字判断<br>  根据响应头中的X-Powered-By</li>
+<li>CDN信息<br>  常见的有Cloudflare、yunjiasu</li>
+<li>探测有没有WAF，如果有，什么类型的<br>  有WAF，找绕过方式<br>  没有，进入下一步</li>
+<li>扫描敏感目录，看是否存在信息泄漏<br>  扫描之前先自己尝试几个的url，人为看看反应</li>
+<li>使用爬虫爬取网站信息</li>
+<li>拿到一定信息后，通过拿到的目录名称，文件名称及文件扩展名了解网站开发人员的命名思路，确定其命名规则，推测出更多的目录及文件名</li>
+<li>常见入口目标</li>
+<li>关注度低的系统</li>
+<li>业务线较长的系统</li>
+</ul>
+<h4 id="2.2">网站服务 / 容器类型</h4>
+
+<p>在网站页面按下F12，可查看响应头Server字段，选择“ Network 网络 ”页面并按F5进行刷新，在出现的请求里选中和域名一样的，点击会在右侧出现“ headers 标头 ”，下拉找到 “ Response 响应标头 ”，里面有一个“ Server服务 ”，此时里面的值即为网站的中间件。</p>
+<p>可显示中间件、服务器、UI框架等的工具：</p>
+<p><a target="_blank" rel="noopener" href="https://www.whatweb.net/">在线网址 Whatweb</a><br><a target="_blank" rel="noopener" href="https://www.wappalyzer.com/">浏览器插件 Wappalyzer</a></p>
+<h4 id="2.3">CMS识别</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/kukuqi666/dedecmscan">CMS：称为内容管理系统，用于网站内容文章管理：</a></p>
+<p><a href="Onlinetools%EF%BC%9Ahttps://github.com/iceyhexman/onlinetools">常见CMS：dedecms(织梦)、Discuz、phpcms等。</a></p>
+<h4 id="2.3">敏感文件及目录探测</h4>
+
+<p>github、git、svn（前三个为代码仓库）、.DS Store（苹果操作系统）、.hg、.bzr、CVS、WEB-INF、备份文件都是。</p>
+<ul>
+<li>github 开发人员将代码上传到网站，在上传的时候，没有删除重要的一些信息。如邮箱信息，SVN信息，内部账号和密码，数据库连接信息，服务器配置信息等。尤其是邮箱信息和内部账号和密码。这类信息可以通过在github上搜索公司的一些特定信息查看是否有程序员将这些信息上传到了github上。<ul>
+<li>@example.com password&#x2F;pass&#x2F;pwd&#x2F;secret&#x2F;credentials&#x2F;token</li>
+<li>@example.com username&#x2F;user&#x2F;key&#x2F;login&#x2F;ftp&#x2F;</li>
+<li>@example.com config&#x2F;ftp&#x2F;smtp&#x2F;pop</li>
+<li>@example.com security_credentials&#x2F;connetionstring</li>
+<li>@example.com JDBC&#x2F;ssh2_auth_password&#x2F;send_keys</li>
+</ul>
+</li>
+<li><code>.git</code>泄露<ul>
+<li>.git” intitle:”index of “：<a target="_blank" rel="noopener" href="https://github.com/lijiejie/GitHack">https://github.com/lijiejie/GitHack</a><br>  GitHack是一个 .git 泄露利用脚本，通过泄露的 .git 文件夹下的文件，重建还原工程源代码。渗透测试人员、攻击者，可以进一步审计代码，挖掘文件上传，SQL注入等web安全漏洞。<br>  git泄露成因及危害：当前大量开发人员使用 git 进行版本控制，对网站进行自动部署。如果配置不当，可能会将.git文件部署到线上环境，这就引起了 git 泄露漏洞)<br>  安全维护方面，git 和 svn 信息泄露，是非常常见也是非常致命的漏洞。会导致整个网站的源码泄露。<br>  防护方法：在部署的时候，对 .git 文件夹进行删除;也可以在 nginx 配置中，对 .git 目录的访问进行屏蔽。</li>
+</ul>
+</li>
+<li><code>.svn</code>泄露<ul>
+<li>“.svn” intitle:”index of “：<a target="_blank" rel="noopener" href="https://github.com/admintony/svnExploit">https://github.com/admintony/svnExploit</a><br>  跟git一样，都是用来版本迭代的一个功能。具体一点就是使用 svn checkout 功能来更新代码。如果没有将 .svn 版本控制的目录进行删除，恶意用户就可以使用这个目录下的文件来恢复源码。从而可以获取如数据库密码，源码漏洞等信息。<br>  防护方法：在部署的时候，将该文件进行删除</li>
+</ul>
+</li>
+<li><code>WEB-INF/web.xml</code>泄露<ul>
+<li>WEB-INF是Java的WEB应用的安全目录。如果想在页面中直接访问其中的文件，必须通过 web.xml 文件对要访问的文件进行相应映射才能访问</li>
+</ul>
+</li>
+</ul>
+<h4 id="2.4">网站备份文件</h4>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/7kbstorm/7kbscan-WebPathBrute">Web路径暴力探测工具</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/maurosoria/dirsearch">目录探测（探测是否有git泄露)</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/H4ckForJob/dirmap">御剑后台扫描工具 dirmap</a></p>
+<p>针对漏洞的信息泄露<br><a target="_blank" rel="noopener" href="https://github.com/LandGrey/SpringBootVulExploit">https://github.com/LandGrey/SpringBootVulExploit</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/rabbitmask/SB-Actuator">https://github.com/rabbitmask/SB-Actuator</a></p>
+<h4 id="2.5">网站WAF识别</h4>
+
+<p>WAF分类<br>WAF 可以根据其部署方式和实现形式分为软 WAF 和硬 WAF。</p>
+<ul>
+<li>软 WAF：通常是软件解决方案，可以在现有的服务器或虚拟机上部署。</li>
+<li>硬 WAF：通常是基于硬件的设备，专为处理 Web 应用程序流量而设计。</li>
+</ul>
+<h6 id="WAF功能"><a href="#WAF功能" class="headerlink" title="WAF功能"></a>WAF功能</h6><ol>
+<li>防止常见的各类网络攻击，如：SQL注入、XSS跨站、CSRF、网页后门等<br>网页后门执行的是一些系统调用命令，waf可以把请求包的系统调用阻止掉，导致一句话木马失效，需要给木马上免伤。</li>
+<li>防止各类自动化攻击，如：暴力破解（配置 iptables 也可以阻止）、撞库、批量注册、自动发贴等;</li>
+<li>阻止其它常见威胁，如：爬虫、0 DAY攻击、代码分析、嗅探、数据篡改、越权访问、敏感信息泄漏、应用层DDOS、远程恶意包含、盗链、越权、扫描等。</li>
+</ol>
+<p>Waf识别<br><a target="_blank" rel="noopener" href="https://github.com/EnableSecurity/wafw00f">wafw00f</a></p>
+<ul>
+<li>判断网址是否有waf的命令：<blockquote>
+<p>wafw00f + 网址</p>
+</blockquote>
+</li>
+<li>查看可识别waf的命令：<blockquote>
+<p>wafw00f -l</p>
+</blockquote>
+</li>
+<li>用nmap扫描有无waf：<blockquote>
+<p>nmap -p80,443 –script http-waf-detect ip<br>nmap -p80,443 –script http-waf-fingerprint ip</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="2.6">Windows主机信息收集</h4>
+
+<a href="/2026/09/19/pantesting-Intranet/" title="内网渗透">内网渗透</a>
+
+
+<h3 id="3">社会工程学-人员信息</h3>
+<h4 id="3.1">企业信息收集</h4>
+
+<p>一些网站如天眼查等，可以提供企业关系挖掘、工商信息、商标专利、企业年报等信息查询，可以提供企业的较为细致的信息。</p>
+<p>公司主站中会有业务方向、合作单位等信息。</p>
+<h4 id="3.2">人员信息收集</h4>
+
+<p>针对人员的信息收集考虑对目标重要人员、组织架构、社会关系的收集和分析。其中重要人员主要指高管、系统管理员、开发、运维、财务、人事、业务人员的个人电脑。</p>
+<p>人员信息收集较容易的入口点是网站，网站中可能包含网站的开发、管理维护等人员的信息。从网站联系功能中和代码的注释信息中都可能得到的所有开发及维护人员的姓名和邮件地址及其他联系方式。</p>
+<p>在获取这些信息后，可以在Github&#x2F;Linkedin等社交、招聘网站中进一步查找这些人在互联网上发布的与目标站点有关的一切信息，分析并发现有用的信息。</p>
+<p>此外，可以对获取到的邮箱进行密码爆破的操作，获取对应的密码。</p>
+<h4 id="3.3">钓鱼</h4>
+
+<p>基于之前收集到的信息，可以使用Office&#x2F;CHM&#x2F;RAR&#x2F;EXE&#x2F;快捷方式等文件格式制作钓鱼邮件发送至目标，进一步收集信息。</p>
+<p>其中Office可以使用Office漏洞、宏、OLE对象、PPSX等方式构造利用文件。</p>
+<p>Exe可以使用特殊的Unicode控制字符如RLO (Right-to-Left Override) 等来构建容易混淆的文件名。</p>
+<p>RAR主要是利用自解压等方式来构建恶意文件，同样加密的压缩包也在一定程度上可以逃逸邮件网关的检测。</p>
+<p>如果前期信息收集获取到了运维等人员的邮箱，可以使用运维人员的邮箱发送，如果未收集到相关的信息，可以使用伪造发送源的方式发送邮件。</p>
+<p>需要注意的是，钓鱼测试也需要注意合规问题，不能冒充监管单位、不能发送违法违规信息。具体可以参考《中华人民共和国电信条例》、《中华人民共和国互联网电子邮件服务管理办法》等法律法规。</p>
+<h4 id="3.4">其他信息</h4>
+
+<p>公司的公众号、企业号、网站，员工的网盘、百度文库等可能会存在一些敏感信息，如VPN&#x2F;堡垒机账号、TeamViewer账号、网络设备默认口令、服务器默认口令等。</p>
+<p>引用 ： <a target="_blank" rel="noopener" href="https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html">https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html</a><br><a target="_blank" rel="noopener" href="https://websec.readthedocs.io/zh/latest/info/site.html">https://websec.readthedocs.io/zh/latest/info/site.html</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/pantesting-Intranet/">
                 内网渗透
             </a>
@@ -1049,950 +1981,6 @@
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/mac/">
-                Mac
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>m1 已经是arm处理器</p>
-<ul>
-<li><a href="#%E5%8C%85%E7%AE%A1%E7%90%86-brew">包管理 brew</a></li>
-<li><a href="/2026/09/19/shell/" title="Shell">Shell</a></li>
-<li><a href="#%E8%93%9D%E7%89%99%E4%BC%A0%E6%96%87%E4%BB%B6">蓝牙传文件</a></li>
-<li><a href="#DNS-%E7%BC%93%E5%AD%98">DNS 缓存</a></li>
-<li><a href="#%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1-launchd-%E4%BB%A3%E6%9B%BF-crontab">定时任务 launchd 代替 crontab</a></li>
-</ul>
-<h1 id="包管理-brew"><a href="#包管理-brew" class="headerlink" title="包管理 brew"></a>包管理 brew</h1><h1 id="蓝牙传文件"><a href="#蓝牙传文件" class="headerlink" title="蓝牙传文件"></a>蓝牙传文件</h1><p><a target="_blank" rel="noopener" href="https://support.apple.com/zh-cn/guide/mac-help/mchle7fa9e15/mac">蓝牙传文件</a></p>
-<h1 id="DNS-缓存"><a href="#DNS-缓存" class="headerlink" title="DNS 缓存"></a>DNS 缓存</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> dscacheutil -flushcache; <span class="built_in">sudo</span> killall -HUP mDNSResponder</span><br></pre></td></tr></table></figure>
-
-<h1 id="定时任务-launchd-代替-crontab"><a href="#定时任务-launchd-代替-crontab" class="headerlink" title="定时任务 launchd 代替 crontab"></a>定时任务 launchd 代替 crontab</h1><p></code>crontab</code> 设置后并不起作用</p>
-<p>MacOS 可能禁用了 <code>cron</code>，可以用 <code>launchd</code> 代替：</p>
-<p>launchd 是 MacOS 用来管理系统和用户级别的守护进程的工具</p>
-<ul>
-<li><p>LaunchDaemons（后台服务）</p>
-<ul>
-<li>适用于系统级别的任务，通常以 root 权限运行。</li>
-<li>在 开机时 启动，不依赖用户登录。</li>
-<li>目录：&#x2F;System&#x2F;Library&#x2F;LaunchDaemons&#x2F; 和 &#x2F;Library&#x2F;LaunchDaemons&#x2F;</li>
-<li>适用于系统服务，如数据库、守护进程等。</li>
-</ul>
-</li>
-<li><p>LaunchAgents（用户任务）</p>
-<ul>
-<li>适用于用户级别的任务，以当前用户权限运行。</li>
-<li>在 用户登录后 才会启动。</li>
-<li>目录：&#x2F;System&#x2F;Library&#x2F;LaunchAgents&#x2F;、&#x2F;Library&#x2F;LaunchAgents&#x2F;、~&#x2F;Library&#x2F;LaunchAgents&#x2F;</li>
-<li>适用于个人任务，如开机自动运行应用、定时脚本等。</li>
-</ul>
-</li>
-</ul>
-<p>什么时候用 LaunchDaemons？</p>
-<ol>
-<li>你希望一个进程开机自动运行，而不依赖用户是否登录。</li>
-<li>任务需要root 权限（比如修改系统文件）。</li>
-</ol>
-<p>什么时候用 LaunchAgents？</p>
-<ol>
-<li>任务需要在用户登录后运行，比如启动应用、挂载网络驱动等。</li>
-<li>你不需要 root 权限，而是以当前用户权限运行。</li>
-</ol>
-<h3 id="创建一个定时任务"><a href="#创建一个定时任务" class="headerlink" title="创建一个定时任务"></a>创建一个定时任务</h3><p>每天 下午3点运行一次 &#x2F;Users&#x2F;mac&#x2F;work&#x2F;navCatReset&#x2F;reset_navicat.sh。</p>
-<ol>
-<li>创建 plist 文件</li>
-</ol>
-<p>vi ~&#x2F;Library&#x2F;LaunchAgents&#x2F;com.user.resetnavicat.plist</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;UTF-8&quot;</span>?&gt;</span><br><span class="line">&lt;!DOCTYPE plist PUBLIC <span class="string">&quot;-//Apple//DTD PLIST 1.0//EN&quot;</span> <span class="string">&quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;</span>&gt;</span><br><span class="line">&lt;plist version=<span class="string">&quot;1.0&quot;</span>&gt;</span><br><span class="line">&lt;dict&gt;</span><br><span class="line">    &lt;key&gt;Label&lt;/key&gt;</span><br><span class="line">    &lt;string&gt;com.user.resetnavicat&lt;/string&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;ProgramArguments&lt;/key&gt;</span><br><span class="line">    &lt;array&gt;</span><br><span class="line">        &lt;string&gt;/bin/bash&lt;/string&gt;</span><br><span class="line">        &lt;string&gt;/Users/mac/work/navCatReset/reset_navicat.sh&lt;/string&gt;</span><br><span class="line">    &lt;/array&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;StartCalendarInterval&lt;/key&gt;</span><br><span class="line">    &lt;dict&gt;</span><br><span class="line">        &lt;key&gt;Hour&lt;/key&gt;</span><br><span class="line">        &lt;<span class="built_in">integer</span>&gt;15&lt;/integer&gt;  &lt;!-- 下午3点 --&gt;</span><br><span class="line">        &lt;key&gt;Minute&lt;/key&gt;</span><br><span class="line">        &lt;<span class="built_in">integer</span>&gt;0&lt;/integer&gt;   &lt;!-- 00 分 --&gt;</span><br><span class="line">    &lt;/dict&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;RunAtLoad&lt;/key&gt;</span><br><span class="line">    &lt;<span class="literal">true</span>/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;StandardOutPath&lt;/key&gt;</span><br><span class="line">    &lt;string&gt;/Users/mac/work/navCatReset/cron_stdout.log&lt;/string&gt;</span><br><span class="line"></span><br><span class="line">    &lt;key&gt;StandardErrorPath&lt;/key&gt;</span><br><span class="line">    &lt;string&gt;/Users/mac/work/navCatReset/cron_stderr.log&lt;/string&gt;</span><br><span class="line">&lt;/dict&gt;</span><br><span class="line">&lt;/plist&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>加载任务</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">launchctl bootout gui/$(<span class="built_in">id</span> -u) ~/Library/LaunchAgents/com.user.resetnavicat.plist 2&gt;/dev/null</span><br><span class="line">launchctl bootstrap gui/$(<span class="built_in">id</span> -u) ~/Library/LaunchAgents/com.user.resetnavicat.plist</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li>检查是否成功</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">launchctl list | grep com.user.resetnavicat</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li>重新加载或修改后生效</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">launchctl unload ~/Library/LaunchAgents/com.user.resetnavicat.plist</span><br><span class="line">launchctl load ~/Library/LaunchAgents/com.user.resetnavicat.plist</span><br></pre></td></tr></table></figure>
-
-<ol start="5">
-<li>停止任务</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">launchctl remove com.user.resetnavicat</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/metasploit/">
-                MetaSploit Framwork(MSF)
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透工具/">渗透工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><h3 id="模块划分"><a href="#模块划分" class="headerlink" title="模块划分"></a>模块划分</h3><ul>
-<li>辅助模块 (Auxiliary，扫描器)，扫描主机系统，寻找可用漏洞；</li>
-<li>渗透攻击模块 (Exploits)，选择并配置一个漏洞利用模块；</li>
-<li>攻击载荷模块 (Payloads)，选择并配置一个攻击载荷模块；</li>
-<li>后渗透攻击模块 (Post)，用于内网渗透的各种操作；</li>
-<li>编码器模块 (Encoders)，选择编码技术，绕过杀软（或其他免杀方式）；</li>
-</ul>
-<h3 id="渗透步骤（exploit）"><a href="#渗透步骤（exploit）" class="headerlink" title="渗透步骤（exploit）"></a>渗透步骤（exploit）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">search xxx		<span class="comment">## 搜索某个漏洞</span></span><br><span class="line">use xxx			<span class="comment">## 使用某个漏洞利用模块</span></span><br><span class="line">show options    	<span class="comment">## 查看配置选项</span></span><br><span class="line"><span class="built_in">set</span> payload		<span class="comment">## 配置攻击载荷</span></span><br><span class="line">exploit			<span class="comment">## 执行渗透攻击</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="参数摘要"><a href="#参数摘要" class="headerlink" title="参数摘要"></a>参数摘要</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">reload_all		<span class="comment">#从目录重载所有模块。导入模块也需要用到此命令。</span></span><br><span class="line">back	<span class="comment">#后退命令，移出当前上下文，用于模块切换</span></span><br><span class="line">info	<span class="comment">#目标和模块详细信息</span></span><br><span class="line">check	<span class="comment">#检查目标是否受某个漏洞影响</span></span><br><span class="line"></span><br><span class="line">sessions		<span class="comment">#会话管理</span></span><br><span class="line">sessions -l		<span class="comment">#列出所有会话</span></span><br><span class="line">sessions -K		<span class="comment">#终止所有会话</span></span><br><span class="line">sessions -i <span class="built_in">id</span>	<span class="comment">#进入某个会话</span></span><br><span class="line">sessions -v		<span class="comment">#以详细模式列出会话</span></span><br><span class="line">sessions -u		<span class="comment">#在许多平台上将shell升级到meterpreter会话</span></span><br><span class="line"></span><br><span class="line">show options	<span class="comment">#显示可选选项</span></span><br><span class="line">	 auxiliary	<span class="comment">#显示所有辅助模块</span></span><br><span class="line">	 exploits	<span class="comment">#显示所有漏洞利用模块</span></span><br><span class="line">	 payloads	<span class="comment">#显示所有有效载荷</span></span><br><span class="line">	 targets	<span class="comment">#显示所有可用目标</span></span><br><span class="line">	 advanced	<span class="comment">#显示更多高级选项</span></span><br><span class="line">	 encoders	<span class="comment">#显示可用编码器列表</span></span><br><span class="line">	 </span><br><span class="line"><span class="built_in">unset</span> [Module Options]    <span class="comment">#清除Module Options</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="脚本使用-高级用法"><a href="#脚本使用-高级用法" class="headerlink" title="脚本使用 (高级用法)"></a>脚本使用 (高级用法)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 搜索关于 afp的脚本</span></span><br><span class="line">nmap --script-help <span class="string">&quot;afp-*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描常见漏洞</span></span><br><span class="line">nmap --script vuln &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 检查FTP是否开启匿名登陆</span></span><br><span class="line">nmap --script ftp-anon &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MySQL进行暴力破解</span></span><br><span class="line">nmap --script=mysql-brute &lt;targetIP&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 对MsSQL进行暴力破解</span></span><br><span class="line">nmap -p 1433 --script ms-sql-brute --script-args userdb=customuser.txt,passdb=custompass.txt &lt;host&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 利用DNS进行子域名暴力破解</span></span><br><span class="line">nmap --script dns-brute www.baidu.com</span><br></pre></td></tr></table></figure>
-
-<h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 表示方式</span></span><br><span class="line">-iL filename                    从文件中读取待检测的目标,文件中的表示方法支持机名,ip,网段</span><br><span class="line">-iR hostnum                     随机选取,进行扫描.如果-iR指定为0,则是无休止的扫描</span><br><span class="line">--exclude host1[, host2]        从扫描任务中需要排除的主机           </span><br><span class="line">--exculdefile exclude_file      排除文件中的IP,格式和-iL指定扫描文件的格式相同</span><br><span class="line"></span><br><span class="line"><span class="comment">## 主机发现</span></span><br><span class="line">-sL                     仅仅是显示,扫描的IP数目,不会进行任何扫描</span><br><span class="line">-sn                     ping扫描,即主机发现</span><br><span class="line">-Pn                     不检测主机存活</span><br><span class="line">-PS/PA/PU/PY[portlist]  TCP SYN Ping/TCP ACK Ping/UDP Ping发现</span><br><span class="line">-PE/PP/PM               使用ICMP <span class="built_in">echo</span>, timestamp and netmask 请求包发现主机</span><br><span class="line">-PO[prococol list]      使用IP协议包探测对方主机是否开启   </span><br><span class="line">-n/-R                   不对IP进行域名反向解析/为所有的IP都进行域名的反响解析</span><br><span class="line"></span><br><span class="line"><span class="comment">## 扫描技巧</span></span><br><span class="line">-sS/sT/sA/sW/sM                 TCP SYN/TCP connect()/ACK/TCP窗口扫描/TCP Maimon扫描</span><br><span class="line">-sU                             UDP扫描</span><br><span class="line">-sN/sF/sX                       TCP Null，FIN，and Xmas扫描</span><br><span class="line">--scanflags                     自定义TCP包中的flags</span><br><span class="line">-sI zombie host[:probeport]     Idlescan</span><br><span class="line">-sY/sZ                          SCTP INIT/COOKIE-ECHO 扫描</span><br><span class="line">-sO                             使用IP protocol 扫描确定目标机支持的协议类型</span><br><span class="line">-b “FTP relay host”             使用FTP bounce scan</span><br><span class="line"></span><br><span class="line"><span class="comment">## 指定端口 扫描顺序</span></span><br><span class="line">-p                      特定的端口 -p80,443 或者 -p1-65535</span><br><span class="line">-p U:PORT               扫描udp的某个端口, -p U:53</span><br><span class="line">-F                      快速扫描模式,比默认的扫描端口还少</span><br><span class="line">-r                      不随机扫描端口,默认是随机扫描的</span><br><span class="line">--top-ports <span class="string">&quot;number&quot;</span>    扫描开放概率最高的number个端口,出现的概率需要参考nmap-services文件,ubuntu中该文件位于/usr/share/nmap.nmap默认扫前1000个</span><br><span class="line">--port-ratio <span class="string">&quot;ratio&quot;</span>    扫描指定频率以上的端口</span><br><span class="line"></span><br><span class="line"><span class="comment">## 服务版本识别</span></span><br><span class="line">-sV                             开放版本探测,可以直接使用-A同时打开操作系统探测和版本探测</span><br><span class="line">--version-intensity <span class="string">&quot;level&quot;</span>     设置版本扫描强度,强度水平说明了应该使用哪些探测报文。数值越高，服务越有可能被正确识别。默认是7</span><br><span class="line">--version-light                 打开轻量级模式,为--version-intensity 2的别名</span><br><span class="line">--version-all                   尝试所有探测,为--version-intensity 9的别名</span><br><span class="line">--version-trace                 显示出详细的版本侦测过程信息</span><br><span class="line"></span><br><span class="line"><span class="comment">## 脚本扫描</span></span><br><span class="line">-sC                             根据端口识别的服务,调用默认脚本</span><br><span class="line">--script=”Lua scripts”          调用的脚本名</span><br><span class="line">--script-args=n1=v1,[n2=v2]     调用的脚本传递的参数</span><br><span class="line">--script-args-file=filename     使用文本传递参数</span><br><span class="line">--script-trace                  显示所有发送和接收到的数据</span><br><span class="line">--script-updatedb               更新脚本的数据库</span><br><span class="line">--script-help=”Lua script”      显示指定脚本的帮助</span><br><span class="line"></span><br><span class="line"><span class="comment">## OS识别</span></span><br><span class="line">-O              启用操作系统检测,-A来同时启用操作系统检测和版本检测</span><br><span class="line">--osscan-limit  针对指定的目标进行操作系统检测(至少需确知该主机分别有一个open和closed的端口)</span><br><span class="line">--osscan-guess  推测操作系统检测结果,当Nmap无法确定所检测的操作系统时，会尽可能地提供最相近的匹配，Nmap默认进行这种匹配</span><br><span class="line">防火墙/IDS躲避和哄骗</span><br><span class="line">-f; --mtu value                 指定使用分片、指定数据包的MTU.</span><br><span class="line">-D decoy1,decoy2,ME             使用诱饵隐蔽扫描</span><br><span class="line">-S IP-ADDRESS                   源地址欺骗</span><br><span class="line">-e interface                    使用指定的接口</span><br><span class="line">-g/ --source-port PROTNUM       使用指定源端口  </span><br><span class="line">--proxies url1,[url2],...       使用HTTP或者SOCKS4的代理</span><br><span class="line"></span><br><span class="line">--data-length NUM               填充随机数据让数据包长度达到NUM</span><br><span class="line">--ip-options OPTIONS            使用指定的IP选项来发送数据包</span><br><span class="line">--ttl VALUE                     设置IP time-to-live域</span><br><span class="line">--spoof-mac ADDR/PREFIX/VEBDOR  MAC地址伪装</span><br><span class="line">--badsum                        使用错误的checksum来发送数据包</span><br><span class="line">Nmap 输出</span><br><span class="line">-oN                     将标准输出直接写入指定的文件</span><br><span class="line">-oX                     输出xml文件</span><br><span class="line">-oS                     将所有的输出都改为大写</span><br><span class="line">-oG                     输出便于通过bash或者perl处理的格式,非xml</span><br><span class="line">-oA BASENAME            可将扫描结果以标准格式、XML格式和Grep格式一次性输出</span><br><span class="line">-v                      提高输出信息的详细度</span><br><span class="line">-d level                设置debug级别,最高是9</span><br><span class="line">--reason                显示端口处于带确认状态的原因</span><br><span class="line">--open                  只输出端口状态为open的端口</span><br><span class="line">--packet-trace          显示所有发送或者接收到的数据包</span><br><span class="line">--iflist                显示路由信息和接口,便于调试</span><br><span class="line">--log-errors            把日志等级为errors/warings的日志输出</span><br><span class="line">--append-output         追加到指定的文件</span><br><span class="line">--resume FILENAME       恢复已停止的扫描</span><br><span class="line">--stylesheet PATH/URL   设置XSL样式表，转换XML输出</span><br><span class="line">--webxml                从namp.org得到XML的样式</span><br><span class="line">--no-sytlesheet         忽略XML声明的XSL样式表</span><br><span class="line"></span><br><span class="line"><span class="comment">## nmap选项</span></span><br><span class="line">-6                      开启IPv6</span><br><span class="line">-A                      OS识别,版本探测,脚本扫描和traceroute</span><br><span class="line">--datedir DIRNAME       说明用户Nmap数据文件位置</span><br><span class="line">--send-eth / --send-ip  使用原以太网帧发送/在原IP层发送</span><br><span class="line">--privileged            假定用户具有全部权限</span><br><span class="line">--unprovoleged          假定用户不具有全部权限,创建原始套接字需要root权限</span><br><span class="line">-V                      打印版本信息</span><br><span class="line">-h                      输出帮助</span><br></pre></td></tr></table></figure>
-
-<p>引用<br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2090727">https://cloud.tencent.com/developer/article/2090727</a><br><a target="_blank" rel="noopener" href="https://sh1yan.top/2019/07/28/MSF-Command-Notes/">https://sh1yan.top/2019/07/28/MSF-Command-Notes/</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/LyShark/p/12189163.html">https://www.cnblogs.com/LyShark/p/12189163.html</a><br><a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/tools/metasploit.html">https://wiki.wgpsec.org/knowledge/tools/metasploit.html</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/mongodb/">
-                MongoDB
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#%E5%9F%BA%E7%A1%80">基础</a><ul>
-<li><a href="#MySQL%E5%92%8Cmongodb%E7%9A%84%E5%8C%BA%E5%88%AB">MySQL和mongodb的区别</a></li>
-<li><a href="#CRUD">CRUD</a></li>
-<li><a href="#%E8%81%9A%E5%90%88">聚合查询</a><ul>
-<li><a href="#%E9%AB%98%E7%BA%A7%E6%9F%A5%E8%AF%A2-lookup">高级查询 lookup</a></li>
-<li><a href="#%E9%AB%98%E7%BA%A7%E6%9F%A5%E8%AF%A2-lookup-+-pipeline">高级查询 lookup + pipeline</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB">数据迁移</a>  <!-- * [分析器在MongoDB中的作用](#1.1)
-  * [名字空间(namespace)是](#1.1)
-  * [如果用户移除对象的属性，该属性是否从存储层中删除](#1.1)
-  * [允许空值null吗](#1.1)
-  * [更新操作立刻fsync到磁盘](#1.1)
-  * [如何执行事务/加锁](#1.1)
-  * [数据文件如此庞大](#1.1)
-  * [启用备份故障恢复需要多久](#1.1)
-  * [什么是master或primary](#1.1)
-  * [什么是secondary或slave](#1.1)
-  * [我必须调用getLastError来确保写操作生效了么](#1.1)
-  * [分片(sharding)和复制(replication)是怎样工作的](#1.1)
-  * [数据在什么时候才会扩展到多个分片(shard)里](#1.1) --></li>
-</ul>
-<p>非关系型数据库 -&gt; 文档数据库<br>可提供高性能，高可用性和易扩展性。<br>数据模型实现，接口，对想存储以及复制方法</p>
-<p>GridFS是一种将大型文件存储在MongoDB的文件规范。 所有官方支持的驱动均实现了GridFS规范。 GridFS是MongoDB中的一个内置功能，可以用于存放文件。 数据库支持以(BSON格式<code>Binary JSON</code>)保存二进制对象。</p>
-<h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><table>
-<thead>
-<tr>
-<th>SQL术语&#x2F;概念</th>
-<th>MongoDB 术语&#x2F;概念</th>
-<th>解释&#x2F;说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>database</td>
-<td>database</td>
-<td>数据库</td>
-</tr>
-<tr>
-<td>table</td>
-<td>collection</td>
-<td>数据库表&#x2F;集合</td>
-</tr>
-<tr>
-<td>row</td>
-<td>document</td>
-<td>数据记录行&#x2F;文档</td>
-</tr>
-<tr>
-<td>column</td>
-<td>field</td>
-<td>数据字段&#x2F;域</td>
-</tr>
-<tr>
-<td>index</td>
-<td>index</td>
-<td>索引</td>
-</tr>
-<tr>
-<td>table joins</td>
-<td></td>
-<td>表连接,MongoDB不支持</td>
-</tr>
-<tr>
-<td>primary key</td>
-<td>primary key</td>
-<td>主键,MongoDB自动将_id字段设置为主键</td>
-</tr>
-</tbody></table>
-<h2 id="MySQL和mongodb的区别"><a href="#MySQL和mongodb的区别" class="headerlink" title="MySQL和mongodb的区别"></a>MySQL和mongodb的区别</h2><table>
-<thead>
-<tr>
-<th>形式</th>
-<th>MongoDB</th>
-<th>MySQL</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>数据库模型</td>
-<td>非关系型</td>
-<td>关系型</td>
-</tr>
-<tr>
-<td>存储方式</td>
-<td></td>
-<td>虚拟内存+持久化</td>
-</tr>
-<tr>
-<td>查询语句</td>
-<td>独特的MongoDB查询方式</td>
-<td>传统SQL语句</td>
-</tr>
-<tr>
-<td>架构特点</td>
-<td>副本集以及分片</td>
-<td>常见单点、M-S、MHA、MMM等架构方式</td>
-</tr>
-<tr>
-<td>数据处理方式</td>
-<td>基于内存，将热数据存在物理内存中，从而达到高速读写</td>
-<td>不同的引擎拥有自己的特点</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>事件的记录，内容管理或者博客平台等数据大且非结构化数据的场景</td>
-<td>适用于数据量少且很多结构化数据</td>
-</tr>
-</tbody></table>
-<p>索引类型</p>
-<ul>
-<li>单字段索引(Single Field Indexes)</li>
-<li>复合索引(Compound Indexes)</li>
-<li>多键索引(Multikey Indexes)</li>
-<li>全文索引(text Indexes)</li>
-<li>Hash 索引(Hash Indexes)</li>
-<li>通配符索引(Wildcard Index)</li>
-<li>2dsphere索引(2dsphere Indexes)</li>
-</ul>
-<h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 批量更新 click, favorite, love, notlove</span></span><br><span class="line">db.getCollection(<span class="string">&quot;post&quot;</span>).updateMany(&#123; <span class="variable">$set</span>: &#123;</span><br><span class="line">        click: 0,</span><br><span class="line">        favorite: 0,</span><br><span class="line">        love: 0,</span><br><span class="line">        notlove:0</span><br><span class="line">    &#125; </span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查询age字段不存在并且批量更新为1</span></span><br><span class="line">db.getCollection(<span class="string">&quot;users&quot;</span>).updateMany(</span><br><span class="line">    &#123; age: &#123; <span class="variable">$exists</span>: <span class="literal">false</span> &#125; &#125;, </span><br><span class="line">    &#123; <span class="variable">$set</span>: &#123; age: 18 &#125; &#125; </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h2 id="CRUD"><a href="#CRUD" class="headerlink" title="CRUD"></a>CRUD</h2><h3 id="Create-新增"><a href="#Create-新增" class="headerlink" title="Create 新增"></a>Create 新增</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">insertOne</span>(&#123;</span><br><span class="line">  <span class="attr">_id</span>: <span class="string">&quot;5d168c26ba27e53ccab8b743a1492d23&quot;</span>,</span><br><span class="line">  <span class="attr">order_sn</span>: <span class="string">&quot;aaaa&quot;</span>,</span><br><span class="line">  <span class="attr">user_id</span>: <span class="number">4568</span>,</span><br><span class="line">  <span class="attr">username</span>: <span class="string">&quot;0KLd&quot;</span>,</span><br><span class="line">  <span class="attr">object_id</span>: <span class="number">2</span>,</span><br><span class="line">  <span class="attr">object_type</span>: <span class="string">&quot;face1&quot;</span>,</span><br><span class="line">  <span class="attr">object_money_old</span>: <span class="number">10</span>,</span><br><span class="line">  <span class="attr">register_at</span>: <span class="number">1750145943</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Delete-删除"><a href="#Delete-删除" class="headerlink" title="Delete 删除"></a>Delete 删除</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">deleteOne</span>(&#123;</span><br><span class="line">  <span class="attr">_id</span>: <span class="string">&quot;5d168c26ba27e53ccab8b743a1492d23&quot;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Update-更新"><a href="#Update-更新" class="headerlink" title="Update 更新"></a>Update 更新</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">updateOne</span>(</span><br><span class="line">  &#123; <span class="attr">_id</span>: <span class="string">&quot;5d168c26ba27e53ccab8b743a1492d23&quot;</span> &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">$set</span>: &#123;</span><br><span class="line">      <span class="attr">out_data</span>: [</span><br><span class="line">        <span class="string">&quot;/md-204/m3u8-download/a嗷嗷aa.m3u8&quot;</span>,</span><br><span class="line">        <span class="string">&quot;/md-204/ai-out-files/5a.zip&quot;</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Read-查询"><a href="#Read-查询" class="headerlink" title="Read 查询"></a>Read 查询</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">findOne</span>(&#123; <span class="attr">name</span>: <span class="string">&quot;Alice&quot;</span> &#125;)</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="聚合"><a href="#聚合" class="headerlink" title="聚合"></a>聚合</h2><h3 id="高级查询-lookup"><a href="#高级查询-lookup" class="headerlink" title="高级查询 lookup"></a>高级查询 lookup</h3><p><code>$lookup</code> 是 MongoDB 聚合框架中的一个阶段，用来在两个集合之间进行联表查询（类似 SQL 的 JOIN）。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">orders</span>.<span class="title function_">aggregate</span>([</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">$lookup</span>: &#123;</span><br><span class="line">      <span class="attr">from</span>: <span class="string">&quot;users&quot;</span>,           <span class="comment">// 要连接的集合名</span></span><br><span class="line">      <span class="attr">localField</span>: <span class="string">&quot;user_id&quot;</span>,   <span class="comment">// orders 中的字段</span></span><br><span class="line">      <span class="attr">foreignField</span>: <span class="string">&quot;_id&quot;</span>,     <span class="comment">// users 中的字段</span></span><br><span class="line">      <span class="attr">as</span>: <span class="string">&quot;user_info&quot;</span>          <span class="comment">// 输出的新字段（数组）</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
-
-<h3 id="高级查询-lookup-pipeline"><a href="#高级查询-lookup-pipeline" class="headerlink" title="高级查询 lookup + pipeline"></a>高级查询 lookup + pipeline</h3><p>pipeline高级方式，支持表达式和子查询</p>
-<p>📘 场景设定<br>orders 集合（订单）：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> ObjectId(<span class="string">&quot;665fa1f1e2c9a3701fabc123&quot;</span>)<span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;item&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Laptop&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pending&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>users 集合（用户）：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> ObjectId(<span class="string">&quot;665fa1f1e2c9a3701fabc123&quot;</span>)<span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;item&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Laptop&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pending&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>🎯 目标<br>想查出 orders，并只联表关联<strong>is_active &#x3D; true</strong> 的用户信息</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">orders</span>.<span class="title function_">aggregate</span>([</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">$lookup</span>: &#123;</span><br><span class="line">      <span class="attr">from</span>: <span class="string">&quot;users&quot;</span>,</span><br><span class="line">      <span class="attr">let</span>: &#123; <span class="attr">uid</span>: <span class="string">&quot;$user_id&quot;</span> &#125;,</span><br><span class="line">      <span class="attr">pipeline</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">$match</span>: &#123;</span><br><span class="line">            <span class="attr">$expr</span>: &#123; <span class="attr">$eq</span>: [<span class="string">&quot;$_id&quot;</span>, <span class="string">&quot;$$uid&quot;</span>] &#125;,   <span class="comment">// 条件：user._id == orders.user_id</span></span><br><span class="line">            <span class="attr">is_active</span>: <span class="literal">true</span>                      <span class="comment">// 只关联激活用户</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">$project</span>: &#123; <span class="attr">name</span>: <span class="number">1</span>, <span class="attr">_id</span>: <span class="number">0</span> &#125;           <span class="comment">// 可选：控制输出字段</span></span><br><span class="line">        &#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">as</span>: <span class="string">&quot;user_info&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123; <span class="attr">$unwind</span>: <span class="string">&quot;$user_info&quot;</span> &#125; <span class="comment">// 如果你只要一个用户对象而不是数组</span></span><br><span class="line">])</span><br></pre></td></tr></table></figure>
-<p>✅ 查询结果</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> ObjectId(<span class="string">&quot;665fa1f1e2c9a3701fabc123&quot;</span>)<span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;item&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Laptop&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pending&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_info&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Alice&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">  &#x27;$group&#x27; =&gt; <span class="punctuation">[</span></span><br><span class="line">    &#x27;_id&#x27;         =&gt; &#x27;$object_type&#x27;<span class="punctuation">,</span></span><br><span class="line">    &#x27;total_count&#x27; =&gt; <span class="punctuation">[</span>&#x27;$sum&#x27; =&gt; <span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    &#x27;total_money&#x27; =&gt; <span class="punctuation">[</span>&#x27;$sum&#x27; =&gt; &#x27;$object_money&#x27;<span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
-
-<p>💡 说明</p>
-<table>
-<thead>
-<tr>
-<th>关键点</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>let: &#123; uid: &quot;$user_id&quot; &#125;</code></td>
-<td>把外部变量传入内部 pipeline</td>
-</tr>
-<tr>
-<td><code>$expr</code> + <code>$eq</code></td>
-<td>允许字段与字段对比（而不是固定值）</td>
-</tr>
-<tr>
-<td><code>is_active: true</code></td>
-<td>增加自定义的过滤逻辑</td>
-</tr>
-<tr>
-<td><code>$project</code></td>
-<td>控制最终关联的字段</td>
-</tr>
-<tr>
-<td><code>$unwind</code></td>
-<td>把数组变成对象，常用于一对一关系</td>
-</tr>
-</tbody></table>
-<h1 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h1><ul>
-<li>导入 - 多集合</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span> </span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span> </span><br><span class="line">DATABASE=<span class="string">&quot;&quot;</span> </span><br><span class="line">FOLDER_PATH=<span class="string">&quot;/data/db/backup_dev_20250115&quot;</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历文件夹 </span></span><br><span class="line"><span class="keyword">for</span> DIR <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$FOLDER_PATH</span>&quot;</span>/*/; <span class="keyword">do</span> </span><br><span class="line">	COLLECTION_NAME=$(<span class="built_in">basename</span> <span class="string">&quot;<span class="variable">$DIR</span>&quot;</span>) </span><br><span class="line">	mongorestore --db <span class="variable">$COLLECTION_NAME</span> <span class="variable">$DIR</span>  -j 100</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;所有文件导入完成！&quot;</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>备份-多集合</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># === 基础配置 ===</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span></span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/data/db/dbback&quot;</span></span><br><span class="line">PJ=<span class="string">&quot;dev&quot;</span></span><br><span class="line">DATE=$(<span class="built_in">date</span> +%Y%m%d)</span><br><span class="line">LOG_FILE=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>.log&quot;</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># === 日志函数 ===</span></span><br><span class="line"><span class="function"><span class="title">log_msg</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(date +&#x27;%Y-%m-%d %H:%M:%S&#x27;)</span> - <span class="variable">$1</span>&quot;</span> | <span class="built_in">tee</span> -a <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># === 获取集合名 ===</span></span><br><span class="line"><span class="function"><span class="title">get_all_collections</span></span>() &#123;</span><br><span class="line">    <span class="built_in">local</span> db=<span class="variable">$1</span></span><br><span class="line">    mongo --quiet --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --<span class="built_in">eval</span> <span class="string">&quot;db.getSiblingDB(&#x27;<span class="variable">$db</span>&#x27;).getCollectionNames().join(&#x27; &#x27;)&quot;</span> 2&gt;/dev/null</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># === 交互 ===</span></span><br><span class="line"><span class="built_in">declare</span> -A FULL_COLLECTIONS_MAP</span><br><span class="line"><span class="built_in">declare</span> -A STRUCT_ONLY_COLLECTIONS_MAP</span><br><span class="line"></span><br><span class="line"><span class="built_in">read</span> -p <span class="string">&quot;请输入需要备份的数据库数量: &quot;</span> DB_COUNT</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> ((i=<span class="number">1</span>; i&lt;=DB_COUNT; i++)); <span class="keyword">do</span></span><br><span class="line">    <span class="built_in">read</span> -p <span class="string">&quot;请输入第 <span class="variable">$i</span> 个数据库名: &quot;</span> DB_NAME</span><br><span class="line"></span><br><span class="line">    <span class="built_in">read</span> -p <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 中【完整备份（含数据）】的集合（支持 all / exclude xxx / 指定）: &quot;</span> full_input</span><br><span class="line">    <span class="built_in">read</span> -p <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 中【只备结构】的集合（支持 all / 指定）: &quot;</span> struct_input</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理含数据集合</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$full_input</span>&quot;</span> == <span class="string">&quot;all&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">        FULL_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="subst">$(get_all_collections <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>)</span>&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> [[ <span class="string">&quot;<span class="variable">$full_input</span>&quot;</span> =~ ^exclude ]]; <span class="keyword">then</span></span><br><span class="line">        all_cols=($(get_all_collections <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>))</span><br><span class="line">        exclude_cols=(<span class="variable">$&#123;full_input[@]:1&#125;</span>)</span><br><span class="line">        keep_cols=()</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;all_cols[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">            <span class="keyword">if</span> [[ ! <span class="string">&quot; <span class="variable">$&#123;exclude_cols[*]&#125;</span> &quot;</span> =~ <span class="string">&quot; <span class="variable">$col</span> &quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">                keep_cols+=(<span class="string">&quot;<span class="variable">$col</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">fi</span></span><br><span class="line">        <span class="keyword">done</span></span><br><span class="line">        FULL_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="variable">$&#123;keep_cols[*]&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        FULL_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="variable">$full_input</span>&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理只结构集合</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$struct_input</span>&quot;</span> == <span class="string">&quot;all&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">        STRUCT_ONLY_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="subst">$(get_all_collections <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>)</span>&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        STRUCT_ONLY_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="variable">$struct_input</span>&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># === 备份逻辑 ===</span></span><br><span class="line"><span class="keyword">for</span> DB_NAME <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;!FULL_COLLECTIONS_MAP[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">    BACKUP_PATH=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DB_NAME&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span></span><br><span class="line">    <span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line">    </span><br><span class="line">    log_msg <span class="string">&quot;📦 正在备份数据库 <span class="variable">$DB_NAME</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> COLLECTION <span class="keyword">in</span> <span class="variable">$&#123;FULL_COLLECTIONS_MAP[$DB_NAME]&#125;</span>; <span class="keyword">do</span></span><br><span class="line">        log_msg <span class="string">&quot;📥 备份集合 <span class="variable">$DB_NAME</span>.<span class="variable">$COLLECTION</span>（含数据）&quot;</span></span><br><span class="line">        mongodump --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> \</span><br><span class="line">                  --db <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span> --collection <span class="string">&quot;<span class="variable">$COLLECTION</span>&quot;</span> \</span><br><span class="line">                  --out <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> COLLECTION <span class="keyword">in</span> <span class="variable">$&#123;STRUCT_ONLY_COLLECTIONS_MAP[$DB_NAME]&#125;</span>; <span class="keyword">do</span></span><br><span class="line">        log_msg <span class="string">&quot;🧱 备份集合 <span class="variable">$DB_NAME</span>.<span class="variable">$COLLECTION</span>（仅结构）&quot;</span></span><br><span class="line">        mongodump --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> \</span><br><span class="line">                  --db <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span> --collection <span class="string">&quot;<span class="variable">$COLLECTION</span>&quot;</span> \</span><br><span class="line">                  --query <span class="string">&#x27;&#123;&#125;&#x27;</span> --<span class="built_in">limit</span> 0 \</span><br><span class="line">                  --out <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">    TAR_NAME=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DB_NAME&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>.tar.gz&quot;</span></span><br><span class="line">    log_msg <span class="string">&quot;🗜️ 压缩 <span class="variable">$DB_NAME</span> 到 <span class="variable">$TAR_NAME</span>&quot;</span></span><br><span class="line">    tar -zcf <span class="string">&quot;<span class="variable">$TAR_NAME</span>&quot;</span> -C <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DB_NAME&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">    <span class="built_in">rm</span> -rf <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">log_msg <span class="string">&quot;🧹 删除7天前的旧备份...&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> f -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*.tar.gz&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -f &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">log_msg <span class="string">&quot;✅ 所有备份任务完成！&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如何使用脚本</span></span><br><span class="line"><span class="comment"># 请输入需要备份的数据库数量: 2</span></span><br><span class="line"><span class="comment"># 请输入第 1 个数据库名: userdb</span></span><br><span class="line"><span class="comment"># 请输入数据库 userdb 中要【完整备份（含数据）】的集合（空格分隔，支持 all / exclude xxx）: all</span></span><br><span class="line"><span class="comment"># 请输入数据库 userdb 中要【只备结构】的集合（空格分隔，支持 all）: app_log post_log</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 请输入第 2 个数据库名: productdb</span></span><br><span class="line"><span class="comment"># 请输入数据库 productdb 中要【完整备份（含数据）】的集合（空格分隔，支持 all / exclude xxx）: exclude items post_log</span></span><br><span class="line"><span class="comment"># 请输入数据库 productdb 中要【只备结构】的集合（空格分隔，支持 all）: app_log </span></span><br></pre></td></tr></table></figure>
-
-
-<p>mongodb 副本集的主的选举–优先级设置</p>
-<p>分片<br>复制集</p>
-<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904186300071943">https://juejin.cn/post/6844904186300071943</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/music/">
-                音乐
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <!-- [集合 Alonzo - Determine [Banlieue 13 Ultimatum Soundtrack]](ttps://www.youtube.com/watch?v=bZZaZ2DILbU&list=RDoIZ7sCtZyUY&index=6)
-[พงษ์สิทธิ์ คำภีร์ - มือปืน](https://www.youtube.com/watch?v=RwC3p1mdaYI) -->
-
-
-<!-- raw -->
-
-<script>
-  // 扁平化的数据结构：每首歌 4 个维度字段
-  // genre(风格) / occasion(场景) / language(语种) / tag(标签)
-  // 多值用英文逗号分隔，例如 tag: "黑帮,电影"
-const songs = [
-    // ===== Rap =====
-    { title: "Lose Yourself", link: "https://www.youtube.com/watch?v=tR1ECf4sEpw", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Eminem - Mockingbird", link: "https://www.youtube.com/watch?v=S9bCLPwzSC0", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Lil Nas X - Old Town Road", link: "https://www.youtube.com/watch?v=r7qovpFAGrQ", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "2PAC - Do Or Die", link: "https://www.youtube.com/watch?v=DYZmH_xe6R0", genre: "Rap", occasion: "走路", language: "英语", tag: "黑帮" },
-    { title: "十三の砂山（Flip）", link: "https://www.youtube.com/watch?v=Xv99lG1xp5E", genre: "trap", occasion: "", language: "日语", tag: "" },
-    { title: "TroyBoi - KinjaBang", link: "https://www.youtube.com/watch?v=K2MahpdSipQ", genre: "trap", occasion: "", language: "日语", tag: "" },
-    { title: "The Godfather", link: "https://www.youtube.com/watch?v=uSSkhP4taAw", genre: "Rap", occasion: "", language: "粤语", tag: "黑帮" },
-    { title: "珂拉琪 Collage／萬千花蕊慈母悲哀", link: "https://www.youtube.com/watch?v=kkUWlcjmOew&list=RDkkUWlcjmOew&start_radio=1", genre: "Rap", occasion: "", language: "闽南语", tag: "" },
-    { title: "LOVIXX - How old i am", link: "https://www.youtube.com/watch?v=7UyHMUrfFfg", genre: "Rap", occasion: "走路,开车", language: "英语", tag: "黑帮" },
-    { title: "MORGENSHTERN - ICE", link: "https://www.youtube.com/watch?v=5e6JkYzYHxY", genre: "Rap", occasion: "走路", language: "俄语", tag: "" },
-    { title: "Four Barang In A Tuktuk (Remix)", link: "https://www.youtube.com/watch?v=41rJXh9VCps", genre: "Rap", occasion: "放松", language: "柬埔寨语", tag: "" },
-    { title: "Красное полусладкое (feat. Кот Балу, Банума)", link: "https://www.youtube.com/watch?v=Inxey-lD8Xo", genre: "Rap", occasion: "抒情", language: "俄语", tag: "" },
-    { title: "Jah Khalib - На параллельных путях", link: "https://www.youtube.com/watch?v=un1aPU8wFEw", genre: "Rap", occasion: "抒情", language: "俄语", tag: "" },
-    { title: "Don't Compare | SOVATH MONIVANN", link: "https://www.youtube.com/watch?v=TNMNkPtmTrw", genre: "Rap", occasion: "走路", language: "柬埔寨语", tag: "" },
-    { title: "F.HERO x VannDa - RUN THE TOWN", link: "https://www.youtube.com/watch?v=cdt7WfRVXVk", genre: "Rap", occasion: "走路", language: "柬埔寨语", tag: "" },
-    { title: "OXMO PUCCINO - JE SUIS COOL MAIS PAS SYMPA", link: "https://www.youtube.com/watch?v=z53OLLf3g88", genre: "Rap", occasion: "走路", language: "法语", tag: "" },
-    { title: "Alonzo - Determine [Banlieue 13 Ultimatum Soundtrack] 暴力街区", link: "https://www.youtube.com/watch?v=oIZ7sCtZyUY", genre: "Rap", occasion: "走路", language: "法语", tag: "电影" },
-    { title: "Axiom - La Tour Des Miracles", link: "https://www.youtube.com/watch?v=bZZaZ2DILbU&list=RDoIZ7sCtZyUY&index=6", genre: "Rap", occasion: "走路", language: "法语", tag: "" },
-    { title: "Eminem - Till I Collapse [HD]", link: "https://www.youtube.com/watch?v=ytQ5CYE1VZw&list=RDoIZ7sCtZyUY&index=3", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "50 Cent - In Da Club", link: "https://www.youtube.com/watch?v=5qm8PH4xAss&list=RDoIZ7sCtZyUY&index=4", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Eminem - Venom", link: "https://www.youtube.com/watch?v=qtLXOKC1SHE", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Kendrick Lamar - HUMBLE.", link: "https://www.youtube.com/watch?v=tvTRZJ-4EyI", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Dr Dre Still D R E Remix", link: "https://www.youtube.com/watch?v=N09oxcuM8P4", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Awich, tubaki, OZworld & CHICO CARLITO - RASEN in OKINAWA", link: "https://www.youtube.com/watch?v=ShcfsKtI5_U", genre: "Rap", occasion: "走路", language: "日语", tag: "" },
-    { title: "Keith Ape - 잊지마 (It G Ma)", link: "https://www.youtube.com/watch?v=DPC9erC5WqU", genre: "Rap", occasion: "走路", language: "韩语", tag: "" },
-    { title: "宋岳庭 Life's a Struggle", link: "https://www.youtube.com/watch?v=5SrU7pFm0Mg", genre: "Rap", occasion: "走路", language: "国语", tag: "" },
-    { title: "大懒堂 集合", link: "https://www.youtube.com/watch?v=DrCgK5tZ2lU&list=PLdHH0GpoKKjMfZPUxpEhR6lyI7XhcsM5j", genre: "Rap", occasion: "走路", language: "粤语", tag: "集合" },
-    { title: "黑社會 Hak se wui - Election theme OST", link: "https://www.youtube.com/watch?v=_CqeEbfl3Cg&list=RD_CqeEbfl3Cg&start_radio=1", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "黑社會片頭2006 / Election 1 Opening Credit", link: "https://www.youtube.com/watch?v=PKHRtqZiRnY", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "陳冠希 Edison Chen《戰爭》", link: "https://www.youtube.com/watch?v=qBh7Dzi97L0&list=RDqBh7Dzi97L0&start_radio=1", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "香港地 (feat. 陳奐仁, 胡蓓蔚, MC 仁)", link: "https://www.youtube.com/watch?v=_v-y7z6LKG0&list=RD_v-y7z6LKG0&start_radio=1", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "鄭秀文 Sammi Cheng ft. LMF -《愛是》", link: "https://www.youtube.com/watch?v=XSMZCJMdaVo&list=RD_v-y7z6LKG0&index=2", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-
-    // ===== 摇滚 =====
-    { title: "แสงสุดท้าย bodyslam for fanclub version", link: "https://www.youtube.com/watch?v=wseMK6ni3DI", genre: "摇滚", occasion: "", language: "泰语", tag: "" },
-    { title: "เรา #OurSong - bodyslam", link: "https://www.youtube.com/watch?v=947yxJJdqIA", genre: "摇滚", occasion: "", language: "泰语", tag: "" },
-    { title: "พงษ์สิทธิ์ คำภีร์ - มือปืน", link: "https://www.youtube.com/watch?v=RwC3p1mdaYI", genre: "摇滚", occasion: "", language: "泰语", tag: "" },
-    { title: "AC/DC 合辑", link: "https://www.youtube.com/watch?v=VWG4-4Y6Z60&list=RDEMDs8vWIQKMflBG8QUQQaUrw&index=29", genre: "摇滚", occasion: "", language: "英语", tag: "集合" },
-
-    // ===== 流行 - 英语 =====
-    { title: "Heartbreak Anniversary", link: "https://www.youtube.com/watch?v=uWRlisQu4fo", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "WILDFLOWER - Billie Eilish", link: "https://www.youtube.com/watch?v=l08Zw-RY__Q", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Megan Thee Stallion - Mamushi (feat. Yuki Chiba)", link: "https://www.youtube.com/watch?v=OdxSbc0ap-s", genre: "流行", occasion: "", language: "英语", tag: "" },
-    { title: "The Sun Is Shining Down", link: "https://www.youtube.com/watch?v=euRvhvtNbq4", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "Willie Nelson - A Woman's Love", link: "https://www.youtube.com/watch?v=8EmVfVuan3c", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "The Eden Project - Crazy in Love ft. Leah Kelly", link: "https://www.youtube.com/watch?v=dzTjefCK8Zk", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Creep - Vintage Postmodern Jukebox Radiohead", link: "https://www.youtube.com/watch?v=m3lF2qEA2cw", genre: "流行", occasion: "伤感", language: "英语", tag: "经典" },
-    { title: "Django (Luis Bacalov)", link: "https://www.youtube.com/watch?v=OhlVBpEnjig&list=PLcpBBg8UA1Oxz7973OVcCzyBR-caH7hCQ", genre: "流行", occasion: "", language: "英语", tag: "集合" },
-    { title: "twenty one pilots - Heathens", link: "https://www.youtube.com/watch?v=actRHG9uQy0", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "twenty one pilots - Sucker for Pain", link: "https://www.youtube.com/watch?v=An7Q1GkEf3g", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "Sam Smith - Writing's On The Wall", link: "https://www.youtube.com/watch?v=8jzDnsjYv9A", genre: "流行", occasion: "伤感", language: "英语", tag: "电影,007" },
-    { title: "Mississippi - JJ Grey & Mofro", link: "https://www.youtube.com/watch?v=0BcBu6DC3j8", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "" },
-    { title: "Eagles - Hotel California", link: "https://www.youtube.com/watch?v=dLl4PZtxia8", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "经典" },
-    { title: "Chris Stapleton - Tennessee Whiskey", link: "https://www.youtube.com/watch?v=4zAThXFOy2c", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "美国乡村" },
-    { title: "Teddy Swims - Lose Control (The Village Sessions)", link: "https://www.youtube.com/watch?v=9gWIIIr2Asw", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "美国乡村" },
-    { title: "Rag'n'Bone Man - Skin", link: "https://www.youtube.com/watch?v=1Al-nuR1iAU", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "美国乡村" },
-    { title: "Hozier - Take Me To Church", link: "https://www.youtube.com/watch?v=PVjiKRfKpPI", genre: "流行", occasion: "舒缓", language: "英语", tag: "" },
-    { title: "Adam Levine - Lost Stars", link: "https://www.youtube.com/watch?v=cL4uhaQ58Rk", genre: "流行", occasion: "舒缓,伤感", language: "英语", tag: "" },
-    { title: "Maroon 5 - Sugar", link: "https://www.youtube.com/watch?v=09R8_2nJtjg", genre: "流行", occasion: "舒缓", language: "英语", tag: "快乐" },
-    { title: "City of Stars - La La Land OST", link: "https://www.youtube.com/watch?v=GTWqwSNQCcg", genre: "流行", occasion: "舒缓", language: "英语", tag: "电影" },
-    { title: "Polarrana - who am i", link: "https://www.youtube.com/watch?v=2qS1CrOPnEQ", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Bebe - Siempre me quedará", link: "https://www.youtube.com/watch?v=QsjAgjbMVWA", genre: "流行", occasion: "抒情", language: "西班牙语", tag: "" },
-    { title: "Wave - TEEKS", link: "https://www.youtube.com/watch?v=18GNaEr11kE&list=PLoskdo1F_P9VeuzgPBrfc0i_JfW18SVTQ&index=2", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Here Before - TEEKS", link: "https://www.youtube.com/watch?v=tPb5CEiaS1w&list=PLoskdo1F_P9VeuzgPBrfc0i_JfW18SVTQ&index=7", genre: "流行", occasion: "伤感", language: "英语", tag: "唱歌" },
-    { title: "John Denver - Take Me Home, Country Roads", link: "https://www.youtube.com/watch?v=uu7j_xljCRY", genre: "流行", occasion: "", language: "英语", tag: "美国乡村,唱歌" },
-    { title: "美國公路鄉村音樂", link: "https://www.youtube.com/watch?v=KuQjq-8Yn6A", genre: "流行", occasion: "", language: "英语", tag: "美国乡村,集合" },
-    { title: "New York City", link: "https://www.youtube.com/watch?v=Rfd8AdJce8Q", genre: "流行", occasion: "放松", language: "英语", tag: "" },
-    { title: "Cambodia Shine - Draco 11:11", link: "https://www.youtube.com/watch?v=I2gKiQ3W4nU", genre: "流行", occasion: "放松", language: "英语", tag: "" },
-    { title: "Angkor Green Spirit", link: "https://www.youtube.com/watch?v=VrGsz4na2XI&list=OLAK5uy_neS3Q85Abs6Dbz0VL_sEdl3w67DBjzQPw&index=1", genre: "流行", occasion: "放松", language: "英语", tag: "" },
-    { title: "Don't Mind Me", link: "https://www.youtube.com/watch?v=TdSrS0pNjGU", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "OsMan - Lost", link: "https://www.youtube.com/watch?v=7PtyNbdlhP0", genre: "流行", occasion: "开车", language: "英语", tag: "" },
-    { title: "Bang Bang | Paloma & James", link: "https://www.youtube.com/watch?v=0EsUUeW6V-8", genre: "流行", occasion: "热情", language: "英语", tag: "" },
-    { title: "Dove Cameron - MONTERO", link: "https://www.youtube.com/watch?v=u-8qb1eOJZI", genre: "流行", occasion: "热情", language: "英语", tag: "" },
-    { title: "Mondo Bongo - Joe Strummer (Mr and Mrs. Smith)", link: "https://www.youtube.com/watch?v=pOKfHXVLnkY", genre: "流行", occasion: "柔情舞曲", language: "英语", tag: "电影" },
-    { title: "Autumn Leaves", link: "https://www.youtube.com/watch?v=npUK_dnv1VM", genre: "流行", occasion: "柔情舞曲,抒情", language: "英语", tag: "" },
-    { title: "Sexy in Black", link: "https://www.youtube.com/watch?v=JEqdQywFPnU", genre: "流行", occasion: "热情", language: "英语", tag: "sexy" },
-    { title: "Apashe - Good News", link: "https://www.youtube.com/watch?v=Slv9aYoC4FM", genre: "流行", occasion: "暴走", language: "英语", tag: "" },
-    { title: "Sting - Shape of My Heart (Leon)", link: "https://www.youtube.com/watch?v=QK-Z1K67uaA", genre: "流行", occasion: "", language: "英语", tag: "电影,经典" },
-    { title: "Music for Men Who Stay Silent | Gentleman Dark Blues", link: "https://www.youtube.com/watch?v=aV7W2oF-l1E", genre: "流行", occasion: "", language: "英语", tag: "集合" },
-    { title: "slow and easy", link: "https://www.youtube.com/watch?v=cEpTYBuR7vY", genre: "流行", occasion: "抒情", language: "英语", tag: "集合" },
-    { title: "Quando, Quando, Quando", link: "https://www.youtube.com/watch?v=tTYzGEvLvMc", genre: "流行", occasion: "放松,舞曲", language: "英语", tag: "" },
-
-    // ===== 流行 - 粤语 =====
-    { title: "劉惜君【忘記他】", link: "https://www.youtube.com/watch?v=dAAC0cr17CU", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "不該用情 - 勝嶼", link: "https://www.youtube.com/watch?v=SBya0SwVyNk", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "最愛 - 周慧敏", link: "https://www.youtube.com/watch?v=WNHik8RR6u0", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "你瞞我瞞 - 陳柏宇", link: "https://www.youtube.com/watch?v=YfvR3zccdV", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "劉惜君 粵語《漫步人生路》", link: "https://www.youtube.com/watch?v=19T9M4Pl9xg&list=RD19T9M4Pl9xg&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "側田 Justin Lo -《命硬》", link: "https://www.youtube.com/watch?v=E9BgBB0JQ8E&list=RDE9BgBB0JQ8E&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "周柏豪 - 夠鍾", link: "https://www.youtube.com/watch?v=3pVujJij6Xo&list=RD3pVujJij6Xo&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "月半小夜曲 李克勤", link: "https://www.youtube.com/watch?v=c-2UG5q9qGA", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "讲不出再见 谭咏麟", link: "https://www.youtube.com/watch?v=h9YssUWW5MM", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "陳百強 Danny Chan -《偏偏喜歡你》", link: "https://www.youtube.com/watch?v=RmTAUDlcPSk&list=RDRmTAUDlcPSk&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "吳雨霏 - 吳哥窟", link: "https://www.youtube.com/watch?v=b9v1xfoWAFg&list=RDb9v1xfoWAFg&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "陳慧嫻 傻女", link: "https://www.youtube.com/watch?v=GDOeOKtrxh0&list=RDGDOeOKtrxh0&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "BEYOND 光輝嵗月", link: "https://www.youtube.com/watch?v=EhxMnz6zntQ", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "BEYOND 海闊天空", link: "https://www.youtube.com/watch?v=WtB_teKYvVY", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "潘德林/文迪/劉金羽 - 無悔當下", link: "https://www.youtube.com/watch?v=1iYdKPjiMyk&list=RD1iYdKPjiMyk&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "《嘉賓》廣東話版 - 潘靜文", link: "https://www.youtube.com/watch?v=mSxb27LyphI", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "无条件 陈奕迅", link: "https://www.youtube.com/watch?v=nYLqnj1C9Ig", genre: "流行", occasion: "舒缓", language: "粤语", tag: "" },
-
-    // ===== 流行 - 中文 =====
-    { title: "愛就一個字（女聲版）", link: "https://www.youtube.com/watch?v=nBj9E-8Qvj0", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "淒美地 The Fog Space - 郭頂", link: "https://www.youtube.com/watch?v=I2zkRvCevgw", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "水星記 Mercury Records - 郭頂", link: "https://www.youtube.com/watch?v=ENKFTmJxBaY", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "海闊天空 - 日本東京街頭日語版", link: "https://www.youtube.com/watch?v=uo3pN3gcA8s", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "只要平凡", link: "https://www.youtube.com/watch?v=mSxb27LyphI", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-
-    // ===== 流行 - 闽南语 =====
-    { title: "沈文程 - 心事誰人知", link: "https://www.youtube.com/watch?v=pjmSkRfJr-c", genre: "流行", occasion: "伤感", language: "闽南语", tag: "经典老歌" },
-    { title: "蔡秋鳳 - 金包銀", link: "https://www.youtube.com/watch?v=4Z1l0sbdV4I", genre: "流行", occasion: "伤感", language: "闽南语", tag: "经典老歌" },
-    { title: "愛拼才會贏 (葉啟田)", link: "https://www.youtube.com/watch?v=buCkOl5hV_o", genre: "流行", occasion: "伤感", language: "闽南语", tag: "经典老歌" },
-
-    // ===== 流行 - 日语 =====
-    { title: "furino - zen state of mind pt. 2", link: "https://www.youtube.com/watch?v=PZaAVP4obR8", genre: "流行", occasion: "伤感", language: "日语", tag: "" },
-
-    // ===== 流行 - 韩语 =====
-    { title: "你不要担心 전인권 밴드 - 걱정 말아요 그대", link: "https://www.youtube.com/watch?v=wsabRiEGgrE", genre: "流行", occasion: "伤感", language: "韩语", tag: "" },
-    { title: "假如爱有天意（韩文原版中文翻译）", link: "https://www.youtube.com/watch?v=KCtOLrGyEPE", genre: "流行", occasion: "伤感", language: "韩语", tag: "" },
-    { title: "윤민수&신용재 - 인연 (姻缘)", link: "https://www.youtube.com/watch?v=M4T9vaPVo0Y", genre: "流行", occasion: "伤感", language: "韩语", tag: "" },
-    { title: "하얀나비 (수상한 그녀 OST) - 奇怪的她", link: "https://www.youtube.com/watch?v=0ZA2Wuo-OZ0&list=PL4HLAMpAhTDxCG1p3KD1X3IEGcplHg3yQ&index=1", genre: "流行", occasion: "伤感", language: "韩语", tag: "电影" },
-    { title: "沈恩敬 (심은경) - 빗물 (雨水) - 奇怪的她", link: "https://www.youtube.com/watch?v=tYyK0ozHhZ0&list=PL4HLAMpAhTDxCG1p3KD1X3IEGcplHg3yQ&index=2", genre: "流行", occasion: "伤感", language: "韩语", tag: "电影" },
-    { title: "金潤吉 - Tell Me (韓文版)", link: "https://www.youtube.com/watch?v=Vom4KCdZ3TE&list=RDVom4KCdZ3TE&start_radio=1", genre: "流行", occasion: "浪漫", language: "韩语", tag: "" },
-    { title: "IF YOU", link: "https://www.youtube.com/watch?v=h9hdorPqukU", genre: "流行", occasion: "放松", language: "韩语", tag: "" },
-    { title: "FEARLESS - LE SSERAFIM", link: "https://www.youtube.com/watch?v=q_eoXfZr0yQ", genre: "流行", occasion: "舞曲", language: "韩语", tag: "K-POP" },
-
-    // ===== 流行 - 俄语 =====
-    { title: "Камин", link: "https://www.youtube.com/watch?v=yCUQSto0Bwc", genre: "流行", occasion: "伤感", language: "俄语", tag: "" },
-    { title: "Умри если меня не любишь", link: "https://www.youtube.com/watch?v=u2Pr8B6CFaw", genre: "流行", occasion: "伤感", language: "俄语", tag: "" },
-    { title: "Rauf & Faik - мосты", link: "https://www.youtube.com/watch?v=2TyXC5F3T_w", genre: "流行", occasion: "伤感", language: "俄语", tag: "" },
-    { title: "Гио Пика - Фонтанчик с дельфином", link: "https://www.youtube.com/watch?v=2As9IANvLzQ", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "MiyaGi - Колибри", link: "https://www.youtube.com/watch?v=RHyB2DeKQRs", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "ЛИТВИНЕНКО & ARCHI - Любит Хулигана", link: "https://www.youtube.com/watch?v=ysjl6A6eNcY&list=RDysjl6A6eNcY&start_radio=1", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "Буйно Голова - Гио Пика", link: "https://www.youtube.com/watch?v=0McYFDA1zKI&list=RDysjl6A6eNcY&index=5", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "Ты Расскажи Ка Мне (фильм: Преступник 2012)", link: "https://www.youtube.com/watch?v=7X181m6w6Pc&list=RDysjl6A6eNcY&index=10", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮,电影" },
-    { title: "Джанки Джин ft. Мастер Дрон – Там таз стелит | BBM REMIX", link: "https://www.youtube.com/watch?v=0eLr8znLHmY&list=RDysjl6A6eNcY&index=16", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "Леша Стелит & Andery Toronto - Стая", link: "https://www.youtube.com/watch?v=YYfmGDVu8p0", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "ЛИТВИНЕНКО - Оп, Мусорок (R.I.P Giorgi Tevzadze)", link: "https://www.youtube.com/watch?v=a_aE7Y9KFw0", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "Cnv Sound, Vol. 14 (Slowed)", link: "https://www.youtube.com/watch?v=xTQN4-pCIS4", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "CBeat de rap 'vida pérdida' base, instrumental", link: "https://www.youtube.com/watch?v=vlruQhPghW0", genre: "流行", occasion: "抒情", language: "俄语", tag: "" },
-    { title: "Doshka My Love feat. Mihaita Piticu", link: "https://www.youtube.com/watch?v=QimRAKTKxkE", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-
-    // ===== 流行 - 法语 =====
-    { title: "nuits d'été", link: "https://www.youtube.com/watch?v=B3JcHWCA-VA", genre: "流行", occasion: "小清新", language: "法语", tag: "" },
-    { title: "Mon amour (Slimane) ⎜Beccä COVER", link: "https://www.youtube.com/watch?v=26Kf0x71fHk", genre: "流行", occasion: "伤感", language: "法语", tag: "" },
-    { title: "Louis Armstrong - La vie en rose", link: "https://www.youtube.com/watch?v=9n-hyA2-FDg", genre: "流行", occasion: "", language: "法语", tag: "" },
-    { title: "Le courage d'aimer: Noël", link: "https://www.youtube.com/watch?v=A2cvjX_izOI", genre: "流行", occasion: "", language: "法语", tag: "" },
-    { title: "La Cubana Caliente", link: "https://www.youtube.com/watch?v=mMCDMyzler4", genre: "流行", occasion: "", language: "法语", tag: "" },
-    { title: "Gérard Darmon feat. Amel Bent - Pardon mon amour", link: "https://www.youtube.com/watch?v=2BqmHx88z7c", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "Maintenant", link: "https://www.youtube.com/watch?v=-FvVRYCRFC8", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "KLAUS&KINSKI - Mengele y el amor", link: "https://www.youtube.com/watch?v=55xK8vxerLc", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "Mil pasos (feat. Antoine Essertier)", link: "https://www.youtube.com/watch?v=D47FMzmVNA8", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "Govi - Espresso", link: "https://www.youtube.com/watch?v=5cICI4yIai4", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "French Paris Chanson - Un Voyage Romantique", link: "https://www.youtube.com/watch?v=DInuHQGpe_0", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-    { title: "Chanson Française d'Amour", link: "https://www.youtube.com/watch?v=n3gDRzagDJk", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-    { title: "The Elegance of Silence - Relaxing French Songs", link: "https://www.youtube.com/watch?v=p5x6m91CzDA", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-    { title: "Cigarette in Paris | French Emotional Chill", link: "https://www.youtube.com/watch?v=B8hywVKUr3w&list=RDB8hywVKUr3w&start_radio=1", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-
-    // ===== 流行 - 西班牙语 =====
-    { title: "Cachao - Master Sessions: El Son No Ha Muerto", link: "https://www.youtube.com/watch?v=UVt2by_EOT4", genre: "流行", occasion: "放松", language: "西班牙语", tag: "" },
-    { title: "¿Donde Estas, Yolanda?", link: "https://www.youtube.com/watch?v=RfAfQt0i0GU", genre: "流行", occasion: "放松,舞曲", language: "西班牙语", tag: "" },
-    { title: "La Llorona - Carmen Goett", link: "https://www.youtube.com/watch?v=i3ASIYixqUI", genre: "流行", occasion: "抒情", language: "西班牙语", tag: "" },
-
-    // ===== 流行 - 意大利语 =====
-    { title: "Rome Night Serenades | Vintage Italian Love Songs Playlist", link: "https://www.youtube.com/watch?v=JZ6l6rvNcj80", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-    { title: "Italian Love Story at Lake Como (1960s Golden Era)", link: "https://www.youtube.com/watch?v=Bv3Y6hnoMv8", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-    { title: "Malena | Vintage 50s-60s Italian Love Songs Playlist", link: "https://www.youtube.com/watch?v=MlSKw1Q9y6M", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-    { title: "Serenades in Rome at Dusk | Vintage Italian Love Songs", link: "https://www.youtube.com/watch?v=xr8e_hpVOrg", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-
-    // ===== 流行 - 蒙古/其他 =====
-    { title: "Amyran - Altai Kai", link: "https://www.youtube.com/watch?v=T04628YySJQ", genre: "流行", occasion: "伤感", language: "蒙古语", tag: "" },
-    { title: "Saa Magni - Oumou Sangaré", link: "https://www.youtube.com/watch?v=4_YyroDeZrY", genre: "流行", occasion: "放松", language: "语言不详", tag: "" },
-
-    // ===== 流行 - 柬埔寨语 =====
-    { title: "Woman Wants To Drink", link: "https://www.youtube.com/watch?v=WyfvwyExIrY", genre: "流行", occasion: "放松", language: "柬埔寨语", tag: "" },
-    { title: "កូនកំសត់ - រស់ សេរីសុធា | Kon Komsot", link: "https://www.youtube.com/watch?v=zVgLickmTPw", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "" },
-    { title: "ផាត់ជាយបណ្តូលចិត្ត (2024 Remaster)", link: "https://www.youtube.com/watch?v=SzVMi3w-xbE&list=OLAK5uy_notHicqy7ErtQQCa9muIBivkcBbj4s_go&index=12", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "" },
-    { title: "ខ្លាចបាត់បង COVER BY ATHA", link: "https://www.youtube.com/watch?v=Hvv-edtuHrY", genre: "流行", occasion: "伤感", language: "柬埔寨语", tag: "" },
-    { title: "Suly Pheng - មិនច្បាស់ជាមួយអូន ft. Olica", link: "https://www.youtube.com/watch?v=DAMbnO11g_I", genre: "流行", occasion: "伤感", language: "柬埔寨语", tag: "" },
-    { title: "ត្រៀមចិត្តសំរាប់ឈឺ", link: "https://www.youtube.com/watch?v=gW7YoA6JHFo", genre: "流行", occasion: "伤感", language: "柬埔寨语", tag: "" },
-    { title: "G-Devith ft. Hour Lavy - ឱ! សង្សារបងហ្អេីយ", link: "https://www.youtube.com/watch?v=9MD53nS5wZg", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "" },
-    { title: "ផាត់ជាយបណ្តូលចិត្ត", link: "https://www.youtube.com/watch?v=XmkEppXe6ug", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "回忆" },
-
-    // ===== 流行 - 菲律宾语 =====
-    { title: "Arthur Nery - Pagsamo", link: "https://www.youtube.com/watch?v=mPY4klSa1EA", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "Moira Dela Torre - Babalik Sa'yo", link: "https://www.youtube.com/watch?v=uPklMSpmvGs", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "Tagpuan - Moira Dela Torre", link: "https://www.youtube.com/watch?v=Xkj1csb3bws", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "PAUBAYA - Moira Dela Torre", link: "https://www.youtube.com/watch?v=DmVjmzOmUO4&list=RDEMZw8pq3NkhwGJEII9zQa3Tw&index=4", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "Malaya - Moira Dela Torre", link: "https://www.youtube.com/watch?v=T2uwdcqZq08&list=RDEMZw8pq3NkhwGJEII9zQa3Tw&index=18", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-
-    // ===== 黑帮合辑 =====
-    { title: "RUSSIAN MAFIA 808: Krov i Ten 2026", link: "https://www.youtube.com/watch?v=YCMkEM54wQ4&list=RDYCMkEM54wQ4&start_radio=1", genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-    { title: "Russian Mafia Rap 2026 - Criminals", link: "https://www.youtube.com/watch?v=dTM95-nzJSQ&list=RDdTM95-nzJSQ&start_radio=1", genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-    { title: "Italian Mafia Lofi Rain | 1940s String Noir Beats", link: "https://www.youtube.com/watch?v=2WWZvIMX-V4&list=RD2WWZvIMX-V4&start_radio=1", genre: "流行", occasion: "", language: "意大利语", tag: "黑帮,集合,纯音乐" },
-    { title: "Gangsta Virus - 2Pac Feat. Tech N9ne, Ice Cube, Eminem (DJ Mimo Remix)", link: "https://www.youtube.com/watch?v=TlNUUxRzI9M&list=RDTlNUUxRzI9M&start_radio=1", genre: "Rap", occasion: "", language: "英语", tag: "黑帮,集合" },
-    { title: "Живём на краю @BratSevera", link: "https://www.youtube.com/watch?v=c7jXxqJvOhg&list=RDc7jXxqJvOhg&start_radio=1", genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-    { title: "Живём на краю @BratSevera", link: "https://www.youtube.com/watch?v=vj2mw8GVnsw&list=RDvj2mw8GVnsw&start_radio=1, genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-
-    // ===== 日系trap =====
-    { title: "Japanese Trap Beat Mix", link: "https://www.youtube.com/watch?v=nj33MArNjC8&list=RDnj33MArNjC8&start_radio=1", genre: "日系trap", occasion: "", language: "纯音乐", tag: "集合" },
-    { title: "Dark Samurai - Type Beat", link: "https://www.youtube.com/watch?v=RqdovpDZ1l4&list=RDRqdovpDZ1l4&start_radio=1", genre: "日系trap", occasion: "", language: "纯音乐", tag: "集合" },
-    { title: "HATTORI - 服部", link: "https://www.youtube.com/watch?v=BLyz7_Ou5bY&list=RDBLyz7_Ou5bY&start_radio=1", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-    { title: "HATTORI - 服部 (Version 2)", link: "https://www.youtube.com/watch?v=raZ4YSXziUU", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-    { title: "SAMURAI【武士】", link: "https://www.youtube.com/watch?v=ht7NLjVISIE", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-    { title: "Japanese Type Beat - Yasuke (Hard)", link: "https://www.youtube.com/watch?v=rMirfImmYfA", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-
-    // ===== 中国古典 =====
-    { title: "琵琶語（林海）", link: "https://www.youtube.com/watch?v=VUJASgchLyg", genre: "中国古典", occasion: "禅修", language: "纯音乐", tag: "伤感" },
-    { title: "忆江南 方锦龙", link: "https://www.youtube.com/watch?v=K2JUJvZjxko", genre: "中国古典", occasion: "禅修", language: "纯音乐", tag: "" },
-    { title: "半山听雨", link: "https://www.youtube.com/watch?v=3XFVORZNYTM", genre: "中国古典", occasion: "禅修", language: "纯音乐", tag: "" },
-
-    // ===== 古典乐 =====
-    { title: "Mozart - Requiem", link: "https://www.youtube.com/watch?v=Zi8vJ_lMxQI&list=RDEMuF6xHfdoEKN-ecgY4pwzXw&index=22", genre: "古典乐", occasion: "", language: "纯音乐", tag: "" },
-    { title: "15 首古典杰作 - 古典音乐", link: "https://www.youtube.com/watch?v=-drBYX40tAk", genre: "古典乐", occasion: "", language: "纯音乐", tag: "集合" },
-    { title: "約翰·威廉斯：帝國進行曲 (John Williams: The Imperial March)", link: "https://www.youtube.com/watch?v=d_DQ5oGYow4", genre: "古典乐", occasion: "", language: "纯音乐", tag: "电影,星球大战" },
-
-    // ===== 电影 | 游戏 纯音乐 =====
-    { title: "1 HOUR DAVY JONES | PLAYED ON HARP", link: "https://www.youtube.com/watch?v=Wvx3dkYoX34", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,加勒比海盗" },
-    { title: "Interstellar Main Theme - Hans Zimmer", link: "https://www.youtube.com/watch?v=kpz8lpoLvrA", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,星际穿越" },
-    { title: "電影主題曲 The Lord of the Rings", link: "https://www.youtube.com/watch?v=tx9wK5TgZp8", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,指环王" },
-    { title: "Takiya Genji Fights | Crow Zero | Into the Battlefield", link: "https://www.youtube.com/watch?v=l18Wd98IoyQ", genre: "流行", occasion: "走路", language: "纯音乐", tag: "电影,热血高校,黑帮" },
-    { title: "Kill Bill OST", link: "https://www.youtube.com/watch?v=9KHEcUF_fvQ&list=PLF64CCABF06A9F273", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,集合" },
-    { title: "The Godfather OST", link: "https://www.youtube.com/watch?v=MnSEZQEAPmE&list=RDEMuF6xHfdoEKN-ecgY4pwzXw&index=6", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,黑帮,集合" },
-    { title: "Nocturne", link: "https://www.youtube.com/watch?v=_fjbR0qKT8w", genre: "流行", occasion: "", language: "纯音乐", tag: "电影" },
-    { title: "Official World of Warcraft 魔兽世界", link: "https://www.youtube.com/watch?v=800be1ZmGd0&list=PL15C476DB9D6B0D61&index=1", genre: "流行", occasion: "", language: "纯音乐", tag: "游戏,魔兽世界,集合" },
-    { title: "300 OST #4 Returns A King", link: "https://www.youtube.com/watch?v=zScsGbMnYHk&list=PL6A42B9906E1DBA37&index=4", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,斯巴达300勇士,集合" },
-    { title: "A Dark Knight 蝙蝠侠黑暗骑士崛起", link: "https://www.youtube.com/watch?v=zScsGbMnYHk&list=PL6A42B9906E1DBA37&index=4", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,黑暗骑士,集合" },
-    { title: "Planetarium", link: "https://www.youtube.com/watch?v=qV1KxmGDkk8", genre: "流行", occasion: "", language: "纯音乐", tag: "电影" },
-    { title: "Mia & Sebastian's Theme", link: "https://www.youtube.com/watch?v=Wk7RrtEGDyo", genre: "流行", occasion: "", language: "纯音乐", tag: "电影" },
-
-    // ===== 蓝调 =====
-    { title: "芝加哥蓝调音乐 – 放松灵魂蓝调精选集 Vol.010", link: "https://www.youtube.com/watch?v=LBHhL1Socb4", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-    { title: "Whiskey Blues - Melodies for Evening Chill", link: "https://www.youtube.com/watch?v=Aja2q5XAIQ0", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-    { title: "2025微醺紳士暗黑藍調", link: "https://www.youtube.com/watch?v=vcCOThSdoMs", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-    { title: "Music for Men Who Stay Silent | Gentleman Dark Blues", link: "https://www.youtube.com/watch?v=VQdubB5nng4", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-
-    // ===== 舞曲 | 纯音乐 =====
-    { title: "La Cumparsita", link: "https://www.youtube.com/watch?v=6lmN994zTlI", genre: "流行", occasion: "放松,舞曲", language: "纯音乐", tag: "" },
-
-    // ===== 伴奏 =====
-    { title: "Okean Elzy - Obijmy (CallmeArco Remix) / GTR and SRT Showtime", link: "https://www.youtube.com/watch?v=EwZB5pgGo1M&list=RDEwZB5pgGo1M&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "完美" },
-
-    // ===== 纯音乐（走路/开车）=====
-    { title: "La Câlin", link: "https://www.youtube.com/watch?v=28W_sotzXUw", genre: "流行", occasion: "走路,开车", language: "纯音乐", tag: "" },
-    { title: "La Câlin Remix", link: "https://www.youtube.com/watch?v=BLyz7_Ou5bY", genre: "流行", occasion: "走路,开车", language: "纯音乐", tag: "" },
-    { title: "Prison Break - Strings Of Prisoners - Extended", link: "https://www.youtube.com/watch?v=aXBVoZ48fRc", genre: "流行", occasion: "走路", language: "纯音乐", tag: "美剧" },
-    { title: "N2V - Hanayoi Dochu 花宵道中", link: "https://www.youtube.com/watch?v=yDaOv5o_bV4&list=RDyDaOv5o_bV4&start_radio=1", genre: "日系trap", occasion: "", language: "纯音乐", tag: "花宵道中" },
-    { title: "DIRTY CLASS - CHINA", link: "https://www.youtube.com/watch?v=ilHyxox4G2w&list=RDilHyxox4G2w&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "" },
-    { title: "Celestial Symphony 云宫迅音 黑神话:悟空", link: "https://www.youtube.com/watch?v=w_13U6FrK4U&list=RDw_13U6FrK4U&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "游戏,黑神话悟空" },
-    { title: "Arabian Nights Instrumental (Desert Vibes version)", link: "https://www.youtube.com/watch?v=gin_VBYqWBo&list=RDgin_VBYqWBo&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "阿拉伯" },
-    { title: "WYR GEMI - Black Samurai", link: "https://www.youtube.com/watch?v=ptLqwJDGbjw", genre: "Rap", occasion: "走路", language: "纯音乐", tag: "黑帮" },
-
-    // ===== Hillsong 敬拜 =====
-    { title: "His Glory Appears - Hillsong Faith+Hope+Love", link: "https://www.youtube.com/watch?v=UJRR3TEjm7Q&list=RDUJRR3TEjm7Q&index=1", genre: "流行", occasion: "敬拜", language: "英语", tag: "集合" },
-    { title: "I Surrender - Hillsong Worship", link: "https://www.youtube.com/watch?v=s7jXASBWwwI", genre: "流行", occasion: "敬拜", language: "英语", tag: "" },
-    { title: "Hillsong Worship", link: "https://www.youtube.com/watch?v=8YKJVx4qxcs", genre: "流行", occasion: "敬拜", language: "英语", tag: "集合" },
-
-    // ===== Coffee =====
-    { title: "温馨冬日咖啡馆 舒缓爵士乐和温暖壁炉声", link: "https://www.youtube.com/watch?v=UVs37Q70VrE", genre: "流行", occasion: "咖啡馆", language: "纯音乐", tag: "集合" },
-
-
-
-    { title: "Andy Williams' Speak Softly, Love (from 'The Godfather')", link: "https://www.youtube.com/watch?v=PQBW6G0hSrs&list=RDEMuF6xHfdoEKN-ecgY4pwzXw&index=22", genre: "流行", occasion: "咖啡馆", language: "英文", tag: "集合,黑帮" },
-
-    { title: "Okean Elzy - Obijmy (Dabro Remix) (La Calin) ", link: "https://www.youtube.com/watch?v=HB5VK_evUQw", genre: "流行", occasion: "万能", language: "英文", tag: "万能" },
-];
-</script>
-
-
-<style>
-  body {
-    background-color: #222222;
-    color: #e0e0e0;
-    font-family: sans-serif;
-    padding: 20px;
-  }
-
-  a, a:visited, a:active, a:hover {
-    text-decoration: none !important;
-    border-bottom: none !important;
-    outline: none !important;
-  }
-
-  /* 搜索框 */
-  .search-box {
-    width: 100%;
-    max-width: 500px;
-    padding: 10px 14px;
-    font-size: 15px;
-    background-color: #333;
-    border: 1px solid #555;
-    border-radius: 6px;
-    color: #e0e0e0;
-    margin-bottom: 20px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .search-box:focus {
-    border-color: #d7ecff;
-    box-shadow: 0 0 8px rgba(215, 236, 255, 0.3);
-  }
-
-  .filters {
-    margin-bottom: 30px;
-  }
-
-  /* 分类标题 */
-  .filter-category-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #d7ecff;
-    margin-top: 20px;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #444;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .filter-category-title:first-of-type {
-    margin-top: 0;
-  }
-
-  .filter-button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-
-  .filter-btn {
-    background-color: #555;
-    border: 1px solid #666;
-    color: #aaaaaa;
-    padding: 7px 13px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    font-size: 13px;
-  }
-
-  .filter-btn:hover {
-    background-color: #666;
-    color: #cccccc;
-  }
-
-  .filter-btn.active {
-    background-color: transparent;
-    color: #ffffff;
-    box-shadow: 0 0 10px #d7ecff, 0 0 20px #d7ecff;
-    border: 1px solid #d7ecff;
-  }
-
-  /* 清除 & 统计 */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-  }
-  .clear-btn {
-    background-color: #7a3a3a;
-    color: #fff;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .clear-btn:hover {
-    background-color: #a04a4a;
-  }
-  .stats {
-    color: #888;
-    font-size: 13px;
-  }
-
-  .song-list-container {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  .song-item {
-    display: block;
-    margin: 10px 0;
-    color: #999999;
-    transition: color 0.2s;
-  }
-
-  .song-item:hover {
-    color: #d7ecff;
-  }
-</style>
-
-<input type="text" class="search-box" id="search-box" placeholder="🔍 搜索歌名...">
-
-<div class="toolbar">
-  <button class="clear-btn" onclick="clearAllFilters()">清除筛选</button>
-  <span class="stats" id="stats"></span>
-</div>
-
-<div class="filters" id="filter-buttons"></div>
-<ul class="song-list-container" id="music-list"></ul>
-
-<script>
-  const filterContainer = document.getElementById("filter-buttons");
-  const musicListContainer = document.getElementById("music-list");
-  const searchBox = document.getElementById("search-box");
-  const statsEl = document.getElementById("stats");
-
-  // 每个分类独立存放激活的筛选值
-  const activeFilters = {
-    genre: new Set(),
-    occasion: new Set(),
-    language: new Set(),
-    tag: new Set()
-  };
-
-  // 分类元信息（顺序决定显示顺序）
-  const filterCategories = [
-    { field: "genre",    label: "风格" },
-    { field: "occasion", label: "场景" },
-    { field: "language", label: "语种" },
-    { field: "tag",      label: "标签" }
-  ];
-
-  // 把 "黑帮,电影" 这种字符串拆成数组
-  function splitValues(str) {
-    if (!str) return [];
-    return str.split(",").map(s => s.trim()).filter(s => s);
-  }
-
-  // 自动从 songs 数据中提取某字段的所有唯一值
-  function extractUniqueValues(field) {
-    const set = new Set();
-    songs.forEach(song => {
-      splitValues(song[field]).forEach(v => set.add(v));
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh-CN'));
-  }
-
-  function generateFilterButtons() {
-    filterContainer.innerHTML = "";
-    filterCategories.forEach(category => {
-      const values = extractUniqueValues(category.field);
-      if (values.length === 0) return;
-
-      const title = document.createElement("div");
-      title.className = "filter-category-title";
-      title.textContent = category.label + "  (" + values.length + ")";
-      filterContainer.appendChild(title);
-
-      const group = document.createElement("div");
-      group.className = "filter-button-group";
-
-      values.forEach(val => {
-        const btn = document.createElement("button");
-        btn.className = "filter-btn";
-        btn.textContent = val;
-        btn.dataset.field = category.field;
-        btn.dataset.value = val;
-        btn.addEventListener("click", () => toggleFilter(category.field, val, btn));
-        group.appendChild(btn);
-      });
-
-      filterContainer.appendChild(group);
-    });
-  }
-
-  function toggleFilter(field, value, btn) {
-    const set = activeFilters[field];
-    if (set.has(value)) {
-      set.delete(value);
-      btn.classList.remove("active");
-    } else {
-      set.add(value);
-      btn.classList.add("active");
-    }
-    renderMusicList();
-  }
-
-  function clearAllFilters() {
-    Object.values(activeFilters).forEach(s => s.clear());
-    document.querySelectorAll(".filter-btn.active").forEach(b => b.classList.remove("active"));
-    searchBox.value = "";
-    renderMusicList();
-  }
-
-  function songMatches(song) {
-    // 同一分类 OR，不同分类 AND
-    for (const cat of filterCategories) {
-      const active = activeFilters[cat.field];
-      if (active.size === 0) continue;
-      const values = splitValues(song[cat.field]);
-      const hit = [...active].some(v => values.includes(v));
-      if (!hit) return false;
-    }
-    return true;
-  }
-
-  function renderMusicList() {
-    musicListContainer.innerHTML = "";
-    const keyword = searchBox.value.trim().toLowerCase();
-
-    const filtered = songs.filter(song => {
-      if (!songMatches(song)) return false;
-      if (keyword && !song.title.toLowerCase().includes(keyword)) return false;
-      return true;
-    });
-
-    statsEl.textContent = "共 " + songs.length + " 首，当前显示 " + filtered.length + " 首";
-
-    if (filtered.length === 0) {
-      const li = document.createElement("li");
-      li.style.color = "#666";
-      li.textContent = "没有找到匹配的歌曲";
-      musicListContainer.appendChild(li);
-      return;
-    }
-
-    filtered.forEach(song => {
-      const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.href = song.link;
-      a.target = "_blank";
-      a.textContent = song.title;
-      a.className = "song-item";
-      li.appendChild(a);
-      musicListContainer.appendChild(li);
-    });
-  }
-
-  searchBox.addEventListener("input", renderMusicList);
-
-  generateFilterButtons();
-  renderMusicList();
-</script>
-
-<!-- endraw -->
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -2035,19 +2023,19 @@ const songs = [
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">[expanded] [blog] Linux命令</a>
-            </li>
-            
-            <li>
                 <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-ollama/">[expanded] [blog] Ollama</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/sqlmap/">SQLMap</a>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">[expanded] [blog] Linux命令</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/19/stock/">股市币市</a>
+                <a class="footer-post" href="/2026/09/19/social-engineering/">社工库工具</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/springboot/">Springboot</a>
             </li>
             
         </ul>
