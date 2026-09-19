@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] [blog] Wireshark
+原始问题: [blog] Wireshark
+
+Wireshark 网络抓包分析实战指南背景：为什么需要 Wireshark在生产环境中，网络问题往往是最难定位的故障类型之一。当应用层日志显示超时、连接重置或间歇性失败时，传统的应用监控无法揭示">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] Wireshark"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] Wireshark - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-blog-wireshark/">
+                [expanded] [blog] Wireshark
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-blog-Wireshark"><a href="#expanded-blog-Wireshark" class="headerlink" title="[expanded] [blog] Wireshark"></a>[expanded] [blog] Wireshark</h1><blockquote>
+<p>原始问题: [blog] Wireshark</p>
+</blockquote>
+<h1 id="Wireshark-网络抓包分析实战指南"><a href="#Wireshark-网络抓包分析实战指南" class="headerlink" title="Wireshark 网络抓包分析实战指南"></a>Wireshark 网络抓包分析实战指南</h1><h2 id="背景：为什么需要-Wireshark"><a href="#背景：为什么需要-Wireshark" class="headerlink" title="背景：为什么需要 Wireshark"></a>背景：为什么需要 Wireshark</h2><p>在生产环境中，网络问题往往是最难定位的故障类型之一。当应用层日志显示超时、连接重置或间歇性失败时，传统的应用监控无法揭示底层网络交互细节。典型场景包括：微服务间调用延迟突增但 APM 无法定位具体环节、数据库连接池频繁报错但 DB 侧无异常日志、负载均衡器后端健康检查失败但服务进程正常、跨云专线传输丢包但运营商声称链路正常。</p>
+<p>Wireshark 作为事实标准的网络协议分析工具，能够捕获并解析从数据链路层到应用层的完整报文。它不依赖应用程序的日志输出，直接从网卡驱动层获取原始数据包，这使得它能够发现 TCP 重传、乱序、窗口收缩、TLS 握手失败等应用层无法感知的底层问题。对于 SRE 而言，Wireshark 是验证网络假设、排除基础设施问题、为供应商提供确凿证据的关键工具。</p>
+<p>在容器化和服务网格环境中，Wireshark 的价值更加凸显。当流量经过多层代理（Envoy&#x2F;Nginx&#x2F;Istio）时，端到端的追踪往往失真，此时在关键节点抓包能够还原真实的网络行为，区分是应用逻辑问题还是网络栈问题。</p>
+<h2 id="诊断步骤：只读验证与抓包策略"><a href="#诊断步骤：只读验证与抓包策略" class="headerlink" title="诊断步骤：只读验证与抓包策略"></a>诊断步骤：只读验证与抓包策略</h2><p>在执行抓包前，必须先通过只读命令缩小问题范围，避免盲目抓包产生海量无用数据。首先使用 <code>ss -tanp</code> 或 <code>netstat -tanp</code> 确认连接状态，重点关注 ESTABLISHED、TIME_WAIT、CLOSE_WAIT 数量异常。检查 <code>ip -s link</code> 输出中的 RX&#x2F;TX errors、dropped、overruns 计数器，非零值通常指示硬件或驱动问题。</p>
+<p>使用 <code>tcpdump -D</code> 列出所有可用网络接口，确定需要监听的接口名称。在云环境中注意区分物理接口（eth0）、容器虚拟接口（veth）、隧道接口（tunl0）。执行 <code>tcpdump -i eth0 -c 10 -nn</code> 快速验证接口是否有流量，<code>-nn</code> 参数禁用 DNS 和端口名称解析以提升性能。</p>
+<p>对于高流量接口，必须设计精确的过滤器。使用 <code>tcpdump -i eth0 &#39;host 10.0.1.5 and port 3306&#39; -w /tmp/capture.pcap -C 100 -W 5</code> 进行环形缓冲抓包，<code>-C 100</code> 限制单文件 100MB，<code>-W 5</code> 保留最新 5 个文件，防止磁盘被填满。验证磁盘空间 <code>df -h /tmp</code> 确保至少有 10GB 可用空间。</p>
+<p>在生产环境抓包时，始终使用 BPF 过滤器而非事后过滤。错误示例：<code>tcpdump -i eth0 -w all.pcap</code> 然后用 Wireshark 过滤，这会导致 CPU 和 I&#x2F;O 压力。正确做法：<code>tcpdump -i eth0 &#39;tcp port 443 and (tcp[tcpflags] &amp; tcp-syn != 0)&#39; -w syn.pcap</code> 仅捕获 TLS 握手包。</p>
+<h2 id="核心操作：抓包与传输"><a href="#核心操作：抓包与传输" class="headerlink" title="核心操作：抓包与传输"></a>核心操作：抓包与传输</h2><p><strong>备份当前网络状态</strong>：在开始抓包前，保存当前连接表快照 <code>ss -tanp &gt; /var/log/netstat-$(date +%s).log</code>，记录接口统计 <code>ip -s link &gt; /var/log/ifstat-$(date +%s).log</code>，导出路由表 <code>ip route show table all &gt; /var/log/route-$(date +%s).log</code>。这些基线数据用于事后对比分析。</p>
+<p><strong>执行抓包命令</strong>：对于 HTTP&#x2F;HTTPS 流量分析，使用 <code>tcpdump -i any &#39;port 80 or port 443&#39; -s 0 -w http-$(hostname)-$(date +%Y%m%d-%H%M%S).pcap</code>。<code>-i any</code> 捕获所有接口（包括 lo），<code>-s 0</code> 捕获完整包而非默认的 262144 字节。对于数据库连接问题，使用 <code>tcpdump -i eth0 &#39;host db.example.com and tcp[13] &amp; 2 != 0&#39; -w db-syn.pcap</code> 仅捕获 SYN 包以分析连接建立过程。</p>
+<p><strong>安全传输到分析机</strong>：生产服务器通常无图形界面，需将 pcap 文件传输到本地。使用 <code>scp -C -l 8192 user@prod:/tmp/capture.pcap ./</code> 限速传输（8192 Kbit&#x2F;s），<code>-C</code> 启用压缩。对于大文件，先压缩 <code>gzip capture.pcap</code> 再传输。验证文件完整性 <code>md5sum capture.pcap.gz</code> 并在本地对比。</p>
+<p><strong>Wireshark 核心过滤器</strong>：打开 pcap 后，使用显示过滤器（Display Filter）而非捕获过滤器。分析 TCP 重传：<code>tcp.analysis.retransmission</code>；查找连接重置：<code>tcp.flags.reset == 1</code>；定位慢查询：<code>tcp.time_delta &gt; 1</code>；检查 TLS 握手失败：<code>ssl.alert_message</code>；追踪特定流：右键包选择 “Follow → TCP Stream”。</p>
+<h2 id="回滚与清理"><a href="#回滚与清理" class="headerlink" title="回滚与清理"></a>回滚与清理</h2><p>抓包操作本身无需回滚，但必须清理临时文件和恢复系统状态。停止长期运行的 tcpdump 进程：<code>pkill -SIGTERM tcpdump</code>，避免使用 <code>kill -9</code> 导致 pcap 文件损坏。验证进程已退出 <code>pgrep tcpdump</code> 返回空。</p>
+<p>清理抓包文件：<code>find /tmp -name &#39;*.pcap&#39; -mtime +7 -delete</code> 删除 7 天前的文件。对于环形缓冲抓包，tcpdump 会自动管理文件数量，但仍需定期清理：<code>ls -lh /tmp/capture*.pcap</code> 检查总大小，手动删除不再需要的文件。</p>
+<p>验证磁盘空间恢复：<code>df -h /tmp</code> 确认可用空间已释放。检查 inode 使用率 <code>df -i /tmp</code>，大量小 pcap 文件可能耗尽 inode。如果抓包期间修改了接口混杂模式，验证已恢复：<code>ip link show eth0 | grep PROMISC</code> 应无输出（tcpdump 退出后自动恢复）。</p>
+<p>对于在容器中抓包的场景，确保清理 nsenter 或 docker exec 创建的临时进程。使用 <code>docker top &lt;container&gt;</code> 检查容器内进程，确认无残留的 tcpdump。删除容器内的 pcap 文件以释放 overlay 存储空间。</p>
+<h2 id="常见陷阱与误判"><a href="#常见陷阱与误判" class="headerlink" title="常见陷阱与误判"></a>常见陷阱与误判</h2><p><strong>陷阱一：抓包位置错误</strong>。在负载均衡器后端抓包却看不到客户端真实 IP，因为 LB 做了 SNAT。必须在 LB 上抓包或启用 Proxy Protocol&#x2F;X-Forwarded-For。在容器内抓包看到的是 veth 接口流量，无法看到宿主机网络栈的处理，需在宿主机使用 <code>nsenter -t &lt;pid&gt; -n tcpdump</code> 进入容器网络命名空间。</p>
+<p><strong>陷阱二：时间戳误解</strong>。Wireshark 默认显示相对时间（从第一个包开始），导致误判延迟。必须设置 View → Time Display Format → UTC Date and Time of Day 使用绝对时间戳。抓包机器时钟偏移会导致时序分析错误，使用 <code>chronyc tracking</code> 验证 NTP 同步状态，System time offset 应小于 10ms。</p>
+<p><strong>陷阱三：TCP 校验和卸载</strong>。现代网卡启用 TCP Checksum Offload 后，Wireshark 显示校验和错误（红色标记）但实际包是正常的，因为校验和在网卡硬件计算而非内核。验证：<code>ethtool -k eth0 | grep tx-checksumming</code>，禁用以验证：<code>ethtool -K eth0 tx off</code>（仅用于测试，会降低性能）。</p>
+<p><strong>陷阱四：过滤器语法混淆</strong>。捕获过滤器（BPF）和显示过滤器（Wireshark）语法不同。<code>tcpdump &#39;tcp port 80&#39;</code> 正确，但 <code>tcpdump &#39;tcp.port == 80&#39;</code> 错误。Wireshark 中 <code>ip.addr == 10.0.0.1</code> 匹配源或目的，但 <code>ip.src == 10.0.0.1 or ip.dst == 10.0.0.1</code> 更明确。使用 <code>tcp.flags.syn == 1 and tcp.flags.ack == 0</code> 精确匹配 SYN 包，而非 <code>tcp[13] == 2</code>。</p>
+<p><strong>陷阱五：加密流量无法解析</strong>。TLS 1.3 使用 Perfect Forward Secrecy，即使有私钥也无法解密。必须在客户端设置 <code>SSLKEYLOGFILE</code> 环境变量导出会话密钥，然后在 Wireshark 中配置 Edit → Preferences → Protocols → TLS → (Pre)-Master-Secret log filename。对于 mTLS 场景，需要同时获取客户端和服务端的密钥日志。</p>
+<h2 id="架构层面的可观测性增强"><a href="#架构层面的可观测性增强" class="headerlink" title="架构层面的可观测性增强"></a>架构层面的可观测性增强</h2><p>将 Wireshark 分析集成到可观测性体系需要自动化和标准化。在关键节点（API Gateway、数据库代理、跨 AZ 边界）部署持续抓包，使用 <code>tcpdump -G 3600 -w /data/pcap/%Y%m%d-%H%M%S.pcap</code> 每小时轮转文件，保留 7 天用于事后分析。结合 Prometheus 的 <code>node_network_receive_drop_total</code> 指标，当丢包率超过阈值时自动触发详细抓包。</p>
+<p>在灰度发布期间，对 canary 实例和 baseline 实例同时抓包，使用 <code>tshark -r canary.pcap -q -z io,stat,1</code> 生成每秒统计，对比 TCP 重传率、平均 RTT、连接建立时间。将这些指标纳入 SLO 判断：如果 canary 的 P99 连接时间比 baseline 高 20%，自动回滚。</p>
+<p>对于多租户环境，使用 eBPF（如 Cilium）在内核层面标记流量，然后在 Wireshark 中通过 VLAN ID 或自定义 metadata 过滤特定租户的流量。这避免了在共享基础设施上抓取所有流量的隐私和性能问题。定期使用 <code>capinfos *.pcap</code> 生成统计报告，识别异常流量模式（如突发的大包、异常的协议分布）。</p>
+<p>建立 pcap 文件的中心化存储和检索系统。使用 <code>editcap -c 10000 large.pcap split.pcap</code> 将大文件分割，上传到对象存储（S3&#x2F;OSS），并在 Elasticsearch 中索引元数据（时间范围、源&#x2F;目的 IP、协议类型）。当工程师报告问题时，可通过 Kibana 查询相关时间段的 pcap 文件，而无需登录生产服务器。</p>
+<h2 id="参考-Runbook"><a href="#参考-Runbook" class="headerlink" title="参考 Runbook"></a>参考 Runbook</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 快速诊断连接问题</span></span><br><span class="line">ss -tanp | grep ESTAB | <span class="built_in">wc</span> -l  <span class="comment"># 当前连接数</span></span><br><span class="line">ss -s  <span class="comment"># 连接状态汇总</span></span><br><span class="line">ip -s <span class="built_in">link</span> show eth0  <span class="comment"># 接口错误统计</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 精确抓包模板</span></span><br><span class="line">tcpdump -i eth0 <span class="string">&#x27;host 10.0.1.5 and tcp port 3306&#x27;</span> -w db.pcap -C 50 -W 10</span><br><span class="line">tcpdump -i any <span class="string">&#x27;tcp[tcpflags] &amp; (tcp-syn|tcp-fin) != 0&#x27;</span> -w handshake.pcap</span><br><span class="line">tcpdump -i eth0 <span class="string">&#x27;icmp or (tcp and (tcp[tcpflags] &amp; tcp-rst != 0))&#x27;</span> -w errors.pcap</span><br><span class="line"></span><br><span class="line"><span class="comment"># Wireshark 命令行分析</span></span><br><span class="line">tshark -r capture.pcap -q -z io,phs  <span class="comment"># 协议层次统计</span></span><br><span class="line">tshark -r capture.pcap -Y <span class="string">&#x27;tcp.analysis.retransmission&#x27;</span> -T fields -e frame.number -e ip.src -e ip.dst</span><br><span class="line">tshark -r capture.pcap -q -z conv,tcp  <span class="comment"># TCP 会话统计</span></span><br><span class="line">tshark -r capture.pcap -Y <span class="string">&#x27;http.request.method == &quot;POST&quot;&#x27;</span> -T json &gt; requests.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 性能分析</span></span><br><span class="line">tshark -r capture.pcap -q -z io,<span class="built_in">stat</span>,1,<span class="string">&quot;AVG(tcp.time_delta)tcp.time_delta&quot;</span>  <span class="comment"># 每秒平均延迟</span></span><br><span class="line">tshark -r capture.pcap -Y <span class="string">&#x27;tcp.analysis.ack_rtt &gt; 0.1&#x27;</span> -T fields -e tcp.analysis.ack_rtt -e ip.dst</span><br><span class="line"></span><br><span class="line"><span class="comment"># 文件管理</span></span><br><span class="line">capinfos capture.pcap  <span class="comment"># 文件统计信息</span></span><br><span class="line">mergecap -w merged.pcap file1.pcap file2.pcap  <span class="comment"># 合并多个文件</span></span><br><span class="line">editcap -A <span class="string">&#x27;2024-01-01 10:00:00&#x27;</span> -B <span class="string">&#x27;2024-01-01 11:00:00&#x27;</span> input.pcap output.pcap  <span class="comment"># 时间切片</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

