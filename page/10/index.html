@@ -184,6 +184,69 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/19/2026-09-19-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
+                [expanded] [blog] XSS跨站脚本攻击
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-19</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-blog-XSS跨站脚本攻击"><a href="#expanded-blog-XSS跨站脚本攻击" class="headerlink" title="[expanded] [blog] XSS跨站脚本攻击"></a>[expanded] [blog] XSS跨站脚本攻击</h1><blockquote>
+<p>原始问题: [blog] XSS跨站脚本攻击</p>
+</blockquote>
+<h1 id="XSS-跨站脚本攻击：从原理到生产环境防御实践"><a href="#XSS-跨站脚本攻击：从原理到生产环境防御实践" class="headerlink" title="XSS 跨站脚本攻击：从原理到生产环境防御实践"></a>XSS 跨站脚本攻击：从原理到生产环境防御实践</h1><h2 id="1-背景与攻击场景"><a href="#1-背景与攻击场景" class="headerlink" title="1. 背景与攻击场景"></a>1. 背景与攻击场景</h2><p>XSS (Cross-Site Scripting) 本质是代码注入漏洞，攻击者通过在 Web 应用的输入点注入恶意脚本，当其他用户访问包含恶意代码的页面时，脚本在受害者浏览器上下文中执行。这类攻击在现代 Web 应用中尤为危险，因为它能够绕过同源策略 (Same-Origin Policy)，窃取 Cookie、Session Token、执行未授权操作或重定向用户到钓鱼站点。</p>
+<p>生产环境中高危场景包括：用户生成内容平台 (UGC)、富文本编辑器、搜索结果页面、错误消息回显、URL 参数直接渲染到 DOM。特别需要关注管理后台，攻击者通过 XSS 获取管理员权限后可实施提权攻击、数据泄露或植入后门。根据 OWASP Top 10，XSS 持续位列前三大 Web 安全威胁。</p>
+<p>三种主要类型的风险等级不同：<strong>反射型 XSS</strong> (Non-Persistent) 通过 URL 参数或表单提交触发，需诱导用户点击恶意链接；<strong>存储型 XSS</strong> (Persistent) 将恶意脚本存储在数据库，影响所有访问该数据的用户，危害最大；<strong>DOM-based XSS</strong> 完全在客户端执行，不经过服务器，通过操纵 DOM 环境触发。</p>
+<h2 id="2-诊断与验证步骤"><a href="#2-诊断与验证步骤" class="headerlink" title="2. 诊断与验证步骤"></a>2. 诊断与验证步骤</h2><p>在生产环境诊断 XSS 漏洞时，必须遵循只读原则，避免触发实际攻击或污染数据。首先使用浏览器开发者工具检查可疑页面的 DOM 结构，查看用户输入是否未经编码直接插入 HTML、JavaScript 或 URL 上下文。检查 HTTP 响应头中的安全策略：<code>Content-Security-Policy</code>、<code>X-XSS-Protection</code>、<code>X-Content-Type-Options</code> 是否正确配置。</p>
+<p>使用被动扫描工具进行初步评估：部署 Burp Suite 的被动扫描器或 OWASP ZAP 的 Spider 模式，记录所有输入点和输出点的映射关系。检查应用日志中是否存在异常字符序列，如 <code>&lt;script&gt;</code>、<code>onerror=</code>、<code>javascript:</code> 等关键字。对于疑似漏洞点，在测试环境使用无害的 Payload 验证，例如 <code>&lt;img src=x onerror=console.log(&#39;XSS_TEST_$&#123;TIMESTAMP&#125;&#39;)&gt;</code>，通过唯一标识符追踪执行路径。</p>
+<p>验证 WAF 和输入过滤机制的有效性：提交包含特殊字符的测试字符串 <code>&lt;&gt;&quot;&#39;&amp;;()</code> 并检查响应中的编码情况。使用 <code>curl</code> 或 <code>httpie</code> 发送带有 <code>Content-Type</code> 头的请求，测试 MIME 类型嗅探保护。检查 Cookie 属性：<code>HttpOnly</code>、<code>Secure</code>、<code>SameSite</code> 标志是否正确设置，这些是 XSS 攻击后的二次防御层。</p>
+<h2 id="3-修复方案：备份与准备"><a href="#3-修复方案：备份与准备" class="headerlink" title="3. 修复方案：备份与准备"></a>3. 修复方案：备份与准备</h2><p>在实施任何修复前，必须完成完整的备份和回滚准备。导出受影响应用的当前代码版本到 Git 分支 <code>hotfix/xss-remediation-$&#123;DATE&#125;</code>，标记当前生产环境的 Docker 镜像或部署包。备份数据库中所有用户生成内容表，特别是可能包含恶意脚本的字段，使用 <code>mysqldump</code> 或等效工具创建时间点快照。</p>
+<p>记录当前的 WAF 规则集和应用层过滤器配置，保存到版本控制系统。对于使用 CDN 的应用，导出当前的缓存策略和边缘函数配置。准备回滚脚本，包括数据库恢复命令、应用版本切换命令和配置还原步骤。在 staging 环境完整复现生产配置，验证修复方案不会引入功能退化。</p>
+<p>建立监控基线：记录修复前的正常请求模式、响应时间分布和错误率。配置告警规则，监控修复后的异常流量、4xx&#x2F;5xx 错误率突增和用户投诉。准备通信模板，用于在发现问题时快速通知利益相关方。对于高流量应用，准备流量切换方案，支持按百分比逐步推送修复。</p>
+<h2 id="4-修复方案：核心实施"><a href="#4-修复方案：核心实施" class="headerlink" title="4. 修复方案：核心实施"></a>4. 修复方案：核心实施</h2><p><strong>输出编码是第一道防线</strong>。根据上下文选择正确的编码函数：HTML 上下文使用 HTML Entity 编码 (<code>&amp;lt;</code> <code>&amp;gt;</code> <code>&amp;quot;</code> <code>&amp;#x27;</code> <code>&amp;amp;</code>)，JavaScript 上下文使用 Unicode 转义，URL 参数使用 URL 编码，CSS 值使用 CSS 转义。在模板引擎层面强制自动转义，例如 Jinja2 的 <code>autoescape=True</code>，React 的 JSX 默认转义，Vue.js 的 <code>v-text</code> 指令。禁止使用 <code>dangerouslySetInnerHTML</code>、<code>v-html</code>、<code>innerHTML</code> 等危险 API，除非经过严格的 sanitization。</p>
+<p><strong>输入验证作为纵深防御</strong>。实施白名单验证而非黑名单过滤：对于已知格式的输入 (邮箱、电话、数字)，使用严格的正则表达式验证。对于富文本内容，使用成熟的 HTML sanitizer 库如 DOMPurify、Bleach 或 OWASP Java HTML Sanitizer，配置允许的标签和属性白名单。在 API 层使用 JSON Schema 或 OpenAPI 规范验证请求体结构和数据类型。</p>
+<p><strong>部署 Content Security Policy (CSP)</strong>。配置严格的 CSP 头，禁止内联脚本和 <code>eval()</code>：<code>Content-Security-Policy: default-src &#39;self&#39;; script-src &#39;self&#39; &#39;nonce-$&#123;RANDOM&#125;&#39;; object-src &#39;none&#39;; base-uri &#39;self&#39;</code>。使用 nonce 或 hash 机制允许必要的内联脚本。启用 CSP 报告模式 (<code>Content-Security-Policy-Report-Only</code>) 在生产环境收集违规报告，逐步收紧策略。配置 <code>Trusted Types</code> API 强制所有 DOM 操作经过类型检查。</p>
+<p><strong>数据清洗与历史数据处理</strong>。编写数据库清洗脚本，扫描并转义已存储的恶意内容。使用事务确保原子性，分批处理避免锁表：<code>UPDATE comments SET content = html_escape(content) WHERE id BETWEEN ? AND ? AND content REGEXP &#39;&lt;script|onerror|javascript:&#39;</code>。对清洗后的数据进行抽样验证，确保功能完整性。为清洗操作创建审计日志，记录修改的记录数和时间戳。</p>
+<h2 id="5-常见误判与典型陷阱"><a href="#5-常见误判与典型陷阱" class="headerlink" title="5. 常见误判与典型陷阱"></a>5. 常见误判与典型陷阱</h2><p><strong>误判一：仅依赖前端验证</strong>。许多团队在前端实施输入过滤后认为已经安全，但攻击者可以直接调用 API 绕过前端检查。必须在服务端实施完整的验证和编码，前端验证仅用于改善用户体验。曾见过某电商平台仅在 JavaScript 中过滤 <code>&lt;script&gt;</code> 标签，攻击者通过 Burp Suite 修改请求体直接注入 <code>&lt;img src=x onerror=alert(1)&gt;</code>。</p>
+<p><strong>误判二：黑名单过滤的虚假安全感</strong>。过滤 <code>&lt;script&gt;</code> 标签无法防御所有 XSS，攻击者可使用 <code>&lt;img&gt;</code>、<code>&lt;svg&gt;</code>、<code>&lt;iframe&gt;</code> 等数十种标签和事件处理器。大小写混淆 (<code>&lt;ScRiPt&gt;</code>)、编码变换 (<code>%3Cscript%3E</code>)、HTML 实体 (<code>&amp;lt;script&amp;gt;</code>) 都能绕过简单的字符串匹配。某金融应用过滤了 <code>javascript:</code> 协议，但未处理 <code>data:text/html,&lt;script&gt;alert(1)&lt;/script&gt;</code>，导致绕过。</p>
+<p><strong>误判三：错误的编码上下文</strong>。在 JavaScript 字符串中使用 HTML 编码是无效的，例如 <code>var name = &quot;&lt;?= htmlspecialchars($user) ?&gt;&quot;;</code> 仍可被 <code>&quot;;alert(1);//</code> 闭合。必须根据嵌套上下文多层编码：先 JavaScript 转义再 HTML 转义。某 SaaS 平台在 JSON API 响应中返回用户输入，前端使用 <code>eval(response)</code> 解析，导致代码执行漏洞。</p>
+<p><strong>误判四：忽略 DOM-based XSS</strong>。许多扫描工具无法检测纯客户端的 XSS，因为恶意代码不经过服务器。使用 <code>location.hash</code>、<code>document.referrer</code>、<code>window.name</code> 等 DOM 属性作为数据源时，必须进行验证。某单页应用使用 <code>document.location.hash</code> 直接设置 <code>innerHTML</code>，攻击者通过 <code>#&lt;img src=x onerror=alert(1)&gt;</code> 触发执行。需要使用静态分析工具如 ESLint 的安全插件检测危险的 DOM 操作。</p>
+<p><strong>误判五：CSP 配置错误导致策略失效</strong>。使用 <code>&#39;unsafe-inline&#39;</code> 或 <code>&#39;unsafe-eval&#39;</code> 会使 CSP 形同虚设。配置过于宽松的 <code>script-src *</code> 允许任意外部脚本加载。某企业应用配置了 CSP 但包含 <code>script-src https:</code>，攻击者上传恶意 JS 到公司 CDN 后仍可执行。必须使用 CSP Evaluator 工具验证策略有效性，监控 CSP 违规报告发现潜在攻击。</p>
+<h2 id="6-架构层面的防御策略"><a href="#6-架构层面的防御策略" class="headerlink" title="6. 架构层面的防御策略"></a>6. 架构层面的防御策略</h2><p><strong>实施分层防御架构</strong>。在 CDN&#x2F;WAF 层部署 ModSecurity 或云 WAF 规则集 (如 AWS WAF Managed Rules for XSS)，拦截明显的攻击模式。在 API Gateway 层使用 JSON Schema 验证和速率限制。在应用层使用框架内置的安全特性 (Django 的自动转义、Spring Security 的 XSS 保护)。在数据库层使用参数化查询防止二次注入。每层独立验证，避免单点失效。</p>
+<p><strong>灰度发布与金丝雀部署</strong>。XSS 修复可能影响现有功能，特别是依赖 HTML 渲染的富文本场景。使用特性开关 (Feature Flag) 控制新编码逻辑的启用范围，先对内部用户开放 1%，监控 24 小时无异常后逐步扩大到 10%、50%、100%。配置 A&#x2F;B 测试框架，对比修复前后的用户行为指标 (页面停留时间、交互率)，确保无功能退化。</p>
+<p><strong>可观测性与持续监控</strong>。部署 WAF 日志分析管道，使用 ELK 或 Splunk 聚合 XSS 攻击特征 (如 <code>&lt;script&gt;</code> 关键字、异常 User-Agent)。配置 Prometheus 指标监控 CSP 违规率、输入验证失败率。使用 Sentry 或 Datadog RUM 收集客户端错误，检测 DOM-based XSS 触发的异常。建立 SLO：XSS 检测延迟 &lt; 5 分钟，误报率 &lt; 0.1%，修复 MTTR &lt; 4 小时。</p>
+<p><strong>安全开发生命周期集成</strong>。在 CI&#x2F;CD 管道中集成 SAST 工具 (如 SonarQube、Checkmarx) 扫描代码中的 XSS 漏洞，阻止不安全代码合并。使用 DAST 工具 (OWASP ZAP、Burp Suite Enterprise) 对每次部署进行自动化渗透测试。实施 Security Champions 计划，培训开发团队识别和修复 XSS。建立漏洞赏金计划，激励外部安全研究员报告问题。每季度进行红队演练，模拟真实攻击场景。</p>
+<h2 id="7-运维-Runbook-与命令参考"><a href="#7-运维-Runbook-与命令参考" class="headerlink" title="7. 运维 Runbook 与命令参考"></a>7. 运维 Runbook 与命令参考</h2><p><strong>诊断命令集</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 HTTP 安全头</span></span><br><span class="line">curl -I https://example.com | grep -E <span class="string">&#x27;Content-Security-Policy|X-XSS-Protection|X-Content-Type-Options&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 扫描数据库中的潜在恶意内容</span></span><br><span class="line">mysql -e <span class="string">&quot;SELECT id, content FROM comments WHERE content REGEXP &#x27;&lt;script|onerror|javascript:&#x27; LIMIT 10;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 分析 WAF 日志中的 XSS 攻击</span></span><br><span class="line">grep -E <span class="string">&#x27;&lt;script|onerror|javascript:|data:text/html&#x27;</span> /var/log/waf/access.log | awk <span class="string">&#x27;&#123;print $1&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证 CSP 配置</span></span><br><span class="line">curl -s https://example.com | grep -oP <span class="string">&#x27;Content-Security-Policy: \K.*&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>修复命令集</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 数据库内容清洗 (分批处理)</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> &#123;0..100&#125;; <span class="keyword">do</span></span><br><span class="line">  mysql -e <span class="string">&quot;UPDATE comments SET content = REPLACE(REPLACE(content, &#x27;&lt;&#x27;, &#x27;&amp;lt;&#x27;), &#x27;&gt;&#x27;, &#x27;&amp;gt;&#x27;) WHERE id BETWEEN <span class="subst">$((i*1000)</span>) AND <span class="subst">$(((i+1)</span>*1000));&quot;</span></span><br><span class="line">  <span class="built_in">sleep</span> 1</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 部署 CSP 头 (Nginx)</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;add_header Content-Security-Policy \&quot;default-src &#x27;self&#x27;; script-src &#x27;self&#x27; &#x27;nonce-\$request_id&#x27;;\&quot;;&quot;</span> &gt;&gt; /etc/nginx/conf.d/security.conf</span><br><span class="line">nginx -t &amp;&amp; systemctl reload nginx</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启用 WAF XSS 规则集 (ModSecurity)</span></span><br><span class="line">sed -i <span class="string">&#x27;s/SecRuleEngine DetectionOnly/SecRuleEngine On/&#x27;</span> /etc/modsecurity/modsecurity.conf</span><br><span class="line">systemctl restart apache2</span><br></pre></td></tr></table></figure>
+
+<p><strong>监控与回滚</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 监控 CSP 违规报告</span></span><br><span class="line">curl -X POST https://your-csp-report-endpoint.com/reports | jq <span class="string">&#x27;.[&quot;csp-report&quot;]&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查修复后的错误率</span></span><br><span class="line">kubectl logs -l app=web --since=1h | grep -c <span class="string">&quot;500 Internal Server Error&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 快速回滚到上一版本</span></span><br><span class="line">kubectl rollout undo deployment/web-app</span><br><span class="line">docker service update --rollback web-service</span><br></pre></td></tr></table></figure>
+
+<p>建立 Runbook 文档库，包含不同场景的响应流程：反射型 XSS 应急响应 (15 分钟内禁用受影响端点)、存储型 XSS 数据清洗流程 (包含数据备份和验证步骤)、CSP 策略调整指南 (包含兼容性测试清单)。定期演练 Runbook 确保团队熟悉流程，每次事件后更新文档，形成持续改进循环。</p>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
                 [expanded] 一次性的蘸料小塑料盒怎么废物利用
             </a>
@@ -990,51 +1053,6 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">
-                自动化知识同步与数据采集架构规范
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-08-25</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-概述与背景"><a href="#1-概述与背景" class="headerlink" title="1. 概述与背景"></a>1. 概述与背景</h3><p>在现代企业与个人知识管理（PKM&#x2F;KM）体系中，分布式沟通工具（如 IM 软件、ChatBot、协作平台）充当着知识产生的第一现场。然而，碎片化的对话内容若缺乏有效的自动采集机制，极易形成信息孤岛。<strong>Chat Auto-Ingest（聊天数据自动摄取）</strong> 机制旨在通过轻量级接口与后台同步服务，实现从聊天上下文到中央知识库的无缝沉淀。</p>
-<h3 id="2-数据采集与同步链路设计"><a href="#2-数据采集与同步链路设计" class="headerlink" title="2. 数据采集与同步链路设计"></a>2. 数据采集与同步链路设计</h3><p>知识的自动摄取链路包含数据监听、数据解析、连通性测试（Test-Sync）以及知识入库四个核心环节：</p>
-<ol>
-<li><strong>事件触发与监听（Triggering &amp; Event Listening）</strong>：<br>通过 Webhook 或长连接监听聊天系统中的指定动作（例如打上特定的 Tag、使用特定的指令或触发特定的 Bot 提问）。</li>
-<li><strong>数据清洗与报文结构化（Payload Parsing）</strong>：<br>原始对话通常包含大量无效噪声（如表情符号、打招呼口语）。同步服务需将其提取为标准的 Q&amp;A（问答对）或 Markdown 片段。</li>
-<li><strong>链路连通性验证（Test-Sync Verification）</strong>：<br>在正式执行高频同步前，系统需支持测试级别的微型数据包同步（如 <code>test-sync</code> 节点）。通过极简的问答测试（如 <code>Q: 测试 -&gt; A: 这是测试内容</code>），验证鉴权 Token、数据通道传输效率及解析器的可读取性。</li>
-<li><strong>长效入库与状态标记（Ingestion &amp; Status Tracking）</strong>：<br>清洗完毕的知识将被推送到暂存区（Staging Area），并赋予同步状态标记（如 <code>synced</code>, <code>pending</code>, <code>failed</code>），便于后续的自动聚类与重构。</li>
-</ol>
-<h3 id="3-同步机制的演进方向"><a href="#3-同步机制的演进方向" class="headerlink" title="3. 同步机制的演进方向"></a>3. 同步机制的演进方向</h3><p>自动化同步并非单纯的数据搬运，而是知识生命周期管理（TLM）的起点。未来的采集架构应重点关注：</p>
-<ul>
-<li><strong>实时性与批处理的平衡</strong>：小微量数据实时同步以确保即时反馈，大文本与历史存档采用定时批处理（Batch Processing）。</li>
-<li><strong>幂等性与去重控制</strong>：避免同一对话记录被多次触发导致知识库膨胀与版本混淆。</li>
-<li><strong>全链路追踪（Traceability）</strong>：每一条沉淀的知识文档都应保留原始对话的时间戳、参与者与上下文链接，确保知识可追溯、可验证。</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1077,15 +1095,15 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/20/2026-09-20-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/20/2026-09-20-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
             </li>
             
             <li>
                 <a class="footer-post" href="/2026/09/20/2026-09-20-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/20/social-engineering/">社工库工具</a>
             </li>
             
             <li>

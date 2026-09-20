@@ -184,6 +184,179 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/20/2026-09-20-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
+                [expanded] [blog] XSS跨站脚本攻击
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-20</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-blog-XSS跨站脚本攻击"><a href="#expanded-blog-XSS跨站脚本攻击" class="headerlink" title="[expanded] [blog] XSS跨站脚本攻击"></a>[expanded] [blog] XSS跨站脚本攻击</h1><blockquote>
+<p>原始问题: [blog] XSS跨站脚本攻击</p>
+</blockquote>
+<h1 id="XSS-跨站脚本攻击防御与检测技能清单"><a href="#XSS-跨站脚本攻击防御与检测技能清单" class="headerlink" title="XSS 跨站脚本攻击防御与检测技能清单"></a>XSS 跨站脚本攻击防御与检测技能清单</h1><blockquote>
+<p>场景占位: 攻击者向 <TARGET_SITE> 注入 <MALICIOUS_SCRIPT>, 用户 <VICTIM_USER> 访问触发, 管理员 <ADMIN_USER> 成为高价值目标<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-把管理员当首要攻击面-不只防护普通用户"><a href="#1-把管理员当首要攻击面-不只防护普通用户" class="headerlink" title="1. 把管理员当首要攻击面,不只防护普通用户"></a>1. 把管理员当首要攻击面,不只防护普通用户</h2><ul>
+<li><strong>规则</strong>: XSS 防御必须覆盖管理后台所有输入输出点,管理员是攻击者的真实目标</li>
+<li><strong>为什么</strong>: 管理员权限可操作文件&#x2F;数据库,XSS 通过管理员身份实现”客户端攻击变服务端攻击”的跳板</li>
+<li><strong>踩坑</strong>: 只在前台表单做过滤,后台留言板&#x2F;日志查看等功能未防护,管理员查看恶意内容时中招</li>
+<li><strong>例外</strong>: 完全隔离的只读审计日志系统(但仍需编码输出)</li>
+</ul>
+<h2 id="2-输出编码比输入过滤更可靠"><a href="#2-输出编码比输入过滤更可靠" class="headerlink" title="2. 输出编码比输入过滤更可靠"></a>2. 输出编码比输入过滤更可靠</h2><ul>
+<li><strong>规则</strong>: 在数据输出到 HTML&#x2F;JS&#x2F;URL 时做上下文相关编码,而非仅在输入时黑名单过滤</li>
+<li><strong>为什么</strong>: 输入过滤容易被绕过(双重编码&#x2F;大小写&#x2F;Unicode变体),输出编码在最后一道关卡确保浏览器不解析为代码</li>
+<li><strong>踩坑</strong>: 用正则删除 <code>&lt;script&gt;</code> 标签,攻击者用 <code>&lt;img onerror=...&gt;</code> 或 <code>&lt;svg onload=...&gt;</code> 绕过</li>
+<li><strong>例外</strong>: 富文本编辑器场景需白名单+CSP组合拳</li>
+</ul>
+<h2 id="3-反射型-XSS-的危害被低估-中危不等于可忽略"><a href="#3-反射型-XSS-的危害被低估-中危不等于可忽略" class="headerlink" title="3. 反射型 XSS 的危害被低估,中危不等于可忽略"></a>3. 反射型 XSS 的危害被低估,中危不等于可忽略</h2><ul>
+<li><strong>规则</strong>: 反射型 XSS 虽需诱导点击,但结合钓鱼&#x2F;短链可批量攻击,必须修复</li>
+<li><strong>为什么</strong>: 攻击者可伪造 <TRUSTED_DOMAIN> 的钓鱼链接,用户看到可信域名会降低警惕,点击率远超想象</li>
+<li><strong>踩坑</strong>: 认为”需要用户点击恶意链接”就不修复,实际 APT 攻击常用此作为初始入口</li>
+<li><strong>例外</strong>: 完全内网且无邮件&#x2F;IM 的隔离环境</li>
+</ul>
+<h2 id="4-存储型-XSS-检测要追踪数据流-不只测当前页面"><a href="#4-存储型-XSS-检测要追踪数据流-不只测当前页面" class="headerlink" title="4. 存储型 XSS 检测要追踪数据流,不只测当前页面"></a>4. 存储型 XSS 检测要追踪数据流,不只测当前页面</h2><ul>
+<li><strong>规则</strong>: 输入点在 <PAGE_A> 的数据可能在 <PAGE_B>&#x2F;<PAGE_C>&#x2F;管理后台显示,需全链路测试</li>
+<li><strong>为什么</strong>: 留言板输入的恶意脚本可能在用户中心&#x2F;管理审核页&#x2F;统计报表等多处回显,单点测试会漏检</li>
+<li><strong>踩坑</strong>: 在评论框插入 payload 后只刷新评论列表,未检查个人主页&#x2F;通知中心&#x2F;后台审核页</li>
+<li><strong>例外</strong>: 明确标注为”仅当前会话”的临时数据</li>
+</ul>
+<h2 id="5-DOM-型-XSS-不经过服务端-查源码看不到"><a href="#5-DOM-型-XSS-不经过服务端-查源码看不到" class="headerlink" title="5. DOM 型 XSS 不经过服务端,查源码看不到"></a>5. DOM 型 XSS 不经过服务端,查源码看不到</h2><ul>
+<li><strong>规则</strong>: 用浏览器开发者工具动态调试 JS,关注 <code>location.hash</code> <code>document.write</code> <code>innerHTML</code> 等 DOM 操作</li>
+<li><strong>为什么</strong>: Payload 在 URL 片段标识符(#后)或前端 JS 直接处理,HTTP 请求响应中完全看不到恶意代码</li>
+<li><strong>踩坑</strong>: 用 Burp 抓包重放测试,但 DOM XSS 的参数在 <code>#</code> 后不会发送到服务器,抓不到包</li>
+<li><strong>例外</strong>: 服务端渲染(SSR)且无前端路由的传统应用</li>
+</ul>
+<h2 id="6-手工测试先用特殊字符探测-不直接上完整-payload"><a href="#6-手工测试先用特殊字符探测-不直接上完整-payload" class="headerlink" title="6. 手工测试先用特殊字符探测,不直接上完整 payload"></a>6. 手工测试先用特殊字符探测,不直接上完整 payload</h2><ul>
+<li><strong>规则</strong>: 输入 <code>&#39;&quot;;&gt;&lt;</code> 加唯一标识如 <code>xss2024test</code>,查看响应源码中这些字符是否被转义</li>
+<li><strong>为什么</strong>: 直接输入 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 可能触发 WAF 封禁 IP,特殊字符探测既隐蔽又能快速判断过滤强度</li>
+<li><strong>踩坑</strong>: 第一次测试就用 <code>&lt;svg/onload=alert(1)&gt;</code>,被 WAF 拦截后无法继续测试</li>
+<li><strong>例外</strong>: 已确认无 WAF 的内部测试环境</li>
+</ul>
+<h2 id="7-构造闭合是-XSS-利用的核心技巧"><a href="#7-构造闭合是-XSS-利用的核心技巧" class="headerlink" title="7. 构造闭合是 XSS 利用的核心技巧"></a>7. 构造闭合是 XSS 利用的核心技巧</h2><ul>
+<li><strong>规则</strong>: 根据唯一标识符在源码中的位置,闭合前面的标签&#x2F;引号,再注入恶意代码</li>
+<li><strong>为什么</strong>: 输入点可能在 <code>&lt;input value=&quot;这里&quot;&gt;</code> 或 <code>&lt;script&gt;var a=&quot;这里&quot;&lt;/script&gt;</code> 等不同上下文,需不同闭合方式</li>
+<li><strong>踩坑</strong>: 所有场景都用 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>,在 <code>&lt;input value=&quot;&lt;script&gt;...&quot;&gt;</code> 中无法执行</li>
+<li><strong>例外</strong>: 输出点已在独立 script 标签且无引号包裹(极少见)</li>
+</ul>
+<h2 id="8-工具扫描结果需人工验证-误报率高"><a href="#8-工具扫描结果需人工验证-误报率高" class="headerlink" title="8. 工具扫描结果需人工验证,误报率高"></a>8. 工具扫描结果需人工验证,误报率高</h2><ul>
+<li><strong>规则</strong>: AWVS&#x2F;AppScan 报告的 XSS 必须手工复现,确认弹窗或执行任意 JS 才算漏洞</li>
+<li><strong>为什么</strong>: 扫描器只检测特殊字符是否回显,不判断是否真正可执行,很多是 HTML 注释内或已转义的误报</li>
+<li><strong>踩坑</strong>: 直接把扫描器报告交给开发,开发验证后发现是误报,降低安全团队可信度</li>
+<li><strong>例外</strong>: 已知准确率高的自研扫描规则</li>
+</ul>
+<h2 id="9-测试-XSS-时注意-HttpOnly-和-CSP-防御层"><a href="#9-测试-XSS-时注意-HttpOnly-和-CSP-防御层" class="headerlink" title="9. 测试 XSS 时注意 HttpOnly 和 CSP 防御层"></a>9. 测试 XSS 时注意 HttpOnly 和 CSP 防御层</h2><ul>
+<li><strong>规则</strong>: 即使弹窗成功,检查 Cookie 是否有 HttpOnly 标志,页面是否有 Content-Security-Policy 响应头</li>
+<li><strong>为什么</strong>: XSS 能执行不代表能窃取 Cookie(HttpOnly 阻止),也不代表能加载外部恶意脚本(CSP 限制)</li>
+<li><strong>踩坑</strong>: 演示时只展示 <code>alert(document.cookie)</code> 弹窗,实际 Cookie 有 HttpOnly 无法窃取,业务方认为影响不大</li>
+<li><strong>例外</strong>: 目标是 DOM 操作或钓鱼而非窃取凭证</li>
+</ul>
+<h2 id="10-反射型-XSS-的-payload-要-URL-编码后再发送"><a href="#10-反射型-XSS-的-payload-要-URL-编码后再发送" class="headerlink" title="10. 反射型 XSS 的 payload 要 URL 编码后再发送"></a>10. 反射型 XSS 的 payload 要 URL 编码后再发送</h2><ul>
+<li><strong>规则</strong>: 构造好的 <code>&lt;img src=x onerror=alert(1)&gt;</code> 需编码为 <code>%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E</code> 放入 URL</li>
+<li><strong>为什么</strong>: 浏览器&#x2F;代理会自动解码 URL 参数,未编码的特殊字符可能被截断或误解析</li>
+<li><strong>踩坑</strong>: 直接复制 <code>http://&lt;TARGET&gt;?q=&lt;script&gt;alert(1)&lt;/script&gt;</code> 到浏览器,<code>&lt;&gt;</code> 被浏览器处理导致测试失败</li>
+<li><strong>例外</strong>: 使用 Burp Repeater 等工具直接发送原始 HTTP 请求</li>
+</ul>
+<h2 id="11-查找输入点要包含非显性输入"><a href="#11-查找输入点要包含非显性输入" class="headerlink" title="11. 查找输入点要包含非显性输入"></a>11. 查找输入点要包含非显性输入</h2><ul>
+<li><strong>规则</strong>: 除表单外,检查 Referer&#x2F;User-Agent&#x2F;Cookie&#x2F;X-Forwarded-For 等 HTTP 头是否会回显</li>
+<li><strong>为什么</strong>: 日志查看&#x2F;错误页面&#x2F;统计分析等功能可能输出这些头部,开发常忽略对其过滤</li>
+<li><strong>踩坑</strong>: 只测试可见表单,漏掉后台”访问日志”功能显示 User-Agent 导致的存储型 XSS</li>
+<li><strong>例外</strong>: 完全不记录 HTTP 头的纯 API 服务</li>
+</ul>
+<h2 id="12-富文本场景用白名单-DOMPurify-不自己写过滤"><a href="#12-富文本场景用白名单-DOMPurify-不自己写过滤" class="headerlink" title="12. 富文本场景用白名单+DOMPurify,不自己写过滤"></a>12. 富文本场景用白名单+DOMPurify,不自己写过滤</h2><ul>
+<li><strong>规则</strong>: 允许用户输入 HTML 时,使用成熟的白名单库(如 DOMPurify)过滤,禁止自研正则方案</li>
+<li><strong>为什么</strong>: HTML 解析极其复杂,自研方案必被绕过(mutation XSS&#x2F;mXSS),DOMPurify 有专业团队维护</li>
+<li><strong>踩坑</strong>: 用正则 <code>/&lt;script.*?&gt;.*?&lt;\/script&gt;/gi</code> 删除脚本,攻击者用 <code>&lt;noscript&gt;&lt;p title=&quot;&lt;/noscript&gt;&lt;img src=x onerror=alert(1)&gt;&quot;&gt;</code> 绕过</li>
+<li><strong>例外</strong>: 完全禁止 HTML 输入的纯文本场景</li>
+</ul>
+<h2 id="13-测试时用唯一标识追踪-不用通用-payload"><a href="#13-测试时用唯一标识追踪-不用通用-payload" class="headerlink" title="13. 测试时用唯一标识追踪,不用通用 payload"></a>13. 测试时用唯一标识追踪,不用通用 payload</h2><ul>
+<li><strong>规则</strong>: 每个输入点用不同标识如 <code>xsstest_&lt;INPUT_NAME&gt;_&lt;TIMESTAMP&gt;</code>,便于在大量输出中定位</li>
+<li><strong>为什么</strong>: 同时测试多个输入点时,通用 <code>alert(1)</code> 无法判断是哪个点触发,唯一标识可精确溯源</li>
+<li><strong>踩坑</strong>: 10 个表单都输入 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>,弹窗后不知道是哪个字段存在漏洞</li>
+<li><strong>例外</strong>: 单一输入点的快速验证</li>
+</ul>
+<h2 id="14-存储型-XSS-要测试权限隔离-避免自己打自己"><a href="#14-存储型-XSS-要测试权限隔离-避免自己打自己" class="headerlink" title="14. 存储型 XSS 要测试权限隔离,避免自己打自己"></a>14. 存储型 XSS 要测试权限隔离,避免自己打自己</h2><ul>
+<li><strong>规则</strong>: 用 <USER_A> 插入 payload,用 <USER_B> 访问触发,确认跨用户攻击可行</li>
+<li><strong>为什么</strong>: 很多应用只对当前用户回显自己的输入,无法攻击其他用户,不算真正的存储型 XSS</li>
+<li><strong>踩坑</strong>: 自己发评论自己看到弹窗就报漏洞,实际其他用户看到的是过滤后的安全内容</li>
+<li><strong>例外</strong>: 明确为”个人笔记”等单用户功能</li>
+</ul>
+<h2 id="15-绕过-WAF-时用编码变换和标签变体"><a href="#15-绕过-WAF-时用编码变换和标签变体" class="headerlink" title="15. 绕过 WAF 时用编码变换和标签变体"></a>15. 绕过 WAF 时用编码变换和标签变体</h2><ul>
+<li><strong>规则</strong>: 尝试 HTML 实体编码 <code>&amp;lt;</code> 大小写混淆 <code>&lt;ScRiPt&gt;</code> 或冷门标签 <code>&lt;details open ontoggle=alert(1)&gt;</code></li>
+<li><strong>为什么</strong>: WAF 规则基于黑名单,无法穷举所有变体,浏览器解析比 WAF 更宽容</li>
+<li><strong>踩坑</strong>: 被拦截后放弃,实际换个编码方式或标签就能绕过</li>
+<li><strong>例外</strong>: 白名单 WAF 或基于语义分析的高级防护</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>管理员是 XSS 的真实目标,后台必须严防</strong></li>
+<li><strong>输出编码 &gt; 输入过滤,在最后关卡做上下文相关转义</strong></li>
+<li><strong>存储型 XSS 要追踪数据流,输入点和输出点可能在不同页面</strong></li>
+<li><strong>DOM XSS 不经过服务端,抓包看不到要用浏览器调试</strong></li>
+<li><strong>先用特殊字符探测再构造闭合,不直接上完整 payload</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>反射型 XSS 报告</td>
+<td>评估钓鱼场景可行性,不因”需点击”就降级</td>
+</tr>
+<tr>
+<td>扫描器报 XSS</td>
+<td>必须手工验证能否真正执行 JS</td>
+</tr>
+<tr>
+<td>富文本编辑器</td>
+<td>用 DOMPurify 白名单,禁止自研正则</td>
+</tr>
+<tr>
+<td>测试被 WAF 拦截</td>
+<td>换编码&#x2F;大小写&#x2F;冷门标签再试</td>
+</tr>
+<tr>
+<td>弹窗成功</td>
+<td>检查 HttpOnly 和 CSP,评估实际危害</td>
+</tr>
+<tr>
+<td>多个输入点</td>
+<td>每个用唯一标识,便于定位漏洞位置</td>
+</tr>
+<tr>
+<td>DOM 操作的页面</td>
+<td>开浏览器调试看 <code>innerHTML</code> <code>document.write</code></td>
+</tr>
+<tr>
+<td>存储型 XSS</td>
+<td>跨用户测试,确认非自己打自己</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-20</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/20/2026-09-20-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
                 [expanded] 一次性的蘸料小塑料盒怎么废物利用
             </a>
@@ -494,42 +667,6 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/20/social-engineering/">
-                社工库工具
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-20</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>国外情报专家最常用的OSINT工具</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
-<ul>
-<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
             <a href="/2026/09/20/shell/">
                 Shell
             </a>
@@ -578,6 +715,73 @@
 
 <h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
 
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/20/social-engineering/">
+                社工库工具
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-20</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>国外情报专家最常用的OSINT工具</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
+<ul>
+<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/20/springboot/">
+                Springboot
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-20</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/后端/">后端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
         </div>
     
 
@@ -682,8 +886,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/20/springboot/">
-                Springboot
+            <a href="/2026/09/20/sqlite/">
+                SQLite
             </a>
         </h1>
         <div class="post-info">
@@ -693,7 +897,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/后端/">后端</a>
+                    <a href="/categories/数据库/">数据库</a>
                 </span>
             
         </div>
@@ -701,8 +905,8 @@
 
     
         <div class="content">
-            <p>文章</p>
-<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
+            <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
+
         </div>
     
 
@@ -1391,8 +1595,8 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/20/sqlite/">
-                SQLite
+            <a href="/2026/09/20/stock/">
+                股市币市
             </a>
         </h1>
         <div class="post-info">
@@ -1402,7 +1606,7 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
             
             
                 <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
+                    <a href="/categories/新/">新</a>
                 </span>
             
         </div>
@@ -1410,111 +1614,24 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
 
     
         <div class="content">
-            <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
+            <p>本金 </p>
+<p>三折最多</p>
+<p>三折以上就是突发状况</p>
+<p>有信心可以all in 30%</p>
+<pre><code>信心一般可以先 20%
+</code></pre>
+<p>小试牛刀 10% </p>
+<pre><code>补刀 10%
 
-        </div>
-    
+    收回本金 cl 1
+    或者收回补刀的钱 cl 2
 
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/20/system-migration/">
-                系统迁移
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-20</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
-
-<p>backup_and_migrate.sh</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
-<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/20/tree/">
-                树 ADT
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-20</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/AI/">AI</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <pre class="mermaid">graph LR
-    A[树] --> B[二叉树]
-    B[二叉树] --> C[完全二叉树]
-    C[完全二叉树] --> D[满二叉树]
-    C[完全二叉树] --> E[堆]
-    E[堆] --> F[大顶堆]
-    E[堆] --> G[小顶堆]
-    B[二叉树] --> H[二叉查找树]
-    B[二叉树] --> I[平衡二叉树]
-    B[二叉树] --> J[平衡二叉查找树]
-    J[平衡二叉查找树] --> K[红黑树]
-    J[平衡二叉查找树] --> L[AVL]
-    A[树] --> M[N叉树]
-    M[N叉树] --> N[B树]
-    M[N叉树] --> O[B+树]</pre>
-
-<p><img src="/images/tree.png"></p>
-<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
-<p><img src="/images/tree-ercha.png"></p>
-<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
-<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
-<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
-<p>满二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
-
-<p>完全二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
-
-<p>二叉查找树</p>
-<p><img src="/images/tree-erchachaozhao.png"></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
-
-<p>AVL树</p>
-<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
-<p>红黑树</p>
-<p><img src="/images/tree-honghei.png"></p>
-<p>B树</p>
-<p>B+树</p>
+开始做空
+</code></pre>
+<p>一定要留补仓 40%</p>
+<p>本金越大 补仓率就要增高</p>
+<p>2&#x2F;24</p>
+<p>2684 200</p>
 
         </div>
     
@@ -1563,15 +1680,15 @@ sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\in
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/20/2026-09-20-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/20/2026-09-20-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
             </li>
             
             <li>
                 <a class="footer-post" href="/2026/09/20/2026-09-20-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/20/social-engineering/">社工库工具</a>
             </li>
             
             <li>
