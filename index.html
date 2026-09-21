@@ -184,6 +184,179 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/21/2026-09-21-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
+                [expanded] [blog] XSS跨站脚本攻击
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-blog-XSS跨站脚本攻击"><a href="#expanded-blog-XSS跨站脚本攻击" class="headerlink" title="[expanded] [blog] XSS跨站脚本攻击"></a>[expanded] [blog] XSS跨站脚本攻击</h1><blockquote>
+<p>原始问题: [blog] XSS跨站脚本攻击</p>
+</blockquote>
+<h1 id="XSS-跨站脚本攻击技能点清单"><a href="#XSS-跨站脚本攻击技能点清单" class="headerlink" title="XSS 跨站脚本攻击技能点清单"></a>XSS 跨站脚本攻击技能点清单</h1><blockquote>
+<p>场景占位: 攻击者向 <TARGET_SITE> 注入脚本，受害者 <USER_A> 浏览页面触发执行，窃取 <SESSION_TOKEN><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-把管理员当首要攻击目标而非普通用户"><a href="#1-把管理员当首要攻击目标而非普通用户" class="headerlink" title="1. 把管理员当首要攻击目标而非普通用户"></a>1. 把管理员当首要攻击目标而非普通用户</h2><ul>
+<li><strong>规则</strong>: XSS 攻击优先瞄准网站管理员账户，而非普通访客</li>
+<li><strong>为什么</strong>: 管理员权限可操作文件系统和数据库，XSS 从”客户端攻击”升级为”服务端攻击跳板”，普通用户只能窃取自己的 Cookie</li>
+<li><strong>踩坑</strong>: 认为 XSS 只是偷 Cookie 的低危漏洞，忽略管理后台的 XSS 可直接 GetShell</li>
+<li><strong>例外</strong>: 金融类网站普通用户 Session 劫持也是高危（涉及资金操作）</li>
+</ul>
+<h2 id="2-输出点比输入点更关键"><a href="#2-输出点比输入点更关键" class="headerlink" title="2. 输出点比输入点更关键"></a>2. 输出点比输入点更关键</h2><ul>
+<li><strong>规则</strong>: 检测 XSS 时先定位数据在哪里输出（HTML&#x2F;JS&#x2F;属性），再倒推输入点</li>
+<li><strong>为什么</strong>: 同一个输入可能在多处输出，每个输出上下文的闭合方式完全不同（HTML 标签内 vs JS 字符串内 vs 属性值内）</li>
+<li><strong>踩坑</strong>: 只盯着表单输入框测试，遗漏 URL 参数、Referer、Cookie 等非表单输入在页面其他位置的回显</li>
+<li><strong>例外</strong>: DOM 型 XSS 的输出点在前端 JS 代码中，不经过服务端</li>
+</ul>
+<h2 id="3-用”特殊字符-唯一标识”组合探测而非直接打-Payload"><a href="#3-用”特殊字符-唯一标识”组合探测而非直接打-Payload" class="headerlink" title="3. 用”特殊字符+唯一标识”组合探测而非直接打 Payload"></a>3. 用”特殊字符+唯一标识”组合探测而非直接打 Payload</h2><ul>
+<li><strong>规则</strong>: 第一轮提交 <code>&lt;&gt;&quot;&#39;%;)(&amp;+唯一ID12345</code>，在源码中搜索唯一 ID 定位上下文</li>
+<li><strong>为什么</strong>: 直接打 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 被过滤时无法判断哪个字符被处理，唯一 ID 能精准定位输出位置和周围语法结构</li>
+<li><strong>踩坑</strong>: 盲目尝试各种 Payload 却不看响应源码，浪费时间在已经被实体化编码的场景</li>
+<li><strong>例外</strong>: 自动化扫描工具已内置此逻辑，手工测试时必须遵守</li>
+</ul>
+<h2 id="4-反射型-XSS-的危险度取决于传播方式"><a href="#4-反射型-XSS-的危险度取决于传播方式" class="headerlink" title="4. 反射型 XSS 的危险度取决于传播方式"></a>4. 反射型 XSS 的危险度取决于传播方式</h2><ul>
+<li><strong>规则</strong>: 反射型 XSS 标记为中危的前提是需要诱骗用户点击恶意链接，若能结合钓鱼或内部系统自动触发则升高危</li>
+<li><strong>为什么</strong>: 单纯的反射型需要社会工程学配合，但内网 OA 系统的反射型 XSS 可通过邮件通知自动触发，无需用户点击</li>
+<li><strong>踩坑</strong>: 看到”反射型”就写中危报告，忽略实际利用场景（如管理员必访问的报表页面）</li>
+<li><strong>例外</strong>: 存储型 XSS 无需传播直接高危</li>
+</ul>
+<h2 id="5-存储型-XSS-的持久化位置决定影响面"><a href="#5-存储型-XSS-的持久化位置决定影响面" class="headerlink" title="5. 存储型 XSS 的持久化位置决定影响面"></a>5. 存储型 XSS 的持久化位置决定影响面</h2><ul>
+<li><strong>规则</strong>: 检查恶意脚本存储在数据库、日志文件还是缓存，以及被哪些页面读取</li>
+<li><strong>为什么</strong>: 存在个人资料的 XSS 只影响查看该资料的用户，存在公共评论区的 XSS 影响所有访客，存在管理日志的 XSS 专打管理员</li>
+<li><strong>踩坑</strong>: 发现存储型 XSS 就直接定高危，实际该字段只在用户自己的设置页显示（自己打自己）</li>
+<li><strong>例外</strong>: 即使自 XSS，若能配合 CSRF 强制受害者修改自己资料也可利用</li>
+</ul>
+<h2 id="6-DOM-型-XSS-绕过所有服务端防护"><a href="#6-DOM-型-XSS-绕过所有服务端防护" class="headerlink" title="6. DOM 型 XSS 绕过所有服务端防护"></a>6. DOM 型 XSS 绕过所有服务端防护</h2><ul>
+<li><strong>规则</strong>: 当输入数据通过 <code>location.hash</code>、<code>document.referrer</code> 等直接被前端 JS 操作 DOM 时，服务端过滤完全无效</li>
+<li><strong>为什么</strong>: 数据流从未经过服务端（URL 的 # 后内容不发送到服务器），<code>innerHTML</code>、<code>eval</code>、<code>document.write</code> 直接执行</li>
+<li><strong>踩坑</strong>: 看到服务端有 WAF 和输入过滤就认为安全，忽略前端 JS 代码中的 <code>element.innerHTML = location.hash.substring(1)</code></li>
+<li><strong>例外</strong>: 若前端使用了 CSP 且配置正确，可部分缓解</li>
+</ul>
+<h2 id="7-闭合语法比-Payload-本身更重要"><a href="#7-闭合语法比-Payload-本身更重要" class="headerlink" title="7. 闭合语法比 Payload 本身更重要"></a>7. 闭合语法比 Payload 本身更重要</h2><ul>
+<li><strong>规则</strong>: 根据输出点的上下文构造闭合：HTML 标签内闭合标签、JS 字符串内闭合引号、属性值内闭合属性</li>
+<li><strong>为什么</strong>: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 在 <code>&lt;input value=&quot;用户输入&quot;&gt;</code> 中无效，需要 <code>&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;&quot;</code> 先闭合属性和标签</li>
+<li><strong>踩坑</strong>: 背了一堆 Payload 字典却不分析输出位置，所有测试都失败</li>
+<li><strong>例外</strong>: 在 <code>&lt;script&gt;var user=&quot;输出点&quot;;&lt;/script&gt;</code> 中需要 <code>&quot;;alert(1);//</code> 闭合 JS 语法</li>
+</ul>
+<h2 id="8-工具扫描的漏报率极高"><a href="#8-工具扫描的漏报率极高" class="headerlink" title="8. 工具扫描的漏报率极高"></a>8. 工具扫描的漏报率极高</h2><ul>
+<li><strong>规则</strong>: AWVS&#x2F;AppScan 只能发现 30-50% 的 XSS，复杂场景（多步操作、异步加载、富文本）必须手工测试</li>
+<li><strong>为什么</strong>: 工具无法理解业务逻辑（如先发帖再审核通过才显示），无法处理需要登录态的深层页面，无法测试 WebSocket 等非 HTTP 协议</li>
+<li><strong>踩坑</strong>: 扫描器没报 XSS 就认为安全，实际富文本编辑器、文件上传后的预览页面、导出的 Excel 宏都可能存在 XSS</li>
+<li><strong>例外</strong>: 简单的 GET 参数反射型 XSS 工具能有效发现</li>
+</ul>
+<h2 id="9-黑名单过滤必有绕过"><a href="#9-黑名单过滤必有绕过" class="headerlink" title="9. 黑名单过滤必有绕过"></a>9. 黑名单过滤必有绕过</h2><ul>
+<li><strong>规则</strong>: 遇到过滤 <code>&lt;script&gt;</code> 的防护，尝试大小写混淆、双写、编码、其他标签（<code>&lt;img&gt;</code>、<code>&lt;svg&gt;</code>、<code>&lt;iframe&gt;</code>）</li>
+<li><strong>为什么</strong>: 黑名单需要穷举所有危险模式，HTML 和 JS 的灵活性导致绕过方式无穷（<code>&lt;scr&lt;script&gt;ipt&gt;</code>、<code>&lt;ScRiPt&gt;</code>、<code>&lt;img src=x onerror=alert(1)&gt;</code>）</li>
+<li><strong>踩坑</strong>: 看到 <code>&lt;script&gt;</code> 被过滤就放弃，实际 <code>&lt;svg/onload=alert(1)&gt;</code> 可绕过</li>
+<li><strong>例外</strong>: 白名单+严格的 HTML 解析器（如 DOMPurify）较难绕过</li>
+</ul>
+<h2 id="10-HttpOnly-只防-Cookie-窃取不防-XSS-本身"><a href="#10-HttpOnly-只防-Cookie-窃取不防-XSS-本身" class="headerlink" title="10. HttpOnly 只防 Cookie 窃取不防 XSS 本身"></a>10. HttpOnly 只防 Cookie 窃取不防 XSS 本身</h2><ul>
+<li><strong>规则</strong>: HttpOnly 标志使 JS 无法读取 Cookie，但 XSS 仍可发起 AJAX 请求、修改页面、钓鱼、键盘记录</li>
+<li><strong>为什么</strong>: XSS 的危害不止窃取 Session，还包括以受害者身份执行操作（转账、发帖、改密码），HttpOnly 对此无效</li>
+<li><strong>踩坑</strong>: 设置了 HttpOnly 就认为 XSS 不可利用，实际攻击者可用 XSS 发起 AJAX 请求到敏感接口</li>
+<li><strong>例外</strong>: 纯静态展示页面且无敏感操作时，HttpOnly 确实大幅降低危害</li>
+</ul>
+<h2 id="11-CSP-是最后一道防线但配置常错"><a href="#11-CSP-是最后一道防线但配置常错" class="headerlink" title="11. CSP 是最后一道防线但配置常错"></a>11. CSP 是最后一道防线但配置常错</h2><ul>
+<li><strong>规则</strong>: Content-Security-Policy 可阻止内联脚本和外部恶意域，但 <code>unsafe-inline</code>、<code>unsafe-eval</code>、过宽的白名单会失效</li>
+<li><strong>为什么</strong>: 开发者为了方便常加 <code>unsafe-inline</code> 导致 CSP 形同虚设，或白名单包含 <code>*.googleapis.com</code> 等可被利用的 CDN</li>
+<li><strong>踩坑</strong>: 看到响应头有 CSP 就认为 XSS 不可利用，实际 <code>script-src &#39;unsafe-inline&#39;</code> 完全不防</li>
+<li><strong>例外</strong>: 严格的 CSP（仅允许特定 nonce 或 hash）可有效防御</li>
+</ul>
+<h2 id="12-富文本编辑器是-XSS-重灾区"><a href="#12-富文本编辑器是-XSS-重灾区" class="headerlink" title="12. 富文本编辑器是 XSS 重灾区"></a>12. 富文本编辑器是 XSS 重灾区</h2><ul>
+<li><strong>规则</strong>: 所有允许用户输入 HTML 的富文本编辑器（TinyMCE、CKEditor、UEditor）默认配置都可能存在 XSS</li>
+<li><strong>为什么</strong>: 富文本需要保留部分 HTML 标签（加粗、链接、图片），过滤逻辑复杂且常有遗漏（如 <code>&lt;a href=&quot;javascript:alert(1)&quot;&gt;</code>）</li>
+<li><strong>踩坑</strong>: 认为用了知名编辑器就安全，实际需要配置白名单且定期更新版本</li>
+<li><strong>例外</strong>: Markdown 编辑器若正确转义输出则相对安全</li>
+</ul>
+<h2 id="13-测试时用-alert-document-domain-而非-alert-1"><a href="#13-测试时用-alert-document-domain-而非-alert-1" class="headerlink" title="13. 测试时用 alert(document.domain) 而非 alert(1)"></a>13. 测试时用 alert(document.domain) 而非 alert(1)</h2><ul>
+<li><strong>规则</strong>: Payload 使用 <code>alert(document.domain)</code> 或 <code>alert(document.cookie)</code> 证明可执行任意 JS</li>
+<li><strong>为什么</strong>: 某些场景 <code>alert(1)</code> 可能被拦截但 <code>alert(document.domain)</code> 能绕过，且能证明在目标域执行（非沙箱）</li>
+<li><strong>踩坏</strong>: 用 <code>alert(1)</code> 测试成功但写报告时无法证明危害，甲方质疑”弹个框有什么用”</li>
+<li><strong>例外</strong>: 生产环境测试用 <code>console.log</code> 代替 <code>alert</code> 避免影响用户</li>
+</ul>
+<h2 id="14-二次注入型-XSS-最隐蔽"><a href="#14-二次注入型-XSS-最隐蔽" class="headerlink" title="14. 二次注入型 XSS 最隐蔽"></a>14. 二次注入型 XSS 最隐蔽</h2><ul>
+<li><strong>规则</strong>: 数据在 A 页面输入时被安全存储，但在 B 页面（如导出、打印、邮件）输出时未过滤</li>
+<li><strong>为什么</strong>: 开发者只在输入点做了防护，认为数据库中的数据”已安全”，在其他输出场景忘记转义</li>
+<li><strong>踩坑</strong>: 在表单提交页面测试未发现 XSS 就结束，实际在管理后台的用户列表页面存在 XSS</li>
+<li><strong>例外</strong>: 导出的 PDF、Excel 若包含恶意公式也属于此类</li>
+</ul>
+<h2 id="15-测试账号权限要覆盖所有角色"><a href="#15-测试账号权限要覆盖所有角色" class="headerlink" title="15. 测试账号权限要覆盖所有角色"></a>15. 测试账号权限要覆盖所有角色</h2><ul>
+<li><strong>规则</strong>: 用普通用户、VIP 用户、管理员、超级管理员分别测试同一输入点</li>
+<li><strong>为什么</strong>: 某些输入点对普通用户有严格过滤，但管理员发布公告时为了支持富文本而放松过滤</li>
+<li><strong>踩坑</strong>: 只用普通测试账号扫描，遗漏管理后台的高危 XSS</li>
+<li><strong>例外</strong>: 若无法获取高权限账号，在报告中说明测试覆盖范围</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>管理员是 XSS 的首要目标，可从客户端攻击升级为服务端跳板</strong></li>
+<li><strong>先找输出点看上下文，再构造闭合，别盲目打 Payload</strong></li>
+<li><strong>DOM 型 XSS 绕过所有服务端防护，数据流不经过后端</strong></li>
+<li><strong>HttpOnly 只防 Cookie 窃取，XSS 仍可发 AJAX 和钓鱼</strong></li>
+<li><strong>富文本编辑器和二次输出页面（导出&#x2F;打印）是重灾区</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入被过滤</td>
+<td>先看输出点在源码哪里，分析上下文语法</td>
+</tr>
+<tr>
+<td>反射型 XSS</td>
+<td>评估传播方式，内网系统或管理页面升高危</td>
+</tr>
+<tr>
+<td>看到 CSP 头</td>
+<td>检查是否有 unsafe-inline 或过宽白名单</td>
+</tr>
+<tr>
+<td>富文本编辑器</td>
+<td>测试 <code>&lt;img src=x onerror=alert(1)&gt;</code> 和 <code>&lt;a href=&quot;javascript:alert(1)&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>工具扫描无果</td>
+<td>手工测试多步操作、异步加载、需登录的深层页面</td>
+</tr>
+<tr>
+<td>黑名单过滤</td>
+<td>尝试大小写、双写、编码、其他标签（img&#x2F;svg&#x2F;iframe）</td>
+</tr>
+<tr>
+<td>HttpOnly Cookie</td>
+<td>XSS 仍可用 fetch&#x2F;XMLHttpRequest 以受害者身份操作</td>
+</tr>
+<tr>
+<td>数据存入数据库</td>
+<td>检查所有读取该数据的页面（列表&#x2F;详情&#x2F;导出&#x2F;邮件）</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-21</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/21/2026-09-21-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
                 [expanded] 一次性的蘸料小塑料盒怎么废物利用
             </a>
@@ -679,312 +852,6 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/21/vue-big-file-upload/">
-                vue2 大文件上传component(做成组件)
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/前端/">前端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
-<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
-<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
-
-<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/vue2vsvue3/">
-                vue2 对比 vue3
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/前端/">前端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="图层渲染"><a href="#图层渲染" class="headerlink" title="图层渲染"></a>图层渲染</h2><h3 id="VUE2-渲染流程图"><a href="#VUE2-渲染流程图" class="headerlink" title="VUE2 渲染流程图"></a>VUE2 渲染流程图</h3><p>主function<br>prop 父组件传入数据 template中使用<br>data()<br>watch 数据监听 对data数据监听<br>create()<br>methods</p>
-<p>vue init()<br>vue $mount()<br>初始化渲染watcher</p>
-<p>render 初次渲染</p>
-<p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
-<p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
-<p>compment标签<br>（组件问题）</p>
-<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><table>
-<thead>
-<tr>
-<th>vue2</th>
-<th>vue3</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>beforeCreate</td>
-<td></td>
-</tr>
-<tr>
-<td>created</td>
-<td></td>
-</tr>
-<tr>
-<td>beforeMount</td>
-<td>onBeforeMount</td>
-</tr>
-<tr>
-<td>mounted</td>
-<td>onMounted</td>
-</tr>
-<tr>
-<td>beforeUpdate</td>
-<td>onBeforeUpdate</td>
-</tr>
-<tr>
-<td>updated</td>
-<td>onUpdated</td>
-</tr>
-<tr>
-<td>beforeDestroy</td>
-<td>onBeforeUnmount</td>
-</tr>
-<tr>
-<td>destroyed</td>
-<td>onUnmounted</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>Tips： setup 是围绕 beforeCreate 和 created 生命周期钩子运行的，所以不需要显式地去定义。</p>
-</blockquote>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/wireshark/">
-                Wireshark
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透工具/">渗透工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>Wireshark是非常流行的网络封包分析软件，可以截取各种网络数据包，并显示数据包详细信息。常用于开发测试过程各种问题定位 </p>
-<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><h3 id="过滤条件-input"><a href="#过滤条件-input" class="headerlink" title="过滤条件 input"></a>过滤条件 input</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## No. ：包的编号 ————————————默认wireshark是按照数据包编号从低到高排序，该编号不会发生改变，即使使用了过滤也同样如此</span></span><br><span class="line"><span class="comment">## Time：包的时间戳。时间格式可以自己设置</span></span><br><span class="line"><span class="comment">## Source 和Destination ：包的源地址和目的地址</span></span><br><span class="line"><span class="comment">## Protocol：包的协议类型</span></span><br><span class="line"><span class="comment">## Length：包的长度</span></span><br><span class="line"><span class="comment">## Info：包的附加信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ip过滤 ###</span></span><br><span class="line"><span class="comment">## 关于 192.168.9.167</span></span><br><span class="line">ip.addr == 192.168.9.167</span><br><span class="line"></span><br><span class="line"><span class="comment">## 请求 192.168.9.167 或者 被请求体 17.248.216.65</span></span><br><span class="line">ip.src == 192.168.9.167 or ip.dst == 17.248.216.65</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 握手包 ###</span></span><br><span class="line"><span class="comment"># SYN：Synchronize，用于初始化和建立连接，它同时也用于同步设备之间的序列号（Seq）</span></span><br><span class="line"><span class="comment"># ACK：Acknolowege，向另一方确认它已收到SYN</span></span><br><span class="line"><span class="comment"># Seq：Sequence number，序列号，用于表示曾经发送过数据的字节数+1</span></span><br><span class="line"><span class="comment"># Len：用于表示收到的字节大小，0表示本次没有收到数据</span></span><br><span class="line"><span class="comment"># FIN：用于结束连接</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2133420">https://cloud.tencent.com/developer/article/2133420</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zichliang/p/17477251.html">https://www.cnblogs.com/zichliang/p/17477251.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linyfeng/p/9496126.html">https://www.cnblogs.com/linyfeng/p/9496126.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/sectool/433570.html">https://www.freebuf.com/articles/sectool/433570.html</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/xss/">
-                XSS跨站脚本攻击
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="XSS漏洞原理"><a href="#XSS漏洞原理" class="headerlink" title="XSS漏洞原理"></a>XSS漏洞原理</h1><p>XSS属于客户端攻击，受害者最终是用户，但特别要注意的是网站管理人员也属于用户之一。这就意味着XSS可以进行“服务端”攻击，因为管理员要比普通用户的权限大得多，一般管理员都可以对网站进行文件管理，数据管理等操作，而攻击者一般也是靠管理员身份作为“跳板”进行实施攻击。</p>
-<blockquote>
-<p>XSS的重点不在于跨站点，而在于脚本的执行。那么XSS的原理是：<br>恶意攻击者在web页面中会插入一些恶意的script代码。当用户浏览该页面的时候，那么嵌入到web页面中script代码会执行，因此会达到恶意攻击用户的目的。那么XSS攻击最主要有如下分类：反射型、存储型、及 DOM-based型。 反射性和DOM-baseed型可以归类为非持久性XSS攻击。存储型可以归类为持久性XSS攻击。</p>
-</blockquote>
-<ol>
-<li>XSS漏洞出现的原因</li>
-</ol>
-<p>程序对输入和输出的控制不够严格,导致”精心构造“的脚本输入后,在输到前端时被浏览器当作有效代码解析执行从而产生危害。</p>
-<ol start="2">
-<li>XSS的分类</li>
-</ol>
-<ul>
-<li>反射型XSS或不持久型XSS(中危)</li>
-<li>储存型XSS 或持久型 XSS（高危）</li>
-<li>DOM XSS</li>
-</ul>
-<ol start="3">
-<li>测试方法<br>1、工具扫描：APPscan、AWVS</li>
-</ol>
-<p>2、手工测试：Burpsuite、firefox(hackbar)、XSSER XSSF</p>
-<p>使用手工检测Web应用程序是否存在XSS漏洞时，最重要的是考虑那里有输入，输入的数据在什么地方输出。在进行手工检测XSS时，人毕竟不像软件那样不知疲惫，所以一定要选择有特殊意义的字符，这样可以快速测试是否存在XSS。</p>
-<p>（1）在目标站点上找到输入点,比如查询接口,留言板等;</p>
-<p>（2）输入一组”特殊字符+唯一识别字符”,点击提交后,查看返回的源码,是否有做对应的处理;</p>
-<p>（3）通过搜索定位到唯一字符,结合唯一字符前后语法确认是否可以构造执行js的条件(构造闭合);提交构造的脚本代码,看是否可以成功执行,如果成功执行则说明存在XSS漏洞;</p>
-<h1 id="反射型XSS"><a href="#反射型XSS" class="headerlink" title="反射型XSS"></a>反射型XSS</h1><p>[引用]<a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/421932.html">https://www.freebuf.com/vuls/421932.html</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/pressure-testing/">
-                压测工具集合
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/测试工具/">测试工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="并发请求处理"><a href="#并发请求处理" class="headerlink" title="并发请求处理"></a>并发请求处理</h1><ul>
-<li>HTTP&#x2F;HTTPS 接口：测试 Web API、RESTful 接口的吞吐量、QPS（每秒请求数）。</li>
-<li>数据库查询：高并发查询数据库，看是否会出现锁等待、死锁、超时等问题。</li>
-<li>后台任务：队列、定时任务（如 RabbitMQ、Kafka）在高负载下的稳定性。</li>
-</ul>
-<h2 id="k6"><a href="#k6" class="headerlink" title="k6"></a>k6</h2><p>k6 是一个压力测试套件，使用 golang 编写。主要特性有：</p>
-<ul>
-<li>提供了友好的 CLI 工具</li>
-<li>使用 JavaScript 代码编写测试用例</li>
-<li>可以根据性能条件设置阈值，表明成功还是失败</li>
-</ul>
-<p>k6 没有使用 nodejs 而是 golang 程序，通过包裹了一个 JavaScript 运行时来运行 JavaScript 脚本，因此不能直接使用 npm 包以及 Nodejs 提供的一些 API。</p>
-<p>同时，k6 在运行测试时，没有启动浏览器，主要用于测试页面以及 API 加载速度。k6 提供了通过网络请求（HAR）生成测试脚本的方法，实现更简便的测试脚本编写，以及 session 的维护。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/python-interview/">
-                Golang 深浅
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/后端/">后端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <!-- * [基础](#1)
-    * [进程、线程、Goroutine(协程)区别](#1.1)
-    * [make和new区别](#1.2)
-    * [数组和切片区别](#1.3)
-* [GMP协程调度器](#2)
-    * [调度器策略](#2.1)
-    * [调度器的生命周期](#2.2)
-* [并发 sync](#3)
-    * [通道 - channel](#3.1)
-    * [互斥锁 Mutex 与 读写锁 RWMutex 区别](#3.2)
-    * [并发Map - sync.Map](#3.3)
-    * [线程池 - sync.Pool](#3.4)
-* [内存](#4)
-    * [CG](#4.1)
-* [微服务之间通信方式 rpc Grpc http](#4) -->
-
-<h1 id="打包-pyinstalller"><a href="#打包-pyinstalller" class="headerlink" title="打包 pyinstalller"></a>打包 pyinstalller</h1><h2 id="单个文件打包"><a href="#单个文件打包" class="headerlink" title="单个文件打包"></a>单个文件打包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令</span></span><br><span class="line">pyinstaller -F xxx.py</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.去生成的dist文件夹找xxx.exe运行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.运行成功，xxx.exe则为可执行文件，删除其它文件</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="打包多文件"><a href="#打包多文件" class="headerlink" title="打包多文件"></a>打包多文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令，xxx.py为程序入口文件</span></span><br><span class="line">pyinstall -D xxx.py </span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.删除生成的bulid和dist文件夹,仅保留xxx.spec文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.修改xxx.spec文件,详见2.2.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4.执行命令</span></span><br><span class="line">pyinstaller -F xxx.spec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5.去dist文件夹下找xxx.exe文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6.运行成功，删除临时文件目录build；dist目录为打包的结果，可执行文件和其它程序运行的关联文件都在这个目录</span></span><br></pre></td></tr></table></figure>
-
-
-<p>conda 和 venv 差不多</p>
-<p>1️⃣ venv（Python 自带虚拟环境）</p>
-<pre><code>作用：创建一个 隔离的 Python 环境，不影响系统 Python。
-
-仅管理 Python 包，不管底层 C 库或系统库。
-</code></pre>
-<p>2️⃣ conda（跨语言包 + 环境管理器）</p>
-<pre><code>作用：创建隔离环境 + 安装包 + 管理底层依赖
-
-不仅支持 Python，还支持 R、C/C++ 库。
-</code></pre>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
             <a href="/2026/09/21/redis/">
                 Redis
             </a>
@@ -1005,6 +872,442 @@
     
         <div class="content">
             
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/21/rust/">
+                Rust
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Rust/">Rust</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="Rust学习"><a href="#Rust学习" class="headerlink" title="Rust学习"></a>Rust学习</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cargo update       # 更新依赖</span><br><span class="line">cargo build        # 测试是否能 build</span><br><span class="line">cargo clean        # 清理后重新编译 run</span><br><span class="line">cargo run          # 运行 loka-server</span><br></pre></td></tr></table></figure>
+
+<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3><ol>
+<li>不能随便命名 因为rust会严格检查</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pub(crate) mod loka_api &#123;</span><br><span class="line">    tonic::include_proto!(&quot;loka_rpc&quot;);</span><br><span class="line">&#125;</span><br><span class="line">Rust 和 Tonic 结合 gRPC 的核心机制，你会发现它和其他语言（比如 JS/TS、Python）完全不同，因为 Rust 是 编译时严格类型检查 的语言</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>i32&#x2F;i64&#x2F;isize&#x2F;usize 这几个区别和用途</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">i32 和 i64 主要区别是 占用字节和数值范围</span><br><span class="line"></span><br><span class="line">i32：32 位有符号整数</span><br><span class="line">    占 4 字节</span><br><span class="line">    范围：-2_147_483_648 到 2_147_483_647</span><br><span class="line"></span><br><span class="line">i64：64 位有符号整数</span><br><span class="line">    占 8 字节</span><br><span class="line">    范围：-9_223_372_036_854_775_808 到 9_223_372_036_854_775_807</span><br><span class="line"></span><br><span class="line">想随 CPU 架宽变化，使用 isize / usize</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>函数和宏区别</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">函数 = 类型安全、运行时逻辑封装 (严格)</span><br><span class="line">宏 = 编译期代码生成、元编程工具 </span><br><span class="line">函数适用场景</span><br><span class="line">    封装逻辑、计算、操作</span><br><span class="line">    需要类型安全</span><br><span class="line">    函数调用开销可以忽略或者通过 #[inline] 优化</span><br><span class="line"></span><br><span class="line">宏适用场景</span><br><span class="line">    生成重复代码（如 impl 一大堆 trait）</span><br><span class="line">    DSL / 语法扩展（例如 serde 的 #[derive(Serialize)] 是宏）</span><br><span class="line">    日志/调试（println!、dbg!）</span><br><span class="line">    可变参数（函数参数数量固定，宏可任意）</span><br></pre></td></tr></table></figure>
+<h3 id="系统对比-Go-Golang-、Rust-和-C"><a href="#系统对比-Go-Golang-、Rust-和-C" class="headerlink" title="系统对比 Go (Golang)、Rust 和 C++"></a>系统对比 Go (Golang)、Rust 和 C++</h3><p>1️⃣ 语言概览</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>Go (Golang)</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>发布年份</strong></td>
+<td>2009</td>
+<td>2015</td>
+<td>1985</td>
+</tr>
+<tr>
+<td><strong>设计目标</strong></td>
+<td>简单、高效、并发友好</td>
+<td>安全、零开销抽象、并发 &amp; 系统级</td>
+<td>高性能、通用系统编程</td>
+</tr>
+<tr>
+<td><strong>编译模式</strong></td>
+<td>静态编译</td>
+<td>静态编译</td>
+<td>静态编译</td>
+</tr>
+<tr>
+<td><strong>内存管理</strong></td>
+<td>GC（垃圾回收）</td>
+<td>所有权 + 借用系统（无 GC）</td>
+<td>手动管理（可选智能指针）</td>
+</tr>
+<tr>
+<td><strong>并发模型</strong></td>
+<td>Goroutines + Channel（轻量线程）</td>
+<td>async&#x2F;await + Send&#x2F;Sync trait</td>
+<td>std::thread + 原生线程库</td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>编译时类型安全，但有 GC</td>
+<td>编译时内存 &amp; 并发安全</td>
+<td>编译时类型安全，但容易悬挂指针和 UB</td>
+</tr>
+<tr>
+<td><strong>性能</strong></td>
+<td>高，但有 GC 开销</td>
+<td>接近 C++，零开销抽象</td>
+<td>极高，可手动优化到极致</td>
+</tr>
+<tr>
+<td><strong>泛型</strong></td>
+<td>1.18+ 支持泛型</td>
+<td>强大泛型 + trait</td>
+<td>模板（template）</td>
+</tr>
+<tr>
+<td><strong>易用性</strong></td>
+<td>简单易学、上手快</td>
+<td>学习曲线陡峭，但安全性高</td>
+<td>学习曲线陡峭，容易踩坑</td>
+</tr>
+<tr>
+<td><strong>生态</strong></td>
+<td>云服务、微服务、网络库</td>
+<td>系统编程、嵌入式、WebAssembly、区块链</td>
+<td>系统、游戏、图形、高性能库</td>
+</tr>
+</tbody></table>
+<p>2️⃣ 内存管理对比</p>
+<table>
+<thead>
+<tr>
+<th>方面</th>
+<th>Go</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>管理方式</strong></td>
+<td>GC（自动回收）</td>
+<td>所有权 &amp; 借用 + 生命周期</td>
+<td>手动 delete &#x2F; new 或智能指针</td>
+</tr>
+<tr>
+<td><strong>悬挂指针</strong></td>
+<td>基本不会</td>
+<td>编译器保证不会</td>
+<td>很容易出现</td>
+</tr>
+<tr>
+<td><strong>内存泄漏</strong></td>
+<td>GC 避免大部分</td>
+<td>编译器保证 RAII（几乎不会）</td>
+<td>可能出现，需手动管理</td>
+</tr>
+<tr>
+<td><strong>性能影响</strong></td>
+<td>GC 停顿可能影响延迟</td>
+<td>无 GC，性能可控</td>
+<td>高性能，但需小心内存管理</td>
+</tr>
+</tbody></table>
+<p>3️⃣ 并发对比</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>并发模型</th>
+<th>优缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>Goroutines + Channels</td>
+<td>轻量级、易用、调度由 runtime 管理；可能 GC 暂停影响延迟</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>async&#x2F;await + Send&#x2F;Sync</td>
+<td>安全、零成本抽象，但需要掌握生命周期和 trait，学习曲线高</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>std::thread &#x2F; Boost &#x2F; 原生线程</td>
+<td>高度可控，性能最好，但容易出现死锁、数据竞争，需要手动管理同步</td>
+</tr>
+</tbody></table>
+<p>4️⃣ 安全性</p>
+<table>
+<thead>
+<tr>
+<th>安全性方面</th>
+<th>Go</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型安全</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>内存安全</td>
+<td>依赖 GC</td>
+<td>编译期保证</td>
+<td>依赖开发者</td>
+</tr>
+<tr>
+<td>并发安全</td>
+<td>简单但不严格</td>
+<td>编译期借用检查保证</td>
+<td>开发者自己保证</td>
+</tr>
+<tr>
+<td>越界访问</td>
+<td>runtime panic</td>
+<td>编译器 &amp; borrow checker 阻止</td>
+<td>可能出现 UB</td>
+</tr>
+</tbody></table>
+<p>5️⃣ 性能比较<br>C++：原生指针 + 零开销抽象 → 最快<br>Rust：接近 C++，无 GC，优化非常强<br>Go：有 GC，但 Goroutine 调度极快，适合网络&#x2F;IO密集型</p>
+<p>6️⃣ 泛型与抽象</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>泛型 &#x2F; 模板</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>1.18+ 泛型</td>
+<td>类型安全，但语法简单</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>trait + 泛型</td>
+<td>零开销抽象，函数和类型都可以泛型化</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>template</td>
+<td>功能强大，但错误信息复杂，模板元编程复杂</td>
+</tr>
+</tbody></table>
+<p>7️⃣ 应用场景</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>常见应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>云服务、微服务、网络服务、CLI 工具</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>系统编程、嵌入式、WebAssembly、区块链、性能关键库</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>系统底层、游戏开发、图形渲染、高性能计算</td>
+</tr>
+</tbody></table>
+<p>🔹 总结建议</p>
+<ol>
+<li>想快速上手、开发网络&#x2F;服务端应用 → Go</li>
+<li>想追求内存安全、零成本抽象、系统级开发 → Rust</li>
+<li>极致性能、硬件控制、游戏或图形开发 → C++</li>
+</ol>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/21/selenium/">
+                Selenium
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Python/">Python</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h3 id="Selenium-需要配件"><a href="#Selenium-需要配件" class="headerlink" title="Selenium 需要配件"></a>Selenium 需要配件</h3><ul>
+<li>ChromeDriver(记住增加执行权限)</li>
+<li>python pip</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/21/seo/">
+                SEO
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/SEO/">SEO</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="seo工具"><a href="#seo工具" class="headerlink" title="seo工具"></a>seo工具</h1><p>semrush - 好用</p>
+<h1 id="需要做的工作"><a href="#需要做的工作" class="headerlink" title="需要做的工作"></a>需要做的工作</h1><ul>
+<li>静态网站是最好的</li>
+<li>每个页面的title，description 要不一样 <ul>
+<li>title 要大于10个字以上的才行</li>
+</ul>
+</li>
+<li>404不能出现</li>
+<li><a href="https://example.com" rel="nofollow">点我</a> <ul>
+<li>nofollow - 不传权重、不跟踪(外链用)</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/21/shell/">
+                Shell
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
+<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
+<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
+</ul>
+<blockquote>
+<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
+</blockquote>
+<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
+
+<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
+<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
+<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
+
+<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
+<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
+
+<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/21/social-engineering/">
+                社工库工具
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>国外情报专家最常用的OSINT工具</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
+<ul>
+<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
+</ul>
+
         </div>
     
 
@@ -1052,6 +1355,10 @@
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
             </li>
             
@@ -1061,10 +1368,6 @@
             
             <li>
                 <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-%E8%96%84%E8%8D%B7%E6%80%8E%E4%B9%88%E6%B0%B4%E5%9F%B9/">[expanded] 薄荷怎么水培</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/21/vue-big-file-upload/">vue2 大文件上传component(做成组件)</a>
             </li>
             
         </ul>
