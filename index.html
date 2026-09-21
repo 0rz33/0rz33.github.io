@@ -184,6 +184,179 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/21/2026-09-21-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
+                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
+<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
+</blockquote>
+<h1 id="CloudFront-Distribution-跨账号迁移技能点清单"><a href="#CloudFront-Distribution-跨账号迁移技能点清单" class="headerlink" title="CloudFront Distribution 跨账号迁移技能点清单"></a>CloudFront Distribution 跨账号迁移技能点清单</h1><blockquote>
+<p>场景占位: 从 <ACCOUNT_A> 迁移 distribution <DIST_ID_OLD> 到 <ACCOUNT_B>,保持 CNAME <DOMAIN> 不变<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-先在目标账号创建-distribution-并添加-CNAME-再删除源账号-CNAME"><a href="#1-先在目标账号创建-distribution-并添加-CNAME-再删除源账号-CNAME" class="headerlink" title="1. 先在目标账号创建 distribution 并添加 CNAME,再删除源账号 CNAME"></a>1. 先在目标账号创建 distribution 并添加 CNAME,再删除源账号 CNAME</h2><ul>
+<li><strong>规则</strong>: 在 <ACCOUNT_B> 新建 distribution 时直接配置 <DOMAIN> CNAME,此时会报错 CNAMEAlreadyExists,这是预期行为</li>
+<li><strong>为什么</strong>: CloudFront CNAME 全局唯一锁由 API 调用时刻决定而非 DNS 生效时刻,必须先删源再加目标会导致 30-90 秒窗口期被其他账号抢占</li>
+<li><strong>踩坑</strong>: 以为”先删旧 CNAME 再加新 CNAME”是安全顺序,实际这个窗口期 CNAME 处于全局未锁定状态</li>
+<li><strong>例外</strong>: 使用 CloudFormation StackSets 跨账号部署时可原子化操作,但需提前配置 trust relationship</li>
+</ul>
+<h2 id="2-用-ACM-证书时必须在-us-east-1-申请并跨账号共享"><a href="#2-用-ACM-证书时必须在-us-east-1-申请并跨账号共享" class="headerlink" title="2. 用 ACM 证书时必须在 us-east-1 申请并跨账号共享"></a>2. 用 ACM 证书时必须在 us-east-1 申请并跨账号共享</h2><ul>
+<li><strong>规则</strong>: 目标账号 <ACCOUNT_B> 的 ACM 证书必须在 us-east-1 region 存在,即使 distribution 是全球服务</li>
+<li><strong>为什么</strong>: CloudFront 底层证书存储只认 us-east-1,其他 region 的证书在 distribution 配置界面不可见</li>
+<li><strong>踩坑</strong>: 在 ap-southeast-1 申请了通配符证书,CloudFront 控制台下拉列表为空,以为是权限问题反复检查 IAM policy</li>
+<li><strong>例外</strong>: 使用自定义 SSL 证书上传到 IAM 时不受此限制,但需额外管理证书轮换</li>
+</ul>
+<h2 id="3-迁移前必须导出完整-distribution-config-为-JSON-不能依赖控制台截图"><a href="#3-迁移前必须导出完整-distribution-config-为-JSON-不能依赖控制台截图" class="headerlink" title="3. 迁移前必须导出完整 distribution config 为 JSON,不能依赖控制台截图"></a>3. 迁移前必须导出完整 distribution config 为 JSON,不能依赖控制台截图</h2><ul>
+<li><strong>规则</strong>: 用 <code>aws cloudfront get-distribution-config --id &lt;DIST_ID_OLD&gt;</code> 导出完整配置,包含 ETag 用于后续 update 操作</li>
+<li><strong>为什么</strong>: 控制台隐藏了 20+ 个默认参数(如 MinTTL&#x3D;0, SmoothStreaming&#x3D;false),手动重建会丢失 cache behavior 优先级顺序和 lambda@edge 关联</li>
+<li><strong>踩坑</strong>: 只记录了 origin domain 和 cache policy,迁移后发现 gzip 压缩失效、query string 转发行为变化</li>
+<li><strong>例外</strong>: 纯静态 S3 源站且无自定义 header 时可简化,但仍建议全量导出做 diff</li>
+</ul>
+<h2 id="4-Lambda-Edge-函数必须先复制到目标账号-us-east-1-并重新关联"><a href="#4-Lambda-Edge-函数必须先复制到目标账号-us-east-1-并重新关联" class="headerlink" title="4. Lambda@Edge 函数必须先复制到目标账号 us-east-1 并重新关联"></a>4. Lambda@Edge 函数必须先复制到目标账号 us-east-1 并重新关联</h2><ul>
+<li><strong>规则</strong>: Lambda@Edge 函数无法跨账号引用,需在 <ACCOUNT_B> us-east-1 重新部署函数,获取新 ARN 后更新 distribution config</li>
+<li><strong>为什么</strong>: Lambda@Edge 的 IAM principal 绑定在源账号,CloudFront 服务角色无法 AssumeRole 到其他账号执行函数</li>
+<li><strong>踩坑</strong>: 直接复制旧 distribution config 的 LambdaFunctionAssociations ARN,部署时报 AccessDenied 但错误信息不明确指向跨账号问题</li>
+<li><strong>例外</strong>: 使用 CloudFront Functions(CFN)时可直接在目标账号重建,因其代码存储在 distribution 配置内</li>
+</ul>
+<h2 id="5-Origin-Access-Identity-迁移需同步更新-S3-bucket-policy-的-Principal"><a href="#5-Origin-Access-Identity-迁移需同步更新-S3-bucket-policy-的-Principal" class="headerlink" title="5. Origin Access Identity 迁移需同步更新 S3 bucket policy 的 Principal"></a>5. Origin Access Identity 迁移需同步更新 S3 bucket policy 的 Principal</h2><ul>
+<li><strong>规则</strong>: 在 <ACCOUNT_B> 创建新 OAI,更新 S3 bucket policy 允许新 OAI 的 CanonicalUser ID,保留旧 OAI 权限直到迁移完成</li>
+<li><strong>为什么</strong>: OAI 是账号级资源,其 CanonicalUser ID 在跨账号后完全不同,S3 bucket policy 必须显式授权新 ID</li>
+<li><strong>踩坑</strong>: 只更新了 CloudFront distribution 的 OAI 配置,忘记改 S3 bucket policy,导致所有请求 403 但 CloudFront 日志显示 200</li>
+<li><strong>例外</strong>: 源站是 public S3 bucket 或自定义 origin(ALB&#x2F;API Gateway)时不涉及 OAI</li>
+</ul>
+<h2 id="6-切换-DNS-前必须验证目标-distribution-的所有-edge-location-已部署完成"><a href="#6-切换-DNS-前必须验证目标-distribution-的所有-edge-location-已部署完成" class="headerlink" title="6. 切换 DNS 前必须验证目标 distribution 的所有 edge location 已部署完成"></a>6. 切换 DNS 前必须验证目标 distribution 的所有 edge location 已部署完成</h2><ul>
+<li><strong>规则</strong>: 新 distribution 状态显示 Deployed 后,再等待 5-15 分钟,用 <code>curl -H &quot;Host: &lt;DOMAIN&gt;&quot; https://&lt;DIST_DOMAIN&gt;.cloudfront.net</code> 从多个地理位置测试</li>
+<li><strong>为什么</strong>: Deployed 状态只表示配置已推送到控制平面,边缘节点的实际部署是异步的,过早切换 DNS 会导致部分地区 502&#x2F;504</li>
+<li><strong>踩坑</strong>: 状态变 Deployed 后立即修改 Route53 记录,亚太区用户大量报错但美东正常,回滚后发现是边缘节点未同步</li>
+<li><strong>例外</strong>: 使用 CloudFront continuous deployment 蓝绿发布时可自动处理,但需 Enterprise Support 计划</li>
+</ul>
+<h2 id="7-保留源-distribution-的-access-logging-配置并对比新旧日志流"><a href="#7-保留源-distribution-的-access-logging-配置并对比新旧日志流" class="headerlink" title="7. 保留源 distribution 的 access logging 配置并对比新旧日志流"></a>7. 保留源 distribution 的 access logging 配置并对比新旧日志流</h2><ul>
+<li><strong>规则</strong>: 迁移前后各保留 7 天日志,用 Athena 查询对比 request count、cache hit rate、4xx&#x2F;5xx 比例,确认行为一致</li>
+<li><strong>为什么</strong>: 很多配置差异(如 origin timeout、cache key 参数)不会导致明显错误,但会静默改变缓存效率和回源模式</li>
+<li><strong>踩坑</strong>: 迁移后业务方未投诉,3 周后发现 origin 流量增加 40%,排查发现新 distribution 的 query string whitelist 配置错误导致缓存失效</li>
+<li><strong>例外</strong>: 日志量极大(&gt;1TB&#x2F;天)时可采样对比,但至少要覆盖高峰时段</li>
+</ul>
+<h2 id="8-使用-Route53-加权路由策略实现灰度切换而非直接-CNAME-切换"><a href="#8-使用-Route53-加权路由策略实现灰度切换而非直接-CNAME-切换" class="headerlink" title="8. 使用 Route53 加权路由策略实现灰度切换而非直接 CNAME 切换"></a>8. 使用 Route53 加权路由策略实现灰度切换而非直接 CNAME 切换</h2><ul>
+<li><strong>规则</strong>: 创建两条 A record(alias 到新旧 distribution),初始权重 99:1,每 10 分钟调整权重直到 0:100</li>
+<li><strong>为什么</strong>: 直接修改 CNAME 的 DNS TTL 无法控制客户端缓存,灰度切换可在发现问题时秒级回滚且只影响小比例用户</li>
+<li><strong>踩坑</strong>: 修改 CNAME 指向新 distribution 后发现问题,但 DNS TTL 300 秒导致 5 分钟内无法完全回滚,期间错误率累积</li>
+<li><strong>例外</strong>: 非 Route53 托管的域名需在 DNS 提供商支持加权路由,或使用 CloudFront continuous deployment 的流量分割功能</li>
+</ul>
+<h2 id="9-提前-24-小时降低-DNS-TTL-到-60-秒-迁移完成后再恢复"><a href="#9-提前-24-小时降低-DNS-TTL-到-60-秒-迁移完成后再恢复" class="headerlink" title="9. 提前 24 小时降低 DNS TTL 到 60 秒,迁移完成后再恢复"></a>9. 提前 24 小时降低 DNS TTL 到 60 秒,迁移完成后再恢复</h2><ul>
+<li><strong>规则</strong>: 迁移前一天将 <DOMAIN> 的 A&#x2F;CNAME record TTL 从默认 300 改为 60,迁移后 24 小时再改回 300</li>
+<li><strong>为什么</strong>: 降低 TTL 可缩短 DNS 缓存窗口,但需提前操作以清空全球递归 DNS 服务器的旧 TTL 缓存</li>
+<li><strong>踩坑</strong>: 迁移当天才改 TTL,实际生效时间仍受旧 TTL(300 秒)约束,导致 5 分钟双写窗口</li>
+<li><strong>例外</strong>: 使用 Route53 alias record 指向 CloudFront 时,TTL 由 CloudFront 控制(固定 60 秒),无需手动调整</li>
+</ul>
+<h2 id="10-迁移-WAF-Web-ACL-时注意-rate-based-rule-的计数器不会迁移"><a href="#10-迁移-WAF-Web-ACL-时注意-rate-based-rule-的计数器不会迁移" class="headerlink" title="10. 迁移 WAF Web ACL 时注意 rate-based rule 的计数器不会迁移"></a>10. 迁移 WAF Web ACL 时注意 rate-based rule 的计数器不会迁移</h2><ul>
+<li><strong>规则</strong>: 在 <ACCOUNT_B> 重建 Web ACL 后,rate-based rule 的计数器从 0 开始,需临时提高阈值或禁用规则 1 小时</li>
+<li><strong>为什么</strong>: WAF 计数器是运行时状态,存储在源账号的边缘节点内存中,新 distribution 关联新 Web ACL 时无历史数据</li>
+<li><strong>踩坑</strong>: 迁移后立即遭受 DDoS 攻击,rate-based rule 因计数器重置未能及时触发,导致 10 分钟服务降级</li>
+<li><strong>例外</strong>: 使用 AWS Shield Advanced 时可保留部分攻击特征,但仍建议迁移时段避开业务高峰</li>
+</ul>
+<h2 id="11-源站是-ALB-时需更新-security-group-允许新-distribution-的-AWS-managed-prefix-list"><a href="#11-源站是-ALB-时需更新-security-group-允许新-distribution-的-AWS-managed-prefix-list" class="headerlink" title="11. 源站是 ALB 时需更新 security group 允许新 distribution 的 AWS managed prefix list"></a>11. 源站是 ALB 时需更新 security group 允许新 distribution 的 AWS managed prefix list</h2><ul>
+<li><strong>规则</strong>: 在 ALB security group 添加入站规则,source 为 <code>com.amazonaws.global.cloudfront.origin-facing</code>,同时保留旧规则直到迁移完成</li>
+<li><strong>为什么</strong>: CloudFront 到 origin 的请求来自 AWS 骨干网特定 IP 段,新旧 distribution 可能使用不同边缘节点 IP</li>
+<li><strong>踩坑</strong>: 只在 ALB 配置了旧 distribution 的 custom header 验证,新 distribution 请求被 security group 拒绝但 CloudFront 日志显示 504 timeout</li>
+<li><strong>例外</strong>: 源站是 S3 或 API Gateway 时由 AWS 内部路由处理,不涉及 security group</li>
+</ul>
+<h2 id="12-对于使用-signed-URL-cookie-的场景-需双写密钥对到新旧-distribution"><a href="#12-对于使用-signed-URL-cookie-的场景-需双写密钥对到新旧-distribution" class="headerlink" title="12. 对于使用 signed URL&#x2F;cookie 的场景,需双写密钥对到新旧 distribution"></a>12. 对于使用 signed URL&#x2F;cookie 的场景,需双写密钥对到新旧 distribution</h2><ul>
+<li><strong>规则</strong>: 在 <ACCOUNT_B> 上传相同 public key 创建新 key pair,更新应用层签名逻辑同时支持新旧 key pair ID,保留 7 天重叠期</li>
+<li><strong>为什么</strong>: Signed URL 中的 key pair ID 必须匹配 distribution 关联的 trusted key groups,跨账号后 key pair ID 会变化</li>
+<li><strong>踩坑</strong>: 迁移后所有已签发的 URL(如邮件中的下载链接)立即失效,用户投诉激增但无法快速修复</li>
+<li><strong>例外</strong>: 使用 CloudFront key groups(推荐)而非 legacy key pairs 时,可在迁移前将两个账号的 public key 都加入 key group</li>
+</ul>
+<h2 id="13-迁移窗口期禁用-auto-invalidation-流水线-改为手动双写失效请求"><a href="#13-迁移窗口期禁用-auto-invalidation-流水线-改为手动双写失效请求" class="headerlink" title="13. 迁移窗口期禁用 auto-invalidation 流水线,改为手动双写失效请求"></a>13. 迁移窗口期禁用 auto-invalidation 流水线,改为手动双写失效请求</h2><ul>
+<li><strong>规则</strong>: 暂停 CI&#x2F;CD 中的 <code>aws cloudfront create-invalidation</code> 步骤,改为脚本同时向 <DIST_ID_OLD> 和 <DIST_ID_NEW> 发送相同 invalidation</li>
+<li><strong>为什么</strong>: 自动化流水线通常硬编码 distribution ID,迁移期间只失效一个 distribution 会导致新旧缓存不一致</li>
+<li><strong>踩坑</strong>: 发布新版本后,旧 distribution 缓存已失效但新 distribution 仍返回旧内容,灰度切换时用户看到版本回退</li>
+<li><strong>例外</strong>: 使用 cache policy 的 TTL 控制而非 invalidation 时影响较小,但仍建议双写</li>
+</ul>
+<h2 id="14-提前确认目标账号的-service-quota-足够-特别是-distributions-per-account-和-invalidations-per-second"><a href="#14-提前确认目标账号的-service-quota-足够-特别是-distributions-per-account-和-invalidations-per-second" class="headerlink" title="14. 提前确认目标账号的 service quota 足够,特别是 distributions per account 和 invalidations per second"></a>14. 提前确认目标账号的 service quota 足够,特别是 distributions per account 和 invalidations per second</h2><ul>
+<li><strong>规则</strong>: 在 Service Quotas 控制台检查 <ACCOUNT_B> 的 CloudFront limits,如不足提前 3-5 个工作日申请提升</li>
+<li><strong>为什么</strong>: 默认每账号 200 个 distributions,大型组织迁移时可能超限,且 quota 提升需人工审批</li>
+<li><strong>踩坑</strong>: 迁移当天创建第 201 个 distribution 时报 LimitExceeded,紧急提交 quota 申请但需等待 2 个工作日</li>
+<li><strong>例外</strong>: 使用 AWS Organizations 的 delegated administrator 可集中管理 quota,但需提前配置</li>
+</ul>
+<h2 id="15-迁移完成后保留源-distribution-7-14-天再删除-期间监控其流量归零"><a href="#15-迁移完成后保留源-distribution-7-14-天再删除-期间监控其流量归零" class="headerlink" title="15. 迁移完成后保留源 distribution 7-14 天再删除,期间监控其流量归零"></a>15. 迁移完成后保留源 distribution 7-14 天再删除,期间监控其流量归零</h2><ul>
+<li><strong>规则</strong>: 用 CloudWatch metrics 监控 <DIST_ID_OLD> 的 Requests 指标,确认连续 7 天为 0 后再执行 disable + delete</li>
+<li><strong>为什么</strong>: 部分客户端(如企业代理、CDN 厂商)的 DNS 缓存可能超过 TTL,过早删除会导致长尾流量 404</li>
+<li><strong>踩坑</strong>: 迁移后 3 天删除旧 distribution,一周后收到某企业客户投诉无法访问,排查发现其网络设备缓存了 7 天 DNS</li>
+<li><strong>例外</strong>: 紧急安全事件(如证书泄露)需立即删除时,可配合 Route53 health check 强制 DNS 故障转移</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>先在目标账号添加 CNAME 再删源账号,避免全局锁竞争窗口</strong></li>
+<li><strong>ACM 证书必须 us-east-1,Lambda@Edge 必须重新部署到目标账号</strong></li>
+<li><strong>用 Route53 加权路由灰度切换,不要直接改 CNAME</strong></li>
+<li><strong>导出完整 distribution config JSON,控制台隐藏 20+ 参数</strong></li>
+<li><strong>保留源 distribution 7 天并监控流量归零再删除</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CNAMEAlreadyExists 错误</td>
+<td>正常,先删源 CNAME 再重试,或用 API 原子化操作</td>
+</tr>
+<tr>
+<td>证书下拉列表为空</td>
+<td>检查是否在 us-east-1 申请 ACM 证书</td>
+</tr>
+<tr>
+<td>迁移后部分地区 502</td>
+<td>等待 15 分钟让边缘节点全部部署完成</td>
+</tr>
+<tr>
+<td>Signed URL 全部失效</td>
+<td>双写 key pair 并保留 7 天重叠期</td>
+</tr>
+<tr>
+<td>Origin 流量异常增加</td>
+<td>对比新旧 distribution 的 cache hit rate 和 access log</td>
+</tr>
+<tr>
+<td>灰度切换无法快速回滚</td>
+<td>用 Route53 加权路由而非直接改 CNAME</td>
+</tr>
+<tr>
+<td>WAF 未拦截已知攻击</td>
+<td>Rate-based rule 计数器已重置,临时提高阈值</td>
+</tr>
+<tr>
+<td>LimitExceeded 创建失败</td>
+<td>提前 3-5 天申请 service quota 提升</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-21</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/21/2026-09-21-expanded-%E8%96%84%E8%8D%B7%E6%80%8E%E4%B9%88%E6%B0%B4%E5%9F%B9/">
                 [expanded] 薄荷怎么水培
             </a>
@@ -335,6 +508,54 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/21/stock/">
+                股市币市
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>本金 </p>
+<p>三折最多</p>
+<p>三折以上就是突发状况</p>
+<p>有信心可以all in 30%</p>
+<pre><code>信心一般可以先 20%
+</code></pre>
+<p>小试牛刀 10% </p>
+<pre><code>补刀 10%
+
+    收回本金 cl 1
+    或者收回补刀的钱 cl 2
+
+开始做空
+</code></pre>
+<p>一定要留补仓 40%</p>
+<p>本金越大 补仓率就要增高</p>
+<p>2&#x2F;24</p>
+<p>2684 200</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/21/system-migration/">
                 系统迁移
             </a>
@@ -428,119 +649,6 @@
 <p><img src="/images/tree-honghei.png"></p>
 <p>B树</p>
 <p>B+树</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/vue-big-file-upload/">
-                vue2 大文件上传component(做成组件)
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/前端/">前端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
-<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
-<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
-
-<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/vue2vsvue3/">
-                vue2 对比 vue3
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/前端/">前端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="图层渲染"><a href="#图层渲染" class="headerlink" title="图层渲染"></a>图层渲染</h2><h3 id="VUE2-渲染流程图"><a href="#VUE2-渲染流程图" class="headerlink" title="VUE2 渲染流程图"></a>VUE2 渲染流程图</h3><p>主function<br>prop 父组件传入数据 template中使用<br>data()<br>watch 数据监听 对data数据监听<br>create()<br>methods</p>
-<p>vue init()<br>vue $mount()<br>初始化渲染watcher</p>
-<p>render 初次渲染</p>
-<p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
-<p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
-<p>compment标签<br>（组件问题）</p>
-<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><table>
-<thead>
-<tr>
-<th>vue2</th>
-<th>vue3</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>beforeCreate</td>
-<td></td>
-</tr>
-<tr>
-<td>created</td>
-<td></td>
-</tr>
-<tr>
-<td>beforeMount</td>
-<td>onBeforeMount</td>
-</tr>
-<tr>
-<td>mounted</td>
-<td>onMounted</td>
-</tr>
-<tr>
-<td>beforeUpdate</td>
-<td>onBeforeUpdate</td>
-</tr>
-<tr>
-<td>updated</td>
-<td>onUpdated</td>
-</tr>
-<tr>
-<td>beforeDestroy</td>
-<td>onBeforeUnmount</td>
-</tr>
-<tr>
-<td>destroyed</td>
-<td>onUnmounted</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>Tips： setup 是围绕 beforeCreate 和 created 生命周期钩子运行的，所以不需要显式地去定义。</p>
-</blockquote>
 
         </div>
     
@@ -695,6 +803,119 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/21/vue2vsvue3/">
+                vue2 对比 vue3
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="图层渲染"><a href="#图层渲染" class="headerlink" title="图层渲染"></a>图层渲染</h2><h3 id="VUE2-渲染流程图"><a href="#VUE2-渲染流程图" class="headerlink" title="VUE2 渲染流程图"></a>VUE2 渲染流程图</h3><p>主function<br>prop 父组件传入数据 template中使用<br>data()<br>watch 数据监听 对data数据监听<br>create()<br>methods</p>
+<p>vue init()<br>vue $mount()<br>初始化渲染watcher</p>
+<p>render 初次渲染</p>
+<p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
+<p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
+<p>compment标签<br>（组件问题）</p>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><table>
+<thead>
+<tr>
+<th>vue2</th>
+<th>vue3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>beforeCreate</td>
+<td></td>
+</tr>
+<tr>
+<td>created</td>
+<td></td>
+</tr>
+<tr>
+<td>beforeMount</td>
+<td>onBeforeMount</td>
+</tr>
+<tr>
+<td>mounted</td>
+<td>onMounted</td>
+</tr>
+<tr>
+<td>beforeUpdate</td>
+<td>onBeforeUpdate</td>
+</tr>
+<tr>
+<td>updated</td>
+<td>onUpdated</td>
+</tr>
+<tr>
+<td>beforeDestroy</td>
+<td>onBeforeUnmount</td>
+</tr>
+<tr>
+<td>destroyed</td>
+<td>onUnmounted</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Tips： setup 是围绕 beforeCreate 和 created 生命周期钩子运行的，所以不需要显式地去定义。</p>
+</blockquote>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/21/vue-big-file-upload/">
+                vue2 大文件上传component(做成组件)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
+<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
+<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
+
+<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/21/wireshark/">
                 Wireshark
             </a>
@@ -778,100 +999,6 @@
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/shell/">
-                Shell
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
-<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
-<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
-</ul>
-<blockquote>
-<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
-</blockquote>
-<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
-
-<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
-<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
-<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
-<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/social-engineering/">
-                社工库工具
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>国外情报专家最常用的OSINT工具</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
-<ul>
-<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -914,19 +1041,19 @@
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-%E8%96%84%E8%8D%B7%E6%80%8E%E4%B9%88%E6%B0%B4%E5%9F%B9/">[expanded] 薄荷怎么水培</a>
             </li>
             
             <li>
+                <a class="footer-post" href="/2026/09/21/stock/">股市币市</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/21/system-migration/">系统迁移</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/21/tree/">树 ADT</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/21/vue-big-file-upload/">vue2 大文件上传component(做成组件)</a>
             </li>
             
         </ul>
