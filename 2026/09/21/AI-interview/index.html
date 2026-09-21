@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="一、 Agent 编排与多 Agent 协作1. 题目：在构建企业级 Agent 时，如何保证工具调用（Tool Calling）的可靠性，特别是涉及 CRM、工单等内部系统写操作时？
+
+参考答案要点：
+[cite_start]规范封装： 对内部系统封装为 Tool 时，需统一 Schema 规范，">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="AI 面试"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>AI 面试 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/21/AI-interview/">
+                AI 面试
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h2 id="一、-Agent-编排与多-Agent-协作"><a href="#一、-Agent-编排与多-Agent-协作" class="headerlink" title="一、 Agent 编排与多 Agent 协作"></a>一、 Agent 编排与多 Agent 协作</h2><p><strong>1. 题目：在构建企业级 Agent 时，如何保证工具调用（Tool Calling）的可靠性，特别是涉及 CRM、工单等内部系统写操作时？</strong></p>
+<ul>
+<li><strong>参考答案要点：</strong><ul>
+<li>[cite_start]<strong>规范封装：</strong> 对内部系统封装为 Tool 时，需统一 Schema 规范，并集成鉴权、参数校验、幂等与重试机制 [cite: 10, 26]。</li>
+<li>[cite_start]<strong>链路闭环：</strong> 结合“计划-执行-校验”链路，在高风险操作前引入模拟执行（dry-run）或人工审批节点，降低生产事故风险 [cite: 10, 27]。</li>
+<li>[cite_start]<strong>安全审计：</strong> 必须具备 RBAC 权限模型、审计日志与敏感字段（PII）脱敏处理，确保 Agent 在授权范围内操作 [cite: 4, 8, 23]。</li>
+</ul>
+</li>
+</ul>
+<p><strong>2. 题目：您在项目中使用了 LangGraph 与 Dify，对于复杂的工作流，如何解决 Agent 可能出现的逻辑偏差或死循环？</strong></p>
+<ul>
+<li><strong>参考答案要点：</strong><ul>
+<li>[cite_start]<strong>状态机管理：</strong> 利用 LangGraph 等工具将“问答、自动化、浏览器操作”统一为可编排的工作流，通过显式的状态转移控制逻辑 [cite: 8, 22]。</li>
+<li>[cite_start]<strong>异常归因：</strong> 建立失败案例归因机制（如检索偏差、切块问题或模型偏离），并形成修复闭环 [cite: 23]。</li>
+<li>[cite_start]<strong>工具沙箱：</strong> 在受控的工具沙箱中运行 Agent 逻辑，配合提示注入防护确保流程不被非法篡改 [cite: 4, 23]。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="二、-RAG-工程化与检索深度"><a href="#二、-RAG-工程化与检索深度" class="headerlink" title="二、 RAG 工程化与检索深度"></a>二、 RAG 工程化与检索深度</h2><p><strong>3. 题目：简历中提到您搭建了支持“混合检索 + 重排”的 RAG 体系，请问如何优化检索的准确性与引用可信度？</strong></p>
+<ul>
+<li><strong>参考答案要点：</strong><ul>
+<li>[cite_start]<strong>多路召回：</strong> 采用 Hybrid 检索（BM25 + 向量）结合 rerank 重排，提升文档召回的相关性 [cite: 4, 9]。</li>
+<li>[cite_start]<strong>引用校验：</strong> 实施强制引用（citation）策略与答案置信度门控，对于低置信度结果采取拒答策略，防止模型幻觉 [cite: 4, 9]。</li>
+<li>[cite_start]<strong>精细化解析：</strong> 针对 PDF&#x2F;HTML 等文档进行版面分块与去噪，支持多知识域隔离，确保检索源头数据的质量 [cite: 9]。</li>
+</ul>
+</li>
+</ul>
+<p><strong>4. 题目：对于 MCP (Model Context Protocol) 协议，您如何理解其在 Agent 工具化接入中的价值？</strong></p>
+<ul>
+<li><strong>参考答案要点：</strong><ul>
+<li>[cite_start]<strong>标准化接入：</strong> 能够将内部系统以标准化的“工具”形态接入 Agent，实现本地与远程两种调用形态的复用 [cite: 2, 26]。</li>
+<li>[cite_start]<strong>最小权限原则：</strong> 按“最小权限 + 可观测 + 可回放”原则封装操作，提升多 Agent 复用时的安全性 [cite: 27]。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="三、-工程化保障与自动化提效"><a href="#三、-工程化保障与自动化提效" class="headerlink" title="三、 工程化保障与自动化提效"></a>三、 工程化保障与自动化提效</h2><p><strong>5. 题目：如何通过可观测性（Observability）体系保障企业级 LLM 应用的 SLA？</strong></p>
+<ul>
+<li><strong>参考答案要点：</strong><ul>
+<li>[cite_start]<strong>全链路观测：</strong> 引入可观测性工具进行链路追踪（Trace）、指标监控（Metrics）与日志审计（Logs） [cite: 4, 12]。</li>
+<li>[cite_start]<strong>成本看板：</strong> 建立按租户、模型或链路分摊的成本看板，实现 SLA 告警闭环 [cite: 12]。</li>
+<li>[cite_start]<strong>工程化部署：</strong> 利用 Docker 化部署、CI&#x2F;CD (GitHub Actions) 以及灰度发布与回滚机制确保线上稳定 [cite: 4, 12]。</li>
+</ul>
+</li>
+</ul>
+<p><strong>6. 题目：Playwright 在您的 Agent 体系中除了数据采集，还承担了哪些关键任务？</strong></p>
+<ul>
+<li><strong>参考答案要点：</strong><ul>
+<li>[cite_start]<strong>能力增强：</strong> 为 Agent 提供登录态管理、元素定位及表单流程回放等可控的浏览器操作能力 [cite: 13, 29]。</li>
+<li>[cite_start]<strong>自动化验收：</strong> 将回归脚本接入 CI 流程，在发布前对关键路径做自动化验收，提升交付稳定性 [cite: 30]。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="四、-综合能力与背景"><a href="#四、-综合能力与背景" class="headerlink" title="四、 综合能力与背景"></a>四、 综合能力与背景</h2><p><strong>7. 题目：您提到利用 AI 辅助开发（如 Cursor&#x2F;Claude Code）显著缩短了交付周期，具体的落地实践是什么？</strong></p>
+<ul>
+<li><strong>参考答案要点：</strong><ul>
+<li>[cite_start]<strong>流程提效：</strong> 沉淀 spec 模板、测试用例生成及回归脚本脚手架，实现需求拆解到部署的全流程提效 [cite: 2, 11]。</li>
+<li>[cite_start]<strong>项目经验：</strong> 已支撑 15+ 业务应用落地，在实际场景中（如工单处理）验证了约 35% 的效率提升 [cite: 24]。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="💡-面试考察建议"><a href="#💡-面试考察建议" class="headerlink" title="💡 面试考察建议"></a>💡 面试考察建议</h3><p>[cite_start]牛一拥有 <strong>8 年工程经验</strong> 且背景扎实（北邮硕士，研究方向为检索增强生成） [cite: 2, 32]。面试时应重点关注其在 <strong>“生产环境下的异常处理”</strong> 与 <strong>“复杂业务流的工程化拆解”</strong> 能力，这能体现其作为高级工程师在 AI 落地中的核心价值。</p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/面试/">#面试</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-%E8%96%84%E8%8D%B7%E6%80%8E%E4%B9%88%E6%B0%B4%E5%9F%B9/">[expanded] 薄荷怎么水培</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/21/system-migration/">系统迁移</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/21/tree/">树 ADT</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/21/vue-big-file-upload/">vue2 大文件上传component(做成组件)</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
