@@ -184,6 +184,169 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/22/2026-09-22-expanded-blog-vim/">
+                [expanded] [blog] VIM
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-blog-VIM"><a href="#expanded-blog-VIM" class="headerlink" title="[expanded] [blog] VIM"></a>[expanded] [blog] VIM</h1><blockquote>
+<p>原始问题: [blog] VIM</p>
+</blockquote>
+<h1 id="Vim-编辑器核心技能点清单"><a href="#Vim-编辑器核心技能点清单" class="headerlink" title="Vim 编辑器核心技能点清单"></a>Vim 编辑器核心技能点清单</h1><blockquote>
+<p>场景占位: 编辑 <CONFIG_FILE>, 修改 <SERVICE_NAME> 配置, 查找 <PATTERN><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-默认进入命令模式-所有操作从这里开始"><a href="#1-默认进入命令模式-所有操作从这里开始" class="headerlink" title="1. 默认进入命令模式,所有操作从这里开始"></a>1. 默认进入命令模式,所有操作从这里开始</h2><ul>
+<li><strong>规则</strong>: 打开文件后处于命令模式,按 <code>i/a/o</code> 进入编辑模式,按 <code>:</code> 进入末行模式,按 <code>Esc</code> 回命令模式</li>
+<li><strong>为什么</strong>: 新手最大困惑是”为什么按键没反应” — 因为在命令模式下字母是快捷键不是输入字符</li>
+<li><strong>踩坑</strong>: 在命令模式下狂按字母想输入内容,结果触发了删除&#x2F;复制等操作把文件改乱</li>
+<li><strong>例外</strong>: <code>vim -R &lt;FILE&gt;</code> 只读模式下无法进入编辑模式</li>
+</ul>
+<h2 id="2-用-dd-剪切而非删除-删除的内容自动进剪贴板"><a href="#2-用-dd-剪切而非删除-删除的内容自动进剪贴板" class="headerlink" title="2. 用 dd 剪切而非删除,删除的内容自动进剪贴板"></a>2. 用 <code>dd</code> 剪切而非删除,删除的内容自动进剪贴板</h2><ul>
+<li><strong>规则</strong>: <code>dd</code> 删除当前行并放入剪贴板,<code>p</code> 粘贴,<code>5dd</code> 删除 5 行</li>
+<li><strong>为什么</strong>: Vim 没有”纯删除”概念,所有删除都是剪切,这是多数编辑器不同的设计</li>
+<li><strong>踩坑</strong>: 用 <code>dd</code> 删除后又 <code>yy</code> 复制别的内容,导致刚删的东西被覆盖无法找回</li>
+</ul>
+<h2 id="3-末行模式替换必须理解-和-g-的组合含义"><a href="#3-末行模式替换必须理解-和-g-的组合含义" class="headerlink" title="3. 末行模式替换必须理解 % 和 g 的组合含义"></a>3. 末行模式替换必须理解 <code>%</code> 和 <code>g</code> 的组合含义</h2><ul>
+<li><strong>规则</strong>: <code>:s/old/new/</code> 只替换当前行第一个,<code>:%s/old/new/g</code> 替换全文所有</li>
+<li><strong>为什么</strong>: <code>%</code> 表示全文范围,<code>g</code> 表示行内全局,缺一个都达不到”全部替换”效果</li>
+<li><strong>踩坑</strong>: 用 <code>:%s/old/new/</code> 以为能全部替换,结果每行只替换了第一个匹配</li>
+<li><strong>例外</strong>: <code>:5,10s/old/new/g</code> 只替换 5-10 行</li>
+</ul>
+<h2 id="4-撤销用-u-重做用-Ctrl-r-不是-Ctrl-z"><a href="#4-撤销用-u-重做用-Ctrl-r-不是-Ctrl-z" class="headerlink" title="4. 撤销用 u,重做用 Ctrl+r,不是 Ctrl+z"></a>4. 撤销用 <code>u</code>,重做用 <code>Ctrl+r</code>,不是 <code>Ctrl+z</code></h2><ul>
+<li><strong>规则</strong>: 命令模式下按 <code>u</code> 撤销,<code>Ctrl+r</code> 重做(redo)</li>
+<li><strong>为什么</strong>: <code>Ctrl+z</code> 在 Vim 里是挂起进程(放到后台),不是撤销,新手常按错导致 Vim “消失”</li>
+<li><strong>踩坑</strong>: 按 <code>Ctrl+z</code> 后终端回到 shell,以为 Vim 崩溃了,实际用 <code>fg</code> 可恢复</li>
+<li><strong>例外</strong>: <code>:earlier 4m</code> 可回到 4 分钟前的状态,比逐次 <code>u</code> 更高效</li>
+</ul>
+<h2 id="5-强制退出用-q-保存退出用-wq-别混用-x"><a href="#5-强制退出用-q-保存退出用-wq-别混用-x" class="headerlink" title="5. 强制退出用 :q!,保存退出用 :wq,别混用 :x"></a>5. 强制退出用 <code>:q!</code>,保存退出用 <code>:wq</code>,别混用 <code>:x</code></h2><ul>
+<li><strong>规则</strong>: <code>:q!</code> 不保存强制退出,<code>:wq</code> 保存后退出,<code>:x</code> 仅在有修改时保存退出</li>
+<li><strong>为什么</strong>: <code>:x</code> 和 <code>:wq</code> 行为不同 — <code>:x</code> 不会更新文件时间戳如果没修改,影响 Makefile 等依赖时间戳的工具</li>
+<li><strong>踩坑</strong>: 用 <code>:wq</code> 退出未修改的文件,导致文件 mtime 更新触发不必要的重新编译</li>
+</ul>
+<h2 id="6-行首用-跳到第一个非空字符-0-才是绝对行首"><a href="#6-行首用-跳到第一个非空字符-0-才是绝对行首" class="headerlink" title="6. 行首用 ^ 跳到第一个非空字符,0 才是绝对行首"></a>6. 行首用 <code>^</code> 跳到第一个非空字符,<code>0</code> 才是绝对行首</h2><ul>
+<li><strong>规则</strong>: <code>^</code> 跳到行首第一个非空白字符,<code>0</code> 跳到行首第 0 列,<code>$</code> 跳到行尾</li>
+<li><strong>为什么</strong>: 代码编辑时 <code>^</code> 更实用(跳过缩进),但配置文件有时需要 <code>0</code> 定位到注释符 <code>#</code></li>
+<li><strong>踩坑</strong>: 在有缩进的代码里按 <code>0</code> 后按 <code>i</code> 插入,结果在缩进前插入破坏了格式</li>
+</ul>
+<h2 id="7-分屏后用-Ctrl-w-前缀操作-不是-Ctrl-s-v"><a href="#7-分屏后用-Ctrl-w-前缀操作-不是-Ctrl-s-v" class="headerlink" title="7. 分屏后用 Ctrl+w 前缀操作,不是 Ctrl+s/v"></a>7. 分屏后用 <code>Ctrl+w</code> 前缀操作,不是 <code>Ctrl+s/v</code></h2><ul>
+<li><strong>规则</strong>: <code>:sp</code> 横向分屏,<code>:vsp</code> 纵向分屏,<code>Ctrl+w</code> 后按 <code>hjkl</code> 切换窗口,<code>Ctrl+w c</code> 关闭当前窗口</li>
+<li><strong>为什么</strong>: <code>Ctrl+w</code> 是 Vim 窗口操作的统一前缀,所有分屏操作都从这里开始</li>
+<li><strong>踩坑</strong>: 按 <code>Ctrl+w</code> 后停顿超过 1 秒,Vim 会等待下一个按键,新手以为卡死了</li>
+<li><strong>例外</strong>: <code>Ctrl+w w</code> 循环切换窗口,比记忆 <code>hjkl</code> 方向更快</li>
+</ul>
+<h2 id="8-搜索用-向下找-向上找-n-下一个-N-反向"><a href="#8-搜索用-向下找-向上找-n-下一个-N-反向" class="headerlink" title="8. 搜索用 / 向下找,? 向上找,n 下一个,N 反向"></a>8. 搜索用 <code>/</code> 向下找,<code>?</code> 向上找,<code>n</code> 下一个,<code>N</code> 反向</h2><ul>
+<li><strong>规则</strong>: <code>/pattern</code> 向下搜索,<code>?pattern</code> 向上搜索,<code>n</code> 跳到下一个匹配,<code>N</code> 跳到上一个</li>
+<li><strong>为什么</strong>: <code>n</code> 的方向取决于你用 <code>/</code> 还是 <code>?</code>,不是固定”向下”,这是反直觉的</li>
+<li><strong>踩坑</strong>: 用 <code>/</code> 搜索后按 <code>N</code> 以为是”上一个”,结果是反向(向上)继续找,跳过了下面的匹配</li>
+</ul>
+<h2 id="9-复制整行用-yy-复制到行尾用-y-不是选中后复制"><a href="#9-复制整行用-yy-复制到行尾用-y-不是选中后复制" class="headerlink" title="9. 复制整行用 yy,复制到行尾用 y$,不是选中后复制"></a>9. 复制整行用 <code>yy</code>,复制到行尾用 <code>y$</code>,不是选中后复制</h2><ul>
+<li><strong>规则</strong>: <code>yy</code> 复制当前行,<code>5yy</code> 复制 5 行,<code>y$</code> 复制到行尾,<code>p</code> 粘贴</li>
+<li><strong>为什么</strong>: Vim 的复制是基于动作(motion)而非选区,<code>y</code> 后面跟移动命令决定复制范围</li>
+<li><strong>踩坑</strong>: 想复制半行内容,用 <code>yy</code> 复制了整行,粘贴时多出换行符</li>
+<li><strong>例外</strong>: 可视模式下 <code>v</code> 选中后 <code>y</code> 复制,但效率低于直接用 motion</li>
+</ul>
+<h2 id="10-显示行号用-set-nu-永久生效需写-vimrc"><a href="#10-显示行号用-set-nu-永久生效需写-vimrc" class="headerlink" title="10. 显示行号用 :set nu,永久生效需写 ~/.vimrc"></a>10. 显示行号用 <code>:set nu</code>,永久生效需写 <code>~/.vimrc</code></h2><ul>
+<li><strong>规则</strong>: <code>:set nu</code> 临时显示行号,<code>:set nonu</code> 关闭,写入 <code>~/.vimrc</code> 永久生效</li>
+<li><strong>为什么</strong>: 末行模式的 <code>set</code> 命令只在当前会话有效,关闭文件后失效</li>
+<li><strong>踩坑</strong>: 每次打开文件都要 <code>:set nu</code>,不知道可以写配置文件</li>
+</ul>
+<h2 id="11-多文件编辑用-bn-bp-切换-不是关了重开"><a href="#11-多文件编辑用-bn-bp-切换-不是关了重开" class="headerlink" title="11. 多文件编辑用 :bn/:bp 切换,不是关了重开"></a>11. 多文件编辑用 <code>:bn/:bp</code> 切换,不是关了重开</h2><ul>
+<li><strong>规则</strong>: <code>vim &lt;FILE1&gt; &lt;FILE2&gt;</code> 打开多文件,<code>:bn</code> 切换到下一个,<code>:bp</code> 切换到上一个,<code>:files</code> 查看列表</li>
+<li><strong>为什么</strong>: Vim 的 buffer 机制允许同时打开多个文件在后台,比反复 <code>:q</code> 再 <code>vim</code> 高效</li>
+<li><strong>踩坑</strong>: 修改了 <FILE1> 未保存就 <code>:bn</code>,Vim 会报错阻止切换,需 <code>:w</code> 或 <code>:set hidden</code> 允许</li>
+</ul>
+<h2 id="12-替换单个字符用-r-连续替换用-R-进入替换模式"><a href="#12-替换单个字符用-r-连续替换用-R-进入替换模式" class="headerlink" title="12. 替换单个字符用 r,连续替换用 R 进入替换模式"></a>12. 替换单个字符用 <code>r</code>,连续替换用 <code>R</code> 进入替换模式</h2><ul>
+<li><strong>规则</strong>: <code>r</code> 后按新字符替换光标处一个字符,<code>R</code> 进入替换模式连续覆盖输入,<code>Esc</code> 退出</li>
+<li><strong>为什么</strong>: <code>r</code> 不进入编辑模式,替换后自动回命令模式,改一个字符最快</li>
+<li><strong>踩坑</strong>: 用 <code>i</code> 删除再输入来”替换”,多按了 3 个键</li>
+</ul>
+<h2 id="13-翻屏用-Ctrl-f-b-翻半屏用-Ctrl-d-u"><a href="#13-翻屏用-Ctrl-f-b-翻半屏用-Ctrl-d-u" class="headerlink" title="13. 翻屏用 Ctrl+f/b,翻半屏用 Ctrl+d/u"></a>13. 翻屏用 <code>Ctrl+f/b</code>,翻半屏用 <code>Ctrl+d/u</code></h2><ul>
+<li><strong>规则</strong>: <code>Ctrl+f</code> 向下翻整屏,<code>Ctrl+b</code> 向上翻整屏,<code>Ctrl+d/u</code> 翻半屏</li>
+<li><strong>为什么</strong>: 翻半屏时光标保持在屏幕中间,上下文不丢失,查看日志时更实用</li>
+<li><strong>踩坑</strong>: 只知道 <code>PgDn/PgUp</code>,不知道 <code>Ctrl+d/u</code> 可保留部分上下文</li>
+</ul>
+<h2 id="14-执行外部命令用-不用退出-Vim"><a href="#14-执行外部命令用-不用退出-Vim" class="headerlink" title="14. 执行外部命令用 :!&lt;COMMAND&gt;,不用退出 Vim"></a>14. 执行外部命令用 <code>:!&lt;COMMAND&gt;</code>,不用退出 Vim</h2><ul>
+<li><strong>规则</strong>: <code>:!ls</code> 执行 shell 命令,<code>:r !date</code> 把命令输出插入到当前位置</li>
+<li><strong>为什么</strong>: 编辑配置文件时可以 <code>:!systemctl restart &lt;SERVICE&gt;</code> 直接重启服务验证</li>
+<li><strong>踩坑</strong>: 用 <code>Ctrl+z</code> 挂起 Vim 切到 shell 执行命令再 <code>fg</code>,多了 2 步操作</li>
+</ul>
+<h2 id="15-分屏尺寸调整用-Ctrl-w-均分-Ctrl-w-微调"><a href="#15-分屏尺寸调整用-Ctrl-w-均分-Ctrl-w-微调" class="headerlink" title="15. 分屏尺寸调整用 Ctrl+w = 均分,Ctrl+w +/- 微调"></a>15. 分屏尺寸调整用 <code>Ctrl+w =</code> 均分,<code>Ctrl+w +/-</code> 微调</h2><ul>
+<li><strong>规则</strong>: <code>Ctrl+w =</code> 让所有窗口等高&#x2F;等宽,<code>Ctrl+w 10+</code> 增加 10 行高度</li>
+<li><strong>为什么</strong>: 对比查看日志时需要调整窗口大小,默认分屏可能一个太小看不清</li>
+<li><strong>踩坑</strong>: 不知道能调整尺寸,手动关了重新 <code>:sp</code> 试图改变比例</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>打开文件在命令模式,按 <code>i</code> 才能输入,按 <code>Esc</code> 回命令模式</strong></li>
+<li><strong><code>:wq</code> 保存退出,<code>:q!</code> 不保存强制退出,别按 <code>Ctrl+z</code></strong></li>
+<li><strong><code>dd</code> 是剪切不是删除,<code>p</code> 粘贴,<code>u</code> 撤销,<code>Ctrl+r</code> 重做</strong></li>
+<li><strong><code>:%s/old/new/g</code> 全文替换,缺 <code>%</code> 只替换当前行,缺 <code>g</code> 每行只替换第一个</strong></li>
+<li><strong><code>/pattern</code> 搜索,<code>n</code> 下一个,<code>:set nu</code> 显示行号</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>按键没反应</td>
+<td>按 <code>Esc</code> 回命令模式,再按 <code>i</code> 进入编辑模式</td>
+</tr>
+<tr>
+<td>想全部替换</td>
+<td><code>:%s/old/new/g</code> 四个符号缺一不可</td>
+</tr>
+<tr>
+<td>Vim “消失”了</td>
+<td>可能按了 <code>Ctrl+z</code>,输入 <code>fg</code> 恢复</td>
+</tr>
+<tr>
+<td>删除的内容想找回</td>
+<td>按 <code>p</code> 粘贴,<code>dd</code> 删除的内容在剪贴板</td>
+</tr>
+<tr>
+<td>想同时看两个文件</td>
+<td><code>:vsp &lt;FILE2&gt;</code> 纵向分屏,<code>Ctrl+w l/h</code> 切换</td>
+</tr>
+<tr>
+<td>改了不想保存</td>
+<td><code>:q!</code> 强制退出,别用 <code>:wq</code></td>
+</tr>
+<tr>
+<td>想跳到文件开头&#x2F;结尾</td>
+<td><code>gg</code> 跳到首行,<code>G</code> 跳到末行</td>
+</tr>
+<tr>
+<td>想执行 shell 命令</td>
+<td><code>:!&lt;COMMAND&gt;</code> 不用退出 Vim</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-22</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">
                 [expanded] [blog] vue2 大文件上传component(做成组件)
             </a>
@@ -815,8 +978,8 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/22/stock/">
-                股市币市
+            <a href="/2026/09/22/pressure-testing/">
+                压测工具集合
             </a>
         </h1>
         <div class="post-info">
@@ -826,7 +989,7 @@
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/测试工具/">测试工具</a>
                 </span>
             
         </div>
@@ -834,384 +997,423 @@
 
     
         <div class="content">
-            <p>本金 </p>
-<p>三折最多</p>
-<p>三折以上就是突发状况</p>
-<p>有信心可以all in 30%</p>
-<pre><code>信心一般可以先 20%
-</code></pre>
-<p>小试牛刀 10% </p>
-<pre><code>补刀 10%
-
-    收回本金 cl 1
-    或者收回补刀的钱 cl 2
-
-开始做空
-</code></pre>
-<p>一定要留补仓 40%</p>
-<p>本金越大 补仓率就要增高</p>
-<p>2&#x2F;24</p>
-<p>2684 200</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/22/system-migration/">
-                系统迁移
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
-
-<p>backup_and_migrate.sh</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
-<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/22/tree/">
-                树 ADT
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/AI/">AI</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <pre class="mermaid">graph LR
-    A[树] --> B[二叉树]
-    B[二叉树] --> C[完全二叉树]
-    C[完全二叉树] --> D[满二叉树]
-    C[完全二叉树] --> E[堆]
-    E[堆] --> F[大顶堆]
-    E[堆] --> G[小顶堆]
-    B[二叉树] --> H[二叉查找树]
-    B[二叉树] --> I[平衡二叉树]
-    B[二叉树] --> J[平衡二叉查找树]
-    J[平衡二叉查找树] --> K[红黑树]
-    J[平衡二叉查找树] --> L[AVL]
-    A[树] --> M[N叉树]
-    M[N叉树] --> N[B树]
-    M[N叉树] --> O[B+树]</pre>
-
-<p><img src="/images/tree.png"></p>
-<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
-<p><img src="/images/tree-ercha.png"></p>
-<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
-<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
-<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
-<p>满二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
-
-<p>完全二叉树</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
-
-<p>二叉查找树</p>
-<p><img src="/images/tree-erchachaozhao.png"></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
-
-<p>AVL树</p>
-<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
-<p>红黑树</p>
-<p><img src="/images/tree-honghei.png"></p>
-<p>B树</p>
-<p>B+树</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/22/vim/">
-                VIM
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>Vi编辑器是所有Unix及Linux系统下标准的编辑器，</p>
-<p>vi和vim都是Linux中的编辑器，不同的是，vim比较高级，可以视为vi的升级版本。vi使用于文本编辑，但是vim更适用于coding（写代码的）。</p>
-<p>Vim重点是光标的移动，模式切换，删除，查找，替换，复制，粘贴，撤销命令的使用。</p>
-<h2 id="三种模式"><a href="#三种模式" class="headerlink" title="三种模式"></a>三种模式</h2><p><img src="/images/vim-console.png"></p>
-<ul>
-<li>命令模式：在该模式下是不能对文件直接编辑，可以输入快捷键进行一些操作（删除行，复制行，移动光标，粘贴等等）【打开文件之后默认进入的模式】；</li>
-<li>编辑模式：在该模式下可以对文件的内容进行编辑；</li>
-<li>末行模式：可以在末行输入命令来对文件进行操作（搜索、替换、保存、退出、撤销、高亮等等）；</li>
+            <h1 id="并发请求处理"><a href="#并发请求处理" class="headerlink" title="并发请求处理"></a>并发请求处理</h1><ul>
+<li>HTTP&#x2F;HTTPS 接口：测试 Web API、RESTful 接口的吞吐量、QPS（每秒请求数）。</li>
+<li>数据库查询：高并发查询数据库，看是否会出现锁等待、死锁、超时等问题。</li>
+<li>后台任务：队列、定时任务（如 RabbitMQ、Kafka）在高负载下的稳定性。</li>
 </ul>
-<h3 id="命令模式"><a href="#命令模式" class="headerlink" title="命令模式"></a>命令模式</h3><h4 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h4><p><img src="/images/vim-to.png"></p>
+<h2 id="k6"><a href="#k6" class="headerlink" title="k6"></a>k6</h2><p>k6 是一个压力测试套件，使用 golang 编写。主要特性有：</p>
 <ul>
-<li>行首 <code>按键shift + 6 或 ^</code></li>
-<li>行尾 <code>按键shift + 4 或 $</code></li>
-<li>首行 <code>gg</code></li>
-<li>末行 <code>G</code></li>
-<li>翻屏 <ul>
-<li>向上翻屏 <code>按键ctrl + b</code> （before） 或 <code>PgUp</code></li>
-<li>向下翻屏 <code>按键ctrl + f</code> （after） 或 <code>PgDn</code></li>
+<li>提供了友好的 CLI 工具</li>
+<li>使用 JavaScript 代码编写测试用例</li>
+<li>可以根据性能条件设置阈值，表明成功还是失败</li>
 </ul>
+<p>k6 没有使用 nodejs 而是 golang 程序，通过包裹了一个 JavaScript 运行时来运行 JavaScript 脚本，因此不能直接使用 npm 包以及 Nodejs 提供的一些 API。</p>
+<p>同时，k6 在运行测试时，没有启动浏览器，主要用于测试页面以及 API 加载速度。k6 提供了通过网络请求（HAR）生成测试脚本的方法，实现更简便的测试脚本编写，以及 session 的维护。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/python-interview/">
+                Golang 深浅
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/后端/">后端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <!-- * [基础](#1)
+    * [进程、线程、Goroutine(协程)区别](#1.1)
+    * [make和new区别](#1.2)
+    * [数组和切片区别](#1.3)
+* [GMP协程调度器](#2)
+    * [调度器策略](#2.1)
+    * [调度器的生命周期](#2.2)
+* [并发 sync](#3)
+    * [通道 - channel](#3.1)
+    * [互斥锁 Mutex 与 读写锁 RWMutex 区别](#3.2)
+    * [并发Map - sync.Map](#3.3)
+    * [线程池 - sync.Pool](#3.4)
+* [内存](#4)
+    * [CG](#4.1)
+* [微服务之间通信方式 rpc Grpc http](#4) -->
+
+<h1 id="打包-pyinstalller"><a href="#打包-pyinstalller" class="headerlink" title="打包 pyinstalller"></a>打包 pyinstalller</h1><h2 id="单个文件打包"><a href="#单个文件打包" class="headerlink" title="单个文件打包"></a>单个文件打包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令</span></span><br><span class="line">pyinstaller -F xxx.py</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.去生成的dist文件夹找xxx.exe运行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.运行成功，xxx.exe则为可执行文件，删除其它文件</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="打包多文件"><a href="#打包多文件" class="headerlink" title="打包多文件"></a>打包多文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令，xxx.py为程序入口文件</span></span><br><span class="line">pyinstall -D xxx.py </span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.删除生成的bulid和dist文件夹,仅保留xxx.spec文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.修改xxx.spec文件,详见2.2.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4.执行命令</span></span><br><span class="line">pyinstaller -F xxx.spec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5.去dist文件夹下找xxx.exe文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6.运行成功，删除临时文件目录build；dist目录为打包的结果，可执行文件和其它程序运行的关联文件都在这个目录</span></span><br></pre></td></tr></table></figure>
+
+
+<p>conda 和 venv 差不多</p>
+<p>1️⃣ venv（Python 自带虚拟环境）</p>
+<pre><code>作用：创建一个 隔离的 Python 环境，不影响系统 Python。
+
+仅管理 Python 包，不管底层 C 库或系统库。
+</code></pre>
+<p>2️⃣ conda（跨语言包 + 环境管理器）</p>
+<pre><code>作用：创建隔离环境 + 安装包 + 管理底层依赖
+
+不仅支持 Python，还支持 R、C/C++ 库。
+</code></pre>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/raspberry-pi/">
+                Raspberry Pi 树莓派
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/单片机/">单片机</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
+<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
+<p>树莓派系统连接原理</p>
+<blockquote>
+<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
+</blockquote>
+</blockquote>
+<ul>
+<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
+</li>
+<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
 </li>
 </ul>
-<h4 id="复制操作"><a href="#复制操作" class="headerlink" title="复制操作"></a>复制操作</h4><ul>
-<li>所在行 <code>yy</code> </li>
-<li>粘贴：在想要粘贴的地方按下<code>p</code>键</li>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>开机启动树莓派即可连接WIFI</li>
 </ul>
-<h4 id="剪切-删除"><a href="#剪切-删除" class="headerlink" title="剪切&#x2F;删除"></a>剪切&#x2F;删除</h4><ul>
-<li>剪切&#x2F;删除光标所在行 <code>dd</code></li>
-<li>剪切&#x2F;删除光标所在的当前行之后的内容，但是删除之后下一行不上移 <code>D</code></li>
-</ul>
-<h4 id="撤销-恢复"><a href="#撤销-恢复" class="headerlink" title="撤销&#x2F;恢复"></a>撤销&#x2F;恢复</h4><ul>
-<li>撤销 <code>u</code> （undo）</li>
-<li>撤销5个改变 <code>:undo 5</code></li>
-<li>你的撤销历史 <code>:undolist</code></li>
-<li>重做最后的改动 <code>按键ctrl + r:</code></li>
-<li>取消当前行中所有的改动 <code>U:</code></li>
-<li>回到4分钟前 <code>:earlier 4m</code></li>
-<li>前进55秒 <code>:later 55s</code></li>
-</ul>
-<h4 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h4><p>r: 替换光标处的字符，同样支持汉字。<br>R: 进入替换模式，按esc回到正常模式。</p>
-<h3 id="末行模式"><a href="#末行模式" class="headerlink" title="末行模式"></a>末行模式</h3><p>进入方式：由命令模式进入，按下<code>:</code>或者<code>/（表示查找）</code>即可进入<br>退出方式：</p>
-<ol>
-<li>按下<code>按键esc</code></li>
-<li>连按2次<code>按键esc</code>键</li>
-<li>删除末行全部输入字符</li>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/redis/">
+                Redis
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/rust/">
+                Rust
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Rust/">Rust</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="Rust学习"><a href="#Rust学习" class="headerlink" title="Rust学习"></a>Rust学习</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cargo update       # 更新依赖</span><br><span class="line">cargo build        # 测试是否能 build</span><br><span class="line">cargo clean        # 清理后重新编译 run</span><br><span class="line">cargo run          # 运行 loka-server</span><br></pre></td></tr></table></figure>
+
+<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3><ol>
+<li>不能随便命名 因为rust会严格检查</li>
 </ol>
-<ul>
-<li>保存文件<code>:w</code></li>
-<li>另存为<code>:w 路径</code></li>
-<li>退出文件<code>:q</code></li>
-<li>保存并且退出<code>:wq</code></li>
-<li>表示强制退出，刚才做的修改操作不做保存<code>:q!</code></li>
-<li><code>:!外部命令</code></li>
-<li><code>/关键词</code> 搜索查找</li>
-<li>替换 -&gt; %表示整个文件 g表示全局（global）<ul>
-<li><code>:s/搜索的关键词/新的内容</code> (替换光标所在行的第一处符合条件的内容)</li>
-<li><code>:s/搜索的关键词/新的内容/g</code> (替换光标所在行的全部符合条件的内容)</li>
-<li><code>:%s/搜索的关键词/新的内容</code> (替换整个文档中每行第一个符合条件的内容)</li>
-<li><code>:%s/搜索的关键词/新的内容/g</code> (替换整个文档的符合条件的内容)</li>
-</ul>
-</li>
-<li>显示行号（临时）<ul>
-<li><code>:set nu</code>[number]</li>
-<li><code>:set nonu</code></li>
-</ul>
-</li>
-<li>文件多开<code>:files</code> <ul>
-<li>果需要指定切换文件的名称，则可以输入<code>:open 已经打开的文件名</code></li>
-<li>“:bn”切换到下一个文件（back next）<code></code></li>
-<li>“:bp”切换到上一个文件（back prev）<code></code></li>
-</ul>
-</li>
-</ul>
-<h5 id="分屏功能"><a href="#分屏功能" class="headerlink" title="分屏功能"></a>分屏功能</h5><ul>
-<li><p>分屏</p>
-<ul>
-<li>水平方向分屏打开新文件 横向切分 <code>:sp</code>文件名 <code>:split</code>文件名</li>
-<li>垂直方向分屏打开新文件 竖向切分 <code>:vsp</code>文件名 <code>:vsplit</code>文件名</li>
-<li>上下分割当前打开的文件 <code>按键Ctrl+w s</code></li>
-<li>左右分割当前打开的文件 <code>按键Ctrl+w v</code></li>
-</ul>
-</li>
-<li><p>关闭分屏 </p>
-<ul>
-<li>关闭当前窗口<code>按键Ctrl+w c</code></li>
-<li>关闭当前窗口，如果只剩最后一个了，则退出Vim<code>按键Ctrl+w q</code></li>
-</ul>
-</li>
-<li><p>移动光标</p>
-<ul>
-<li>把光标移到右边的屏 <code>按键Ctrl+w l</code></li>
-<li>把光标移到左边的屏中 <code>按键Ctrl+w h</code></li>
-<li>把光标移到上边的屏中 <code>按键Ctrl+w k</code></li>
-<li>把光标移到下边的屏中 <code>按键Ctrl+w j</code></li>
-<li>把光标移到下一个的屏中 <code>按键Ctrl+w w</code></li>
-</ul>
-</li>
-<li><p>移动分屏</p>
-<ul>
-<li>向右移动 <code>按键Ctrl+w L</code></li>
-<li>向左移动 <code>按键Ctrl+w H</code></li>
-<li>向上移动 <code>按键Ctrl+w K</code></li>
-<li>向下移动 <code>按键Ctrl+w J</code></li>
-</ul>
-</li>
-<li><p>屏幕尺寸</p>
-<ul>
-<li>让所有的屏都有一样的高度 <code>按键Ctrl+w =</code></li>
-<li>增加高度 <code>按键Ctrl+w +</code></li>
-<li>减少高度 <code>按键Ctrl+w -</code></li>
-</ul>
-</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7201668416171655227">cc</a></p>
-<h2 id="VIM-IDE"><a href="#VIM-IDE" class="headerlink" title="VIM IDE"></a><a target="_blank" rel="noopener" href="https://github.com/0rz33/VIM-IDE">VIM IDE</a></h2>
-        </div>
-    
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pub(crate) mod loka_api &#123;</span><br><span class="line">    tonic::include_proto!(&quot;loka_rpc&quot;);</span><br><span class="line">&#125;</span><br><span class="line">Rust 和 Tonic 结合 gRPC 的核心机制，你会发现它和其他语言（比如 JS/TS、Python）完全不同，因为 Rust 是 编译时严格类型检查 的语言</span><br></pre></td></tr></table></figure>
 
-</div>
-            
-                
-<div class="post">
+<ol start="2">
+<li>i32&#x2F;i64&#x2F;isize&#x2F;usize 这几个区别和用途</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">i32 和 i64 主要区别是 占用字节和数值范围</span><br><span class="line"></span><br><span class="line">i32：32 位有符号整数</span><br><span class="line">    占 4 字节</span><br><span class="line">    范围：-2_147_483_648 到 2_147_483_647</span><br><span class="line"></span><br><span class="line">i64：64 位有符号整数</span><br><span class="line">    占 8 字节</span><br><span class="line">    范围：-9_223_372_036_854_775_808 到 9_223_372_036_854_775_807</span><br><span class="line"></span><br><span class="line">想随 CPU 架宽变化，使用 isize / usize</span><br></pre></td></tr></table></figure>
 
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/22/vue-big-file-upload/">
-                vue2 大文件上传component(做成组件)
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/前端/">前端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
-<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
-<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
-
-<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/22/vue2vsvue3/">
-                vue2 对比 vue3
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-22</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/前端/">前端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="图层渲染"><a href="#图层渲染" class="headerlink" title="图层渲染"></a>图层渲染</h2><h3 id="VUE2-渲染流程图"><a href="#VUE2-渲染流程图" class="headerlink" title="VUE2 渲染流程图"></a>VUE2 渲染流程图</h3><p>主function<br>prop 父组件传入数据 template中使用<br>data()<br>watch 数据监听 对data数据监听<br>create()<br>methods</p>
-<p>vue init()<br>vue $mount()<br>初始化渲染watcher</p>
-<p>render 初次渲染</p>
-<p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
-<p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
-<p>compment标签<br>（组件问题）</p>
-<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><table>
+<ol start="3">
+<li>函数和宏区别</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">函数 = 类型安全、运行时逻辑封装 (严格)</span><br><span class="line">宏 = 编译期代码生成、元编程工具 </span><br><span class="line">函数适用场景</span><br><span class="line">    封装逻辑、计算、操作</span><br><span class="line">    需要类型安全</span><br><span class="line">    函数调用开销可以忽略或者通过 #[inline] 优化</span><br><span class="line"></span><br><span class="line">宏适用场景</span><br><span class="line">    生成重复代码（如 impl 一大堆 trait）</span><br><span class="line">    DSL / 语法扩展（例如 serde 的 #[derive(Serialize)] 是宏）</span><br><span class="line">    日志/调试（println!、dbg!）</span><br><span class="line">    可变参数（函数参数数量固定，宏可任意）</span><br></pre></td></tr></table></figure>
+<h3 id="系统对比-Go-Golang-、Rust-和-C"><a href="#系统对比-Go-Golang-、Rust-和-C" class="headerlink" title="系统对比 Go (Golang)、Rust 和 C++"></a>系统对比 Go (Golang)、Rust 和 C++</h3><p>1️⃣ 语言概览</p>
+<table>
 <thead>
 <tr>
-<th>vue2</th>
-<th>vue3</th>
+<th>语言</th>
+<th>Go (Golang)</th>
+<th>Rust</th>
+<th>C++</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>beforeCreate</td>
-<td></td>
+<td><strong>发布年份</strong></td>
+<td>2009</td>
+<td>2015</td>
+<td>1985</td>
 </tr>
 <tr>
-<td>created</td>
-<td></td>
+<td><strong>设计目标</strong></td>
+<td>简单、高效、并发友好</td>
+<td>安全、零开销抽象、并发 &amp; 系统级</td>
+<td>高性能、通用系统编程</td>
 </tr>
 <tr>
-<td>beforeMount</td>
-<td>onBeforeMount</td>
+<td><strong>编译模式</strong></td>
+<td>静态编译</td>
+<td>静态编译</td>
+<td>静态编译</td>
 </tr>
 <tr>
-<td>mounted</td>
-<td>onMounted</td>
+<td><strong>内存管理</strong></td>
+<td>GC（垃圾回收）</td>
+<td>所有权 + 借用系统（无 GC）</td>
+<td>手动管理（可选智能指针）</td>
 </tr>
 <tr>
-<td>beforeUpdate</td>
-<td>onBeforeUpdate</td>
+<td><strong>并发模型</strong></td>
+<td>Goroutines + Channel（轻量线程）</td>
+<td>async&#x2F;await + Send&#x2F;Sync trait</td>
+<td>std::thread + 原生线程库</td>
 </tr>
 <tr>
-<td>updated</td>
-<td>onUpdated</td>
+<td><strong>安全性</strong></td>
+<td>编译时类型安全，但有 GC</td>
+<td>编译时内存 &amp; 并发安全</td>
+<td>编译时类型安全，但容易悬挂指针和 UB</td>
 </tr>
 <tr>
-<td>beforeDestroy</td>
-<td>onBeforeUnmount</td>
+<td><strong>性能</strong></td>
+<td>高，但有 GC 开销</td>
+<td>接近 C++，零开销抽象</td>
+<td>极高，可手动优化到极致</td>
 </tr>
 <tr>
-<td>destroyed</td>
-<td>onUnmounted</td>
+<td><strong>泛型</strong></td>
+<td>1.18+ 支持泛型</td>
+<td>强大泛型 + trait</td>
+<td>模板（template）</td>
+</tr>
+<tr>
+<td><strong>易用性</strong></td>
+<td>简单易学、上手快</td>
+<td>学习曲线陡峭，但安全性高</td>
+<td>学习曲线陡峭，容易踩坑</td>
+</tr>
+<tr>
+<td><strong>生态</strong></td>
+<td>云服务、微服务、网络库</td>
+<td>系统编程、嵌入式、WebAssembly、区块链</td>
+<td>系统、游戏、图形、高性能库</td>
 </tr>
 </tbody></table>
-<blockquote>
-<p>Tips： setup 是围绕 beforeCreate 和 created 生命周期钩子运行的，所以不需要显式地去定义。</p>
-</blockquote>
+<p>2️⃣ 内存管理对比</p>
+<table>
+<thead>
+<tr>
+<th>方面</th>
+<th>Go</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>管理方式</strong></td>
+<td>GC（自动回收）</td>
+<td>所有权 &amp; 借用 + 生命周期</td>
+<td>手动 delete &#x2F; new 或智能指针</td>
+</tr>
+<tr>
+<td><strong>悬挂指针</strong></td>
+<td>基本不会</td>
+<td>编译器保证不会</td>
+<td>很容易出现</td>
+</tr>
+<tr>
+<td><strong>内存泄漏</strong></td>
+<td>GC 避免大部分</td>
+<td>编译器保证 RAII（几乎不会）</td>
+<td>可能出现，需手动管理</td>
+</tr>
+<tr>
+<td><strong>性能影响</strong></td>
+<td>GC 停顿可能影响延迟</td>
+<td>无 GC，性能可控</td>
+<td>高性能，但需小心内存管理</td>
+</tr>
+</tbody></table>
+<p>3️⃣ 并发对比</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>并发模型</th>
+<th>优缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>Goroutines + Channels</td>
+<td>轻量级、易用、调度由 runtime 管理；可能 GC 暂停影响延迟</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>async&#x2F;await + Send&#x2F;Sync</td>
+<td>安全、零成本抽象，但需要掌握生命周期和 trait，学习曲线高</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>std::thread &#x2F; Boost &#x2F; 原生线程</td>
+<td>高度可控，性能最好，但容易出现死锁、数据竞争，需要手动管理同步</td>
+</tr>
+</tbody></table>
+<p>4️⃣ 安全性</p>
+<table>
+<thead>
+<tr>
+<th>安全性方面</th>
+<th>Go</th>
+<th>Rust</th>
+<th>C++</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型安全</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>内存安全</td>
+<td>依赖 GC</td>
+<td>编译期保证</td>
+<td>依赖开发者</td>
+</tr>
+<tr>
+<td>并发安全</td>
+<td>简单但不严格</td>
+<td>编译期借用检查保证</td>
+<td>开发者自己保证</td>
+</tr>
+<tr>
+<td>越界访问</td>
+<td>runtime panic</td>
+<td>编译器 &amp; borrow checker 阻止</td>
+<td>可能出现 UB</td>
+</tr>
+</tbody></table>
+<p>5️⃣ 性能比较<br>C++：原生指针 + 零开销抽象 → 最快<br>Rust：接近 C++，无 GC，优化非常强<br>Go：有 GC，但 Goroutine 调度极快，适合网络&#x2F;IO密集型</p>
+<p>6️⃣ 泛型与抽象</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>泛型 &#x2F; 模板</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>1.18+ 泛型</td>
+<td>类型安全，但语法简单</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>trait + 泛型</td>
+<td>零开销抽象，函数和类型都可以泛型化</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>template</td>
+<td>功能强大，但错误信息复杂，模板元编程复杂</td>
+</tr>
+</tbody></table>
+<p>7️⃣ 应用场景</p>
+<table>
+<thead>
+<tr>
+<th>语言</th>
+<th>常见应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go</td>
+<td>云服务、微服务、网络服务、CLI 工具</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>系统编程、嵌入式、WebAssembly、区块链、性能关键库</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>系统底层、游戏开发、图形渲染、高性能计算</td>
+</tr>
+</tbody></table>
+<p>🔹 总结建议</p>
+<ol>
+<li>想快速上手、开发网络&#x2F;服务端应用 → Go</li>
+<li>想追求内存安全、零成本抽象、系统级开发 → Rust</li>
+<li>极致性能、硬件控制、游戏或图形开发 → C++</li>
+</ol>
 
         </div>
     
@@ -1260,6 +1462,10 @@
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vim/">[expanded] [blog] VIM</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
             </li>
             
@@ -1269,10 +1475,6 @@
             
             <li>
                 <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
             </li>
             
         </ul>
