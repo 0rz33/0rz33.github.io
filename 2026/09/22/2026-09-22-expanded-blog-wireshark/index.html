@@ -10,6 +10,15 @@
 
     <!--Description-->
     
+        <meta name="description" content="[expanded] [blog] Wireshark
+原始问题: [blog] Wireshark
+
+Wireshark 网络封包分析技能清单
+场景占位: 抓取  与  之间的流量,分析  的网络行为阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手
+
+
+1. 用 ip.addr 而非 ip.">
+    
 
     <!--Author-->
     
@@ -18,7 +27,7 @@
 
     <!--Open Graph Title-->
     
-        <meta property="og:title" content="渗透笔记"/>
+        <meta property="og:title" content="[expanded] [blog] Wireshark"/>
     
 
     <!--Open Graph Description-->
@@ -43,7 +52,7 @@
 
     <!-- Title -->
     
-    <title>渗透笔记 - 0rz33</title>
+    <title>[expanded] [blog] Wireshark - 0rz33</title>
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
@@ -181,8 +190,8 @@
 
     <div class="post-header">
         <h1 class="title">
-            <a href="/2026/09/22/pantesting-note/">
-                渗透笔记
+            <a href="/2026/09/22/2026-09-22-expanded-blog-wireshark/">
+                [expanded] [blog] Wireshark
             </a>
         </h1>
         <div class="post-info">
@@ -190,10 +199,6 @@
                 <span class="date">2026-09-22</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
             
         </div>
     </div>
@@ -204,7 +209,122 @@
         
 
         <!-- Post Content -->
-        
+        <h1 id="expanded-blog-Wireshark"><a href="#expanded-blog-Wireshark" class="headerlink" title="[expanded] [blog] Wireshark"></a>[expanded] [blog] Wireshark</h1><blockquote>
+<p>原始问题: [blog] Wireshark</p>
+</blockquote>
+<h1 id="Wireshark-网络封包分析技能清单"><a href="#Wireshark-网络封包分析技能清单" class="headerlink" title="Wireshark 网络封包分析技能清单"></a>Wireshark 网络封包分析技能清单</h1><blockquote>
+<p>场景占位: 抓取 <LOCAL_IP> 与 <REMOTE_SERVICE> 之间的流量,分析 <APP_NAME> 的网络行为<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-用-ip-addr-而非-ip-src-dst-做双向流量过滤"><a href="#1-用-ip-addr-而非-ip-src-dst-做双向流量过滤" class="headerlink" title="1. 用 ip.addr 而非 ip.src&#x2F;dst 做双向流量过滤"></a>1. 用 ip.addr 而非 ip.src&#x2F;dst 做双向流量过滤</h2><ul>
+<li><strong>规则</strong>: 查看某 IP 的完整会话时用 <code>ip.addr == &lt;TARGET_IP&gt;</code>,不要分别写 src 和 dst</li>
+<li><strong>为什么</strong>: ip.addr 自动匹配源和目的地址,避免漏抓响应包;新手常只写 ip.src 导致只看到请求没响应</li>
+<li><strong>踩坑</strong>: 写 <code>ip.src == &lt;IP&gt;</code> 只能看到该 IP 发出的包,收到的回包全部丢失</li>
+<li><strong>例外</strong>: 明确只想看单向流量(如只看攻击源)时才用 ip.src&#x2F;dst</li>
+</ul>
+<h2 id="2-包编号-No-不受过滤影响-用它做时序锚点"><a href="#2-包编号-No-不受过滤影响-用它做时序锚点" class="headerlink" title="2. 包编号 No. 不受过滤影响,用它做时序锚点"></a>2. 包编号 No. 不受过滤影响,用它做时序锚点</h2><ul>
+<li><strong>规则</strong>: 记录问题时用 No. 编号而非 Time,过滤后编号不变但时间戳会跳跃</li>
+<li><strong>为什么</strong>: 过滤器只隐藏显示,不改变原始编号;时间戳在过滤后看起来不连续容易误判丢包</li>
+<li><strong>踩坑</strong>: 看到时间戳从 10.001s 跳到 10.500s 以为丢包,实际是中间包被过滤了</li>
+</ul>
+<h2 id="3-TCP-握手的-Seq-是累计发送字节数-1-不是包序号"><a href="#3-TCP-握手的-Seq-是累计发送字节数-1-不是包序号" class="headerlink" title="3. TCP 握手的 Seq 是累计发送字节数+1,不是包序号"></a>3. TCP 握手的 Seq 是累计发送字节数+1,不是包序号</h2><ul>
+<li><strong>规则</strong>: SYN 包的 Seq 是随机初始值,后续 Seq &#x3D; 初始值 + 已发送字节数</li>
+<li><strong>为什么</strong>: Seq 用于字节流重组,不是包计数器;新手误以为 Seq 连续就是包连续</li>
+<li><strong>踩坑</strong>: 看到 Seq 跳变 1000 以为丢包,实际是对方发了 1000 字节数据</li>
+<li><strong>例外</strong>: SYN 包的 Seq 是随机数,不遵循累加规则</li>
+</ul>
+<h2 id="4-Len-0-的包不是空包-是控制包"><a href="#4-Len-0-的包不是空包-是控制包" class="headerlink" title="4. Len&#x3D;0 的包不是空包,是控制包"></a>4. Len&#x3D;0 的包不是空包,是控制包</h2><ul>
+<li><strong>规则</strong>: ACK&#x2F;SYN&#x2F;FIN 包的 Len&#x3D;0 是正常的,它们不携带应用数据</li>
+<li><strong>为什么</strong>: TCP 控制包只改变连接状态,不传输 payload;新手误以为 Len&#x3D;0 是异常</li>
+<li><strong>踩坑</strong>: 抓到大量 Len&#x3D;0 的 ACK 包以为网络有问题,实际是正常的确认包</li>
+</ul>
+<h2 id="5-过滤器用-or-连接多条件时必须加括号"><a href="#5-过滤器用-or-连接多条件时必须加括号" class="headerlink" title="5. 过滤器用 or 连接多条件时必须加括号"></a>5. 过滤器用 or 连接多条件时必须加括号</h2><ul>
+<li><strong>规则</strong>: 写 <code>(ip.src == &lt;IP_A&gt; or ip.dst == &lt;IP_B&gt;) and tcp.port == 443</code> 而非不加括号</li>
+<li><strong>为什么</strong>: Wireshark 的运算符优先级反直觉,and 优先级高于 or,不加括号会误匹配</li>
+<li><strong>踩坑</strong>: <code>ip.src == &lt;IP_A&gt; or ip.dst == &lt;IP_B&gt; and tcp.port == 443</code> 实际匹配 “所有来自 IP_A 的包” + “去往 IP_B 且端口 443 的包”</li>
+</ul>
+<h2 id="6-FIN-包出现不代表连接立即关闭"><a href="#6-FIN-包出现不代表连接立即关闭" class="headerlink" title="6. FIN 包出现不代表连接立即关闭"></a>6. FIN 包出现不代表连接立即关闭</h2><ul>
+<li><strong>规则</strong>: FIN 只表示一方不再发送数据,连接仍可接收数据(半关闭状态)</li>
+<li><strong>为什么</strong>: TCP 是全双工,一方 FIN 后另一方仍可继续发送;新手看到 FIN 就以为连接断了</li>
+<li><strong>踩坑</strong>: 客户端发 FIN 后服务端还在传大文件,误判为异常重传</li>
+</ul>
+<h2 id="7-时间戳格式影响问题定位效率"><a href="#7-时间戳格式影响问题定位效率" class="headerlink" title="7. 时间戳格式影响问题定位效率"></a>7. 时间戳格式影响问题定位效率</h2><ul>
+<li><strong>规则</strong>: 分析延迟时改用 “Seconds Since Previous Displayed Packet” 格式</li>
+<li><strong>为什么</strong>: 默认绝对时间戳不直观,相对时间戳能直接看出包间隔;官方文档不强调这个设置</li>
+<li><strong>踩坑</strong>: 用绝对时间手动计算包间隔,容易算错毫秒位</li>
+</ul>
+<h2 id="8-Protocol-列显示最高层协议-不是所有协议栈"><a href="#8-Protocol-列显示最高层协议-不是所有协议栈" class="headerlink" title="8. Protocol 列显示最高层协议,不是所有协议栈"></a>8. Protocol 列显示最高层协议,不是所有协议栈</h2><ul>
+<li><strong>规则</strong>: 看到 Protocol&#x3D;HTTP 不代表没有 TCP&#x2F;IP,只是显示了最上层</li>
+<li><strong>为什么</strong>: Wireshark 自动识别协议栈并只显示最有意义的那层;新手误以为 HTTP 包不走 TCP</li>
+<li><strong>踩坑</strong>: 过滤 <code>tcp.port == 80</code> 能抓到 HTTP 包,但 Protocol 列不显示 TCP</li>
+</ul>
+<h2 id="9-Info-列的内容是解析结果-不是原始数据"><a href="#9-Info-列的内容是解析结果-不是原始数据" class="headerlink" title="9. Info 列的内容是解析结果,不是原始数据"></a>9. Info 列的内容是解析结果,不是原始数据</h2><ul>
+<li><strong>规则</strong>: Info 显示 “GET &#x2F;api&#x2F;users” 是 Wireshark 解析出来的,不是包里的原始格式</li>
+<li><strong>为什么</strong>: Info 是人类可读的摘要,实际数据在下方详情面板;新手直接复制 Info 内容去重放会失败</li>
+<li><strong>踩坑</strong>: 看到 Info 显示 “Malformed Packet” 就以为包损坏,实际可能只是 Wireshark 不认识该协议</li>
+</ul>
+<h2 id="10-抓包前不设过滤器-用-Display-Filter-事后过滤"><a href="#10-抓包前不设过滤器-用-Display-Filter-事后过滤" class="headerlink" title="10. 抓包前不设过滤器,用 Display Filter 事后过滤"></a>10. 抓包前不设过滤器,用 Display Filter 事后过滤</h2><ul>
+<li><strong>规则</strong>: Capture Filter 在抓包时过滤(BPF 语法),Display Filter 在抓包后过滤(Wireshark 语法)</li>
+<li><strong>为什么</strong>: Capture Filter 丢弃的包无法找回,Display Filter 只是隐藏;新手用错过滤器类型导致关键包丢失</li>
+<li><strong>踩坑</strong>: 在 Capture Options 里写 <code>ip.addr == &lt;IP&gt;</code> 报语法错误,应该写 <code>host &lt;IP&gt;</code></li>
+</ul>
+<h2 id="11-同一-TCP-流的包用-Follow-Stream-关联查看"><a href="#11-同一-TCP-流的包用-Follow-Stream-关联查看" class="headerlink" title="11. 同一 TCP 流的包用 Follow Stream 关联查看"></a>11. 同一 TCP 流的包用 Follow Stream 关联查看</h2><ul>
+<li><strong>规则</strong>: 右键包选 “Follow → TCP Stream” 查看完整会话,不要手动过滤 ip+port</li>
+<li><strong>为什么</strong>: Follow Stream 自动匹配四元组(src_ip, src_port, dst_ip, dst_port)并按时序排列;手动过滤容易漏掉端口复用的情况</li>
+<li><strong>踩坑</strong>: 过滤 <code>ip.addr == &lt;IP&gt; and tcp.port == 8080</code> 抓到多个不相关的连接混在一起</li>
+</ul>
+<h2 id="12-RST-包出现代表连接异常终止-不是正常关闭"><a href="#12-RST-包出现代表连接异常终止-不是正常关闭" class="headerlink" title="12. RST 包出现代表连接异常终止,不是正常关闭"></a>12. RST 包出现代表连接异常终止,不是正常关闭</h2><ul>
+<li><strong>规则</strong>: 看到 RST 标志说明连接被强制中断,需排查应用层或防火墙</li>
+<li><strong>为什么</strong>: 正常关闭是四次挥手(FIN),RST 是单方面撕毁连接;新手把 RST 和 FIN 混淆</li>
+<li><strong>踩坑</strong>: 客户端超时主动发 RST,误判为服务端拒绝连接</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>ip.addr 匹配双向流量,ip.src&#x2F;dst 只匹配单向</strong></li>
+<li><strong>Seq 是字节累计数不是包序号,Len&#x3D;0 是控制包不是空包</strong></li>
+<li><strong>过滤器 or 条件必须加括号,否则优先级错误</strong></li>
+<li><strong>Capture Filter 抓包时过滤(BPF 语法),Display Filter 事后过滤(Wireshark 语法)</strong></li>
+<li><strong>RST 是异常中断,FIN 是正常关闭,别混淆</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只看到请求没响应</td>
+<td>用 ip.addr 而非 ip.src</td>
+</tr>
+<tr>
+<td>时间戳跳跃怀疑丢包</td>
+<td>检查 No. 编号是否连续</td>
+</tr>
+<tr>
+<td>Seq 突然跳变</td>
+<td>计算跳变值是否等于上个包的 Len</td>
+</tr>
+<tr>
+<td>大量 Len&#x3D;0 的包</td>
+<td>检查是否 ACK&#x2F;SYN&#x2F;FIN 控制包</td>
+</tr>
+<tr>
+<td>过滤器语法报错</td>
+<td>确认是 Capture Filter(BPF)还是 Display Filter(Wireshark)</td>
+</tr>
+<tr>
+<td>需要看完整会话</td>
+<td>右键 Follow → TCP Stream</td>
+</tr>
+<tr>
+<td>连接突然断开</td>
+<td>查找 RST 包并分析谁发的</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-22</em></p>
+
     </div>
 
     
@@ -212,7 +332,7 @@
     
         <div class="post-tags">
             <i class="fa fa-tags" aria-hidden="true"></i>
-            <a href="/tags/笔记/">#笔记</a>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
         </div>
     
 
