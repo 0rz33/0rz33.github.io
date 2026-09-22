@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] [blog] vue2 大文件上传component(做成组件)
+原始问题: [blog] vue2 大文件上传component(做成组件)
+
+前端大文件分片上传组件实现技能清单
+场景占位: 上传到 ，文件 MD5 用 ，分片索引用 阅读顺序: 扫标题 → 记住反直觉 3-5">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] vue2 大文件上传component(做成组件)"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] vue2 大文件上传component(做成组件) - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">
+                [expanded] [blog] vue2 大文件上传component(做成组件)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-blog-vue2-大文件上传component-做成组件"><a href="#expanded-blog-vue2-大文件上传component-做成组件" class="headerlink" title="[expanded] [blog] vue2 大文件上传component(做成组件)"></a>[expanded] [blog] vue2 大文件上传component(做成组件)</h1><blockquote>
+<p>原始问题: [blog] vue2 大文件上传component(做成组件)</p>
+</blockquote>
+<h1 id="前端大文件分片上传组件实现技能清单"><a href="#前端大文件分片上传组件实现技能清单" class="headerlink" title="前端大文件分片上传组件实现技能清单"></a>前端大文件分片上传组件实现技能清单</h1><blockquote>
+<p>场景占位: 上传到 <PPVOD_SERVER>，文件 MD5 用 <FILE_HASH>，分片索引用 <CHUNK_INDEX><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-批量上传必须串行校验每个文件的-MD5，不能并行"><a href="#1-批量上传必须串行校验每个文件的-MD5，不能并行" class="headerlink" title="1. 批量上传必须串行校验每个文件的 MD5，不能并行"></a>1. 批量上传必须串行校验每个文件的 MD5，不能并行</h2><ul>
+<li><strong>规则</strong>: 用 <code>for...of</code> 循环逐个计算文件 MD5，不能用 <code>forEach</code> 或 <code>map</code></li>
+<li><strong>为什么</strong>: MD5 计算是异步操作，并行会导致内存爆炸（多个大文件同时读入内存）且无法保证上传顺序，串行能控制内存峰值在单文件大小</li>
+<li><strong>踩坑</strong>: 用 <code>files.forEach(async file =&gt; await getMd5())</code> 会立即触发所有文件读取，浏览器直接卡死</li>
+<li><strong>例外</strong>: 小文件（&lt;50MB）且数量少（&lt;5个）可以并行</li>
+</ul>
+<h2 id="2-文件唯一标识必须用”业务键-文件属性”混合-MD5，不能只用文件内容-MD5"><a href="#2-文件唯一标识必须用”业务键-文件属性”混合-MD5，不能只用文件内容-MD5" class="headerlink" title="2. 文件唯一标识必须用”业务键+文件属性”混合 MD5，不能只用文件内容 MD5"></a>2. 文件唯一标识必须用”业务键+文件属性”混合 MD5，不能只用文件内容 MD5</h2><ul>
+<li><strong>规则</strong>: <code>md5(uploadkey + name + type + lastModifiedDate + size)</code> 生成 uniqueFileName</li>
+<li><strong>为什么</strong>: 纯文件内容 MD5 无法区分同一用户上传同一文件的不同批次，会导致秒传逻辑误判（上次上传失败的文件被当作已完成）</li>
+<li><strong>踩坑</strong>: 只用文件 MD5 会让用户重新上传失败文件时直接跳过，实际服务端没有完整文件</li>
+<li><strong>例外</strong>: 全局去重场景（如公共资源库）只需文件内容 MD5</li>
+</ul>
+<h2 id="3-分片上传进度必须分两层计算：分片内字节进度-已完成分片数"><a href="#3-分片上传进度必须分两层计算：分片内字节进度-已完成分片数" class="headerlink" title="3. 分片上传进度必须分两层计算：分片内字节进度 + 已完成分片数"></a>3. 分片上传进度必须分两层计算：分片内字节进度 + 已完成分片数</h2><ul>
+<li><strong>规则</strong>: <code>progressPercent = (upchunk / blockNum * 100) + (chunkprogress.percent / blockNum)</code></li>
+<li><strong>为什么</strong>: 只统计已完成分片会导致进度条长时间卡在某个百分比（当前分片上传中），用户误以为卡死</li>
+<li><strong>踩坑</strong>: 直接用 <code>upchunk / blockNum</code> 会让 100MB 文件分 10 片时，每片上传 10 秒进度条都不动</li>
+<li><strong>例外</strong>: 分片极小（&lt;1MB）时可以忽略分片内进度</li>
+</ul>
+<h2 id="4-文件类型校验必须在切片前做，不能在切片后或上传时做"><a href="#4-文件类型校验必须在切片前做，不能在切片后或上传时做" class="headerlink" title="4. 文件类型校验必须在切片前做，不能在切片后或上传时做"></a>4. 文件类型校验必须在切片前做，不能在切片后或上传时做</h2><ul>
+<li><strong>规则</strong>: 在 <code>add()</code> 方法最开始用 <code>mimeTypes.indexOf(ext)</code> 校验并 <code>return</code></li>
+<li><strong>为什么</strong>: 切片是 CPU 密集操作，大文件切片可能耗时数秒，校验失败会浪费计算资源且用户体验差（等了半天才提示格式错误）</li>
+<li><strong>踩坑</strong>: 在切片后校验会让用户选择 1GB 文件后等 5 秒才看到”格式不支持”</li>
+<li><strong>例外</strong>: 需要读取文件头魔数校验真实格式时必须在切片后</li>
+</ul>
+<h2 id="5-秒传校验必须在服务端做文件级-MD5-比对，前端只做去重"><a href="#5-秒传校验必须在服务端做文件级-MD5-比对，前端只做去重" class="headerlink" title="5. 秒传校验必须在服务端做文件级 MD5 比对，前端只做去重"></a>5. 秒传校验必须在服务端做文件级 MD5 比对，前端只做去重</h2><ul>
+<li><strong>规则</strong>: 前端用 <code>files.findIndex(item =&gt; item.md5 === fileMd5)</code> 只防止重复添加，真正秒传逻辑在服务端返回”文件已存在”</li>
+<li><strong>为什么</strong>: 前端无法知道服务端是否真的有完整文件，只能防止同一批次重复上传；服务端可能因存储迁移&#x2F;清理导致文件丢失</li>
+<li><strong>踩坑</strong>: 前端判断”MD5 存在就跳过”会导致服务端文件被误删后用户无法重新上传</li>
+<li><strong>例外</strong>: 纯前端应用（如 IndexedDB 存储）可以前端做秒传</li>
+</ul>
+<h2 id="6-视频时长获取必须用-Promise-包装-loadedmetadata-事件，不能用-async-await-直接读"><a href="#6-视频时长获取必须用-Promise-包装-loadedmetadata-事件，不能用-async-await-直接读" class="headerlink" title="6. 视频时长获取必须用 Promise 包装 loadedmetadata 事件，不能用 async&#x2F;await 直接读"></a>6. 视频时长获取必须用 Promise 包装 loadedmetadata 事件，不能用 async&#x2F;await 直接读</h2><ul>
+<li><strong>规则</strong>: 创建 video 元素，监听 <code>loadedmetadata</code> 事件，在回调中 <code>resolve(video.duration)</code></li>
+<li><strong>为什么</strong>: video.duration 只有在元数据加载完成后才有值，直接读取是 NaN；大视频文件元数据加载可能需要数秒</li>
+<li><strong>踩坑</strong>: 直接 <code>const duration = video.duration</code> 永远得到 NaN，因为 src 赋值后元数据还没加载</li>
+<li><strong>例外</strong>: 已知格式良好的小视频（&lt;10MB）可以加 setTimeout 轮询</li>
+</ul>
+<h2 id="7-分片大小必须根据文件大小动态调整，不能固定值"><a href="#7-分片大小必须根据文件大小动态调整，不能固定值" class="headerlink" title="7. 分片大小必须根据文件大小动态调整，不能固定值"></a>7. 分片大小必须根据文件大小动态调整，不能固定值</h2><ul>
+<li><strong>规则</strong>: <code>chunkSize = file.size &lt; 100MB ? 2MB : 5MB</code>，超大文件（&gt;1GB）用 10MB</li>
+<li><strong>为什么</strong>: 小文件用大分片会导致分片数过少无法利用并发；大文件用小分片会导致请求数爆炸（1GB 文件 2MB 分片需 500 个请求）</li>
+<li><strong>踩坑</strong>: 固定 2MB 分片上传 5GB 文件会产生 2500 个 HTTP 请求，浏览器并发限制导致上传极慢</li>
+<li><strong>例外</strong>: 服务端强制要求固定分片大小时（如 OSS 分片上传）</li>
+</ul>
+<h2 id="8-断点续传必须存储”已上传分片索引数组”，不能只存已上传数量"><a href="#8-断点续传必须存储”已上传分片索引数组”，不能只存已上传数量" class="headerlink" title="8. 断点续传必须存储”已上传分片索引数组”，不能只存已上传数量"></a>8. 断点续传必须存储”已上传分片索引数组”，不能只存已上传数量</h2><ul>
+<li><strong>规则</strong>: 用 <code>uploadedChunks: [0,1,3,5]</code> 记录，不能只用 <code>upchunk: 4</code></li>
+<li><strong>为什么</strong>: 网络不稳定时分片可能乱序成功（第 2 片失败但第 3 片成功），只记数量会导致续传时重复上传已成功分片</li>
+<li><strong>踩坑</strong>: 只用计数器会让第 2 片失败后，续传时从第 5 片开始（以为前 4 片都成功了），实际第 2 片丢失</li>
+<li><strong>例外</strong>: 服务端强制顺序上传且会拒绝乱序分片时</li>
+</ul>
+<h2 id="9-取消上传必须同时取消-XHR-请求和清理-FileReader，不能只清状态"><a href="#9-取消上传必须同时取消-XHR-请求和清理-FileReader，不能只清状态" class="headerlink" title="9. 取消上传必须同时取消 XHR 请求和清理 FileReader，不能只清状态"></a>9. 取消上传必须同时取消 XHR 请求和清理 FileReader，不能只清状态</h2><ul>
+<li><strong>规则</strong>: 保存 <code>xhr</code> 引用调用 <code>xhr.abort()</code>，同时 <code>fileReader.abort()</code> 并清空 <code>fileChunks</code> 数组</li>
+<li><strong>为什么</strong>: 只改状态不取消请求会导致后台继续上传浪费带宽；FileReader 不清理会持续占用内存（大文件切片会产生大量 Blob 对象）</li>
+<li><strong>踩坑</strong>: 点取消后进度条停了但网络面板显示还在上传，内存持续增长最终崩溃</li>
+<li><strong>例外</strong>: 使用 Fetch API 时用 AbortController 替代 xhr.abort()</li>
+</ul>
+<h2 id="10-组件销毁前必须清理所有-Blob-URL-和取消上传，不能依赖-GC"><a href="#10-组件销毁前必须清理所有-Blob-URL-和取消上传，不能依赖-GC" class="headerlink" title="10. 组件销毁前必须清理所有 Blob URL 和取消上传，不能依赖 GC"></a>10. 组件销毁前必须清理所有 Blob URL 和取消上传，不能依赖 GC</h2><ul>
+<li><strong>规则</strong>: 在 <code>beforeDestroy</code> 钩子中遍历 <code>files</code> 调用 <code>URL.revokeObjectURL(file.cover)</code> 和取消上传</li>
+<li><strong>为什么</strong>: Blob URL 不会自动释放，会导致内存泄漏；未取消的上传会在组件销毁后继续执行回调报错</li>
+<li><strong>踩坑</strong>: 切换路由后内存不释放，上传 10 个大文件后切换页面内存占用还是 2GB</li>
+<li><strong>例外</strong>: 单页应用且组件永不销毁时可以不清理</li>
+</ul>
+<h2 id="11-进度条颜色必须根据状态动态变化，不能固定色"><a href="#11-进度条颜色必须根据状态动态变化，不能固定色" class="headerlink" title="11. 进度条颜色必须根据状态动态变化，不能固定色"></a>11. 进度条颜色必须根据状态动态变化，不能固定色</h2><ul>
+<li><strong>规则</strong>: <code>customColor = status === &#39;上传中&#39; ? &#39;#409EFF&#39; : status === &#39;失败&#39; ? &#39;#F56C6C&#39; : &#39;#67C23A&#39;</code></li>
+<li><strong>为什么</strong>: 固定颜色无法让用户快速识别上传状态，尤其批量上传时需要一眼看出哪些失败</li>
+<li><strong>踩坑</strong>: 所有进度条都是蓝色，用户以为都在上传，实际有 3 个已经失败了</li>
+<li><strong>例外</strong>: 设计规范强制单一颜色时</li>
+</ul>
+<h2 id="12-文件列表必须支持单个删除且删除时取消对应上传，不能只清空全部"><a href="#12-文件列表必须支持单个删除且删除时取消对应上传，不能只清空全部" class="headerlink" title="12. 文件列表必须支持单个删除且删除时取消对应上传，不能只清空全部"></a>12. 文件列表必须支持单个删除且删除时取消对应上传，不能只清空全部</h2><ul>
+<li><strong>规则</strong>: <code>deleteFile(index)</code> 中先调用 <code>files[index].cancel()</code> 再 <code>files.splice(index, 1)</code></li>
+<li><strong>为什么</strong>: 批量上传时用户可能只想删除某个失败文件重新添加，清空全部会导致其他正在上传的文件也被中断</li>
+<li><strong>踩坑</strong>: 删除一个文件后其他文件的索引错乱，导致删除第 2 个文件实际删了第 3 个</li>
+<li><strong>例外</strong>: 明确只支持”全部取消”的简化场景</li>
+</ul>
+<h2 id="13-上传完成后必须校验服务端返回的文件大小，不能只看-HTTP-200"><a href="#13-上传完成后必须校验服务端返回的文件大小，不能只看-HTTP-200" class="headerlink" title="13. 上传完成后必须校验服务端返回的文件大小，不能只看 HTTP 200"></a>13. 上传完成后必须校验服务端返回的文件大小，不能只看 HTTP 200</h2><ul>
+<li><strong>规则</strong>: 对比 <code>response.fileSize === file.size</code>，不一致时标记为失败并重传</li>
+<li><strong>为什么</strong>: HTTP 200 只代表请求成功，不代表文件完整；网络中断、代理截断等会导致服务端收到不完整文件但返回 200</li>
+<li><strong>踩坑</strong>: 上传显示成功但播放视频时发现只有前半段，服务端实际只收到 60% 数据</li>
+<li><strong>例外</strong>: 服务端强制校验文件完整性且会返回 4xx 错误时</li>
+</ul>
+<h2 id="14-分片上传失败必须重试当前分片，不能直接标记整个文件失败"><a href="#14-分片上传失败必须重试当前分片，不能直接标记整个文件失败" class="headerlink" title="14. 分片上传失败必须重试当前分片，不能直接标记整个文件失败"></a>14. 分片上传失败必须重试当前分片，不能直接标记整个文件失败</h2><ul>
+<li><strong>规则</strong>: 单个分片失败时重试 3 次，3 次都失败才标记文件状态为”失败”</li>
+<li><strong>为什么</strong>: 网络抖动很常见，单次失败不代表文件无法上传；直接失败会让用户重新上传整个文件浪费已上传分片</li>
+<li><strong>踩坑</strong>: 上传 1GB 文件到 95% 时一个分片失败，整个文件标记失败，用户重新上传又从 0 开始</li>
+<li><strong>例外</strong>: 服务端返回 4xx 业务错误（如文件格式不支持）时不应重试</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>批量上传必须串行计算 MD5，并行会内存爆炸</strong></li>
+<li><strong>进度 &#x3D; 已完成分片占比 + 当前分片内进度占比，缺一不可</strong></li>
+<li><strong>文件唯一标识用业务键+属性混合 MD5，不能只用内容 MD5</strong></li>
+<li><strong>断点续传存已上传分片索引数组，不能只存数量</strong></li>
+<li><strong>组件销毁前必须清理 Blob URL 和取消上传，不能依赖 GC</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>进度条长时间不动</td>
+<td>加分片内字节进度，不能只统计已完成分片数</td>
+</tr>
+<tr>
+<td>内存持续增长</td>
+<td>检查 Blob URL 是否清理、FileReader 是否 abort</td>
+</tr>
+<tr>
+<td>秒传误判</td>
+<td>文件唯一标识加业务键，不能只用文件 MD5</td>
+</tr>
+<tr>
+<td>删除文件后索引错乱</td>
+<td>先取消上传再 splice，不能直接删数组元素</td>
+</tr>
+<tr>
+<td>上传成功但文件不完整</td>
+<td>校验服务端返回的文件大小，不能只看 HTTP 状态码</td>
+</tr>
+<tr>
+<td>大文件上传慢</td>
+<td>动态调整分片大小，大文件用 5-10MB 分片</td>
+</tr>
+<tr>
+<td>分片偶尔失败</td>
+<td>单分片重试 3 次，不要直接标记整个文件失败</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-22</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

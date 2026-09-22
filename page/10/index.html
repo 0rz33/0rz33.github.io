@@ -184,6 +184,179 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/21/2026-09-21-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
+                [expanded] [blog] XSS跨站脚本攻击
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-21</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-blog-XSS跨站脚本攻击"><a href="#expanded-blog-XSS跨站脚本攻击" class="headerlink" title="[expanded] [blog] XSS跨站脚本攻击"></a>[expanded] [blog] XSS跨站脚本攻击</h1><blockquote>
+<p>原始问题: [blog] XSS跨站脚本攻击</p>
+</blockquote>
+<h1 id="XSS-跨站脚本攻击技能点清单"><a href="#XSS-跨站脚本攻击技能点清单" class="headerlink" title="XSS 跨站脚本攻击技能点清单"></a>XSS 跨站脚本攻击技能点清单</h1><blockquote>
+<p>场景占位: 攻击者向 <TARGET_SITE> 注入脚本，受害者 <USER_A> 浏览页面触发执行，窃取 <SESSION_TOKEN><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-把管理员当首要攻击目标而非普通用户"><a href="#1-把管理员当首要攻击目标而非普通用户" class="headerlink" title="1. 把管理员当首要攻击目标而非普通用户"></a>1. 把管理员当首要攻击目标而非普通用户</h2><ul>
+<li><strong>规则</strong>: XSS 攻击优先瞄准网站管理员账户，而非普通访客</li>
+<li><strong>为什么</strong>: 管理员权限可操作文件系统和数据库，XSS 从”客户端攻击”升级为”服务端攻击跳板”，普通用户只能窃取自己的 Cookie</li>
+<li><strong>踩坑</strong>: 认为 XSS 只是偷 Cookie 的低危漏洞，忽略管理后台的 XSS 可直接 GetShell</li>
+<li><strong>例外</strong>: 金融类网站普通用户 Session 劫持也是高危（涉及资金操作）</li>
+</ul>
+<h2 id="2-输出点比输入点更关键"><a href="#2-输出点比输入点更关键" class="headerlink" title="2. 输出点比输入点更关键"></a>2. 输出点比输入点更关键</h2><ul>
+<li><strong>规则</strong>: 检测 XSS 时先定位数据在哪里输出（HTML&#x2F;JS&#x2F;属性），再倒推输入点</li>
+<li><strong>为什么</strong>: 同一个输入可能在多处输出，每个输出上下文的闭合方式完全不同（HTML 标签内 vs JS 字符串内 vs 属性值内）</li>
+<li><strong>踩坑</strong>: 只盯着表单输入框测试，遗漏 URL 参数、Referer、Cookie 等非表单输入在页面其他位置的回显</li>
+<li><strong>例外</strong>: DOM 型 XSS 的输出点在前端 JS 代码中，不经过服务端</li>
+</ul>
+<h2 id="3-用”特殊字符-唯一标识”组合探测而非直接打-Payload"><a href="#3-用”特殊字符-唯一标识”组合探测而非直接打-Payload" class="headerlink" title="3. 用”特殊字符+唯一标识”组合探测而非直接打 Payload"></a>3. 用”特殊字符+唯一标识”组合探测而非直接打 Payload</h2><ul>
+<li><strong>规则</strong>: 第一轮提交 <code>&lt;&gt;&quot;&#39;%;)(&amp;+唯一ID12345</code>，在源码中搜索唯一 ID 定位上下文</li>
+<li><strong>为什么</strong>: 直接打 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 被过滤时无法判断哪个字符被处理，唯一 ID 能精准定位输出位置和周围语法结构</li>
+<li><strong>踩坑</strong>: 盲目尝试各种 Payload 却不看响应源码，浪费时间在已经被实体化编码的场景</li>
+<li><strong>例外</strong>: 自动化扫描工具已内置此逻辑，手工测试时必须遵守</li>
+</ul>
+<h2 id="4-反射型-XSS-的危险度取决于传播方式"><a href="#4-反射型-XSS-的危险度取决于传播方式" class="headerlink" title="4. 反射型 XSS 的危险度取决于传播方式"></a>4. 反射型 XSS 的危险度取决于传播方式</h2><ul>
+<li><strong>规则</strong>: 反射型 XSS 标记为中危的前提是需要诱骗用户点击恶意链接，若能结合钓鱼或内部系统自动触发则升高危</li>
+<li><strong>为什么</strong>: 单纯的反射型需要社会工程学配合，但内网 OA 系统的反射型 XSS 可通过邮件通知自动触发，无需用户点击</li>
+<li><strong>踩坑</strong>: 看到”反射型”就写中危报告，忽略实际利用场景（如管理员必访问的报表页面）</li>
+<li><strong>例外</strong>: 存储型 XSS 无需传播直接高危</li>
+</ul>
+<h2 id="5-存储型-XSS-的持久化位置决定影响面"><a href="#5-存储型-XSS-的持久化位置决定影响面" class="headerlink" title="5. 存储型 XSS 的持久化位置决定影响面"></a>5. 存储型 XSS 的持久化位置决定影响面</h2><ul>
+<li><strong>规则</strong>: 检查恶意脚本存储在数据库、日志文件还是缓存，以及被哪些页面读取</li>
+<li><strong>为什么</strong>: 存在个人资料的 XSS 只影响查看该资料的用户，存在公共评论区的 XSS 影响所有访客，存在管理日志的 XSS 专打管理员</li>
+<li><strong>踩坑</strong>: 发现存储型 XSS 就直接定高危，实际该字段只在用户自己的设置页显示（自己打自己）</li>
+<li><strong>例外</strong>: 即使自 XSS，若能配合 CSRF 强制受害者修改自己资料也可利用</li>
+</ul>
+<h2 id="6-DOM-型-XSS-绕过所有服务端防护"><a href="#6-DOM-型-XSS-绕过所有服务端防护" class="headerlink" title="6. DOM 型 XSS 绕过所有服务端防护"></a>6. DOM 型 XSS 绕过所有服务端防护</h2><ul>
+<li><strong>规则</strong>: 当输入数据通过 <code>location.hash</code>、<code>document.referrer</code> 等直接被前端 JS 操作 DOM 时，服务端过滤完全无效</li>
+<li><strong>为什么</strong>: 数据流从未经过服务端（URL 的 # 后内容不发送到服务器），<code>innerHTML</code>、<code>eval</code>、<code>document.write</code> 直接执行</li>
+<li><strong>踩坑</strong>: 看到服务端有 WAF 和输入过滤就认为安全，忽略前端 JS 代码中的 <code>element.innerHTML = location.hash.substring(1)</code></li>
+<li><strong>例外</strong>: 若前端使用了 CSP 且配置正确，可部分缓解</li>
+</ul>
+<h2 id="7-闭合语法比-Payload-本身更重要"><a href="#7-闭合语法比-Payload-本身更重要" class="headerlink" title="7. 闭合语法比 Payload 本身更重要"></a>7. 闭合语法比 Payload 本身更重要</h2><ul>
+<li><strong>规则</strong>: 根据输出点的上下文构造闭合：HTML 标签内闭合标签、JS 字符串内闭合引号、属性值内闭合属性</li>
+<li><strong>为什么</strong>: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 在 <code>&lt;input value=&quot;用户输入&quot;&gt;</code> 中无效，需要 <code>&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;&quot;</code> 先闭合属性和标签</li>
+<li><strong>踩坑</strong>: 背了一堆 Payload 字典却不分析输出位置，所有测试都失败</li>
+<li><strong>例外</strong>: 在 <code>&lt;script&gt;var user=&quot;输出点&quot;;&lt;/script&gt;</code> 中需要 <code>&quot;;alert(1);//</code> 闭合 JS 语法</li>
+</ul>
+<h2 id="8-工具扫描的漏报率极高"><a href="#8-工具扫描的漏报率极高" class="headerlink" title="8. 工具扫描的漏报率极高"></a>8. 工具扫描的漏报率极高</h2><ul>
+<li><strong>规则</strong>: AWVS&#x2F;AppScan 只能发现 30-50% 的 XSS，复杂场景（多步操作、异步加载、富文本）必须手工测试</li>
+<li><strong>为什么</strong>: 工具无法理解业务逻辑（如先发帖再审核通过才显示），无法处理需要登录态的深层页面，无法测试 WebSocket 等非 HTTP 协议</li>
+<li><strong>踩坑</strong>: 扫描器没报 XSS 就认为安全，实际富文本编辑器、文件上传后的预览页面、导出的 Excel 宏都可能存在 XSS</li>
+<li><strong>例外</strong>: 简单的 GET 参数反射型 XSS 工具能有效发现</li>
+</ul>
+<h2 id="9-黑名单过滤必有绕过"><a href="#9-黑名单过滤必有绕过" class="headerlink" title="9. 黑名单过滤必有绕过"></a>9. 黑名单过滤必有绕过</h2><ul>
+<li><strong>规则</strong>: 遇到过滤 <code>&lt;script&gt;</code> 的防护，尝试大小写混淆、双写、编码、其他标签（<code>&lt;img&gt;</code>、<code>&lt;svg&gt;</code>、<code>&lt;iframe&gt;</code>）</li>
+<li><strong>为什么</strong>: 黑名单需要穷举所有危险模式，HTML 和 JS 的灵活性导致绕过方式无穷（<code>&lt;scr&lt;script&gt;ipt&gt;</code>、<code>&lt;ScRiPt&gt;</code>、<code>&lt;img src=x onerror=alert(1)&gt;</code>）</li>
+<li><strong>踩坑</strong>: 看到 <code>&lt;script&gt;</code> 被过滤就放弃，实际 <code>&lt;svg/onload=alert(1)&gt;</code> 可绕过</li>
+<li><strong>例外</strong>: 白名单+严格的 HTML 解析器（如 DOMPurify）较难绕过</li>
+</ul>
+<h2 id="10-HttpOnly-只防-Cookie-窃取不防-XSS-本身"><a href="#10-HttpOnly-只防-Cookie-窃取不防-XSS-本身" class="headerlink" title="10. HttpOnly 只防 Cookie 窃取不防 XSS 本身"></a>10. HttpOnly 只防 Cookie 窃取不防 XSS 本身</h2><ul>
+<li><strong>规则</strong>: HttpOnly 标志使 JS 无法读取 Cookie，但 XSS 仍可发起 AJAX 请求、修改页面、钓鱼、键盘记录</li>
+<li><strong>为什么</strong>: XSS 的危害不止窃取 Session，还包括以受害者身份执行操作（转账、发帖、改密码），HttpOnly 对此无效</li>
+<li><strong>踩坑</strong>: 设置了 HttpOnly 就认为 XSS 不可利用，实际攻击者可用 XSS 发起 AJAX 请求到敏感接口</li>
+<li><strong>例外</strong>: 纯静态展示页面且无敏感操作时，HttpOnly 确实大幅降低危害</li>
+</ul>
+<h2 id="11-CSP-是最后一道防线但配置常错"><a href="#11-CSP-是最后一道防线但配置常错" class="headerlink" title="11. CSP 是最后一道防线但配置常错"></a>11. CSP 是最后一道防线但配置常错</h2><ul>
+<li><strong>规则</strong>: Content-Security-Policy 可阻止内联脚本和外部恶意域，但 <code>unsafe-inline</code>、<code>unsafe-eval</code>、过宽的白名单会失效</li>
+<li><strong>为什么</strong>: 开发者为了方便常加 <code>unsafe-inline</code> 导致 CSP 形同虚设，或白名单包含 <code>*.googleapis.com</code> 等可被利用的 CDN</li>
+<li><strong>踩坑</strong>: 看到响应头有 CSP 就认为 XSS 不可利用，实际 <code>script-src &#39;unsafe-inline&#39;</code> 完全不防</li>
+<li><strong>例外</strong>: 严格的 CSP（仅允许特定 nonce 或 hash）可有效防御</li>
+</ul>
+<h2 id="12-富文本编辑器是-XSS-重灾区"><a href="#12-富文本编辑器是-XSS-重灾区" class="headerlink" title="12. 富文本编辑器是 XSS 重灾区"></a>12. 富文本编辑器是 XSS 重灾区</h2><ul>
+<li><strong>规则</strong>: 所有允许用户输入 HTML 的富文本编辑器（TinyMCE、CKEditor、UEditor）默认配置都可能存在 XSS</li>
+<li><strong>为什么</strong>: 富文本需要保留部分 HTML 标签（加粗、链接、图片），过滤逻辑复杂且常有遗漏（如 <code>&lt;a href=&quot;javascript:alert(1)&quot;&gt;</code>）</li>
+<li><strong>踩坑</strong>: 认为用了知名编辑器就安全，实际需要配置白名单且定期更新版本</li>
+<li><strong>例外</strong>: Markdown 编辑器若正确转义输出则相对安全</li>
+</ul>
+<h2 id="13-测试时用-alert-document-domain-而非-alert-1"><a href="#13-测试时用-alert-document-domain-而非-alert-1" class="headerlink" title="13. 测试时用 alert(document.domain) 而非 alert(1)"></a>13. 测试时用 alert(document.domain) 而非 alert(1)</h2><ul>
+<li><strong>规则</strong>: Payload 使用 <code>alert(document.domain)</code> 或 <code>alert(document.cookie)</code> 证明可执行任意 JS</li>
+<li><strong>为什么</strong>: 某些场景 <code>alert(1)</code> 可能被拦截但 <code>alert(document.domain)</code> 能绕过，且能证明在目标域执行（非沙箱）</li>
+<li><strong>踩坏</strong>: 用 <code>alert(1)</code> 测试成功但写报告时无法证明危害，甲方质疑”弹个框有什么用”</li>
+<li><strong>例外</strong>: 生产环境测试用 <code>console.log</code> 代替 <code>alert</code> 避免影响用户</li>
+</ul>
+<h2 id="14-二次注入型-XSS-最隐蔽"><a href="#14-二次注入型-XSS-最隐蔽" class="headerlink" title="14. 二次注入型 XSS 最隐蔽"></a>14. 二次注入型 XSS 最隐蔽</h2><ul>
+<li><strong>规则</strong>: 数据在 A 页面输入时被安全存储，但在 B 页面（如导出、打印、邮件）输出时未过滤</li>
+<li><strong>为什么</strong>: 开发者只在输入点做了防护，认为数据库中的数据”已安全”，在其他输出场景忘记转义</li>
+<li><strong>踩坑</strong>: 在表单提交页面测试未发现 XSS 就结束，实际在管理后台的用户列表页面存在 XSS</li>
+<li><strong>例外</strong>: 导出的 PDF、Excel 若包含恶意公式也属于此类</li>
+</ul>
+<h2 id="15-测试账号权限要覆盖所有角色"><a href="#15-测试账号权限要覆盖所有角色" class="headerlink" title="15. 测试账号权限要覆盖所有角色"></a>15. 测试账号权限要覆盖所有角色</h2><ul>
+<li><strong>规则</strong>: 用普通用户、VIP 用户、管理员、超级管理员分别测试同一输入点</li>
+<li><strong>为什么</strong>: 某些输入点对普通用户有严格过滤，但管理员发布公告时为了支持富文本而放松过滤</li>
+<li><strong>踩坑</strong>: 只用普通测试账号扫描，遗漏管理后台的高危 XSS</li>
+<li><strong>例外</strong>: 若无法获取高权限账号，在报告中说明测试覆盖范围</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>管理员是 XSS 的首要目标，可从客户端攻击升级为服务端跳板</strong></li>
+<li><strong>先找输出点看上下文，再构造闭合，别盲目打 Payload</strong></li>
+<li><strong>DOM 型 XSS 绕过所有服务端防护，数据流不经过后端</strong></li>
+<li><strong>HttpOnly 只防 Cookie 窃取，XSS 仍可发 AJAX 和钓鱼</strong></li>
+<li><strong>富文本编辑器和二次输出页面（导出&#x2F;打印）是重灾区</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入被过滤</td>
+<td>先看输出点在源码哪里，分析上下文语法</td>
+</tr>
+<tr>
+<td>反射型 XSS</td>
+<td>评估传播方式，内网系统或管理页面升高危</td>
+</tr>
+<tr>
+<td>看到 CSP 头</td>
+<td>检查是否有 unsafe-inline 或过宽白名单</td>
+</tr>
+<tr>
+<td>富文本编辑器</td>
+<td>测试 <code>&lt;img src=x onerror=alert(1)&gt;</code> 和 <code>&lt;a href=&quot;javascript:alert(1)&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>工具扫描无果</td>
+<td>手工测试多步操作、异步加载、需登录的深层页面</td>
+</tr>
+<tr>
+<td>黑名单过滤</td>
+<td>尝试大小写、双写、编码、其他标签（img&#x2F;svg&#x2F;iframe）</td>
+</tr>
+<tr>
+<td>HttpOnly Cookie</td>
+<td>XSS 仍可用 fetch&#x2F;XMLHttpRequest 以受害者身份操作</td>
+</tr>
+<tr>
+<td>数据存入数据库</td>
+<td>检查所有读取该数据的页面（列表&#x2F;详情&#x2F;导出&#x2F;邮件）</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-21</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/21/2026-09-21-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
                 [expanded] 一次性的蘸料小塑料盒怎么废物利用
             </a>
@@ -1432,49 +1605,6 @@
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
-                [expanded] 一次性的蘸料小塑料盒怎么废物利用
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-一次性的蘸料小塑料盒怎么废物利用"><a href="#expanded-一次性的蘸料小塑料盒怎么废物利用" class="headerlink" title="[expanded] 一次性的蘸料小塑料盒怎么废物利用"></a>[expanded] 一次性的蘸料小塑料盒怎么废物利用</h1><blockquote>
-<p>原始问题: 一次性的蘸料小塑料盒怎么废物利用</p>
-</blockquote>
-<h1 id="一次性蘸料塑料盒的系统化回收与再利用工程实践"><a href="#一次性蘸料塑料盒的系统化回收与再利用工程实践" class="headerlink" title="一次性蘸料塑料盒的系统化回收与再利用工程实践"></a>一次性蘸料塑料盒的系统化回收与再利用工程实践</h1><h2 id="背景：外卖经济下的塑料容器治理挑战"><a href="#背景：外卖经济下的塑料容器治理挑战" class="headerlink" title="背景：外卖经济下的塑料容器治理挑战"></a>背景：外卖经济下的塑料容器治理挑战</h2><p>在现代外卖配送体系中，一次性蘸料塑料盒（通常为 PP&#x2F;PS 材质，容量 30-50ml）作为标准化包装组件，年产生量已达数十亿只。这类容器具备食品级安全认证、密封性良好、尺寸标准化等特性，但传统处理路径仅为焚烧或填埋，造成显著的资源浪费。从系统工程角度看，这是典型的”可复用资源未进入循环经济闭环”问题。本文基于材料科学、容器工程学和可持续运维实践，提出分级再利用决策树和操作规范。</p>
-<h2 id="诊断步骤：容器适用性评估协议"><a href="#诊断步骤：容器适用性评估协议" class="headerlink" title="诊断步骤：容器适用性评估协议"></a>诊断步骤：容器适用性评估协议</h2><p>在执行任何再利用方案前，必须完成只读检查流程以确定容器状态。首先执行材质识别：检查底部回收标识（三角形内数字 5 为 PP、6 为 PS），PP 材质耐热性更佳（可承受 120°C）。其次进行完整性检测：目视检查是否存在裂纹、变形或残留异味，使用白醋溶液（5% 浓度）浸泡 10 分钟测试化学稳定性。最后评估污染等级：仅接触过干性调料（如椒盐）的容器可直接进入食品级再利用路径，接触过油性酱料的需降级为非食品用途。记录容器来源、材质类型和污染等级，建立再利用决策矩阵。</p>
-<h2 id="正解：分级再利用实施方案"><a href="#正解：分级再利用实施方案" class="headerlink" title="正解：分级再利用实施方案"></a>正解：分级再利用实施方案</h2><h3 id="阶段一：清洁与消毒备份流程"><a href="#阶段一：清洁与消毒备份流程" class="headerlink" title="阶段一：清洁与消毒备份流程"></a>阶段一：清洁与消毒备份流程</h3><p>执行标准化清洁协议前，先将容器按材质分类并拍照存档。使用 40°C 温水加中性洗涤剂（pH 6.5-7.5）浸泡 15 分钟，软毛刷清除残留物后流水冲洗至无泡沫。PP 材质容器可选用沸水消毒 3 分钟或 75% 酒精喷雾静置 5 分钟，PS 材质仅可使用酒精消毒（沸水会导致变形）。消毒后自然晾干，避免使用纸巾擦拭产生纤维残留。建立清洁批次记录，标注处理时间、消毒方式和质检结果，不合格品直接进入回收通道。</p>
-<h3 id="阶段二：场景化部署命令"><a href="#阶段二：场景化部署命令" class="headerlink" title="阶段二：场景化部署命令"></a>阶段二：场景化部署命令</h3><p>根据容器状态执行差异化部署策略。食品级路径（仅限 PP 材质且通过消毒验证）：用于厨房干货分装（盐、糖、香料），每个容器贴标注明内容物和分装日期，建议 3 个月更换一次。通用收纳路径：按尺寸分组用于五金件（螺丝、螺母按规格分类）、文具（回形针、图钉）、药品（创可贴、棉签），透明容器优先用于需可视化管理的场景。园艺路径：底部钻 3-5 个直径 3mm 排水孔，填充营养土用于多肉育苗，容器间距保持 5cm 以上确保通风。每个应用场景设定使用寿命阈值（收纳类 12 个月，园艺类 6 个月），到期强制退役。</p>
-<h3 id="阶段三：退役与回收回滚机制"><a href="#阶段三：退役与回收回滚机制" class="headerlink" title="阶段三：退役与回收回滚机制"></a>阶段三：退役与回收回滚机制</h3><p>当容器出现明显磨损（透明度下降 &gt;30%）、物理损伤（裂纹、缺口）或达到使用寿命上限时，立即触发退役流程。清空内容物后用清水冲洗，去除标签贴纸，按材质分类投入可回收垃圾桶（蓝色桶）。对于混合材质容器（如带硅胶密封圈），需拆解后分别投放。建立退役台账记录容器编号、使用时长和退役原因，用于优化再利用策略。禁止将老化容器继续用于食品接触场景，这是不可妥协的安全红线。每季度审计回收率，目标值应 &gt;85%。</p>
-<h2 id="常见坑：五大典型误判场景"><a href="#常见坑：五大典型误判场景" class="headerlink" title="常见坑：五大典型误判场景"></a>常见坑：五大典型误判场景</h2><p><strong>坑一：材质混淆导致的热变形事故</strong>。PS 材质容器误用于微波加热或沸水消毒，导致释放苯乙烯单体。必须严格执行材质识别，PP 容器底部标识为 5，PS 为 6。<strong>坑二：油污残留引发的二次污染</strong>。未彻底清洁的容器用于存放药品，油脂氧化产生异味污染内容物。清洁验证标准：容器内壁水珠应均匀铺展无油滴聚集。<strong>坑三：过度再利用导致的塑化剂迁移风险</strong>。超过 18 个月的老化容器继续用于食品存储，材料降解加速有害物质释放。强制执行使用寿命上限，食品级应用不超过 12 个月。</p>
-<p><strong>坑四：排水孔设计缺陷造成的根系腐烂</strong>。园艺应用中未设排水孔或孔径过小（&lt;2mm），积水导致植物根腐病。标准配置为底部均匀分布 3-5 个直径 3mm 孔位。<strong>坑五：混合投放破坏回收价值</strong>。退役容器未去除标签或混入其他垃圾，导致整批回收料降级。回收前检查清单：无残留物、无异物、材质单一、标签已移除。</p>
-<h2 id="架构建议：可持续物料管理体系设计"><a href="#架构建议：可持续物料管理体系设计" class="headerlink" title="架构建议：可持续物料管理体系设计"></a>架构建议：可持续物料管理体系设计</h2><p>从 SRE 视角构建容器生命周期管理系统，核心指标包括再利用率（Reuse Rate）、平均使用寿命（MTTF）和回收合规率（Compliance Rate）。实施灰度策略：初期选择 10% 容器进行再利用试点，监控 30 天内是否出现材料降解、污染事件或用户投诉，验证通过后逐步扩大至 50%、100%。建立可观测性体系：为每批次容器分配唯一 ID，记录清洁时间、部署场景、检查记录和退役原因，使用时序数据库存储状态变更事件。</p>
-<p>设定 SLO 指标：食品级应用场景下容器完整性 &gt;99.9%（即千分之一以下的破损率），非食品场景 &gt;95%。当 SLO 违反时触发自动告警，暂停该批次容器的新部署并启动根因分析。实施 Canary 发布：新清洁流程或消毒方案先在 5% 容器上验证 7 天，对比实验组与对照组的微生物检测结果，确认无劣化后全量推广。建立容器池动态调度机制，根据季节性需求（如春季园艺需求上升）自动调整各场景的容器分配比例，提升整体资源利用率至 &gt;80%。</p>
-<h2 id="参考-Runbook：容器运维命令库"><a href="#参考-Runbook：容器运维命令库" class="headerlink" title="参考 Runbook：容器运维命令库"></a>参考 Runbook：容器运维命令库</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 材质识别检查</span></span><br><span class="line">grep -E <span class="string">&quot;PP|PS|5|6&quot;</span> container_bottom_label.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清洁验证测试（水珠铺展角度 &lt;30° 为合格）</span></span><br><span class="line">measure_contact_angle --surface container_inner --liquid water</span><br><span class="line"></span><br><span class="line"><span class="comment"># 消毒流程执行</span></span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$material</span> == <span class="string">&quot;PP&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">  boil_water_sterilize --duration 180s</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  alcohol_spray --concentration 75% --<span class="built_in">wait</span> 300s</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用寿命检查（Unix 时间戳）</span></span><br><span class="line">current_age=$(($(date +%s) - deploy_timestamp))</span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$current_age</span> -gt 31536000 ]]; <span class="keyword">then</span> <span class="built_in">echo</span> <span class="string">&quot;RETIRE&quot;</span>; <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 回收合规性校验</span></span><br><span class="line">validate_recyclable --no-label --no-residue --single-material</span><br></pre></td></tr></table></figure>
-
-<p>建立定期审计任务（cron 每周日执行），统计各场景容器的平均寿命、故障率和回收率，生成可视化报表支持策略优化决策。</p>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
-
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1517,6 +1647,10 @@
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
             </li>
             
@@ -1526,10 +1660,6 @@
             
             <li>
                 <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/22/vue2vsvue3/">vue2 对比 vue3</a>
             </li>
             
         </ul>
