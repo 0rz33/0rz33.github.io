@@ -184,13 +184,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/21/2026-09-21-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
+            <a href="/2026/09/22/2026-09-22-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
                 [expanded] [blog] XSS跨站脚本攻击
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-21</span>
+                <span class="date">2026-09-22</span>
             
             
             
@@ -202,107 +202,94 @@
             <h1 id="expanded-blog-XSS跨站脚本攻击"><a href="#expanded-blog-XSS跨站脚本攻击" class="headerlink" title="[expanded] [blog] XSS跨站脚本攻击"></a>[expanded] [blog] XSS跨站脚本攻击</h1><blockquote>
 <p>原始问题: [blog] XSS跨站脚本攻击</p>
 </blockquote>
-<h1 id="XSS-跨站脚本攻击技能点清单"><a href="#XSS-跨站脚本攻击技能点清单" class="headerlink" title="XSS 跨站脚本攻击技能点清单"></a>XSS 跨站脚本攻击技能点清单</h1><blockquote>
-<p>场景占位: 攻击者向 <TARGET_SITE> 注入脚本，受害者 <USER_A> 浏览页面触发执行，窃取 <SESSION_TOKEN><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+<h1 id="XSS-跨站脚本攻击防御与检测技能清单"><a href="#XSS-跨站脚本攻击防御与检测技能清单" class="headerlink" title="XSS 跨站脚本攻击防御与检测技能清单"></a>XSS 跨站脚本攻击防御与检测技能清单</h1><blockquote>
+<p>场景占位: 攻击者向 <TARGET_SITE> 注入脚本, 受害者 <USER_A> 浏览触发, 管理员 <ADMIN_B> 成为提权跳板<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
 </blockquote>
 <hr>
 <h2 id="1-把管理员当首要攻击目标而非普通用户"><a href="#1-把管理员当首要攻击目标而非普通用户" class="headerlink" title="1. 把管理员当首要攻击目标而非普通用户"></a>1. 把管理员当首要攻击目标而非普通用户</h2><ul>
-<li><strong>规则</strong>: XSS 攻击优先瞄准网站管理员账户，而非普通访客</li>
-<li><strong>为什么</strong>: 管理员权限可操作文件系统和数据库，XSS 从”客户端攻击”升级为”服务端攻击跳板”，普通用户只能窃取自己的 Cookie</li>
-<li><strong>踩坑</strong>: 认为 XSS 只是偷 Cookie 的低危漏洞，忽略管理后台的 XSS 可直接 GetShell</li>
-<li><strong>例外</strong>: 金融类网站普通用户 Session 劫持也是高危（涉及资金操作）</li>
+<li><strong>规则</strong>: XSS 防御优先保护管理后台和高权限用户入口</li>
+<li><strong>为什么</strong>: 管理员是客户端攻击转服务端攻击的跳板, 一个管理员 Cookie 等于拿下整站文件和数据库权限</li>
+<li><strong>踩坑</strong>: 只防护前台留言板&#x2F;评论区, 忽略后台日志查看&#x2F;用户管理等管理员必访问页面</li>
+<li><strong>例外</strong>: 纯静态展示站无后台时可降低优先级</li>
 </ul>
 <h2 id="2-输出点比输入点更关键"><a href="#2-输出点比输入点更关键" class="headerlink" title="2. 输出点比输入点更关键"></a>2. 输出点比输入点更关键</h2><ul>
-<li><strong>规则</strong>: 检测 XSS 时先定位数据在哪里输出（HTML&#x2F;JS&#x2F;属性），再倒推输入点</li>
-<li><strong>为什么</strong>: 同一个输入可能在多处输出，每个输出上下文的闭合方式完全不同（HTML 标签内 vs JS 字符串内 vs 属性值内）</li>
-<li><strong>踩坑</strong>: 只盯着表单输入框测试，遗漏 URL 参数、Referer、Cookie 等非表单输入在页面其他位置的回显</li>
-<li><strong>例外</strong>: DOM 型 XSS 的输出点在前端 JS 代码中，不经过服务端</li>
+<li><strong>规则</strong>: 检测时先定位数据在哪里输出到 HTML, 再回溯输入点</li>
+<li><strong>为什么</strong>: 同一输入可能在多处输出(搜索词显示在结果页&#x2F;日志&#x2F;统计面板), 只堵输入点会漏网</li>
+<li><strong>踩坑</strong>: 在表单提交处加过滤就以为安全, 数据从数据库取出渲染时未转义</li>
 </ul>
-<h2 id="3-用”特殊字符-唯一标识”组合探测而非直接打-Payload"><a href="#3-用”特殊字符-唯一标识”组合探测而非直接打-Payload" class="headerlink" title="3. 用”特殊字符+唯一标识”组合探测而非直接打 Payload"></a>3. 用”特殊字符+唯一标识”组合探测而非直接打 Payload</h2><ul>
-<li><strong>规则</strong>: 第一轮提交 <code>&lt;&gt;&quot;&#39;%;)(&amp;+唯一ID12345</code>，在源码中搜索唯一 ID 定位上下文</li>
-<li><strong>为什么</strong>: 直接打 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 被过滤时无法判断哪个字符被处理，唯一 ID 能精准定位输出位置和周围语法结构</li>
-<li><strong>踩坑</strong>: 盲目尝试各种 Payload 却不看响应源码，浪费时间在已经被实体化编码的场景</li>
-<li><strong>例外</strong>: 自动化扫描工具已内置此逻辑，手工测试时必须遵守</li>
+<h2 id="3-特殊字符组合是检测探针不是攻击载荷"><a href="#3-特殊字符组合是检测探针不是攻击载荷" class="headerlink" title="3. 特殊字符组合是检测探针不是攻击载荷"></a>3. 特殊字符组合是检测探针不是攻击载荷</h2><ul>
+<li><strong>规则</strong>: 手工测试先提交 <code>&lt;&gt;&quot;&#39;();</code> + 唯一标识符如 <code>xss9527</code>, 看源码中标识符前后是否被转义</li>
+<li><strong>为什么</strong>: 直接提交 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 会被 WAF 拦截且无法定位过滤位置, 特殊字符能快速判断过滤强度</li>
+<li><strong>踩坑</strong>: 用完整 payload 测试被拦后就认为无漏洞, 实际可能只是 WAF 规则而非代码层防御</li>
 </ul>
-<h2 id="4-反射型-XSS-的危险度取决于传播方式"><a href="#4-反射型-XSS-的危险度取决于传播方式" class="headerlink" title="4. 反射型 XSS 的危险度取决于传播方式"></a>4. 反射型 XSS 的危险度取决于传播方式</h2><ul>
-<li><strong>规则</strong>: 反射型 XSS 标记为中危的前提是需要诱骗用户点击恶意链接，若能结合钓鱼或内部系统自动触发则升高危</li>
-<li><strong>为什么</strong>: 单纯的反射型需要社会工程学配合，但内网 OA 系统的反射型 XSS 可通过邮件通知自动触发，无需用户点击</li>
-<li><strong>踩坑</strong>: 看到”反射型”就写中危报告，忽略实际利用场景（如管理员必访问的报表页面）</li>
-<li><strong>例外</strong>: 存储型 XSS 无需传播直接高危</li>
+<h2 id="4-反射型-XSS-的危险在-URL-可传播不在持久化"><a href="#4-反射型-XSS-的危险在-URL-可传播不在持久化" class="headerlink" title="4. 反射型 XSS 的危险在 URL 可传播不在持久化"></a>4. 反射型 XSS 的危险在 URL 可传播不在持久化</h2><ul>
+<li><strong>规则</strong>: 反射型标记为中危是因为需要诱骗点击链接, 但配合短链&#x2F;钓鱼邮件传播速度不亚于存储型</li>
+<li><strong>为什么</strong>: 一条带 payload 的 URL 通过社交工具群发, 受害规模可能超过单个存储型 XSS 的触发次数</li>
+<li><strong>踩坑</strong>: 认为反射型”不持久”就不紧急修复, 忽略其在钓鱼场景的爆发力</li>
 </ul>
-<h2 id="5-存储型-XSS-的持久化位置决定影响面"><a href="#5-存储型-XSS-的持久化位置决定影响面" class="headerlink" title="5. 存储型 XSS 的持久化位置决定影响面"></a>5. 存储型 XSS 的持久化位置决定影响面</h2><ul>
-<li><strong>规则</strong>: 检查恶意脚本存储在数据库、日志文件还是缓存，以及被哪些页面读取</li>
-<li><strong>为什么</strong>: 存在个人资料的 XSS 只影响查看该资料的用户，存在公共评论区的 XSS 影响所有访客，存在管理日志的 XSS 专打管理员</li>
-<li><strong>踩坑</strong>: 发现存储型 XSS 就直接定高危，实际该字段只在用户自己的设置页显示（自己打自己）</li>
-<li><strong>例外</strong>: 即使自 XSS，若能配合 CSRF 强制受害者修改自己资料也可利用</li>
+<h2 id="5-DOM-型-XSS-绕过所有服务端过滤"><a href="#5-DOM-型-XSS-绕过所有服务端过滤" class="headerlink" title="5. DOM 型 XSS 绕过所有服务端过滤"></a>5. DOM 型 XSS 绕过所有服务端过滤</h2><ul>
+<li><strong>规则</strong>: 检测 DOM XSS 必须看前端 JS 如何处理 <code>location.hash</code> &#x2F; <code>document.referrer</code> 等浏览器对象</li>
+<li><strong>为什么</strong>: 数据从未发送到服务端, 所有服务端 WAF&#x2F;过滤函数完全失效, 纯前端 <code>innerHTML</code> 赋值即触发</li>
+<li><strong>踩坎</strong>: 后端日志里看不到攻击参数就认为安全, 实际 <code>#</code> 后的 hash 参数不会发送到服务器</li>
 </ul>
-<h2 id="6-DOM-型-XSS-绕过所有服务端防护"><a href="#6-DOM-型-XSS-绕过所有服务端防护" class="headerlink" title="6. DOM 型 XSS 绕过所有服务端防护"></a>6. DOM 型 XSS 绕过所有服务端防护</h2><ul>
-<li><strong>规则</strong>: 当输入数据通过 <code>location.hash</code>、<code>document.referrer</code> 等直接被前端 JS 操作 DOM 时，服务端过滤完全无效</li>
-<li><strong>为什么</strong>: 数据流从未经过服务端（URL 的 # 后内容不发送到服务器），<code>innerHTML</code>、<code>eval</code>、<code>document.write</code> 直接执行</li>
-<li><strong>踩坑</strong>: 看到服务端有 WAF 和输入过滤就认为安全，忽略前端 JS 代码中的 <code>element.innerHTML = location.hash.substring(1)</code></li>
-<li><strong>例外</strong>: 若前端使用了 CSP 且配置正确，可部分缓解</li>
+<h2 id="6-构造闭合是绕过过滤的核心技巧"><a href="#6-构造闭合是绕过过滤的核心技巧" class="headerlink" title="6. 构造闭合是绕过过滤的核心技巧"></a>6. 构造闭合是绕过过滤的核心技巧</h2><ul>
+<li><strong>规则</strong>: 查看输出点的 HTML 上下文, 用引号&#x2F;标签闭合原有结构再注入新标签</li>
+<li><strong>为什么</strong>: 即使 <code>&lt;script&gt;</code> 被过滤, 闭合 <code>&lt;input value=&quot;</code> 后可用 <code>&quot; onclick=&quot;alert(1)</code> 或 <code>&quot;&gt;&lt;img src=x onerror=alert(1)&gt;</code> 绕过</li>
+<li><strong>踩坑</strong>: 只测试 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 一种形式, 不分析输出点是在标签属性内还是标签体内</li>
 </ul>
-<h2 id="7-闭合语法比-Payload-本身更重要"><a href="#7-闭合语法比-Payload-本身更重要" class="headerlink" title="7. 闭合语法比 Payload 本身更重要"></a>7. 闭合语法比 Payload 本身更重要</h2><ul>
-<li><strong>规则</strong>: 根据输出点的上下文构造闭合：HTML 标签内闭合标签、JS 字符串内闭合引号、属性值内闭合属性</li>
-<li><strong>为什么</strong>: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 在 <code>&lt;input value=&quot;用户输入&quot;&gt;</code> 中无效，需要 <code>&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;&quot;</code> 先闭合属性和标签</li>
-<li><strong>踩坑</strong>: 背了一堆 Payload 字典却不分析输出位置，所有测试都失败</li>
-<li><strong>例外</strong>: 在 <code>&lt;script&gt;var user=&quot;输出点&quot;;&lt;/script&gt;</code> 中需要 <code>&quot;;alert(1);//</code> 闭合 JS 语法</li>
+<h2 id="7-存储型-XSS-的修复窗口极短"><a href="#7-存储型-XSS-的修复窗口极短" class="headerlink" title="7. 存储型 XSS 的修复窗口极短"></a>7. 存储型 XSS 的修复窗口极短</h2><ul>
+<li><strong>规则</strong>: 发现存储型 XSS 后 1 小时内必须下线受影响功能或上全局输出转义</li>
+<li><strong>为什么</strong>: 恶意脚本已写入数据库, 每次页面加载都触发, 管理员一旦中招攻击者立即获得持久后门</li>
+<li><strong>踩坑</strong>: 按普通 bug 流程排期到下个迭代修复, 期间攻击者已批量收割 Cookie</li>
 </ul>
-<h2 id="8-工具扫描的漏报率极高"><a href="#8-工具扫描的漏报率极高" class="headerlink" title="8. 工具扫描的漏报率极高"></a>8. 工具扫描的漏报率极高</h2><ul>
-<li><strong>规则</strong>: AWVS&#x2F;AppScan 只能发现 30-50% 的 XSS，复杂场景（多步操作、异步加载、富文本）必须手工测试</li>
-<li><strong>为什么</strong>: 工具无法理解业务逻辑（如先发帖再审核通过才显示），无法处理需要登录态的深层页面，无法测试 WebSocket 等非 HTTP 协议</li>
-<li><strong>踩坑</strong>: 扫描器没报 XSS 就认为安全，实际富文本编辑器、文件上传后的预览页面、导出的 Excel 宏都可能存在 XSS</li>
-<li><strong>例外</strong>: 简单的 GET 参数反射型 XSS 工具能有效发现</li>
+<h2 id="8-输出转义必须匹配上下文"><a href="#8-输出转义必须匹配上下文" class="headerlink" title="8. 输出转义必须匹配上下文"></a>8. 输出转义必须匹配上下文</h2><ul>
+<li><strong>规则</strong>: HTML body 用 <code>htmlspecialchars</code>, JS 字符串内用 <code>json_encode</code>, URL 参数用 <code>urlencode</code></li>
+<li><strong>为什么</strong>: 在 <code>&lt;script&gt;var name=&quot;&lt;USER_INPUT&gt;&quot;&lt;/script&gt;</code> 中, HTML 转义无法防御 <code>&quot;; alert(1);//</code> 这种 JS 语法闭合</li>
+<li><strong>踩坑</strong>: 全站统一用一个 <code>escapeHtml()</code> 函数处理所有输出, 在 JS&#x2F;CSS&#x2F;URL 上下文中失效</li>
 </ul>
-<h2 id="9-黑名单过滤必有绕过"><a href="#9-黑名单过滤必有绕过" class="headerlink" title="9. 黑名单过滤必有绕过"></a>9. 黑名单过滤必有绕过</h2><ul>
-<li><strong>规则</strong>: 遇到过滤 <code>&lt;script&gt;</code> 的防护，尝试大小写混淆、双写、编码、其他标签（<code>&lt;img&gt;</code>、<code>&lt;svg&gt;</code>、<code>&lt;iframe&gt;</code>）</li>
-<li><strong>为什么</strong>: 黑名单需要穷举所有危险模式，HTML 和 JS 的灵活性导致绕过方式无穷（<code>&lt;scr&lt;script&gt;ipt&gt;</code>、<code>&lt;ScRiPt&gt;</code>、<code>&lt;img src=x onerror=alert(1)&gt;</code>）</li>
-<li><strong>踩坑</strong>: 看到 <code>&lt;script&gt;</code> 被过滤就放弃，实际 <code>&lt;svg/onload=alert(1)&gt;</code> 可绕过</li>
-<li><strong>例外</strong>: 白名单+严格的 HTML 解析器（如 DOMPurify）较难绕过</li>
+<h2 id="9-CSP-是最后防线不是唯一防线"><a href="#9-CSP-是最后防线不是唯一防线" class="headerlink" title="9. CSP 是最后防线不是唯一防线"></a>9. CSP 是最后防线不是唯一防线</h2><ul>
+<li><strong>规则</strong>: 配置 Content-Security-Policy 禁止 inline script, 但仍需在代码层做输出转义</li>
+<li><strong>为什么</strong>: CSP 可被 <code>&lt;meta&gt;</code> 标签覆盖, 且老旧浏览器不支持, 只能作为纵深防御的一层</li>
+<li><strong>踩坑</strong>: 加了 CSP 就不做输入输出过滤, 遇到 IE11 或 CSP bypass 技巧时全线崩溃</li>
 </ul>
 <h2 id="10-HttpOnly-只防-Cookie-窃取不防-XSS-本身"><a href="#10-HttpOnly-只防-Cookie-窃取不防-XSS-本身" class="headerlink" title="10. HttpOnly 只防 Cookie 窃取不防 XSS 本身"></a>10. HttpOnly 只防 Cookie 窃取不防 XSS 本身</h2><ul>
-<li><strong>规则</strong>: HttpOnly 标志使 JS 无法读取 Cookie，但 XSS 仍可发起 AJAX 请求、修改页面、钓鱼、键盘记录</li>
-<li><strong>为什么</strong>: XSS 的危害不止窃取 Session，还包括以受害者身份执行操作（转账、发帖、改密码），HttpOnly 对此无效</li>
-<li><strong>踩坑</strong>: 设置了 HttpOnly 就认为 XSS 不可利用，实际攻击者可用 XSS 发起 AJAX 请求到敏感接口</li>
-<li><strong>例外</strong>: 纯静态展示页面且无敏感操作时，HttpOnly 确实大幅降低危害</li>
+<li><strong>规则</strong>: 给敏感 Cookie 加 HttpOnly 标记, 但不能因此降低 XSS 修复优先级</li>
+<li><strong>为什么</strong>: XSS 仍可读取页面内容(CSRF Token&#x2F;个人信息)、发起伪造请求、植入键盘记录器</li>
+<li><strong>踩坑</strong>: 认为 Cookie 偷不走就不算严重漏洞, 忽略 XSS 的其他 10 种利用方式</li>
 </ul>
-<h2 id="11-CSP-是最后一道防线但配置常错"><a href="#11-CSP-是最后一道防线但配置常错" class="headerlink" title="11. CSP 是最后一道防线但配置常错"></a>11. CSP 是最后一道防线但配置常错</h2><ul>
-<li><strong>规则</strong>: Content-Security-Policy 可阻止内联脚本和外部恶意域，但 <code>unsafe-inline</code>、<code>unsafe-eval</code>、过宽的白名单会失效</li>
-<li><strong>为什么</strong>: 开发者为了方便常加 <code>unsafe-inline</code> 导致 CSP 形同虚设，或白名单包含 <code>*.googleapis.com</code> 等可被利用的 CDN</li>
-<li><strong>踩坑</strong>: 看到响应头有 CSP 就认为 XSS 不可利用，实际 <code>script-src &#39;unsafe-inline&#39;</code> 完全不防</li>
-<li><strong>例外</strong>: 严格的 CSP（仅允许特定 nonce 或 hash）可有效防御</li>
+<h2 id="11-工具扫描的漏报率高于-60"><a href="#11-工具扫描的漏报率高于-60" class="headerlink" title="11. 工具扫描的漏报率高于 60%"></a>11. 工具扫描的漏报率高于 60%</h2><ul>
+<li><strong>规则</strong>: AWVS&#x2F;AppScan 跑完后必须对所有输入输出点做人工验证</li>
+<li><strong>为什么</strong>: 工具无法理解业务逻辑(如多步骤表单、需登录的接口), 且对 DOM XSS 检测能力弱</li>
+<li><strong>踩坑</strong>: 扫描报告显示 0 漏洞就通过安全审计, 实际存储型 XSS 藏在需要特定角色才能访问的功能里</li>
 </ul>
-<h2 id="12-富文本编辑器是-XSS-重灾区"><a href="#12-富文本编辑器是-XSS-重灾区" class="headerlink" title="12. 富文本编辑器是 XSS 重灾区"></a>12. 富文本编辑器是 XSS 重灾区</h2><ul>
-<li><strong>规则</strong>: 所有允许用户输入 HTML 的富文本编辑器（TinyMCE、CKEditor、UEditor）默认配置都可能存在 XSS</li>
-<li><strong>为什么</strong>: 富文本需要保留部分 HTML 标签（加粗、链接、图片），过滤逻辑复杂且常有遗漏（如 <code>&lt;a href=&quot;javascript:alert(1)&quot;&gt;</code>）</li>
-<li><strong>踩坑</strong>: 认为用了知名编辑器就安全，实际需要配置白名单且定期更新版本</li>
-<li><strong>例外</strong>: Markdown 编辑器若正确转义输出则相对安全</li>
+<h2 id="12-黑名单过滤必败白名单也不保险"><a href="#12-黑名单过滤必败白名单也不保险" class="headerlink" title="12. 黑名单过滤必败白名单也不保险"></a>12. 黑名单过滤必败白名单也不保险</h2><ul>
+<li><strong>规则</strong>: 禁止用正则删除 <code>&lt;script&gt;</code> 等关键词, 改用白名单允许特定 HTML 标签+属性组合</li>
+<li><strong>为什么</strong>: <code>&lt;scr&lt;script&gt;ipt&gt;</code> &#x2F; <code>&lt;svg onload=alert(1)&gt;</code> &#x2F; <code>&lt;iframe src=javascript:alert(1)&gt;</code> 等绕过手法有上百种</li>
+<li><strong>踩坑</strong>: 维护一个黑名单正则不断打补丁, 最终正则长达 500 字符仍被绕过</li>
+<li><strong>例外</strong>: 纯文本场景(如日志)可用黑名单删除所有 <code>&lt;&gt;</code> 字符</li>
 </ul>
-<h2 id="13-测试时用-alert-document-domain-而非-alert-1"><a href="#13-测试时用-alert-document-domain-而非-alert-1" class="headerlink" title="13. 测试时用 alert(document.domain) 而非 alert(1)"></a>13. 测试时用 alert(document.domain) 而非 alert(1)</h2><ul>
-<li><strong>规则</strong>: Payload 使用 <code>alert(document.domain)</code> 或 <code>alert(document.cookie)</code> 证明可执行任意 JS</li>
-<li><strong>为什么</strong>: 某些场景 <code>alert(1)</code> 可能被拦截但 <code>alert(document.domain)</code> 能绕过，且能证明在目标域执行（非沙箱）</li>
-<li><strong>踩坏</strong>: 用 <code>alert(1)</code> 测试成功但写报告时无法证明危害，甲方质疑”弹个框有什么用”</li>
-<li><strong>例外</strong>: 生产环境测试用 <code>console.log</code> 代替 <code>alert</code> 避免影响用户</li>
+<h2 id="13-富文本编辑器是-XSS-重灾区"><a href="#13-富文本编辑器是-XSS-重灾区" class="headerlink" title="13. 富文本编辑器是 XSS 重灾区"></a>13. 富文本编辑器是 XSS 重灾区</h2><ul>
+<li><strong>规则</strong>: 使用 DOMPurify 等成熟库做服务端二次过滤, 不信任前端编辑器的过滤结果</li>
+<li><strong>为什么</strong>: TinyMCE&#x2F;CKEditor 的 XSS 过滤可被禁用或存在 0day, 且用户可能直接调 API 绕过编辑器</li>
+<li><strong>踩坑</strong>: 集成富文本编辑器后认为它会自动防 XSS, 实际存储的 HTML 未经服务端验证</li>
 </ul>
-<h2 id="14-二次注入型-XSS-最隐蔽"><a href="#14-二次注入型-XSS-最隐蔽" class="headerlink" title="14. 二次注入型 XSS 最隐蔽"></a>14. 二次注入型 XSS 最隐蔽</h2><ul>
-<li><strong>规则</strong>: 数据在 A 页面输入时被安全存储，但在 B 页面（如导出、打印、邮件）输出时未过滤</li>
-<li><strong>为什么</strong>: 开发者只在输入点做了防护，认为数据库中的数据”已安全”，在其他输出场景忘记转义</li>
-<li><strong>踩坑</strong>: 在表单提交页面测试未发现 XSS 就结束，实际在管理后台的用户列表页面存在 XSS</li>
-<li><strong>例外</strong>: 导出的 PDF、Excel 若包含恶意公式也属于此类</li>
+<h2 id="14-JSON-接口也会有-XSS"><a href="#14-JSON-接口也会有-XSS" class="headerlink" title="14. JSON 接口也会有 XSS"></a>14. JSON 接口也会有 XSS</h2><ul>
+<li><strong>规则</strong>: 返回 JSON 的接口也要检查是否被当作 HTML 解析(如 Content-Type 错误或前端 innerHTML 赋值)</li>
+<li><strong>为什么</strong>: <code>Content-Type: text/html</code> + JSON 响应体会被浏览器当 HTML 渲染, 或前端 <code>div.innerHTML = jsonData.msg</code> 直接触发</li>
+<li><strong>踩坑</strong>: 认为返回 JSON 就不存在 XSS, 忽略 Content-Type 配置错误和前端不安全的 DOM 操作</li>
 </ul>
-<h2 id="15-测试账号权限要覆盖所有角色"><a href="#15-测试账号权限要覆盖所有角色" class="headerlink" title="15. 测试账号权限要覆盖所有角色"></a>15. 测试账号权限要覆盖所有角色</h2><ul>
-<li><strong>规则</strong>: 用普通用户、VIP 用户、管理员、超级管理员分别测试同一输入点</li>
-<li><strong>为什么</strong>: 某些输入点对普通用户有严格过滤，但管理员发布公告时为了支持富文本而放松过滤</li>
-<li><strong>踩坑</strong>: 只用普通测试账号扫描，遗漏管理后台的高危 XSS</li>
-<li><strong>例外</strong>: 若无法获取高权限账号，在报告中说明测试覆盖范围</li>
+<h2 id="15-测试账号要覆盖所有权限等级"><a href="#15-测试账号要覆盖所有权限等级" class="headerlink" title="15. 测试账号要覆盖所有权限等级"></a>15. 测试账号要覆盖所有权限等级</h2><ul>
+<li><strong>规则</strong>: 用普通用户&#x2F;VIP 用户&#x2F;版主&#x2F;管理员等不同角色分别测试 XSS, 重点测高权限用户可见页面</li>
+<li><strong>为什么</strong>: 某些输入点只有管理员能触发(如审核备注&#x2F;系统配置), 这些才是攻击者的真正目标</li>
+<li><strong>踩坑</strong>: 只用测试账号测前台功能, 管理后台的存储型 XSS 从未被发现直到被利用</li>
 </ul>
 <hr>
 <h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>管理员是 XSS 的首要目标，可从客户端攻击升级为服务端跳板</strong></li>
-<li><strong>先找输出点看上下文，再构造闭合，别盲目打 Payload</strong></li>
-<li><strong>DOM 型 XSS 绕过所有服务端防护，数据流不经过后端</strong></li>
-<li><strong>HttpOnly 只防 Cookie 窃取，XSS 仍可发 AJAX 和钓鱼</strong></li>
-<li><strong>富文本编辑器和二次输出页面（导出&#x2F;打印）是重灾区</strong></li>
+<li><strong>输出点比输入点重要 — 数据在哪渲染就在哪转义</strong></li>
+<li><strong>管理员是 XSS 的真正目标 — 客户端攻击可转服务端沦陷</strong></li>
+<li><strong>DOM XSS 绕过所有后端防御 — 必须审计前端 JS 的 DOM 操作</strong></li>
+<li><strong>存储型 XSS 发现后 1 小时内必须处理 — 每次加载都触发</strong></li>
+<li><strong>工具扫描漏报率 &gt;60% — 人工验证所有输入输出点不可省</strong></li>
 </ol>
 <h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
 <thead>
@@ -312,40 +299,36 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>输入被过滤</td>
-<td>先看输出点在源码哪里，分析上下文语法</td>
+<td>发现可输入点</td>
+<td>先找这个数据在哪些页面输出, 再看输出时是否转义</td>
 </tr>
 <tr>
-<td>反射型 XSS</td>
-<td>评估传播方式，内网系统或管理页面升高危</td>
+<td>提交 <code>&lt;script&gt;</code> 被拦截</td>
+<td>用 <code>&lt;&gt;&quot;&#39;xss9527</code> 测试过滤强度, 再构造闭合绕过</td>
 </tr>
 <tr>
-<td>看到 CSP 头</td>
-<td>检查是否有 unsafe-inline 或过宽白名单</td>
+<td>后端已过滤但仍触发</td>
+<td>检查是否 DOM XSS, 看前端 JS 是否直接操作 <code>innerHTML</code></td>
 </tr>
 <tr>
-<td>富文本编辑器</td>
-<td>测试 <code>&lt;img src=x onerror=alert(1)&gt;</code> 和 <code>&lt;a href=&quot;javascript:alert(1)&quot;&gt;</code></td>
+<td>反射型 XSS 标记中危</td>
+<td>评估是否可通过短链&#x2F;邮件大规模传播, 重新定级</td>
 </tr>
 <tr>
-<td>工具扫描无果</td>
-<td>手工测试多步操作、异步加载、需登录的深层页面</td>
+<td>加了 CSP 或 HttpOnly</td>
+<td>仍需修复 XSS 本身, 这些只是辅助防御层</td>
 </tr>
 <tr>
-<td>黑名单过滤</td>
-<td>尝试大小写、双写、编码、其他标签（img&#x2F;svg&#x2F;iframe）</td>
+<td>工具扫描 0 漏洞</td>
+<td>用不同权限账号手工测试管理后台和多步骤表单</td>
 </tr>
 <tr>
-<td>HttpOnly Cookie</td>
-<td>XSS 仍可用 fetch&#x2F;XMLHttpRequest 以受害者身份操作</td>
-</tr>
-<tr>
-<td>数据存入数据库</td>
-<td>检查所有读取该数据的页面（列表&#x2F;详情&#x2F;导出&#x2F;邮件）</td>
+<td>使用富文本编辑器</td>
+<td>服务端必须用 DOMPurify 二次过滤, 不信任前端</td>
 </tr>
 </tbody></table>
 <hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-21</em></p>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-22</em></p>
 
         </div>
     
@@ -357,513 +340,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/21/2026-09-21-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
-                [expanded] 一次性的蘸料小塑料盒怎么废物利用
+            <a href="/2026/09/22/system-migration/">
+                系统迁移
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-21</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-一次性的蘸料小塑料盒怎么废物利用"><a href="#expanded-一次性的蘸料小塑料盒怎么废物利用" class="headerlink" title="[expanded] 一次性的蘸料小塑料盒怎么废物利用"></a>[expanded] 一次性的蘸料小塑料盒怎么废物利用</h1><blockquote>
-<p>原始问题: 一次性的蘸料小塑料盒怎么废物利用</p>
-</blockquote>
-<h1 id="一次性塑料蘸料盒再利用技能清单"><a href="#一次性塑料蘸料盒再利用技能清单" class="headerlink" title="一次性塑料蘸料盒再利用技能清单"></a>一次性塑料蘸料盒再利用技能清单</h1><blockquote>
-<p>场景占位: 外卖&#x2F;快餐附赠的 <SAUCE_CONTAINER>,材质多为 PP&#x2F;PS,容量 30-100ml<br>阅读顺序: 扫标题 → 记住材质判断 + 3 种高频场景即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-先看底部回收标识-5-号-PP-可接触食物-6-号-PS-只做干货收纳"><a href="#1-先看底部回收标识-5-号-PP-可接触食物-6-号-PS-只做干货收纳" class="headerlink" title="1. 先看底部回收标识,5 号 PP 可接触食物,6 号 PS 只做干货收纳"></a>1. 先看底部回收标识,5 号 PP 可接触食物,6 号 PS 只做干货收纳</h2><ul>
-<li><strong>规则</strong>: 翻转盒底找三角回收标志,数字 5(PP)耐热可复用装食物,数字 6(PS)遇热释放苯乙烯只能装非食品</li>
-<li><strong>为什么</strong>: 外卖商家为降成本常混用材质,PS 盒装热油会析出有害物,但官方回收指引从不区分这点</li>
-<li><strong>踩坑</strong>: 透明≠安全,很多透明盒恰恰是 6 号 PS,误当调味盒装盐糖会长期摄入微量苯乙烯</li>
-<li><strong>例外</strong>: 标注”食品级”字样的 PS 盒经过改性处理,但仍建议避免接触油脂</li>
-</ul>
-<h2 id="2-冷冻液体前必须留-1-3-空间-否则冻裂后碎片污染整个冷冻层"><a href="#2-冷冻液体前必须留-1-3-空间-否则冻裂后碎片污染整个冷冻层" class="headerlink" title="2. 冷冻液体前必须留 1&#x2F;3 空间,否则冻裂后碎片污染整个冷冻层"></a>2. 冷冻液体前必须留 1&#x2F;3 空间,否则冻裂后碎片污染整个冷冻层</h2><ul>
-<li><strong>规则</strong>: 装水&#x2F;高汤冻冰块时只装 2&#x2F;3 满,盖子虚扣不压紧</li>
-<li><strong>为什么</strong>: 液体结冰体积膨胀 9%,薄壁塑料盒承受不了内压会从侧壁炸裂,碎片掉进其他食物无法清理</li>
-<li><strong>踩坑</strong>: 以为盖紧能防漏,实际盖子会被顶飞且盒体开裂,冰块粘连冷冻抽屉</li>
-<li><strong>例外</strong>: 厚壁 PP 盒(手捏明显硬挺)可装满,但仍建议留 10% 余量</li>
-</ul>
-<h2 id="3-育苗必须底部烫-3-5-个排水孔-否则烂根率超-80"><a href="#3-育苗必须底部烫-3-5-个排水孔-否则烂根率超-80" class="headerlink" title="3. 育苗必须底部烫 3-5 个排水孔,否则烂根率超 80%"></a>3. 育苗必须底部烫 3-5 个排水孔,否则烂根率超 80%</h2><ul>
-<li><strong>规则</strong>: 用烧红的缝衣针在盒底戳孔,间距 1cm,孔径 2mm 即可</li>
-<li><strong>为什么</strong>: 塑料盒密封性好是优点也是致命伤,积水 24 小时根系缺氧即腐烂,而商家不会告诉你育苗盘的核心是排水</li>
-<li><strong>踩坑</strong>: 直接装土浇水,3 天后种子发霉,以为是种子问题反复换批次</li>
-<li><strong>例外</strong>: 水培豆芽可以不打孔,但需每 8 小时换水一次</li>
-</ul>
-<h2 id="4-车载使用需用双面胶固定底部四角-急刹时飞出物伤害等同手榴弹"><a href="#4-车载使用需用双面胶固定底部四角-急刹时飞出物伤害等同手榴弹" class="headerlink" title="4. 车载使用需用双面胶固定底部四角,急刹时飞出物伤害等同手榴弹"></a>4. 车载使用需用双面胶固定底部四角,急刹时飞出物伤害等同手榴弹</h2><ul>
-<li><strong>规则</strong>: 放中控台&#x2F;门板储物格前,先贴 3M VHB 泡棉胶固定,或套入防滑垫凹槽</li>
-<li><strong>为什么</strong>: 50g 塑料盒在 50km&#x2F;h 急刹下产生 15 倍重力加速度,砸中后脑勺冲击力达 750g,足以致脑震荡</li>
-<li><strong>踩坑</strong>: 觉得盒子轻无所谓,实际测试中空盒比装满硬币的盒子更危险(翻滚不可控)</li>
-<li><strong>例外</strong>: 放在带盖手套箱或封闭储物格内可以不固定</li>
-</ul>
-<h2 id="5-装药品必须贴标签注明有效期-混装过期药误食致死率-12"><a href="#5-装药品必须贴标签注明有效期-混装过期药误食致死率-12" class="headerlink" title="5. 装药品必须贴标签注明有效期,混装过期药误食致死率 12%"></a>5. 装药品必须贴标签注明有效期,混装过期药误食致死率 12%</h2><ul>
-<li><strong>规则</strong>: 用标签纸写清药名+失效日期,每月 1 号检查一次,过期立即丢弃</li>
-<li><strong>为什么</strong>: 小盒收纳会丢失原包装的日期信息,感冒药&#x2F;止痛药过期后生成有毒降解物,外观无变化但伤肝肾</li>
-<li><strong>踩坑</strong>: 把散装药片直接扔进盒里,半年后分不清阿莫西林还是维生素,凭外观猜测服用</li>
-<li><strong>例外</strong>: 只装创可贴&#x2F;棉签等非口服物品可以不标期限</li>
-</ul>
-<h2 id="6-首饰收纳需垫一层棉花-金属直接接触塑料会氧化变色"><a href="#6-首饰收纳需垫一层棉花-金属直接接触塑料会氧化变色" class="headerlink" title="6. 首饰收纳需垫一层棉花,金属直接接触塑料会氧化变色"></a>6. 首饰收纳需垫一层棉花,金属直接接触塑料会氧化变色</h2><ul>
-<li><strong>规则</strong>: 盒底铺 0.5cm 厚医用脱脂棉,银饰&#x2F;镀金饰品单独包锡纸再放入</li>
-<li><strong>为什么</strong>: PP&#x2F;PS 塑料含微量氯离子,与金属长期接触形成原电池加速腐蚀,3 个月就能让银饰发黑</li>
-<li><strong>踩坑</strong>: 直接扔进盒里,发现耳钉变绿以为买到假货,实际是电化学反应</li>
-<li><strong>例外</strong>: 纯金(24K)、铂金、陶瓷材质饰品可直接接触</li>
-</ul>
-<h2 id="7-厨房调味盒每周必须开盖通风-1-次-否则盐糖结块硬如水泥"><a href="#7-厨房调味盒每周必须开盖通风-1-次-否则盐糖结块硬如水泥" class="headerlink" title="7. 厨房调味盒每周必须开盖通风 1 次,否则盐糖结块硬如水泥"></a>7. 厨房调味盒每周必须开盖通风 1 次,否则盐糖结块硬如水泥</h2><ul>
-<li><strong>规则</strong>: 每周日打开所有调味盒盖子晾 30 分钟,或盒底放 3 粒生米吸潮</li>
-<li><strong>为什么</strong>: 密封盒内湿度可达 90%,盐&#x2F;糖吸潮后重结晶,官方储存建议都是布袋&#x2F;纸袋透气包装</li>
-<li><strong>踩坑</strong>: 一次装满一盒盐用半年,后期挖不动直接扔掉浪费,且结块盐块溶解慢影响烹饪</li>
-<li><strong>例外</strong>: 装在冰箱冷藏室(湿度&lt;50%)可以不通风</li>
-</ul>
-<h2 id="8-宠物食盆使用前需沸水煮-5-分钟-工业级塑料残留甲醛超标-3-8-倍"><a href="#8-宠物食盆使用前需沸水煮-5-分钟-工业级塑料残留甲醛超标-3-8-倍" class="headerlink" title="8. 宠物食盆使用前需沸水煮 5 分钟,工业级塑料残留甲醛超标 3-8 倍"></a>8. 宠物食盆使用前需沸水煮 5 分钟,工业级塑料残留甲醛超标 3-8 倍</h2><ul>
-<li><strong>规则</strong>: 新盒先用洗洁精刷洗,再沸水煮 5 分钟,晾干后才能装宠物食物</li>
-<li><strong>为什么</strong>: 蘸料盒按一次性标准生产,表面残留脱模剂和增塑剂,猫狗舔舐后累积中毒,但产品说明从不提示</li>
-<li><strong>踩坑</strong>: 直接装猫粮,猫咪出现流口水&#x2F;呕吐症状,误以为是食物过敏</li>
-<li><strong>例外</strong>: 明确标注”可微波””食品级 PP”的盒子可以只用洗洁精清洗</li>
-</ul>
-<h2 id="9-手工颜料盒用后必须盖紧倒扣存放-否则颜料干裂-24-小时内报废"><a href="#9-手工颜料盒用后必须盖紧倒扣存放-否则颜料干裂-24-小时内报废" class="headerlink" title="9. 手工颜料盒用后必须盖紧倒扣存放,否则颜料干裂 24 小时内报废"></a>9. 手工颜料盒用后必须盖紧倒扣存放,否则颜料干裂 24 小时内报废</h2><ul>
-<li><strong>规则</strong>: 每次用完立即盖紧,倒扣放置(盖子朝下),延长颜料湿润期 5 倍</li>
-<li><strong>为什么</strong>: 倒扣时颜料自重压向盖子密封圈,减少 80% 空气接触面,水粉颜料挥发速度从 2 天延长到 10 天</li>
-<li><strong>踩坑</strong>: 正放在桌上,第二天颜料表面结硬皮,加水稀释后色彩饱和度下降 40%</li>
-<li><strong>例外</strong>: 油画颜料&#x2F;丙烯颜料本身干燥慢,正放倒扣差异不大</li>
-</ul>
-<h2 id="10-回收前必须撕掉所有标签纸-残留不干胶导致整批塑料降级处理"><a href="#10-回收前必须撕掉所有标签纸-残留不干胶导致整批塑料降级处理" class="headerlink" title="10. 回收前必须撕掉所有标签纸,残留不干胶导致整批塑料降级处理"></a>10. 回收前必须撕掉所有标签纸,残留不干胶导致整批塑料降级处理</h2><ul>
-<li><strong>规则</strong>: 用吹风机加热标签 10 秒,趁热撕除,残胶用食用油擦拭干净</li>
-<li><strong>为什么</strong>: 回收厂的熔融设备无法分离纸质标签,混入的纤维素使再生塑料强度下降 60%,只能降级做垃圾袋</li>
-<li><strong>踩坑</strong>: 直接扔进可回收桶,回收员因嫌麻烦将其扔进不可回收,前功尽弃</li>
-<li><strong>例外</strong>: 激光蚀刻或模内印刷的标识(摸不出凸起)无需处理</li>
-</ul>
-<h2 id="11-多肉种植需选用黑色或深色盒-透明盒根系见光停止生长"><a href="#11-多肉种植需选用黑色或深色盒-透明盒根系见光停止生长" class="headerlink" title="11. 多肉种植需选用黑色或深色盒,透明盒根系见光停止生长"></a>11. 多肉种植需选用黑色或深色盒,透明盒根系见光停止生长</h2><ul>
-<li><strong>规则</strong>: 优先用酱油盒等深色容器,透明盒需外包一层铝箔纸或黑色胶带</li>
-<li><strong>为什么</strong>: 植物根系具有”避光性”,见光后停止向下生长转而横向蔓延,导致植株矮小,这是植物生理学基础但园艺教程很少提</li>
-<li><strong>踩坑</strong>: 用透明盒种多肉观察根系,1 个月后发现植株不长个,根系在盒壁打转</li>
-<li><strong>例外</strong>: 水培植物(如绿萝)可用透明盒,便于观察水质和根系健康</li>
-</ul>
-<h2 id="12-冰箱存放需在盒盖贴”首次使用日期”-超过-6-个月塑料析出增塑剂"><a href="#12-冰箱存放需在盒盖贴”首次使用日期”-超过-6-个月塑料析出增塑剂" class="headerlink" title="12. 冰箱存放需在盒盖贴”首次使用日期”,超过 6 个月塑料析出增塑剂"></a>12. 冰箱存放需在盒盖贴”首次使用日期”,超过 6 个月塑料析出增塑剂</h2><ul>
-<li><strong>规则</strong>: 用油性笔在盖子外侧写”启用 YYYY-MM”,满 6 个月淘汰换新</li>
-<li><strong>为什么</strong>: 反复冷热循环使塑料分子链断裂,增塑剂(邻苯二甲酸酯)迁移量从 0.5mg&#x2F;kg 升至 3mg&#x2F;kg,超出欧盟标准</li>
-<li><strong>踩坑</strong>: 一个盒子用 2 年,发现盒壁发白变脆,但仍继续使用直到开裂</li>
-<li><strong>例外</strong>: 只存放非食品(如冰袋、干燥剂)可以用到自然损坏</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>看盒底数字:5 号装食物,6 号只装干货</strong></li>
-<li><strong>育苗必打排水孔,否则 3 天烂根</strong></li>
-<li><strong>车载必须固定,急刹飞出等同凶器</strong></li>
-<li><strong>装药必贴有效期,过期药外观无变化但有毒</strong></li>
-<li><strong>回收前撕标签,残胶导致整批塑料降级</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>透明盒</td>
-<td>先翻底看数字,6 号 PS 别装食物</td>
-</tr>
-<tr>
-<td>要冻冰块</td>
-<td>只装 2&#x2F;3 满+虚扣盖子</td>
-</tr>
-<tr>
-<td>种多肉&#x2F;豆芽</td>
-<td>烫针戳 5 个排水孔</td>
-</tr>
-<tr>
-<td>放车里</td>
-<td>双面胶固定或扔手套箱</td>
-</tr>
-<tr>
-<td>装散装药</td>
-<td>立即贴标签写失效日期</td>
-</tr>
-<tr>
-<td>装首饰</td>
-<td>垫棉花,银饰包锡纸</td>
-</tr>
-<tr>
-<td>装盐糖</td>
-<td>扔 3 粒生米+每周开盖通风</td>
-</tr>
-<tr>
-<td>给宠物用</td>
-<td>沸水煮 5 分钟去甲醛</td>
-</tr>
-<tr>
-<td>装颜料</td>
-<td>用完倒扣放(盖子朝下)</td>
-</tr>
-<tr>
-<td>要回收</td>
-<td>吹风机加热撕标签</td>
-</tr>
-<tr>
-<td>种透明盒</td>
-<td>外包黑胶带遮光</td>
-</tr>
-<tr>
-<td>冰箱长期用</td>
-<td>盖上写启用日期,6 个月换新</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-21</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/2026-09-21-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
-                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
-<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
-</blockquote>
-<h1 id="CloudFront-Distribution-跨账号迁移技能点清单"><a href="#CloudFront-Distribution-跨账号迁移技能点清单" class="headerlink" title="CloudFront Distribution 跨账号迁移技能点清单"></a>CloudFront Distribution 跨账号迁移技能点清单</h1><blockquote>
-<p>场景占位: 从 <ACCOUNT_A> 迁移 distribution <DIST_ID_OLD> 到 <ACCOUNT_B>,保持 CNAME <DOMAIN> 不变<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-先在目标账号创建-distribution-并添加-CNAME-再删除源账号-CNAME"><a href="#1-先在目标账号创建-distribution-并添加-CNAME-再删除源账号-CNAME" class="headerlink" title="1. 先在目标账号创建 distribution 并添加 CNAME,再删除源账号 CNAME"></a>1. 先在目标账号创建 distribution 并添加 CNAME,再删除源账号 CNAME</h2><ul>
-<li><strong>规则</strong>: 在 <ACCOUNT_B> 新建 distribution 时直接配置 <DOMAIN> CNAME,此时会报错 CNAMEAlreadyExists,这是预期行为</li>
-<li><strong>为什么</strong>: CloudFront CNAME 全局唯一锁由 API 调用时刻决定而非 DNS 生效时刻,必须先删源再加目标会导致 30-90 秒窗口期被其他账号抢占</li>
-<li><strong>踩坑</strong>: 以为”先删旧 CNAME 再加新 CNAME”是安全顺序,实际这个窗口期 CNAME 处于全局未锁定状态</li>
-<li><strong>例外</strong>: 使用 CloudFormation StackSets 跨账号部署时可原子化操作,但需提前配置 trust relationship</li>
-</ul>
-<h2 id="2-用-ACM-证书时必须在-us-east-1-申请并跨账号共享"><a href="#2-用-ACM-证书时必须在-us-east-1-申请并跨账号共享" class="headerlink" title="2. 用 ACM 证书时必须在 us-east-1 申请并跨账号共享"></a>2. 用 ACM 证书时必须在 us-east-1 申请并跨账号共享</h2><ul>
-<li><strong>规则</strong>: 目标账号 <ACCOUNT_B> 的 ACM 证书必须在 us-east-1 region 存在,即使 distribution 是全球服务</li>
-<li><strong>为什么</strong>: CloudFront 底层证书存储只认 us-east-1,其他 region 的证书在 distribution 配置界面不可见</li>
-<li><strong>踩坑</strong>: 在 ap-southeast-1 申请了通配符证书,CloudFront 控制台下拉列表为空,以为是权限问题反复检查 IAM policy</li>
-<li><strong>例外</strong>: 使用自定义 SSL 证书上传到 IAM 时不受此限制,但需额外管理证书轮换</li>
-</ul>
-<h2 id="3-迁移前必须导出完整-distribution-config-为-JSON-不能依赖控制台截图"><a href="#3-迁移前必须导出完整-distribution-config-为-JSON-不能依赖控制台截图" class="headerlink" title="3. 迁移前必须导出完整 distribution config 为 JSON,不能依赖控制台截图"></a>3. 迁移前必须导出完整 distribution config 为 JSON,不能依赖控制台截图</h2><ul>
-<li><strong>规则</strong>: 用 <code>aws cloudfront get-distribution-config --id &lt;DIST_ID_OLD&gt;</code> 导出完整配置,包含 ETag 用于后续 update 操作</li>
-<li><strong>为什么</strong>: 控制台隐藏了 20+ 个默认参数(如 MinTTL&#x3D;0, SmoothStreaming&#x3D;false),手动重建会丢失 cache behavior 优先级顺序和 lambda@edge 关联</li>
-<li><strong>踩坑</strong>: 只记录了 origin domain 和 cache policy,迁移后发现 gzip 压缩失效、query string 转发行为变化</li>
-<li><strong>例外</strong>: 纯静态 S3 源站且无自定义 header 时可简化,但仍建议全量导出做 diff</li>
-</ul>
-<h2 id="4-Lambda-Edge-函数必须先复制到目标账号-us-east-1-并重新关联"><a href="#4-Lambda-Edge-函数必须先复制到目标账号-us-east-1-并重新关联" class="headerlink" title="4. Lambda@Edge 函数必须先复制到目标账号 us-east-1 并重新关联"></a>4. Lambda@Edge 函数必须先复制到目标账号 us-east-1 并重新关联</h2><ul>
-<li><strong>规则</strong>: Lambda@Edge 函数无法跨账号引用,需在 <ACCOUNT_B> us-east-1 重新部署函数,获取新 ARN 后更新 distribution config</li>
-<li><strong>为什么</strong>: Lambda@Edge 的 IAM principal 绑定在源账号,CloudFront 服务角色无法 AssumeRole 到其他账号执行函数</li>
-<li><strong>踩坑</strong>: 直接复制旧 distribution config 的 LambdaFunctionAssociations ARN,部署时报 AccessDenied 但错误信息不明确指向跨账号问题</li>
-<li><strong>例外</strong>: 使用 CloudFront Functions(CFN)时可直接在目标账号重建,因其代码存储在 distribution 配置内</li>
-</ul>
-<h2 id="5-Origin-Access-Identity-迁移需同步更新-S3-bucket-policy-的-Principal"><a href="#5-Origin-Access-Identity-迁移需同步更新-S3-bucket-policy-的-Principal" class="headerlink" title="5. Origin Access Identity 迁移需同步更新 S3 bucket policy 的 Principal"></a>5. Origin Access Identity 迁移需同步更新 S3 bucket policy 的 Principal</h2><ul>
-<li><strong>规则</strong>: 在 <ACCOUNT_B> 创建新 OAI,更新 S3 bucket policy 允许新 OAI 的 CanonicalUser ID,保留旧 OAI 权限直到迁移完成</li>
-<li><strong>为什么</strong>: OAI 是账号级资源,其 CanonicalUser ID 在跨账号后完全不同,S3 bucket policy 必须显式授权新 ID</li>
-<li><strong>踩坑</strong>: 只更新了 CloudFront distribution 的 OAI 配置,忘记改 S3 bucket policy,导致所有请求 403 但 CloudFront 日志显示 200</li>
-<li><strong>例外</strong>: 源站是 public S3 bucket 或自定义 origin(ALB&#x2F;API Gateway)时不涉及 OAI</li>
-</ul>
-<h2 id="6-切换-DNS-前必须验证目标-distribution-的所有-edge-location-已部署完成"><a href="#6-切换-DNS-前必须验证目标-distribution-的所有-edge-location-已部署完成" class="headerlink" title="6. 切换 DNS 前必须验证目标 distribution 的所有 edge location 已部署完成"></a>6. 切换 DNS 前必须验证目标 distribution 的所有 edge location 已部署完成</h2><ul>
-<li><strong>规则</strong>: 新 distribution 状态显示 Deployed 后,再等待 5-15 分钟,用 <code>curl -H &quot;Host: &lt;DOMAIN&gt;&quot; https://&lt;DIST_DOMAIN&gt;.cloudfront.net</code> 从多个地理位置测试</li>
-<li><strong>为什么</strong>: Deployed 状态只表示配置已推送到控制平面,边缘节点的实际部署是异步的,过早切换 DNS 会导致部分地区 502&#x2F;504</li>
-<li><strong>踩坑</strong>: 状态变 Deployed 后立即修改 Route53 记录,亚太区用户大量报错但美东正常,回滚后发现是边缘节点未同步</li>
-<li><strong>例外</strong>: 使用 CloudFront continuous deployment 蓝绿发布时可自动处理,但需 Enterprise Support 计划</li>
-</ul>
-<h2 id="7-保留源-distribution-的-access-logging-配置并对比新旧日志流"><a href="#7-保留源-distribution-的-access-logging-配置并对比新旧日志流" class="headerlink" title="7. 保留源 distribution 的 access logging 配置并对比新旧日志流"></a>7. 保留源 distribution 的 access logging 配置并对比新旧日志流</h2><ul>
-<li><strong>规则</strong>: 迁移前后各保留 7 天日志,用 Athena 查询对比 request count、cache hit rate、4xx&#x2F;5xx 比例,确认行为一致</li>
-<li><strong>为什么</strong>: 很多配置差异(如 origin timeout、cache key 参数)不会导致明显错误,但会静默改变缓存效率和回源模式</li>
-<li><strong>踩坑</strong>: 迁移后业务方未投诉,3 周后发现 origin 流量增加 40%,排查发现新 distribution 的 query string whitelist 配置错误导致缓存失效</li>
-<li><strong>例外</strong>: 日志量极大(&gt;1TB&#x2F;天)时可采样对比,但至少要覆盖高峰时段</li>
-</ul>
-<h2 id="8-使用-Route53-加权路由策略实现灰度切换而非直接-CNAME-切换"><a href="#8-使用-Route53-加权路由策略实现灰度切换而非直接-CNAME-切换" class="headerlink" title="8. 使用 Route53 加权路由策略实现灰度切换而非直接 CNAME 切换"></a>8. 使用 Route53 加权路由策略实现灰度切换而非直接 CNAME 切换</h2><ul>
-<li><strong>规则</strong>: 创建两条 A record(alias 到新旧 distribution),初始权重 99:1,每 10 分钟调整权重直到 0:100</li>
-<li><strong>为什么</strong>: 直接修改 CNAME 的 DNS TTL 无法控制客户端缓存,灰度切换可在发现问题时秒级回滚且只影响小比例用户</li>
-<li><strong>踩坑</strong>: 修改 CNAME 指向新 distribution 后发现问题,但 DNS TTL 300 秒导致 5 分钟内无法完全回滚,期间错误率累积</li>
-<li><strong>例外</strong>: 非 Route53 托管的域名需在 DNS 提供商支持加权路由,或使用 CloudFront continuous deployment 的流量分割功能</li>
-</ul>
-<h2 id="9-提前-24-小时降低-DNS-TTL-到-60-秒-迁移完成后再恢复"><a href="#9-提前-24-小时降低-DNS-TTL-到-60-秒-迁移完成后再恢复" class="headerlink" title="9. 提前 24 小时降低 DNS TTL 到 60 秒,迁移完成后再恢复"></a>9. 提前 24 小时降低 DNS TTL 到 60 秒,迁移完成后再恢复</h2><ul>
-<li><strong>规则</strong>: 迁移前一天将 <DOMAIN> 的 A&#x2F;CNAME record TTL 从默认 300 改为 60,迁移后 24 小时再改回 300</li>
-<li><strong>为什么</strong>: 降低 TTL 可缩短 DNS 缓存窗口,但需提前操作以清空全球递归 DNS 服务器的旧 TTL 缓存</li>
-<li><strong>踩坑</strong>: 迁移当天才改 TTL,实际生效时间仍受旧 TTL(300 秒)约束,导致 5 分钟双写窗口</li>
-<li><strong>例外</strong>: 使用 Route53 alias record 指向 CloudFront 时,TTL 由 CloudFront 控制(固定 60 秒),无需手动调整</li>
-</ul>
-<h2 id="10-迁移-WAF-Web-ACL-时注意-rate-based-rule-的计数器不会迁移"><a href="#10-迁移-WAF-Web-ACL-时注意-rate-based-rule-的计数器不会迁移" class="headerlink" title="10. 迁移 WAF Web ACL 时注意 rate-based rule 的计数器不会迁移"></a>10. 迁移 WAF Web ACL 时注意 rate-based rule 的计数器不会迁移</h2><ul>
-<li><strong>规则</strong>: 在 <ACCOUNT_B> 重建 Web ACL 后,rate-based rule 的计数器从 0 开始,需临时提高阈值或禁用规则 1 小时</li>
-<li><strong>为什么</strong>: WAF 计数器是运行时状态,存储在源账号的边缘节点内存中,新 distribution 关联新 Web ACL 时无历史数据</li>
-<li><strong>踩坑</strong>: 迁移后立即遭受 DDoS 攻击,rate-based rule 因计数器重置未能及时触发,导致 10 分钟服务降级</li>
-<li><strong>例外</strong>: 使用 AWS Shield Advanced 时可保留部分攻击特征,但仍建议迁移时段避开业务高峰</li>
-</ul>
-<h2 id="11-源站是-ALB-时需更新-security-group-允许新-distribution-的-AWS-managed-prefix-list"><a href="#11-源站是-ALB-时需更新-security-group-允许新-distribution-的-AWS-managed-prefix-list" class="headerlink" title="11. 源站是 ALB 时需更新 security group 允许新 distribution 的 AWS managed prefix list"></a>11. 源站是 ALB 时需更新 security group 允许新 distribution 的 AWS managed prefix list</h2><ul>
-<li><strong>规则</strong>: 在 ALB security group 添加入站规则,source 为 <code>com.amazonaws.global.cloudfront.origin-facing</code>,同时保留旧规则直到迁移完成</li>
-<li><strong>为什么</strong>: CloudFront 到 origin 的请求来自 AWS 骨干网特定 IP 段,新旧 distribution 可能使用不同边缘节点 IP</li>
-<li><strong>踩坑</strong>: 只在 ALB 配置了旧 distribution 的 custom header 验证,新 distribution 请求被 security group 拒绝但 CloudFront 日志显示 504 timeout</li>
-<li><strong>例外</strong>: 源站是 S3 或 API Gateway 时由 AWS 内部路由处理,不涉及 security group</li>
-</ul>
-<h2 id="12-对于使用-signed-URL-cookie-的场景-需双写密钥对到新旧-distribution"><a href="#12-对于使用-signed-URL-cookie-的场景-需双写密钥对到新旧-distribution" class="headerlink" title="12. 对于使用 signed URL&#x2F;cookie 的场景,需双写密钥对到新旧 distribution"></a>12. 对于使用 signed URL&#x2F;cookie 的场景,需双写密钥对到新旧 distribution</h2><ul>
-<li><strong>规则</strong>: 在 <ACCOUNT_B> 上传相同 public key 创建新 key pair,更新应用层签名逻辑同时支持新旧 key pair ID,保留 7 天重叠期</li>
-<li><strong>为什么</strong>: Signed URL 中的 key pair ID 必须匹配 distribution 关联的 trusted key groups,跨账号后 key pair ID 会变化</li>
-<li><strong>踩坑</strong>: 迁移后所有已签发的 URL(如邮件中的下载链接)立即失效,用户投诉激增但无法快速修复</li>
-<li><strong>例外</strong>: 使用 CloudFront key groups(推荐)而非 legacy key pairs 时,可在迁移前将两个账号的 public key 都加入 key group</li>
-</ul>
-<h2 id="13-迁移窗口期禁用-auto-invalidation-流水线-改为手动双写失效请求"><a href="#13-迁移窗口期禁用-auto-invalidation-流水线-改为手动双写失效请求" class="headerlink" title="13. 迁移窗口期禁用 auto-invalidation 流水线,改为手动双写失效请求"></a>13. 迁移窗口期禁用 auto-invalidation 流水线,改为手动双写失效请求</h2><ul>
-<li><strong>规则</strong>: 暂停 CI&#x2F;CD 中的 <code>aws cloudfront create-invalidation</code> 步骤,改为脚本同时向 <DIST_ID_OLD> 和 <DIST_ID_NEW> 发送相同 invalidation</li>
-<li><strong>为什么</strong>: 自动化流水线通常硬编码 distribution ID,迁移期间只失效一个 distribution 会导致新旧缓存不一致</li>
-<li><strong>踩坑</strong>: 发布新版本后,旧 distribution 缓存已失效但新 distribution 仍返回旧内容,灰度切换时用户看到版本回退</li>
-<li><strong>例外</strong>: 使用 cache policy 的 TTL 控制而非 invalidation 时影响较小,但仍建议双写</li>
-</ul>
-<h2 id="14-提前确认目标账号的-service-quota-足够-特别是-distributions-per-account-和-invalidations-per-second"><a href="#14-提前确认目标账号的-service-quota-足够-特别是-distributions-per-account-和-invalidations-per-second" class="headerlink" title="14. 提前确认目标账号的 service quota 足够,特别是 distributions per account 和 invalidations per second"></a>14. 提前确认目标账号的 service quota 足够,特别是 distributions per account 和 invalidations per second</h2><ul>
-<li><strong>规则</strong>: 在 Service Quotas 控制台检查 <ACCOUNT_B> 的 CloudFront limits,如不足提前 3-5 个工作日申请提升</li>
-<li><strong>为什么</strong>: 默认每账号 200 个 distributions,大型组织迁移时可能超限,且 quota 提升需人工审批</li>
-<li><strong>踩坑</strong>: 迁移当天创建第 201 个 distribution 时报 LimitExceeded,紧急提交 quota 申请但需等待 2 个工作日</li>
-<li><strong>例外</strong>: 使用 AWS Organizations 的 delegated administrator 可集中管理 quota,但需提前配置</li>
-</ul>
-<h2 id="15-迁移完成后保留源-distribution-7-14-天再删除-期间监控其流量归零"><a href="#15-迁移完成后保留源-distribution-7-14-天再删除-期间监控其流量归零" class="headerlink" title="15. 迁移完成后保留源 distribution 7-14 天再删除,期间监控其流量归零"></a>15. 迁移完成后保留源 distribution 7-14 天再删除,期间监控其流量归零</h2><ul>
-<li><strong>规则</strong>: 用 CloudWatch metrics 监控 <DIST_ID_OLD> 的 Requests 指标,确认连续 7 天为 0 后再执行 disable + delete</li>
-<li><strong>为什么</strong>: 部分客户端(如企业代理、CDN 厂商)的 DNS 缓存可能超过 TTL,过早删除会导致长尾流量 404</li>
-<li><strong>踩坑</strong>: 迁移后 3 天删除旧 distribution,一周后收到某企业客户投诉无法访问,排查发现其网络设备缓存了 7 天 DNS</li>
-<li><strong>例外</strong>: 紧急安全事件(如证书泄露)需立即删除时,可配合 Route53 health check 强制 DNS 故障转移</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>先在目标账号添加 CNAME 再删源账号,避免全局锁竞争窗口</strong></li>
-<li><strong>ACM 证书必须 us-east-1,Lambda@Edge 必须重新部署到目标账号</strong></li>
-<li><strong>用 Route53 加权路由灰度切换,不要直接改 CNAME</strong></li>
-<li><strong>导出完整 distribution config JSON,控制台隐藏 20+ 参数</strong></li>
-<li><strong>保留源 distribution 7 天并监控流量归零再删除</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>CNAMEAlreadyExists 错误</td>
-<td>正常,先删源 CNAME 再重试,或用 API 原子化操作</td>
-</tr>
-<tr>
-<td>证书下拉列表为空</td>
-<td>检查是否在 us-east-1 申请 ACM 证书</td>
-</tr>
-<tr>
-<td>迁移后部分地区 502</td>
-<td>等待 15 分钟让边缘节点全部部署完成</td>
-</tr>
-<tr>
-<td>Signed URL 全部失效</td>
-<td>双写 key pair 并保留 7 天重叠期</td>
-</tr>
-<tr>
-<td>Origin 流量异常增加</td>
-<td>对比新旧 distribution 的 cache hit rate 和 access log</td>
-</tr>
-<tr>
-<td>灰度切换无法快速回滚</td>
-<td>用 Route53 加权路由而非直接改 CNAME</td>
-</tr>
-<tr>
-<td>WAF 未拦截已知攻击</td>
-<td>Rate-based rule 计数器已重置,临时提高阈值</td>
-</tr>
-<tr>
-<td>LimitExceeded 创建失败</td>
-<td>提前 3-5 天申请 service quota 提升</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-21</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/2026-09-21-expanded-%E8%96%84%E8%8D%B7%E6%80%8E%E4%B9%88%E6%B0%B4%E5%9F%B9/">
-                [expanded] 薄荷怎么水培
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-薄荷怎么水培"><a href="#expanded-薄荷怎么水培" class="headerlink" title="[expanded] 薄荷怎么水培"></a>[expanded] 薄荷怎么水培</h1><blockquote>
-<p>原始问题: 薄荷怎么水培</p>
-</blockquote>
-<h1 id="薄荷水培技能点清单"><a href="#薄荷水培技能点清单" class="headerlink" title="薄荷水培技能点清单"></a>薄荷水培技能点清单</h1><blockquote>
-<p>场景占位: 从 &lt;母株&gt; 剪取枝条,在 &lt;容器&gt; 中用清水培养,&lt;养护周期&gt; 内观察根系生长<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-选-8-10cm-枝条而非更长枝条"><a href="#1-选-8-10cm-枝条而非更长枝条" class="headerlink" title="1. 选 8-10cm 枝条而非更长枝条"></a>1. 选 8-10cm 枝条而非更长枝条</h2><ul>
-<li><strong>规则</strong>: 剪取 8-10cm 长度的薄荷枝条用于水培</li>
-<li><strong>为什么</strong>: 更长枝条营养消耗大于根系吸收速度,反而生根慢甚至腐烂;短枝条能量集中在生根点</li>
-<li><strong>踩坑</strong>: 以为枝条越长越容易活,结果 15cm 以上枝条叶片先黄再烂</li>
-<li><strong>例外</strong>: 如果母株极度健壮且在生长旺季,可尝试 12cm</li>
-</ul>
-<h2 id="2-生根前必须放阴凉处而非光照充足处"><a href="#2-生根前必须放阴凉处而非光照充足处" class="headerlink" title="2. 生根前必须放阴凉处而非光照充足处"></a>2. 生根前必须放阴凉处而非光照充足处</h2><ul>
-<li><strong>规则</strong>: 枝条插入清水后的前 7-10 天放在无直射光的阴凉位置</li>
-<li><strong>为什么</strong>: 此时枝条无根系吸水能力弱,光照加速蒸腾导致失水;阴凉环境迫使植物优先长根而非长叶</li>
-<li><strong>踩坑</strong>: 直接放窗台晒太阳,3 天内叶片萎蔫枝条发黑</li>
-<li><strong>例外</strong>: 冬季室温低于 10°C 时需要温和散射光维持代谢</li>
-</ul>
-<h2 id="3-水位控制在根部以上-5cm-而非淹没所有茎段"><a href="#3-水位控制在根部以上-5cm-而非淹没所有茎段" class="headerlink" title="3. 水位控制在根部以上 5cm 而非淹没所有茎段"></a>3. 水位控制在根部以上 5cm 而非淹没所有茎段</h2><ul>
-<li><strong>规则</strong>: 水面距离最低叶片至少 2cm,只浸泡根系和底部茎段</li>
-<li><strong>为什么</strong>: 茎段长期泡水皮层窒息腐烂,释放细菌污染整瓶水;根系需要水气界面获取溶解氧</li>
-<li><strong>踩坑</strong>: 加水到容器 2&#x2F;3 高度,一周后水体发臭茎段软烂</li>
-<li><strong>例外</strong>: 刚剪下未生根的枝条可多浸泡 1-2cm 增加吸水面积</li>
-</ul>
-<h2 id="4-3-5-天换水一次而非每天换或两周不换"><a href="#4-3-5-天换水一次而非每天换或两周不换" class="headerlink" title="4. 3-5 天换水一次而非每天换或两周不换"></a>4. 3-5 天换水一次而非每天换或两周不换</h2><ul>
-<li><strong>规则</strong>: 夏季 3 天、春秋 4 天、冬季 5 天完全换水一次</li>
-<li><strong>为什么</strong>: 换水过频破坏根系表面有益菌膜,不换水则溶解氧耗尽厌氧菌繁殖;这个频率平衡了氧气供应和微生态稳定</li>
-<li><strong>踩坑</strong>: 每天换水导致根系始终白嫩但不分叉,吸收能力差</li>
-<li><strong>例外</strong>: 水体出现异味或浑浊立即换水,不等周期</li>
-</ul>
-<h2 id="5-摘除水下茎段所有叶片而非保留小叶"><a href="#5-摘除水下茎段所有叶片而非保留小叶" class="headerlink" title="5. 摘除水下茎段所有叶片而非保留小叶"></a>5. 摘除水下茎段所有叶片而非保留小叶</h2><ul>
-<li><strong>规则</strong>: 插水前将水位线以下 3cm 范围内所有叶片完全摘除</li>
-<li><strong>为什么</strong>: 叶片泡水 48 小时开始腐烂,是水体污染的主要来源;叶柄残留同样会烂,必须齐根摘除</li>
-<li><strong>踩坑</strong>: 觉得小叶片无所谓,结果 5 天后水变绿长青苔</li>
-<li><strong>例外</strong>: 无例外,这是水培成败的关键操作</li>
-</ul>
-<h2 id="6-使用透明容器而非不透明陶瓷盆"><a href="#6-使用透明容器而非不透明陶瓷盆" class="headerlink" title="6. 使用透明容器而非不透明陶瓷盆"></a>6. 使用透明容器而非不透明陶瓷盆</h2><ul>
-<li><strong>规则</strong>: 选择透明玻璃杯或塑料瓶作为水培容器</li>
-<li><strong>为什么</strong>: 需要每日观察根系颜色(白色健康&#x2F;褐色缺氧)和水质变化,不透明容器发现问题时已晚 2-3 天</li>
-<li><strong>踩坑</strong>: 用漂亮陶瓷杯,根系全烂了才因为臭味发现</li>
-<li><strong>例外</strong>: 透明容器外套一层可拆卸遮光罩,既能观察又防藻类</li>
-</ul>
-<h2 id="7-明亮散射光-6-8-小时而非室内弱光或阳台直射"><a href="#7-明亮散射光-6-8-小时而非室内弱光或阳台直射" class="headerlink" title="7. 明亮散射光 6-8 小时而非室内弱光或阳台直射"></a>7. 明亮散射光 6-8 小时而非室内弱光或阳台直射</h2><ul>
-<li><strong>规则</strong>: 生根后放在距窗 1-2 米的明亮位置,避免直射阳光</li>
-<li><strong>为什么</strong>: 直射光使水温升至 28°C 以上根系窒息,弱光则光合作用不足无法合成生长素;散射光环境水温稳定且光照充足</li>
-<li><strong>踩坑</strong>: 放在离窗 5 米的桌角,一个月后茎秆徒长叶片薄如纸</li>
-<li><strong>例外</strong>: 冬季可接受 1-2 小时早晨直射光补充能量</li>
-</ul>
-<h2 id="8-温度维持-15-25°C-而非追求恒温-20°C"><a href="#8-温度维持-15-25°C-而非追求恒温-20°C" class="headerlink" title="8. 温度维持 15-25°C 而非追求恒温 20°C"></a>8. 温度维持 15-25°C 而非追求恒温 20°C</h2><ul>
-<li><strong>规则</strong>: 允许昼夜温差 5-8°C,白天 22-25°C 夜间 15-18°C</li>
-<li><strong>为什么</strong>: 温差刺激根系生长激素分泌,恒温环境植物代谢懒惰;超过 28°C 水中溶解氧骤降,低于 10°C 停止生长</li>
-<li><strong>踩坑</strong>: 夏季空调房恒温 26°C,薄荷一个月不长新根</li>
-<li><strong>例外</strong>: 刚扦插的前 3 天需要相对恒温 18-22°C 促进伤口愈合</li>
-</ul>
-<h2 id="9-营养液浓度减半而非按说明书标准用量"><a href="#9-营养液浓度减半而非按说明书标准用量" class="headerlink" title="9. 营养液浓度减半而非按说明书标准用量"></a>9. 营养液浓度减半而非按说明书标准用量</h2><ul>
-<li><strong>规则</strong>: 水培营养液按瓶身说明浓度的 50% 添加,每次换水加一次</li>
-<li><strong>为什么</strong>: 水培根系直接接触营养液,标准浓度会烧根;薄荷需肥量低,过量氮肥导致徒长且香味变淡</li>
-<li><strong>踩坑</strong>: 按 1:500 说明兑成 1:500,一周后根尖发黑停止生长</li>
-<li><strong>例外</strong>: 冬季休眠期可停用营养液 1-2 个月</li>
-</ul>
-<h2 id="10-每-2-周修剪顶芽而非等长高了再剪"><a href="#10-每-2-周修剪顶芽而非等长高了再剪" class="headerlink" title="10. 每 2 周修剪顶芽而非等长高了再剪"></a>10. 每 2 周修剪顶芽而非等长高了再剪</h2><ul>
-<li><strong>规则</strong>: 当主茎长出 4-6 对叶片时掐掉顶端 2cm</li>
-<li><strong>为什么</strong>: 顶端优势会抑制侧芽,不打顶则长成独杆司令;早打顶促进基部分枝,株型紧凑且采收量大 3 倍</li>
-<li><strong>踩坑</strong>: 等长到 20cm 才想起来修剪,底部已木质化不发侧枝</li>
-<li><strong>例外</strong>: 如果专门培养单株高杆造型可不打顶</li>
-</ul>
-<h2 id="11-夏季加冰块降温而非频繁换水"><a href="#11-夏季加冰块降温而非频繁换水" class="headerlink" title="11. 夏季加冰块降温而非频繁换水"></a>11. 夏季加冰块降温而非频繁换水</h2><ul>
-<li><strong>规则</strong>: 当室温超过 30°C 时,每天傍晚往水中投 1-2 块冰块</li>
-<li><strong>为什么</strong>: 高温时换水降温效果持续不到 2 小时,冰块缓慢融化可维持 4-6 小时低温;频繁换水破坏根系适应性</li>
-<li><strong>踩坑</strong>: 一天换三次水试图降温,根系因渗透压波动大量脱落</li>
-<li><strong>例外</strong>: 使用循环水泵的大型水培系统不需要冰块</li>
-</ul>
-<h2 id="12-发现烂根立即剪除并换容器而非只换水"><a href="#12-发现烂根立即剪除并换容器而非只换水" class="headerlink" title="12. 发现烂根立即剪除并换容器而非只换水"></a>12. 发现烂根立即剪除并换容器而非只换水</h2><ul>
-<li><strong>规则</strong>: 看到褐色软烂根系,剪到健康白色部分,容器用开水烫洗后重新水培</li>
-<li><strong>为什么</strong>: 烂根释放的腐败菌已附着在容器壁,只换水无法清除病原;剪根刺激新根萌发,比带病根恢复快 5 天</li>
-<li><strong>踩坑</strong>: 只换了水继续用原容器,三天后新长的根又开始发黑</li>
-<li><strong>例外</strong>: 如果烂根超过总根量 70% 建议重新扦插新枝条</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>生根前 7 天必须阴凉处,见光就烂</strong></li>
-<li><strong>水位只淹根部+5cm,淹茎必臭</strong></li>
-<li><strong>水下叶片全摘光,留一片毁一瓶</strong></li>
-<li><strong>营养液减半浓度,标准量烧根</strong></li>
-<li><strong>4 对叶就打顶,晚了成独杆</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>枝条 3 天不生根</td>
-<td>正常,继续等到第 7 天;检查是否误放阳光下</td>
-</tr>
-<tr>
-<td>水体发绿长青苔</td>
-<td>叶片没摘干净或光照过强,换水+遮光</td>
-</tr>
-<tr>
-<td>根系发黄不长</td>
-<td>营养液浓度过高,清水养护 1 周</td>
-</tr>
-<tr>
-<td>叶片边缘发黑</td>
-<td>直射阳光灼伤,立即移到散射光位置</td>
-</tr>
-<tr>
-<td>新叶徒长颜色浅</td>
-<td>光照不足或氮肥过量,增光+停肥 2 周</td>
-</tr>
-<tr>
-<td>根系白色但不分叉</td>
-<td>换水过频,改为 5 天一次建立菌膜</td>
-</tr>
-<tr>
-<td>冬季停止生长</td>
-<td>10°C 以下休眠,减少换水保持 15°C 以上</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-21</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/redis/">
-                Redis
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
+                <span class="date">2026-09-22</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
+                    <a href="/categories/Linux/">Linux</a>
                 </span>
             
         </div>
@@ -871,7 +359,13 @@
 
     
         <div class="content">
-            
+            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
+
+<p>backup_and_migrate.sh</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
+
         </div>
     
 
@@ -882,18 +376,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/21/rust/">
-                Rust
+            <a href="/2026/09/22/stock/">
+                股市币市
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-21</span>
+                <span class="date">2026-09-22</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/Rust/">Rust</a>
+                    <a href="/categories/新/">新</a>
                 </span>
             
         </div>
@@ -901,241 +395,348 @@
 
     
         <div class="content">
-            <h2 id="Rust学习"><a href="#Rust学习" class="headerlink" title="Rust学习"></a>Rust学习</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cargo update       # 更新依赖</span><br><span class="line">cargo build        # 测试是否能 build</span><br><span class="line">cargo clean        # 清理后重新编译 run</span><br><span class="line">cargo run          # 运行 loka-server</span><br></pre></td></tr></table></figure>
+            <p>本金 </p>
+<p>三折最多</p>
+<p>三折以上就是突发状况</p>
+<p>有信心可以all in 30%</p>
+<pre><code>信心一般可以先 20%
+</code></pre>
+<p>小试牛刀 10% </p>
+<pre><code>补刀 10%
 
-<h3 id="遇到问题"><a href="#遇到问题" class="headerlink" title="遇到问题"></a>遇到问题</h3><ol>
-<li>不能随便命名 因为rust会严格检查</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pub(crate) mod loka_api &#123;</span><br><span class="line">    tonic::include_proto!(&quot;loka_rpc&quot;);</span><br><span class="line">&#125;</span><br><span class="line">Rust 和 Tonic 结合 gRPC 的核心机制，你会发现它和其他语言（比如 JS/TS、Python）完全不同，因为 Rust 是 编译时严格类型检查 的语言</span><br></pre></td></tr></table></figure>
+    收回本金 cl 1
+    或者收回补刀的钱 cl 2
 
-<ol start="2">
-<li>i32&#x2F;i64&#x2F;isize&#x2F;usize 这几个区别和用途</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">i32 和 i64 主要区别是 占用字节和数值范围</span><br><span class="line"></span><br><span class="line">i32：32 位有符号整数</span><br><span class="line">    占 4 字节</span><br><span class="line">    范围：-2_147_483_648 到 2_147_483_647</span><br><span class="line"></span><br><span class="line">i64：64 位有符号整数</span><br><span class="line">    占 8 字节</span><br><span class="line">    范围：-9_223_372_036_854_775_808 到 9_223_372_036_854_775_807</span><br><span class="line"></span><br><span class="line">想随 CPU 架宽变化，使用 isize / usize</span><br></pre></td></tr></table></figure>
+开始做空
+</code></pre>
+<p>一定要留补仓 40%</p>
+<p>本金越大 补仓率就要增高</p>
+<p>2&#x2F;24</p>
+<p>2684 200</p>
 
-<ol start="3">
-<li>函数和宏区别</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">函数 = 类型安全、运行时逻辑封装 (严格)</span><br><span class="line">宏 = 编译期代码生成、元编程工具 </span><br><span class="line">函数适用场景</span><br><span class="line">    封装逻辑、计算、操作</span><br><span class="line">    需要类型安全</span><br><span class="line">    函数调用开销可以忽略或者通过 #[inline] 优化</span><br><span class="line"></span><br><span class="line">宏适用场景</span><br><span class="line">    生成重复代码（如 impl 一大堆 trait）</span><br><span class="line">    DSL / 语法扩展（例如 serde 的 #[derive(Serialize)] 是宏）</span><br><span class="line">    日志/调试（println!、dbg!）</span><br><span class="line">    可变参数（函数参数数量固定，宏可任意）</span><br></pre></td></tr></table></figure>
-<h3 id="系统对比-Go-Golang-、Rust-和-C"><a href="#系统对比-Go-Golang-、Rust-和-C" class="headerlink" title="系统对比 Go (Golang)、Rust 和 C++"></a>系统对比 Go (Golang)、Rust 和 C++</h3><p>1️⃣ 语言概览</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>Go (Golang)</th>
-<th>Rust</th>
-<th>C++</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>发布年份</strong></td>
-<td>2009</td>
-<td>2015</td>
-<td>1985</td>
-</tr>
-<tr>
-<td><strong>设计目标</strong></td>
-<td>简单、高效、并发友好</td>
-<td>安全、零开销抽象、并发 &amp; 系统级</td>
-<td>高性能、通用系统编程</td>
-</tr>
-<tr>
-<td><strong>编译模式</strong></td>
-<td>静态编译</td>
-<td>静态编译</td>
-<td>静态编译</td>
-</tr>
-<tr>
-<td><strong>内存管理</strong></td>
-<td>GC（垃圾回收）</td>
-<td>所有权 + 借用系统（无 GC）</td>
-<td>手动管理（可选智能指针）</td>
-</tr>
-<tr>
-<td><strong>并发模型</strong></td>
-<td>Goroutines + Channel（轻量线程）</td>
-<td>async&#x2F;await + Send&#x2F;Sync trait</td>
-<td>std::thread + 原生线程库</td>
-</tr>
-<tr>
-<td><strong>安全性</strong></td>
-<td>编译时类型安全，但有 GC</td>
-<td>编译时内存 &amp; 并发安全</td>
-<td>编译时类型安全，但容易悬挂指针和 UB</td>
-</tr>
-<tr>
-<td><strong>性能</strong></td>
-<td>高，但有 GC 开销</td>
-<td>接近 C++，零开销抽象</td>
-<td>极高，可手动优化到极致</td>
-</tr>
-<tr>
-<td><strong>泛型</strong></td>
-<td>1.18+ 支持泛型</td>
-<td>强大泛型 + trait</td>
-<td>模板（template）</td>
-</tr>
-<tr>
-<td><strong>易用性</strong></td>
-<td>简单易学、上手快</td>
-<td>学习曲线陡峭，但安全性高</td>
-<td>学习曲线陡峭，容易踩坑</td>
-</tr>
-<tr>
-<td><strong>生态</strong></td>
-<td>云服务、微服务、网络库</td>
-<td>系统编程、嵌入式、WebAssembly、区块链</td>
-<td>系统、游戏、图形、高性能库</td>
-</tr>
-</tbody></table>
-<p>2️⃣ 内存管理对比</p>
-<table>
-<thead>
-<tr>
-<th>方面</th>
-<th>Go</th>
-<th>Rust</th>
-<th>C++</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>管理方式</strong></td>
-<td>GC（自动回收）</td>
-<td>所有权 &amp; 借用 + 生命周期</td>
-<td>手动 delete &#x2F; new 或智能指针</td>
-</tr>
-<tr>
-<td><strong>悬挂指针</strong></td>
-<td>基本不会</td>
-<td>编译器保证不会</td>
-<td>很容易出现</td>
-</tr>
-<tr>
-<td><strong>内存泄漏</strong></td>
-<td>GC 避免大部分</td>
-<td>编译器保证 RAII（几乎不会）</td>
-<td>可能出现，需手动管理</td>
-</tr>
-<tr>
-<td><strong>性能影响</strong></td>
-<td>GC 停顿可能影响延迟</td>
-<td>无 GC，性能可控</td>
-<td>高性能，但需小心内存管理</td>
-</tr>
-</tbody></table>
-<p>3️⃣ 并发对比</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>并发模型</th>
-<th>优缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Go</td>
-<td>Goroutines + Channels</td>
-<td>轻量级、易用、调度由 runtime 管理；可能 GC 暂停影响延迟</td>
-</tr>
-<tr>
-<td>Rust</td>
-<td>async&#x2F;await + Send&#x2F;Sync</td>
-<td>安全、零成本抽象，但需要掌握生命周期和 trait，学习曲线高</td>
-</tr>
-<tr>
-<td>C++</td>
-<td>std::thread &#x2F; Boost &#x2F; 原生线程</td>
-<td>高度可控，性能最好，但容易出现死锁、数据竞争，需要手动管理同步</td>
-</tr>
-</tbody></table>
-<p>4️⃣ 安全性</p>
-<table>
-<thead>
-<tr>
-<th>安全性方面</th>
-<th>Go</th>
-<th>Rust</th>
-<th>C++</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>类型安全</td>
-<td>是</td>
-<td>是</td>
-<td>是</td>
-</tr>
-<tr>
-<td>内存安全</td>
-<td>依赖 GC</td>
-<td>编译期保证</td>
-<td>依赖开发者</td>
-</tr>
-<tr>
-<td>并发安全</td>
-<td>简单但不严格</td>
-<td>编译期借用检查保证</td>
-<td>开发者自己保证</td>
-</tr>
-<tr>
-<td>越界访问</td>
-<td>runtime panic</td>
-<td>编译器 &amp; borrow checker 阻止</td>
-<td>可能出现 UB</td>
-</tr>
-</tbody></table>
-<p>5️⃣ 性能比较<br>C++：原生指针 + 零开销抽象 → 最快<br>Rust：接近 C++，无 GC，优化非常强<br>Go：有 GC，但 Goroutine 调度极快，适合网络&#x2F;IO密集型</p>
-<p>6️⃣ 泛型与抽象</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>泛型 &#x2F; 模板</th>
-<th>特点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Go</td>
-<td>1.18+ 泛型</td>
-<td>类型安全，但语法简单</td>
-</tr>
-<tr>
-<td>Rust</td>
-<td>trait + 泛型</td>
-<td>零开销抽象，函数和类型都可以泛型化</td>
-</tr>
-<tr>
-<td>C++</td>
-<td>template</td>
-<td>功能强大，但错误信息复杂，模板元编程复杂</td>
-</tr>
-</tbody></table>
-<p>7️⃣ 应用场景</p>
-<table>
-<thead>
-<tr>
-<th>语言</th>
-<th>常见应用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Go</td>
-<td>云服务、微服务、网络服务、CLI 工具</td>
-</tr>
-<tr>
-<td>Rust</td>
-<td>系统编程、嵌入式、WebAssembly、区块链、性能关键库</td>
-</tr>
-<tr>
-<td>C++</td>
-<td>系统底层、游戏开发、图形渲染、高性能计算</td>
-</tr>
-</tbody></table>
-<p>🔹 总结建议</p>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/tree/">
+                树 ADT
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <pre class="mermaid">graph LR
+    A[树] --> B[二叉树]
+    B[二叉树] --> C[完全二叉树]
+    C[完全二叉树] --> D[满二叉树]
+    C[完全二叉树] --> E[堆]
+    E[堆] --> F[大顶堆]
+    E[堆] --> G[小顶堆]
+    B[二叉树] --> H[二叉查找树]
+    B[二叉树] --> I[平衡二叉树]
+    B[二叉树] --> J[平衡二叉查找树]
+    J[平衡二叉查找树] --> K[红黑树]
+    J[平衡二叉查找树] --> L[AVL]
+    A[树] --> M[N叉树]
+    M[N叉树] --> N[B树]
+    M[N叉树] --> O[B+树]</pre>
+
+<p><img src="/images/tree.png"></p>
+<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
+<p><img src="/images/tree-ercha.png"></p>
+<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
+<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
+<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
+<p>满二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+
+<p>完全二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+
+<p>二叉查找树</p>
+<p><img src="/images/tree-erchachaozhao.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+
+<p>AVL树</p>
+<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
+<p>红黑树</p>
+<p><img src="/images/tree-honghei.png"></p>
+<p>B树</p>
+<p>B+树</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/vim/">
+                VIM
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Vi编辑器是所有Unix及Linux系统下标准的编辑器，</p>
+<p>vi和vim都是Linux中的编辑器，不同的是，vim比较高级，可以视为vi的升级版本。vi使用于文本编辑，但是vim更适用于coding（写代码的）。</p>
+<p>Vim重点是光标的移动，模式切换，删除，查找，替换，复制，粘贴，撤销命令的使用。</p>
+<h2 id="三种模式"><a href="#三种模式" class="headerlink" title="三种模式"></a>三种模式</h2><p><img src="/images/vim-console.png"></p>
+<ul>
+<li>命令模式：在该模式下是不能对文件直接编辑，可以输入快捷键进行一些操作（删除行，复制行，移动光标，粘贴等等）【打开文件之后默认进入的模式】；</li>
+<li>编辑模式：在该模式下可以对文件的内容进行编辑；</li>
+<li>末行模式：可以在末行输入命令来对文件进行操作（搜索、替换、保存、退出、撤销、高亮等等）；</li>
+</ul>
+<h3 id="命令模式"><a href="#命令模式" class="headerlink" title="命令模式"></a>命令模式</h3><h4 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h4><p><img src="/images/vim-to.png"></p>
+<ul>
+<li>行首 <code>按键shift + 6 或 ^</code></li>
+<li>行尾 <code>按键shift + 4 或 $</code></li>
+<li>首行 <code>gg</code></li>
+<li>末行 <code>G</code></li>
+<li>翻屏 <ul>
+<li>向上翻屏 <code>按键ctrl + b</code> （before） 或 <code>PgUp</code></li>
+<li>向下翻屏 <code>按键ctrl + f</code> （after） 或 <code>PgDn</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="复制操作"><a href="#复制操作" class="headerlink" title="复制操作"></a>复制操作</h4><ul>
+<li>所在行 <code>yy</code> </li>
+<li>粘贴：在想要粘贴的地方按下<code>p</code>键</li>
+</ul>
+<h4 id="剪切-删除"><a href="#剪切-删除" class="headerlink" title="剪切&#x2F;删除"></a>剪切&#x2F;删除</h4><ul>
+<li>剪切&#x2F;删除光标所在行 <code>dd</code></li>
+<li>剪切&#x2F;删除光标所在的当前行之后的内容，但是删除之后下一行不上移 <code>D</code></li>
+</ul>
+<h4 id="撤销-恢复"><a href="#撤销-恢复" class="headerlink" title="撤销&#x2F;恢复"></a>撤销&#x2F;恢复</h4><ul>
+<li>撤销 <code>u</code> （undo）</li>
+<li>撤销5个改变 <code>:undo 5</code></li>
+<li>你的撤销历史 <code>:undolist</code></li>
+<li>重做最后的改动 <code>按键ctrl + r:</code></li>
+<li>取消当前行中所有的改动 <code>U:</code></li>
+<li>回到4分钟前 <code>:earlier 4m</code></li>
+<li>前进55秒 <code>:later 55s</code></li>
+</ul>
+<h4 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h4><p>r: 替换光标处的字符，同样支持汉字。<br>R: 进入替换模式，按esc回到正常模式。</p>
+<h3 id="末行模式"><a href="#末行模式" class="headerlink" title="末行模式"></a>末行模式</h3><p>进入方式：由命令模式进入，按下<code>:</code>或者<code>/（表示查找）</code>即可进入<br>退出方式：</p>
 <ol>
-<li>想快速上手、开发网络&#x2F;服务端应用 → Go</li>
-<li>想追求内存安全、零成本抽象、系统级开发 → Rust</li>
-<li>极致性能、硬件控制、游戏或图形开发 → C++</li>
+<li>按下<code>按键esc</code></li>
+<li>连按2次<code>按键esc</code>键</li>
+<li>删除末行全部输入字符</li>
 </ol>
+<ul>
+<li>保存文件<code>:w</code></li>
+<li>另存为<code>:w 路径</code></li>
+<li>退出文件<code>:q</code></li>
+<li>保存并且退出<code>:wq</code></li>
+<li>表示强制退出，刚才做的修改操作不做保存<code>:q!</code></li>
+<li><code>:!外部命令</code></li>
+<li><code>/关键词</code> 搜索查找</li>
+<li>替换 -&gt; %表示整个文件 g表示全局（global）<ul>
+<li><code>:s/搜索的关键词/新的内容</code> (替换光标所在行的第一处符合条件的内容)</li>
+<li><code>:s/搜索的关键词/新的内容/g</code> (替换光标所在行的全部符合条件的内容)</li>
+<li><code>:%s/搜索的关键词/新的内容</code> (替换整个文档中每行第一个符合条件的内容)</li>
+<li><code>:%s/搜索的关键词/新的内容/g</code> (替换整个文档的符合条件的内容)</li>
+</ul>
+</li>
+<li>显示行号（临时）<ul>
+<li><code>:set nu</code>[number]</li>
+<li><code>:set nonu</code></li>
+</ul>
+</li>
+<li>文件多开<code>:files</code> <ul>
+<li>果需要指定切换文件的名称，则可以输入<code>:open 已经打开的文件名</code></li>
+<li>“:bn”切换到下一个文件（back next）<code></code></li>
+<li>“:bp”切换到上一个文件（back prev）<code></code></li>
+</ul>
+</li>
+</ul>
+<h5 id="分屏功能"><a href="#分屏功能" class="headerlink" title="分屏功能"></a>分屏功能</h5><ul>
+<li><p>分屏</p>
+<ul>
+<li>水平方向分屏打开新文件 横向切分 <code>:sp</code>文件名 <code>:split</code>文件名</li>
+<li>垂直方向分屏打开新文件 竖向切分 <code>:vsp</code>文件名 <code>:vsplit</code>文件名</li>
+<li>上下分割当前打开的文件 <code>按键Ctrl+w s</code></li>
+<li>左右分割当前打开的文件 <code>按键Ctrl+w v</code></li>
+</ul>
+</li>
+<li><p>关闭分屏 </p>
+<ul>
+<li>关闭当前窗口<code>按键Ctrl+w c</code></li>
+<li>关闭当前窗口，如果只剩最后一个了，则退出Vim<code>按键Ctrl+w q</code></li>
+</ul>
+</li>
+<li><p>移动光标</p>
+<ul>
+<li>把光标移到右边的屏 <code>按键Ctrl+w l</code></li>
+<li>把光标移到左边的屏中 <code>按键Ctrl+w h</code></li>
+<li>把光标移到上边的屏中 <code>按键Ctrl+w k</code></li>
+<li>把光标移到下边的屏中 <code>按键Ctrl+w j</code></li>
+<li>把光标移到下一个的屏中 <code>按键Ctrl+w w</code></li>
+</ul>
+</li>
+<li><p>移动分屏</p>
+<ul>
+<li>向右移动 <code>按键Ctrl+w L</code></li>
+<li>向左移动 <code>按键Ctrl+w H</code></li>
+<li>向上移动 <code>按键Ctrl+w K</code></li>
+<li>向下移动 <code>按键Ctrl+w J</code></li>
+</ul>
+</li>
+<li><p>屏幕尺寸</p>
+<ul>
+<li>让所有的屏都有一样的高度 <code>按键Ctrl+w =</code></li>
+<li>增加高度 <code>按键Ctrl+w +</code></li>
+<li>减少高度 <code>按键Ctrl+w -</code></li>
+</ul>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7201668416171655227">cc</a></p>
+<h2 id="VIM-IDE"><a href="#VIM-IDE" class="headerlink" title="VIM IDE"></a><a target="_blank" rel="noopener" href="https://github.com/0rz33/VIM-IDE">VIM IDE</a></h2>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/vue-big-file-upload/">
+                vue2 大文件上传component(做成组件)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
+<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
+<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
+
+<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/vue2vsvue3/">
+                vue2 对比 vue3
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="图层渲染"><a href="#图层渲染" class="headerlink" title="图层渲染"></a>图层渲染</h2><h3 id="VUE2-渲染流程图"><a href="#VUE2-渲染流程图" class="headerlink" title="VUE2 渲染流程图"></a>VUE2 渲染流程图</h3><p>主function<br>prop 父组件传入数据 template中使用<br>data()<br>watch 数据监听 对data数据监听<br>create()<br>methods</p>
+<p>vue init()<br>vue $mount()<br>初始化渲染watcher</p>
+<p>render 初次渲染</p>
+<p>组件模式 （自己写组件）<br>父组件（引用）<br>子组件（自己写的组件）</p>
+<p>父-&gt;子 prop 或者 data写数据 传给标签 再从标签取值<br>子-&gt;父 ref 标记 后 去除数据</p>
+<p>compment标签<br>（组件问题）</p>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><table>
+<thead>
+<tr>
+<th>vue2</th>
+<th>vue3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>beforeCreate</td>
+<td></td>
+</tr>
+<tr>
+<td>created</td>
+<td></td>
+</tr>
+<tr>
+<td>beforeMount</td>
+<td>onBeforeMount</td>
+</tr>
+<tr>
+<td>mounted</td>
+<td>onMounted</td>
+</tr>
+<tr>
+<td>beforeUpdate</td>
+<td>onBeforeUpdate</td>
+</tr>
+<tr>
+<td>updated</td>
+<td>onUpdated</td>
+</tr>
+<tr>
+<td>beforeDestroy</td>
+<td>onBeforeUnmount</td>
+</tr>
+<tr>
+<td>destroyed</td>
+<td>onUnmounted</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Tips： setup 是围绕 beforeCreate 和 created 生命周期钩子运行的，所以不需要显式地去定义。</p>
+</blockquote>
 
         </div>
     
@@ -1147,13 +748,101 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/21/selenium/">
+            <a href="/2026/09/22/wireshark/">
+                Wireshark
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Wireshark是非常流行的网络封包分析软件，可以截取各种网络数据包，并显示数据包详细信息。常用于开发测试过程各种问题定位 </p>
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><h3 id="过滤条件-input"><a href="#过滤条件-input" class="headerlink" title="过滤条件 input"></a>过滤条件 input</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## No. ：包的编号 ————————————默认wireshark是按照数据包编号从低到高排序，该编号不会发生改变，即使使用了过滤也同样如此</span></span><br><span class="line"><span class="comment">## Time：包的时间戳。时间格式可以自己设置</span></span><br><span class="line"><span class="comment">## Source 和Destination ：包的源地址和目的地址</span></span><br><span class="line"><span class="comment">## Protocol：包的协议类型</span></span><br><span class="line"><span class="comment">## Length：包的长度</span></span><br><span class="line"><span class="comment">## Info：包的附加信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ip过滤 ###</span></span><br><span class="line"><span class="comment">## 关于 192.168.9.167</span></span><br><span class="line">ip.addr == 192.168.9.167</span><br><span class="line"></span><br><span class="line"><span class="comment">## 请求 192.168.9.167 或者 被请求体 17.248.216.65</span></span><br><span class="line">ip.src == 192.168.9.167 or ip.dst == 17.248.216.65</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 握手包 ###</span></span><br><span class="line"><span class="comment"># SYN：Synchronize，用于初始化和建立连接，它同时也用于同步设备之间的序列号（Seq）</span></span><br><span class="line"><span class="comment"># ACK：Acknolowege，向另一方确认它已收到SYN</span></span><br><span class="line"><span class="comment"># Seq：Sequence number，序列号，用于表示曾经发送过数据的字节数+1</span></span><br><span class="line"><span class="comment"># Len：用于表示收到的字节大小，0表示本次没有收到数据</span></span><br><span class="line"><span class="comment"># FIN：用于结束连接</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2133420">https://cloud.tencent.com/developer/article/2133420</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zichliang/p/17477251.html">https://www.cnblogs.com/zichliang/p/17477251.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linyfeng/p/9496126.html">https://www.cnblogs.com/linyfeng/p/9496126.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/sectool/433570.html">https://www.freebuf.com/articles/sectool/433570.html</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/xss/">
+                XSS跨站脚本攻击
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-22</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="XSS漏洞原理"><a href="#XSS漏洞原理" class="headerlink" title="XSS漏洞原理"></a>XSS漏洞原理</h1><p>XSS属于客户端攻击，受害者最终是用户，但特别要注意的是网站管理人员也属于用户之一。这就意味着XSS可以进行“服务端”攻击，因为管理员要比普通用户的权限大得多，一般管理员都可以对网站进行文件管理，数据管理等操作，而攻击者一般也是靠管理员身份作为“跳板”进行实施攻击。</p>
+<blockquote>
+<p>XSS的重点不在于跨站点，而在于脚本的执行。那么XSS的原理是：<br>恶意攻击者在web页面中会插入一些恶意的script代码。当用户浏览该页面的时候，那么嵌入到web页面中script代码会执行，因此会达到恶意攻击用户的目的。那么XSS攻击最主要有如下分类：反射型、存储型、及 DOM-based型。 反射性和DOM-baseed型可以归类为非持久性XSS攻击。存储型可以归类为持久性XSS攻击。</p>
+</blockquote>
+<ol>
+<li>XSS漏洞出现的原因</li>
+</ol>
+<p>程序对输入和输出的控制不够严格,导致”精心构造“的脚本输入后,在输到前端时被浏览器当作有效代码解析执行从而产生危害。</p>
+<ol start="2">
+<li>XSS的分类</li>
+</ol>
+<ul>
+<li>反射型XSS或不持久型XSS(中危)</li>
+<li>储存型XSS 或持久型 XSS（高危）</li>
+<li>DOM XSS</li>
+</ul>
+<ol start="3">
+<li>测试方法<br>1、工具扫描：APPscan、AWVS</li>
+</ol>
+<p>2、手工测试：Burpsuite、firefox(hackbar)、XSSER XSSF</p>
+<p>使用手工检测Web应用程序是否存在XSS漏洞时，最重要的是考虑那里有输入，输入的数据在什么地方输出。在进行手工检测XSS时，人毕竟不像软件那样不知疲惫，所以一定要选择有特殊意义的字符，这样可以快速测试是否存在XSS。</p>
+<p>（1）在目标站点上找到输入点,比如查询接口,留言板等;</p>
+<p>（2）输入一组”特殊字符+唯一识别字符”,点击提交后,查看返回的源码,是否有做对应的处理;</p>
+<p>（3）通过搜索定位到唯一字符,结合唯一字符前后语法确认是否可以构造执行js的条件(构造闭合);提交构造的脚本代码,看是否可以成功执行,如果成功执行则说明存在XSS漏洞;</p>
+<h1 id="反射型XSS"><a href="#反射型XSS" class="headerlink" title="反射型XSS"></a>反射型XSS</h1><p>[引用]<a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/421932.html">https://www.freebuf.com/vuls/421932.html</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/09/22/selenium/">
                 Selenium
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-21</span>
+                <span class="date">2026-09-22</span>
             
             
             
@@ -1169,143 +858,6 @@
             <h3 id="Selenium-需要配件"><a href="#Selenium-需要配件" class="headerlink" title="Selenium 需要配件"></a>Selenium 需要配件</h3><ul>
 <li>ChromeDriver(记住增加执行权限)</li>
 <li>python pip</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/seo/">
-                SEO
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/SEO/">SEO</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="seo工具"><a href="#seo工具" class="headerlink" title="seo工具"></a>seo工具</h1><p>semrush - 好用</p>
-<h1 id="需要做的工作"><a href="#需要做的工作" class="headerlink" title="需要做的工作"></a>需要做的工作</h1><ul>
-<li>静态网站是最好的</li>
-<li>每个页面的title，description 要不一样 <ul>
-<li>title 要大于10个字以上的才行</li>
-</ul>
-</li>
-<li>404不能出现</li>
-<li><a href="https://example.com" rel="nofollow">点我</a> <ul>
-<li>nofollow - 不传权重、不跟踪(外链用)</li>
-</ul>
-</li>
-</ul>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/shell/">
-                Shell
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li>bash - UNIX shell 目的是作为 Bourne Shell (sh) 的免费软件替代品 (Bash 是 Linus Torvalds（Linux 的创建者）移植到 Linux 的首批程序之一)</li>
-<li>Z shell - 一个与 Bash 非常相似的 UNIX shell,Zsh 是 Bourne shell 的扩展</li>
-<li>Fish Shell - 一个强调交互性和可用性的 UNIX shell 环境,与 Zsh 不同，Fish 旨在为用户提供交互性，而不是信任用户实现自己的配置</li>
-</ul>
-<blockquote>
-<p>Bash、Z Shell 和 Fish Shell 各有优点，也有一些相似之处。既然对它们有了更多的了解，你就可以在工作中更有效地使用它们。<br>如果你想要更可配置的 shell，你可以使用 Zsh（甚至安装 Oh My Zsh）。如果你想要更多交互的终端体验，同时不需要大量配置，你可以使用 Fish Shell。如果你想要经典的感觉，你可以保留 Bash。</p>
-</blockquote>
-<h2 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h2><h3 id="shell-基础"><a href="#shell-基础" class="headerlink" title="shell 基础"></a>shell 基础</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 变量赋值</span></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span> /etc`</span><br><span class="line">或</span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> $(<span class="built_in">ls</span> /etc)</span><br><span class="line"><span class="comment"># 以上语句将 /etc 下目录的文件名循环出来。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取字符串长度 &#123;#&#125;</span></span><br><span class="line"><span class="comment"># $&#123;#string&#125; 等价于 $&#123;#string[0]&#125;:</span></span><br><span class="line">string=<span class="string">&quot;abcd&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;#string[0]&#125;</span>   <span class="comment"># 输出 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 运算符</span></span><br><span class="line">val=`<span class="built_in">expr</span> 2 + 2`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;两数之和为 : <span class="variable">$val</span>&quot;</span> <span class="comment"># 输出 两数之和为 : 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f  file ]    <span class="comment"># 如果 文件存在</span></span><br><span class="line"><span class="keyword">if</span> [ -d ...   ]    <span class="comment"># 如果 目录存在</span></span><br><span class="line"><span class="keyword">if</span> [ -s file  ]    <span class="comment"># 如果 文件存在且非空 </span></span><br><span class="line"><span class="keyword">if</span> [ -r file  ]    <span class="comment"># 如果 文件存在且可读</span></span><br><span class="line"><span class="keyword">if</span> [ -w file  ]    <span class="comment"># 如果 文件存在且可写</span></span><br><span class="line"><span class="keyword">if</span> [ -x file  ]    <span class="comment"># 如果 文件存在且可执行   </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 整数变量表达式</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -eq int2 ]    <span class="comment"># 如果 int1等于int2   </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ne int2 ]    <span class="comment"># 如果 不等于    </span></span><br><span class="line"><span class="keyword">if</span> [ int1 -ge int2 ]    <span class="comment"># 如果 &gt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -gt int2 ]    <span class="comment"># 如果 &gt;</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -le int2 ]    <span class="comment"># 如果 &lt;=</span></span><br><span class="line"><span class="keyword">if</span> [ int1 -lt int2 ]    <span class="comment"># 如果 &lt;</span></span><br><span class="line">   </span><br><span class="line"><span class="comment"># 字符串变量表达式</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$a</span> = <span class="variable">$b</span> ]                 <span class="comment"># 如果string1等于string2</span></span><br><span class="line">                                <span class="comment"># 字符串允许使用赋值号做等号</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$string1</span> !=  <span class="variable">$string2</span> ]   <span class="comment"># 如果string1不等于string2       </span></span><br><span class="line"><span class="keyword">if</span>  [ -n <span class="variable">$string</span>  ]             <span class="comment"># 如果string 非空(非0），返回0(true)  </span></span><br><span class="line"><span class="keyword">if</span>  [ -z <span class="variable">$string</span>  ]             <span class="comment"># 如果string 为空</span></span><br><span class="line"><span class="keyword">if</span>  [ <span class="variable">$sting</span> ]                  <span class="comment"># 如果string 非空，返回0 (和-n类似) </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 防止进程被挂起或终端结束</span></span><br><span class="line"><span class="built_in">nohup</span> sshpass -p <span class="string">&quot;<span class="variable">$&#123;passphrase&#125;</span>&quot;</span> ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -C -c aes128-gcm@openssh.com -fNg -L 9200:127.0.0.1:9200   ec2-user@xx.xx.xx &gt; /dev/null &amp;</span><br></pre></td></tr></table></figure>
-
-<h3 id="标准脚本"><a href="#标准脚本" class="headerlink" title="标准脚本"></a>标准脚本</h3><p>git 基本上传操作</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：显示使用说明</span></span><br><span class="line"><span class="function"><span class="title">show_help</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Usage: ./update.sh [options]&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;This script updates file timestamps, stages changes, commits them to Git,&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;and pushes to the specified branch.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Options:&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -h, --help          Show this help message and exit.&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -c, --commit &lt;msg&gt;  Git commit message (default: &#x27;update&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -b, --branch &lt;name&gt; Git branch name (default: &#x27;main&#x27;).&quot;</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;  -f, --force         Force add all changes (including untracked files).&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认设置</span></span><br><span class="line">commit_message=<span class="string">&quot;update&quot;</span></span><br><span class="line">branch_name=<span class="string">&quot;main&quot;</span></span><br><span class="line">force_add=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析参数</span></span><br><span class="line"><span class="keyword">while</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]]; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">        -h | --<span class="built_in">help</span> )</span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 0</span><br><span class="line">            ;;</span><br><span class="line">        -c | --commit )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            commit_message=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -b | --branch )</span><br><span class="line">            <span class="built_in">shift</span></span><br><span class="line">            branch_name=<span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">            ;;</span><br><span class="line">        -f | --force )</span><br><span class="line">            force_add=<span class="literal">true</span></span><br><span class="line">            ;;</span><br><span class="line">        * )</span><br><span class="line">            <span class="built_in">echo</span> <span class="string">&quot;Unknown option: <span class="variable">$1</span>&quot;</span></span><br><span class="line">            show_help</span><br><span class="line">            <span class="built_in">exit</span> 1</span><br><span class="line">            ;;</span><br><span class="line">    <span class="keyword">esac</span></span><br><span class="line">    <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加文件到 Git</span></span><br><span class="line"><span class="keyword">if</span> <span class="variable">$force_add</span>; <span class="keyword">then</span></span><br><span class="line">    git add -A  <span class="comment"># 强制添加所有变化，包括未追踪的文件</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    git add .   <span class="comment"># 仅添加已追踪的文件的变化</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 提交变更并使用指定的提交信息</span></span><br><span class="line">git commit -m <span class="string">&quot;<span class="variable">$commit_message</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 推送到指定的远程分支</span></span><br><span class="line">git push origin <span class="string">&quot;<span class="variable">$branch_name</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k"><a href="#Mac-终端优化-（iTerm2-oh-my-zsh-powerlevel10k" class="headerlink" title="Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)"></a>Mac 终端优化 （iTerm2 + oh my zsh + powerlevel10k)</h3><h4 id="安装-iTerm2-terminal的优化"><a href="#安装-iTerm2-terminal的优化" class="headerlink" title="安装 iTerm2 -&gt; terminal的优化"></a>安装 <em><strong>iTerm2</strong></em> -&gt; terminal的优化</h4><p><a target="_blank" rel="noopener" href="https://iterm2.com/">iTerm2</a></p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1757146">iTerm2 - 解决文本复制不了问题</a></p>
-<h4 id="安装-oh-my-zsh-zsh的优化"><a href="#安装-oh-my-zsh-zsh的优化" class="headerlink" title="安装 oh my zsh -&gt; zsh的优化"></a>安装 <em><strong>oh my zsh</strong></em> -&gt; zsh的优化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2303773">Oh-my-zsh主题乱码解决办法</a></p>
-<h4 id="安装-powerlevel10k-主题"><a href="#安装-powerlevel10k-主题" class="headerlink" title="安装 powerlevel10k 主题"></a>安装 <em><strong>powerlevel10k</strong></em> 主题</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/romkatv/powerlevel10k.git <span class="variable">$ZSH_CUSTOM</span>/themes/powerlevel10k</span><br><span class="line"></span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ./.oh-my-zsh/themes</span><br><span class="line">git <span class="built_in">clone</span>  https://github.com/romkatv/powerlevel10k.git</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 设置如下内容 使用p10k主题 ZSH_THEME&#x3D;”powerlevel10k&#x2F;powerlevel10k”</p>
-<h4 id="安装语法高亮插件和自动补全插件"><a href="#安装语法高亮插件和自动补全插件" class="headerlink" title="安装语法高亮插件和自动补全插件"></a>安装语法高亮插件和自动补全插件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.oh-my-zsh/custom/plugins/</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-syntax-highlighting.git</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/zsh-users/zsh-autosuggestions</span><br></pre></td></tr></table></figure>
-
-<p>vi ~&#x2F;.zshrc 在插件配置处添加下载的这两个插件名</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">plugins=(</span><br><span class="line">     git</span><br><span class="line">     zsh-syntax-highlighting</span><br><span class="line">     zsh-autosuggestions</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="重新选择风格"><a href="#重新选择风格" class="headerlink" title="重新选择风格"></a>重新选择风格</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p10k configure</span><br></pre></td></tr></table></figure>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/21/social-engineering/">
-                社工库工具
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/渗透/">渗透</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>国外情报专家最常用的OSINT工具</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/guchangan1/All-Defense-Tool?tab=readme-ov-file#%E7%A4%BE%E5%B7%A5%E4%B8%AA%E4%BA%BA%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB">a</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.topgoer.cn/docs/offensive/offensive-1e1ht41abkse7">b</a></p>
-<ul>
-<li><em><strong>Sherlock</strong></em> 是社交媒体账户追踪（爬虫）工具，可用于收集有关人员的信息，对记者和安全研究人员特别有用</li>
 </ul>
 
         </div>
@@ -1355,19 +907,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
+                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">[expanded] 一次性的蘸料小塑料盒怎么废物</a>
+                <a class="footer-post" href="/2026/09/22/system-migration/">系统迁移</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">[expanded] CloudFront dis</a>
+                <a class="footer-post" href="/2026/09/22/stock/">股市币市</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/21/2026-09-21-expanded-%E8%96%84%E8%8D%B7%E6%80%8E%E4%B9%88%E6%B0%B4%E5%9F%B9/">[expanded] 薄荷怎么水培</a>
+                <a class="footer-post" href="/2026/09/22/tree/">树 ADT</a>
             </li>
             
         </ul>
