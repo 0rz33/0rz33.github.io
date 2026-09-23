@@ -184,6 +184,175 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/09/20/2026-09-20-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
+                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-20</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
+<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
+</blockquote>
+<h1 id="CloudFront-Distribution-跨账号迁移技能点清单"><a href="#CloudFront-Distribution-跨账号迁移技能点清单" class="headerlink" title="CloudFront Distribution 跨账号迁移技能点清单"></a>CloudFront Distribution 跨账号迁移技能点清单</h1><blockquote>
+<p>场景占位: 源账号 <ACCOUNT_A>, 目标账号 <ACCOUNT_B>, CNAME <DOMAIN>, Distribution ID <DIST_ID><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-先在目标账号创建-Distribution-再删源账号-CNAME-绑定"><a href="#1-先在目标账号创建-Distribution-再删源账号-CNAME-绑定" class="headerlink" title="1. 先在目标账号创建 Distribution,再删源账号 CNAME 绑定"></a>1. 先在目标账号创建 Distribution,再删源账号 CNAME 绑定</h2><ul>
+<li><strong>规则</strong>: 在 <ACCOUNT_B> 创建新 Distribution 时不要立即添加 <DOMAIN>,等 <ACCOUNT_A> 的 Distribution 解绑 CNAME 后再添加</li>
+<li><strong>为什么</strong>: AWS 全局唯一性检查会阻止同一 CNAME 同时绑定两个 Distribution,即使跨账号也不行,错误信息是 CNAMEAlreadyExists</li>
+<li><strong>踩坑</strong>: 以为跨账号可以并行配置,结果新 Distribution 创建失败或卡在 InProgress 状态数小时</li>
+<li><strong>例外</strong>: 使用 CloudFormation StackSets 跨区域部署时,需要在删除旧资源的 DependsOn 中显式声明依赖</li>
+</ul>
+<h2 id="2-证书必须在-us-east-1-申请且目标账号提前准备好"><a href="#2-证书必须在-us-east-1-申请且目标账号提前准备好" class="headerlink" title="2. 证书必须在 us-east-1 申请且目标账号提前准备好"></a>2. 证书必须在 us-east-1 申请且目标账号提前准备好</h2><ul>
+<li><strong>规则</strong>: 如果 <DOMAIN> 使用自定义 SSL 证书,必须在 <ACCOUNT_B> 的 us-east-1 区域提前申请 ACM 证书并完成验证</li>
+<li><strong>为什么</strong>: CloudFront 是全局服务但只认 us-east-1 的证书,跨账号迁移时无法共享证书,DNS 验证需要 5-30 分钟</li>
+<li><strong>踩坑</strong>: 迁移当天才申请证书,DNS 验证延迟导致计划内 5 分钟停机变成 40 分钟</li>
+<li><strong>例外</strong>: 使用 CloudFront 默认证书(*.cloudfront.net)不受此限制</li>
+</ul>
+<h2 id="3-解绑-CNAME-需要等-Distribution-状态变为-Deployed-才生效"><a href="#3-解绑-CNAME-需要等-Distribution-状态变为-Deployed-才生效" class="headerlink" title="3. 解绑 CNAME 需要等 Distribution 状态变为 Deployed 才生效"></a>3. 解绑 CNAME 需要等 Distribution 状态变为 Deployed 才生效</h2><ul>
+<li><strong>规则</strong>: 从 <ACCOUNT_A> 删除 CNAME 配置后,必须等待 Distribution 状态从 InProgress 变为 Deployed(通常 15-20 分钟),才能在 <ACCOUNT_B> 添加</li>
+<li><strong>为什么</strong>: AWS 后台需要将配置同步到全球边缘节点,状态未完成前 CNAME 占用锁不会释放</li>
+<li><strong>踩坑</strong>: 看到控制台显示 CNAME 已删除就立即在新账号添加,结果报错 CNAMEAlreadyExists,反复重试浪费 1 小时</li>
+<li><strong>例外</strong>: 使用 AWS CLI 的 wait distribution-deployed 命令可自动轮询状态</li>
+</ul>
+<h2 id="4-DNS-TTL-必须提前降到-60-秒并等待老-TTL-过期"><a href="#4-DNS-TTL-必须提前降到-60-秒并等待老-TTL-过期" class="headerlink" title="4. DNS TTL 必须提前降到 60 秒并等待老 TTL 过期"></a>4. DNS TTL 必须提前降到 60 秒并等待老 TTL 过期</h2><ul>
+<li><strong>规则</strong>: 迁移前 24-48 小时将 <DOMAIN> 的 DNS 记录 TTL 从默认值(通常 300-3600 秒)降至 60 秒</li>
+<li><strong>为什么</strong>: 切换 DNS 指向新 Distribution 时,客户端和递归 DNS 会缓存老记录,高 TTL 导致部分用户长时间访问旧 Distribution 甚至 404</li>
+<li><strong>踩坑</strong>: 保持 TTL 1800 秒,切换后发现 30% 用户仍访问老 Distribution,被迫回滚</li>
+<li><strong>例外</strong>: 内部系统且能控制所有客户端 DNS 缓存时可跳过</li>
+</ul>
+<h2 id="5-Origin-访问权限需要在目标账号重新配置-OAI-OAC"><a href="#5-Origin-访问权限需要在目标账号重新配置-OAI-OAC" class="headerlink" title="5. Origin 访问权限需要在目标账号重新配置 OAI&#x2F;OAC"></a>5. Origin 访问权限需要在目标账号重新配置 OAI&#x2F;OAC</h2><ul>
+<li><strong>规则</strong>: 如果源是 S3 且使用 Origin Access Identity(OAI)或 Origin Access Control(OAC),需在 <ACCOUNT_B> 创建新 OAI&#x2F;OAC 并更新 S3 bucket policy</li>
+<li><strong>为什么</strong>: OAI&#x2F;OAC 是账号级资源,无法跨账号复用,bucket policy 中的 Principal 必须指向新账号的 OAI&#x2F;OAC ARN</li>
+<li><strong>踩坑</strong>: 复制了 Distribution 配置但忘记更新 S3 权限,新 Distribution 返回 403 Forbidden</li>
+<li><strong>例外</strong>: Origin 是公开 S3 website endpoint 或自定义 HTTP 源不受影响</li>
+</ul>
+<h2 id="6-Lambda-Edge-函数需要在-us-east-1-重新部署并关联"><a href="#6-Lambda-Edge-函数需要在-us-east-1-重新部署并关联" class="headerlink" title="6. Lambda@Edge 函数需要在 us-east-1 重新部署并关联"></a>6. Lambda@Edge 函数需要在 us-east-1 重新部署并关联</h2><ul>
+<li><strong>规则</strong>: Lambda@Edge 函数必须在 <ACCOUNT_B> 的 us-east-1 重新创建,execution role 需要信任 lambda.amazonaws.com 和 edgelambda.amazonaws.com</li>
+<li><strong>为什么</strong>: Lambda@Edge 函数版本 ARN 包含账号 ID,跨账号无法引用,且只能在 us-east-1 创建后自动复制到边缘节点</li>
+<li><strong>踩坑</strong>: 直接复制函数代码但忘记发布新版本(必须是带版本号的 ARN 不能是 $LATEST),Distribution 部署失败</li>
+<li><strong>例外</strong>: 不使用 Lambda@Edge 可跳过,CloudFront Functions 同样需要在新账号重建</li>
+</ul>
+<h2 id="7-日志配置的-S3-bucket-需要授权新-Distribution-写入"><a href="#7-日志配置的-S3-bucket-需要授权新-Distribution-写入" class="headerlink" title="7. 日志配置的 S3 bucket 需要授权新 Distribution 写入"></a>7. 日志配置的 S3 bucket 需要授权新 Distribution 写入</h2><ul>
+<li><strong>规则</strong>: 如果启用访问日志,目标 S3 bucket 的 ACL 或 bucket policy 必须允许 CloudFront 日志投递服务(awslogsdelivery)写入</li>
+<li><strong>为什么</strong>: CloudFront 使用特定服务账号投递日志,新 Distribution 的日志投递权限需要显式授予,否则日志静默丢失</li>
+<li><strong>踩坑</strong>: 迁移后发现日志停止更新 3 天才注意到,丢失关键访问数据用于故障排查</li>
+<li><strong>例外</strong>: 禁用日志或使用 CloudWatch Logs 集成(实时日志)不受影响</li>
+</ul>
+<h2 id="8-WAF-Web-ACL-需要在目标账号重建或使用-Firewall-Manager-共享"><a href="#8-WAF-Web-ACL-需要在目标账号重建或使用-Firewall-Manager-共享" class="headerlink" title="8. WAF Web ACL 需要在目标账号重建或使用 Firewall Manager 共享"></a>8. WAF Web ACL 需要在目标账号重建或使用 Firewall Manager 共享</h2><ul>
+<li><strong>规则</strong>: WAF Web ACL 是区域资源(CloudFront 关联的是 us-east-1 global),需在 <ACCOUNT_B> 重新创建规则或通过 AWS Firewall Manager 跨账号管理</li>
+<li><strong>为什么</strong>: Web ACL ARN 包含账号 ID,跨账号无法直接关联,规则需要逐条迁移(IP sets&#x2F;regex pattern sets 也需要重建)</li>
+<li><strong>踩坑</strong>: 以为 WAF 是全局服务可以跨账号引用,新 Distribution 上线后遭受原本被阻挡的攻击流量</li>
+<li><strong>例外</strong>: 不使用 WAF 可跳过,使用 AWS Managed Rules 可快速在新账号启用相同规则集</li>
+</ul>
+<h2 id="9-切换-DNS-前必须验证新-Distribution-的-CloudFront-域名可访问"><a href="#9-切换-DNS-前必须验证新-Distribution-的-CloudFront-域名可访问" class="headerlink" title="9. 切换 DNS 前必须验证新 Distribution 的 CloudFront 域名可访问"></a>9. 切换 DNS 前必须验证新 Distribution 的 CloudFront 域名可访问</h2><ul>
+<li><strong>规则</strong>: 修改 <DOMAIN> 的 DNS 记录前,先用新 Distribution 的 *.cloudfront.net 域名 + Host header 测试完整请求链路</li>
+<li><strong>为什么</strong>: DNS 切换是单向操作,回滚需要等 TTL,提前用 curl -H “Host: <DOMAIN>“ https:&#x2F;&#x2F;<DIST_ID>.cloudfront.net 可发现 Origin&#x2F;证书&#x2F;缓存配置问题</li>
+<li><strong>踩坑</strong>: 直接切换 DNS 后发现新 Distribution 的 Origin 配置错误返回 502,紧急回滚但 25% 用户已受影响</li>
+<li><strong>例外</strong>: 蓝绿部署使用加权 DNS 记录可逐步切流,但仍需提前测试</li>
+</ul>
+<h2 id="10-使用-Invalidation-清除缓存会产生跨账号计费差异"><a href="#10-使用-Invalidation-清除缓存会产生跨账号计费差异" class="headerlink" title="10. 使用 Invalidation 清除缓存会产生跨账号计费差异"></a>10. 使用 Invalidation 清除缓存会产生跨账号计费差异</h2><ul>
+<li><strong>规则</strong>: 迁移后前 1000 次 invalidation paths 免费额度重新计算,但老 Distribution 的缓存不会自动失效</li>
+<li><strong>为什么</strong>: 两个账号的 CloudFront 免费额度独立,老 Distribution 禁用前其缓存仍在边缘节点(可能 24 小时),可能导致部分用户看到过期内容</li>
+<li><strong>踩坑</strong>: 迁移后未 invalidate 老 Distribution,部分用户缓存命中老节点看到旧版静态资源,CSS&#x2F;JS 版本不匹配页面错乱</li>
+<li><strong>例外</strong>: 使用版本化 URL(如 &#x2F;static&#x2F;v2&#x2F;app.js)或短 Cache-Control max-age 可避免</li>
+</ul>
+<h2 id="11-迁移窗口选择需避开-CloudFront-全球部署高峰时段"><a href="#11-迁移窗口选择需避开-CloudFront-全球部署高峰时段" class="headerlink" title="11. 迁移窗口选择需避开 CloudFront 全球部署高峰时段"></a>11. 迁移窗口选择需避开 CloudFront 全球部署高峰时段</h2><ul>
+<li><strong>规则</strong>: 避免在 UTC 工作日 14:00-18:00(对应美东上午)执行迁移,这是 CloudFront 配置变更部署最慢的时段</li>
+<li><strong>为什么</strong>: AWS 全球客户集中在此时段变更配置,边缘节点同步队列拥堵,Distribution 状态从 InProgress 到 Deployed 可能超过 40 分钟</li>
+<li><strong>踩坑</strong>: 选择北京时间晚上 10 点(UTC 14:00)迁移,预期 15 分钟的部署耗时 50 分钟,超出维护窗口</li>
+<li><strong>例外</strong>: 紧急故障恢复场景无法选择时段,需在变更计划中预留 2 倍时间 buffer</li>
+</ul>
+<h2 id="12-保留老-Distribution-禁用状态-7-天用于应急回滚"><a href="#12-保留老-Distribution-禁用状态-7-天用于应急回滚" class="headerlink" title="12. 保留老 Distribution 禁用状态 7 天用于应急回滚"></a>12. 保留老 Distribution 禁用状态 7 天用于应急回滚</h2><ul>
+<li><strong>规则</strong>: 迁移成功后不要立即删除 <ACCOUNT_A> 的 Distribution,先 Disable 保留 7 天,确认无问题再删除</li>
+<li><strong>为什么</strong>: Disable 状态不计费但保留配置,如果新 Distribution 出现隐藏问题(如特定地区 POP 节点异常),可快速 Enable 老 Distribution 并回滚 DNS</li>
+<li><strong>踩坑</strong>: 迁移当天删除老 Distribution,第 3 天发现新 Distribution 在亚太区域 30% 请求 timeout,无法快速回滚只能紧急修复</li>
+<li><strong>例外</strong>: 合规要求必须立即删除资源时,至少导出完整配置 JSON 留存</li>
+</ul>
+<h2 id="13-自定义错误页面的-S3-路径需要更新-bucket-引用"><a href="#13-自定义错误页面的-S3-路径需要更新-bucket-引用" class="headerlink" title="13. 自定义错误页面的 S3 路径需要更新 bucket 引用"></a>13. 自定义错误页面的 S3 路径需要更新 bucket 引用</h2><ul>
+<li><strong>规则</strong>: 如果配置了自定义错误响应(如 404 返回 &#x2F;error.html),且错误页面存储在 S3,需确认 <ACCOUNT_B> 的 S3 bucket 包含相同路径文件</li>
+<li><strong>为什么</strong>: CloudFront 错误页面配置只存储路径不存储完整 URL,跨账号后如果 bucket 名称或路径变化会导致错误页面失效返回默认 CloudFront 错误</li>
+<li><strong>踩坑</strong>: 老账号使用 s3:&#x2F;&#x2F;account-a-errors&#x2F;404.html,新账号 bucket 改名为 account-b-assets,忘记更新错误页面路径,用户看到原始 XML 错误</li>
+<li><strong>例外</strong>: 错误页面使用 Origin 相对路径(如 &#x2F;errors&#x2F;404.html)且 Origin 配置正确则不受影响</li>
+</ul>
+<h2 id="14-Trusted-Key-Groups-签名-URL-需要在目标账号重新生成密钥对"><a href="#14-Trusted-Key-Groups-签名-URL-需要在目标账号重新生成密钥对" class="headerlink" title="14. Trusted Key Groups 签名 URL 需要在目标账号重新生成密钥对"></a>14. Trusted Key Groups 签名 URL 需要在目标账号重新生成密钥对</h2><ul>
+<li><strong>规则</strong>: 如果使用签名 URL&#x2F;Cookie(私有内容),需在 <ACCOUNT_B> 创建新 public key 并更新 Trusted Key Groups,所有签名 URL 生成逻辑需使用新私钥</li>
+<li><strong>为什么</strong>: CloudFront 签名验证基于 key pair ID 和账号绑定,跨账号后老签名 URL 全部失效,需要应用层同步更新签名密钥</li>
+<li><strong>踩坑</strong>: 迁移后移动 App 内的签名 URL 全部返回 403,需要强制用户更新 App 版本重新获取签名 URL,影响 10 万用户</li>
+<li><strong>例外</strong>: 使用 CloudFront 签名 Cookie 可在迁移时同时下发新旧两组 Cookie 实现平滑过渡</li>
+</ul>
+<h2 id="15-监控告警需要在目标账号重建-CloudWatch-Alarms-和-Dashboard"><a href="#15-监控告警需要在目标账号重建-CloudWatch-Alarms-和-Dashboard" class="headerlink" title="15. 监控告警需要在目标账号重建 CloudWatch Alarms 和 Dashboard"></a>15. 监控告警需要在目标账号重建 CloudWatch Alarms 和 Dashboard</h2><ul>
+<li><strong>规则</strong>: CloudFront metrics(4xxErrorRate&#x2F;5xxErrorRate 等)是账号级资源,需在 <ACCOUNT_B> 重新创建 CloudWatch Alarms 和 SNS 通知</li>
+<li><strong>为什么</strong>: 跨账号后老告警不会自动触发,如果忘记重建监控,新 Distribution 故障时运维团队不会收到通知</li>
+<li><strong>踩坑</strong>: 迁移后新 Distribution 5xxErrorRate 飙升到 15% 持续 2 小时无人知晓,直到用户投诉才发现</li>
+<li><strong>例外</strong>: 使用第三方监控(Datadog&#x2F;New Relic)且配置了新账号 IAM role 可自动采集新 Distribution metrics</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>CNAME 全局唯一:必须先解绑老 Distribution 等 Deployed 再绑新的</strong></li>
+<li><strong>证书提前备好:us-east-1 的 ACM 证书 DNS 验证需要 30 分钟</strong></li>
+<li><strong>DNS TTL 降到 60 秒:提前 48 小时降低,切换时才能快速生效</strong></li>
+<li><strong>OAI&#x2F;OAC 重建:S3 bucket policy 必须更新新账号的 Principal ARN</strong></li>
+<li><strong>先测 CloudFront 域名:切 DNS 前用 curl + Host header 验证完整链路</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CNAMEAlreadyExists 错误</td>
+<td>老 Distribution 状态是否 Deployed,等 15 分钟重试</td>
+</tr>
+<tr>
+<td>新 Distribution 返回 403</td>
+<td>检查 S3 bucket policy 的 OAI&#x2F;OAC Principal 是否更新</td>
+</tr>
+<tr>
+<td>部分用户访问旧内容</td>
+<td>DNS TTL 是否提前降低,是否 invalidate 老 Distribution</td>
+</tr>
+<tr>
+<td>Lambda@Edge 关联失败</td>
+<td>函数是否在 us-east-1,是否发布了版本(不能用 $LATEST)</td>
+</tr>
+<tr>
+<td>迁移超时超过 30 分钟</td>
+<td>是否在 UTC 14:00-18:00 高峰时段,下次避开</td>
+</tr>
+<tr>
+<td>签名 URL 全部失效</td>
+<td>应用层是否更新为新账号的私钥,考虑双密钥过渡期</td>
+</tr>
+<tr>
+<td>监控无数据</td>
+<td>CloudWatch Alarms 是否在新账号重建,SNS topic 是否订阅</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-20</em></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/09/19/2026-09-19-expanded-blog-wireshark/">
                 [expanded] [blog] Wireshark
             </a>
@@ -1026,40 +1195,6 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/13/shanggu-%E7%97%9B%E9%A3%8E%E6%82%A3%E8%80%85%E7%9A%84%E6%99%9A%E9%97%B4%E9%A5%AE%E5%93%81%E9%99%90%E5%88%B6%E4%B8%8E%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88/">
-                痛风患者的晚间饮品限制与替代方案
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p><em>最近更新: 2026-09-13 (shanggu distill-docs 覆盖)</em></p>
-<p>痛风患者在选择晚间饮品时需要特别谨慎，因为很多常见饮品都含有高嘌呤成分，会直接诱发痛风发作或加重病情。对于痛风患者而言，温白开水仍然是最安全有效的首选，它不仅能维持水分平衡，还能帮助身体排出尿酸。低脂牛奶是另一个安全选择，其所含的钙质和蛋白质有助于降低血尿酸水平。清汤（特别是不含内脏的清鸡汤和蔬菜汤）、淡蜂蜜水和无糖苏打水也都适合痛风患者饮用。</p>
-<p>痛风患者必须严格避免的饮品包括啤酒和其他酒精饮料，因为它们的嘌呤含量极高，是诱发痛风的主要因素。浓茶中的鞣酸会影响尿酸排出，咖啡过量也会升高尿酸水平。各类肉汤、海鲜汤和高糖果汁都因嘌呤含量高或促进尿酸生成而应该避免。红酒虽然酒精含量较低，但同样含有嘌呤成分。</p>
-<p>痛风患者维护健康的关键在于建立科学的饮水习惯。每天应保证2-3升的水分摄入，这样可以充分促进尿酸的排出和代谢。选择温水而非冰冷饮品能更好地保护脾胃功能。在睡前30分钟喝一杯温白开水既能补充水分，又能在夜间帮助尿酸排出。同时，痛风患者应定期检查和监测尿酸水平，根据医生建议调整饮食和饮品选择。</p>
-
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1102,19 +1237,19 @@ _by claude-sonnet-5 nightly expand · 2026-09-19_
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/09/23/2026-09-23-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/23/2026-09-23-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
             </li>
             
             <li>
+                <a class="footer-post" href="/2026/09/23/vue2vsvue3/">vue2 对比 vue3</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/09/23/wireshark/">Wireshark</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/23/xss/">XSS跨站脚本攻击</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/09/23/software-structure/">软件架构演变</a>
             </li>
             
         </ul>
