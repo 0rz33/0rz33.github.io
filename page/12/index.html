@@ -184,6 +184,56 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/08/25/shanggu-%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E9%93%BE%E8%B7%AF%E7%9A%84%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%BF%9E%E9%80%9A%E6%80%A7%E9%AA%8C%E8%AF%81%E6%8C%87%E5%8D%97/">
+                知识同步链路的测试与连通性验证指南
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-08-25</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
+<h3 id="1-测试验证的重要性"><a href="#1-测试验证的重要性" class="headerlink" title="1. 测试验证的重要性"></a>1. 测试验证的重要性</h3><p>在自动摄取（Auto-Ingest）与跨系统知识同步架构中，链路的稳定性和数据格式的兼容性是保障系统高可用性的前提。任何网络波动、API 变更或认证过期均可能导致知识流失。因此，建立一套标准化的“测试-同步”（Test-Sync）验证流程是知识管理系统维护的核心规范。</p>
+<h3 id="2-Test-Sync-标准测试流程"><a href="#2-Test-Sync-标准测试流程" class="headerlink" title="2. Test-Sync 标准测试流程"></a>2. Test-Sync 标准测试流程</h3><p>连通性测试应当遵循“极简有效、覆盖全路径”的原则，通常包括以下阶段：</p>
+<h4 id="2-1-极简报文探针测试"><a href="#2-1-极简报文探针测试" class="headerlink" title="2.1 极简报文探针测试"></a>2.1 极简报文探针测试</h4><p>探针测试使用最基础的数据载荷（Payload）发起请求，旨在用最小的开销确认系统处于正常可通状态。</p>
+<ul>
+<li><strong>测试输入</strong>：定义包含最基础数据结构的测试问答对（例如 <code>Q: 测试</code>）。</li>
+<li><strong>预期响应</strong>：系统接收端成功解析并返回匹配的响应结果（例如 <code>A: 这是测试内容</code>）。</li>
+<li><strong>验证指标</strong>：HTTP 200&#x2F;201 返回码、端到端响应延时（RTT &lt; 200ms）、解析器元数据完整性。</li>
+</ul>
+<h4 id="2-2-接口权限与鉴权校验"><a href="#2-2-接口权限与鉴权校验" class="headerlink" title="2.2 接口权限与鉴权校验"></a>2.2 接口权限与鉴权校验</h4><ul>
+<li><strong>Token 有效性检查</strong>：验证 Auto-Ingest 服务在调用写入接口时，Bearer Token 或 API Key 是否具备足够的写入权限。</li>
+<li><strong>作用域校验（Scope Check）</strong>：确认测试节点仅影响测试命名空间或暂存区，不会污染生产环境的主知识库。</li>
+</ul>
+<h4 id="2-3-异常排查与故障恢复-SOP"><a href="#2-3-异常排查与故障恢复-SOP" class="headerlink" title="2.3 异常排查与故障恢复 SOP"></a>2.3 异常排查与故障恢复 SOP</h4><p>当 <code>test-sync</code> 探针失败时，维护人员应按以下顺序进行排查：</p>
+<ol>
+<li><strong>网络层</strong>：检查 Webhook 目标地址的可达性与防火墙规则。</li>
+<li><strong>协议层</strong>：核对 Header 中的 Content-Type 是否为 <code>application/json</code> 或指定的标准格式。</li>
+<li><strong>应用层</strong>：检查接收端日志，确认是否因 Payload 缺失必填字段导致反序列化异常。</li>
+</ol>
+<h3 id="3-自动化回归测试集成"><a href="#3-自动化回归测试集成" class="headerlink" title="3. 自动化回归测试集成"></a>3. 自动化回归测试集成</h3><p>将 <code>test-sync</code> 探针脚本化并集成至 CI&#x2F;CD Pipeline 或定时 HealthCheck 任务中，能够实现系统故障的提前预警。每次知识库系统升级、数据模型变更或第三方 Bot 路由更新后，必须优先通过连通性测试方可开启全量同步服务。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">
                 自动化知识同步与数据采集架构规范
             </a>
@@ -321,19 +371,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vim/">[expanded] [blog] VIM</a>
+                <a class="footer-post" href="/2026/09/23/2026-09-23-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">[expanded] [blog] XSS跨站脚本</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+                <a class="footer-post" href="/2026/09/23/wireshark/">Wireshark</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+                <a class="footer-post" href="/2026/09/23/xss/">XSS跨站脚本攻击</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/22/2026-09-22-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+                <a class="footer-post" href="/2026/09/23/software-structure/">软件架构演变</a>
             </li>
             
         </ul>
