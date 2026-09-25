@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] [blog] vue2 对比 vue3
+原始问题: [blog] vue2 对比 vue3
+
+Vue2 vs Vue3 核心差异速查
+场景占位: 组件用 、,数据用 、阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手
+
+
+1. 生命周期钩子在 Vue3 需显式导入且改名
+">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] vue2 对比 vue3"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] vue2 对比 vue3 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">
+                [expanded] [blog] vue2 对比 vue3
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-25</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-blog-vue2-对比-vue3"><a href="#expanded-blog-vue2-对比-vue3" class="headerlink" title="[expanded] [blog] vue2 对比 vue3"></a>[expanded] [blog] vue2 对比 vue3</h1><blockquote>
+<p>原始问题: [blog] vue2 对比 vue3</p>
+</blockquote>
+<h1 id="Vue2-vs-Vue3-核心差异速查"><a href="#Vue2-vs-Vue3-核心差异速查" class="headerlink" title="Vue2 vs Vue3 核心差异速查"></a>Vue2 vs Vue3 核心差异速查</h1><blockquote>
+<p>场景占位: 组件用 <ComponentA>、<ComponentB>,数据用 <dataKey>、<propName><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-生命周期钩子在-Vue3-需显式导入且改名"><a href="#1-生命周期钩子在-Vue3-需显式导入且改名" class="headerlink" title="1. 生命周期钩子在 Vue3 需显式导入且改名"></a>1. 生命周期钩子在 Vue3 需显式导入且改名</h2><ul>
+<li><strong>规则</strong>: Vue3 中 <code>beforeDestroy</code> 改为 <code>onBeforeUnmount</code>,<code>destroyed</code> 改为 <code>onUnmounted</code>,且需从 <code>vue</code> 包导入</li>
+<li><strong>为什么</strong>: Vue3 Composition API 设计哲学要求显式依赖,避免全局魔法变量;销毁语义改为”卸载”更准确</li>
+<li><strong>踩坑</strong>: 直接在 <code>setup()</code> 里写 <code>beforeDestroy()</code> 不会报错但永远不执行,因为 Vue3 根本不认这个名字</li>
+<li><strong>例外</strong>: Options API 模式下仍可用旧名称,但不推荐混用</li>
+</ul>
+<h2 id="2-setup-函数替代-beforeCreate-和-created"><a href="#2-setup-函数替代-beforeCreate-和-created" class="headerlink" title="2. setup 函数替代 beforeCreate 和 created"></a>2. setup 函数替代 beforeCreate 和 created</h2><ul>
+<li><strong>规则</strong>: Vue3 的 <code>setup()</code> 在组件实例创建前执行,无需再写 <code>beforeCreate</code> 和 <code>created</code></li>
+<li><strong>为什么</strong>: <code>setup()</code> 执行时机就在这两个钩子之间,重复定义会造成逻辑分散和 <code>this</code> 指向混乱</li>
+<li><strong>踩坑</strong>: 在 <code>setup()</code> 里访问 <code>this</code> 是 <code>undefined</code>,因为组件实例还未创建完成</li>
+</ul>
+<h2 id="3-父子通信在-Vue3-需用-defineProps-和-defineEmits"><a href="#3-父子通信在-Vue3-需用-defineProps-和-defineEmits" class="headerlink" title="3. 父子通信在 Vue3 需用 defineProps 和 defineEmits"></a>3. 父子通信在 Vue3 需用 defineProps 和 defineEmits</h2><ul>
+<li><strong>规则</strong>: Vue3 script setup 中用编译宏 <code>defineProps</code> 接收父组件数据,用 <code>defineEmits</code> 定义向父发送的事件</li>
+<li><strong>为什么</strong>: 编译时宏可做静态分析和类型推导,比 Vue2 运行时 <code>props</code> 选项更高效且 TypeScript 友好</li>
+<li><strong>踩坑</strong>: <code>defineProps</code> 不需要 import 就能用,手动导入反而报错,因为它是编译器注入的</li>
+<li><strong>例外</strong>: Options API 模式仍用 <code>props</code> 和 <code>$emit</code></li>
+</ul>
+<h2 id="4-ref-在-Vue3-有双重含义需区分场景"><a href="#4-ref-在-Vue3-有双重含义需区分场景" class="headerlink" title="4. ref 在 Vue3 有双重含义需区分场景"></a>4. ref 在 Vue3 有双重含义需区分场景</h2><ul>
+<li><strong>规则</strong>: 模板中 <code>ref=&quot;&lt;refName&gt;&quot;</code> 仍用于获取 DOM&#x2F;组件实例,但 <code>&lt;script&gt;</code> 中 <code>ref()</code> 是响应式数据包装器</li>
+<li><strong>为什么</strong>: Vue3 用 <code>ref()</code> 统一基本类型响应式,模板 ref 通过同名变量自动绑定,两者命名空间独立</li>
+<li><strong>踩坑</strong>: 在 <code>setup()</code> 中访问 ref 包装的值必须 <code>.value</code>,但模板中自动解包不需要</li>
+<li><strong>例外</strong>: <code>reactive()</code> 包装的对象不需要 <code>.value</code></li>
+</ul>
+<h2 id="5-渲染-Watcher-在-Vue3-改为-effect-副作用系统"><a href="#5-渲染-Watcher-在-Vue3-改为-effect-副作用系统" class="headerlink" title="5. 渲染 Watcher 在 Vue3 改为 effect 副作用系统"></a>5. 渲染 Watcher 在 Vue3 改为 effect 副作用系统</h2><ul>
+<li><strong>规则</strong>: Vue2 的 <code>Watcher</code> 类在 Vue3 被 <code>ReactiveEffect</code> 替代,初始化渲染不再显式创建 watcher 实例</li>
+<li><strong>为什么</strong>: Vue3 响应式系统基于 Proxy 重写,effect 追踪更细粒度,性能提升 1.3-2 倍</li>
+<li><strong>踩坑</strong>: Vue2 可以手动 <code>new Watcher()</code>,Vue3 必须通过 <code>watchEffect</code> 或 <code>watch</code> API,直接操作内部 effect 会破坏依赖追踪</li>
+</ul>
+<h2 id="6-data-选项在-Vue3-必须是函数不能是对象"><a href="#6-data-选项在-Vue3-必须是函数不能是对象" class="headerlink" title="6. data 选项在 Vue3 必须是函数不能是对象"></a>6. data 选项在 Vue3 必须是函数不能是对象</h2><ul>
+<li><strong>规则</strong>: Vue3 彻底移除 <code>data</code> 对象写法,只接受返回对象的函数</li>
+<li><strong>为什么</strong>: 防止多个组件实例共享同一数据对象,虽然 Vue2 也推荐函数但仍允许对象(根实例除外)</li>
+<li><strong>踩坑</strong>: 迁移时全局搜索 <code>data: &#123;</code> 会漏掉根实例,因为 Vue2 根实例允许对象</li>
+<li><strong>例外</strong>: Composition API 中直接用 <code>ref</code>&#x2F;<code>reactive</code> 无此限制</li>
+</ul>
+<h2 id="7-watch-在-Vue3-需显式指定深度监听且返回值不同"><a href="#7-watch-在-Vue3-需显式指定深度监听且返回值不同" class="headerlink" title="7. watch 在 Vue3 需显式指定深度监听且返回值不同"></a>7. watch 在 Vue3 需显式指定深度监听且返回值不同</h2><ul>
+<li><strong>规则</strong>: Vue3 <code>watch</code> 默认浅监听,监听对象需配置 <code>&#123; deep: true &#125;</code>,且返回停止函数而非 Vue2 的 unwatch</li>
+<li><strong>为什么</strong>: 默认浅监听避免大对象性能陷阱,返回函数符合现代 JS 清理模式(类似 <code>useEffect</code>)</li>
+<li><strong>踩坑</strong>: Vue2 <code>this.$watch</code> 返回的 unwatch 函数在 Vue3 中仍叫 unwatch 但实现完全不同,不可混用</li>
+</ul>
+<h2 id="8-组件注册在-Vue3-局部注册优先于全局"><a href="#8-组件注册在-Vue3-局部注册优先于全局" class="headerlink" title="8. 组件注册在 Vue3 局部注册优先于全局"></a>8. 组件注册在 Vue3 局部注册优先于全局</h2><ul>
+<li><strong>规则</strong>: Vue3 推荐在 <code>&lt;script setup&gt;</code> 中直接 import 组件即自动注册,全局 <code>app.component()</code> 仅用于基础组件</li>
+<li><strong>为什么</strong>: Tree-shaking 友好,未使用的组件不会打包;Vue2 的 <code>components</code> 选项仍可用但不推荐</li>
+<li><strong>踩坑</strong>: <code>&lt;script setup&gt;</code> 中 import 的组件名必须是 PascalCase,kebab-case 在模板中自动转换但变量名不行</li>
+</ul>
+<h2 id="9-mount-在-Vue3-改为-app-mount-且不可链式调用"><a href="#9-mount-在-Vue3-改为-app-mount-且不可链式调用" class="headerlink" title="9. $mount 在 Vue3 改为 app.mount 且不可链式调用"></a>9. $mount 在 Vue3 改为 app.mount 且不可链式调用</h2><ul>
+<li><strong>规则</strong>: Vue3 用 <code>createApp(&lt;Component&gt;).mount(&lt;selector&gt;)</code> 替代 <code>new Vue().$mount()</code>,mount 返回根组件实例而非 app</li>
+<li><strong>为什么</strong>: 应用实例(app)和组件实例分离,一个页面可创建多个独立 Vue 应用互不干扰</li>
+<li><strong>踩坑</strong>: <code>app.mount()</code> 只能调用一次,Vue2 可以先 <code>new Vue()</code> 后多次 <code>$mount</code> 到不同元素</li>
+</ul>
+<h2 id="10-methods-在-Composition-API-中退化为普通函数"><a href="#10-methods-在-Composition-API-中退化为普通函数" class="headerlink" title="10. methods 在 Composition API 中退化为普通函数"></a>10. methods 在 Composition API 中退化为普通函数</h2><ul>
+<li><strong>规则</strong>: <code>&lt;script setup&gt;</code> 中直接定义函数即可在模板使用,无需 <code>methods</code> 选项包裹</li>
+<li><strong>为什么</strong>: <code>methods</code> 本质是为了绑定 <code>this</code>,Composition API 无 <code>this</code> 概念,普通函数更直观</li>
+<li><strong>踩坑</strong>: 普通函数没有自动 <code>this</code> 绑定,需要的状态必须显式从 <code>setup</code> 作用域捕获</li>
+</ul>
+<h2 id="11-动态组件-component-标签的-is-属性需用-v-bind"><a href="#11-动态组件-component-标签的-is-属性需用-v-bind" class="headerlink" title="11. 动态组件 component 标签的 is 属性需用 v-bind"></a>11. 动态组件 component 标签的 is 属性需用 v-bind</h2><ul>
+<li><strong>规则</strong>: Vue3 中 <code>&lt;component is=&quot;&lt;ComponentName&gt;&quot;&gt;</code> 必须写成 <code>:is=&quot;&lt;ComponentName&gt;&quot;</code>,字符串形式仅用于原生 HTML 标签</li>
+<li><strong>为什么</strong>: 区分组件对象和 HTML 标签字符串,避免安全风险(Vue2 会尝试解析字符串为组件)</li>
+<li><strong>踩坑</strong>: 迁移时 <code>is=&quot;ComponentA&quot;</code> 会被渲染为自定义元素而非组件,必须改为 <code>:is=&quot;ComponentA&quot;</code></li>
+</ul>
+<h2 id="12-响应式丢失在解构-props-时必须用-toRefs"><a href="#12-响应式丢失在解构-props-时必须用-toRefs" class="headerlink" title="12. 响应式丢失在解构 props 时必须用 toRefs"></a>12. 响应式丢失在解构 props 时必须用 toRefs</h2><ul>
+<li><strong>规则</strong>: <code>const &#123; &lt;propName&gt; &#125; = defineProps()</code> 会丢失响应式,需 <code>const &#123; &lt;propName&gt; &#125; = toRefs(props)</code></li>
+<li><strong>为什么</strong>: 解构是值拷贝,切断了 Proxy 代理链;<code>toRefs</code> 为每个属性创建独立 ref 保持响应</li>
+<li><strong>踩坑</strong>: 模板中直接用 props 正常,但解构后传给 <code>computed</code> 或 <code>watch</code> 会失效</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>setup 替代 beforeCreate&#x2F;created,内部无 this</strong></li>
+<li><strong>生命周期钩子改名且需导入: onBeforeUnmount&#x2F;onUnmounted</strong></li>
+<li><strong>ref() 的值在 script 中要 .value,模板中自动解包</strong></li>
+<li><strong>defineProps&#x2F;defineEmits 是编译宏,不需要 import</strong></li>
+<li><strong>解构 props 必须 toRefs 否则丢失响应式</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需要在组件创建时初始化数据</td>
+<td>直接写在 setup() 顶层,不用 created</td>
+</tr>
+<tr>
+<td>父组件传值给子组件</td>
+<td>Vue3 用 defineProps,Vue2 用 props 选项</td>
+</tr>
+<tr>
+<td>子组件通知父组件</td>
+<td>Vue3 用 defineEmits + emit,Vue2 用 $emit</td>
+</tr>
+<tr>
+<td>获取子组件实例</td>
+<td>模板 ref&#x3D;”<name>“ 后 setup 中同名 ref 变量自动绑定</td>
+</tr>
+<tr>
+<td>监听对象内部变化</td>
+<td>watch 第三参数加 { deep: true }</td>
+</tr>
+<tr>
+<td>组件销毁前清理</td>
+<td>onBeforeUnmount 替代 beforeDestroy</td>
+</tr>
+<tr>
+<td>动态切换组件</td>
+<td><code>&lt;component :is=&quot;变量&quot;&gt;</code> 必须用冒号绑定</td>
+</tr>
+<tr>
+<td>响应式数据解构</td>
+<td>toRefs(props) 或 toRefs(reactive对象)</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vim/">[expanded] [blog] VIM</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

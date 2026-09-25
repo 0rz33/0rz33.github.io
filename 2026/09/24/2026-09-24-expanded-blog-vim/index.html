@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] [blog] VIM
+原始问题: [blog] VIM
+
+Vim 模式切换与操作技能点清单
+场景占位: 编辑 , 搜索 , 替换  为 阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手
+
+
+1. 命令模式是默认模式,任何时候按 Esc 回归安全状态
+规则: 打开文件后默认">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] VIM"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] VIM - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/24/2026-09-24-expanded-blog-vim/">
+                [expanded] [blog] VIM
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-24</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-blog-VIM"><a href="#expanded-blog-VIM" class="headerlink" title="[expanded] [blog] VIM"></a>[expanded] [blog] VIM</h1><blockquote>
+<p>原始问题: [blog] VIM</p>
+</blockquote>
+<h1 id="Vim-模式切换与操作技能点清单"><a href="#Vim-模式切换与操作技能点清单" class="headerlink" title="Vim 模式切换与操作技能点清单"></a>Vim 模式切换与操作技能点清单</h1><blockquote>
+<p>场景占位: 编辑 <CONFIG_FILE>, 搜索 <KEYWORD>, 替换 <OLD_PATTERN> 为 <NEW_PATTERN><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-命令模式是默认模式-任何时候按-Esc-回归安全状态"><a href="#1-命令模式是默认模式-任何时候按-Esc-回归安全状态" class="headerlink" title="1. 命令模式是默认模式,任何时候按 Esc 回归安全状态"></a>1. 命令模式是默认模式,任何时候按 Esc 回归安全状态</h2><ul>
+<li><strong>规则</strong>: 打开文件后默认在命令模式,所有操作从这里开始,迷路时连按两次 Esc</li>
+<li><strong>为什么</strong>: 新手最大困惑是”为什么按键没反应” — 因为在错误模式下,Vim 不会提示模式错误</li>
+<li><strong>踩坑</strong>: 在命令模式下直接打字会触发删除&#x2F;复制等操作,导致文件被意外修改</li>
+<li><strong>例外</strong>: 末行模式下单次 Esc 可能不够,删除末行所有字符也能退出</li>
+</ul>
+<h2 id="2-删除-dd-即剪切-Vim-没有独立剪切命令"><a href="#2-删除-dd-即剪切-Vim-没有独立剪切命令" class="headerlink" title="2. 删除(dd)即剪切,Vim 没有独立剪切命令"></a>2. 删除(dd)即剪切,Vim 没有独立剪切命令</h2><ul>
+<li><strong>规则</strong>: dd 删除整行后内容在剪贴板,p 可粘贴,不需要单独的剪切操作</li>
+<li><strong>为什么</strong>: Vim 设计理念是”删除即剪切”,减少命令记忆负担,但新手常误以为删除&#x3D;丢失</li>
+<li><strong>踩坑</strong>: 删除后立即做其他复制操作会覆盖剪贴板,导致刚删的内容无法找回</li>
+</ul>
+<h2 id="3-撤销支持时间旅行-不只是-u-一步步回退"><a href="#3-撤销支持时间旅行-不只是-u-一步步回退" class="headerlink" title="3. 撤销支持时间旅行,不只是 u 一步步回退"></a>3. 撤销支持时间旅行,不只是 u 一步步回退</h2><ul>
+<li><strong>规则</strong>: :earlier 4m 回到 4 分钟前,:later 55s 前进 55 秒,比 u&#x2F;Ctrl+r 更精准</li>
+<li><strong>为什么</strong>: 大量修改后想回到”刚才某个时间点”而非”上一步”,传统撤销需按几十次</li>
+<li><strong>踩坑</strong>: :undo 5 是撤销到第 5 个改变点,不是撤销 5 次,需配合 :undolist 查看树状历史</li>
+</ul>
+<h2 id="4-替换命令默认只替换每行第一个匹配-必须加-g-才全局"><a href="#4-替换命令默认只替换每行第一个匹配-必须加-g-才全局" class="headerlink" title="4. 替换命令默认只替换每行第一个匹配,必须加 &#x2F;g 才全局"></a>4. 替换命令默认只替换每行第一个匹配,必须加 &#x2F;g 才全局</h2><ul>
+<li><strong>规则</strong>: :%s&#x2F;<OLD>&#x2F;<NEW>&#x2F; 只替换每行首个,:%s&#x2F;<OLD>&#x2F;<NEW>&#x2F;g 才替换全部</li>
+<li><strong>为什么</strong>: Vim 继承 sed 行为,默认”每行一次”防止误操作,但 90% 场景需要全局替换</li>
+<li><strong>踩坑</strong>: 替换后发现只改了一部分,以为是正则写错,其实是忘了 &#x2F;g 标志</li>
+</ul>
+<h2 id="5-搜索后按-n-N-跳转-不需要重复输入关键词"><a href="#5-搜索后按-n-N-跳转-不需要重复输入关键词" class="headerlink" title="5. 搜索后按 n&#x2F;N 跳转,不需要重复输入关键词"></a>5. 搜索后按 n&#x2F;N 跳转,不需要重复输入关键词</h2><ul>
+<li><strong>规则</strong>: &#x2F;<KEYWORD> 搜索后,n 跳下一个,N 跳上一个,Esc 退出高亮</li>
+<li><strong>为什么</strong>: 重复按 &#x2F; 再输入关键词效率低,n&#x2F;N 是搜索结果导航的标准方式</li>
+<li><strong>踩坑</strong>: 搜索后直接编辑会导致光标位置混乱,应先用 n&#x2F;N 定位到目标再操作</li>
+</ul>
+<h2 id="6-行号跳转用-而非-G"><a href="#6-行号跳转用-而非-G" class="headerlink" title="6. 行号跳转用 : 而非 G"></a>6. 行号跳转用 :<LINE_NUM> 而非 <LINE_NUM>G</h2><ul>
+<li><strong>规则</strong>: :50 跳到第 50 行(末行模式),50G 也可以但需在命令模式下输入数字</li>
+<li><strong>为什么</strong>: 末行模式的 :<NUM> 更直观,且支持 :$ 跳到最后一行,:0 跳到第一行</li>
+<li><strong>踩坑</strong>: 命令模式下输入数字后忘了按 G,导致数字显示在屏幕上但没跳转</li>
+</ul>
+<h2 id="7-分屏后-Ctrl-w-是所有窗口操作的前缀-不是关闭窗口"><a href="#7-分屏后-Ctrl-w-是所有窗口操作的前缀-不是关闭窗口" class="headerlink" title="7. 分屏后 Ctrl+w 是所有窗口操作的前缀,不是关闭窗口"></a>7. 分屏后 Ctrl+w 是所有窗口操作的前缀,不是关闭窗口</h2><ul>
+<li><strong>规则</strong>: Ctrl+w 后接方向键(hjkl)移动光标,接 c&#x2F;q 关闭窗口,接 +&#x2F;- 调整尺寸</li>
+<li><strong>为什么</strong>: Ctrl+w 在浏览器是关闭标签,但 Vim 中是窗口操作命名空间,需重新建立肌肉记忆</li>
+<li><strong>踩坑</strong>: 习惯性按 Ctrl+w 想关闭窗口,结果进入等待下一个按键的状态</li>
+</ul>
+<h2 id="8-yy-复制整行-y-复制到行尾-yw-复制一个单词"><a href="#8-yy-复制整行-y-复制到行尾-yw-复制一个单词" class="headerlink" title="8. yy 复制整行,y$ 复制到行尾,yw 复制一个单词"></a>8. yy 复制整行,y$ 复制到行尾,yw 复制一个单词</h2><ul>
+<li><strong>规则</strong>: y 是复制动作,后接范围操作符(y 重复&#x3D;整行,$ 行尾,w 单词)</li>
+<li><strong>为什么</strong>: Vim 的”动作+范围”组合语法,y 不是独立命令,必须指定复制范围</li>
+<li><strong>踩坑</strong>: 只按 y 没反应,以为复制失败,其实是在等待范围输入</li>
+</ul>
+<h2 id="9-set-nu-只在当前会话生效-永久配置需写入-vimrc"><a href="#9-set-nu-只在当前会话生效-永久配置需写入-vimrc" class="headerlink" title="9. :set nu 只在当前会话生效,永久配置需写入 ~&#x2F;.vimrc"></a>9. :set nu 只在当前会话生效,永久配置需写入 ~&#x2F;.vimrc</h2><ul>
+<li><strong>规则</strong>: 末行模式的 :set 命令是临时的,重启 Vim 失效,持久化需编辑配置文件</li>
+<li><strong>为什么</strong>: Vim 区分会话配置和全局配置,防止实验性设置污染默认环境</li>
+<li><strong>踩坑</strong>: 每次打开文件都要重新 :set nu,不知道可以写入 ~&#x2F;.vimrc 一劳永逸</li>
+</ul>
+<h2 id="10-r-替换单个字符不进入插入模式-R-进入替换模式持续覆盖"><a href="#10-r-替换单个字符不进入插入模式-R-进入替换模式持续覆盖" class="headerlink" title="10. r 替换单个字符不进入插入模式,R 进入替换模式持续覆盖"></a>10. r 替换单个字符不进入插入模式,R 进入替换模式持续覆盖</h2><ul>
+<li><strong>规则</strong>: r 后接一个字符直接替换光标处,R 进入替换模式可连续覆盖直到按 Esc</li>
+<li><strong>为什么</strong>: 修改单个字符用 r 比 i 删除再输入快 3 倍,R 适合修正打字错误</li>
+<li><strong>踩坑</strong>: 按 r 后等待输入时误以为进入了插入模式,实际只能输入一个字符</li>
+</ul>
+<h2 id="11-D-删除到行尾但不删除换行符-dd-删除整行包括换行"><a href="#11-D-删除到行尾但不删除换行符-dd-删除整行包括换行" class="headerlink" title="11. D 删除到行尾但不删除换行符,dd 删除整行包括换行"></a>11. D 删除到行尾但不删除换行符,dd 删除整行包括换行</h2><ul>
+<li><strong>规则</strong>: D 等价于 d$,保留当前行但清空内容,dd 删除整行后下一行上移</li>
+<li><strong>为什么</strong>: 保留空行结构时用 D,彻底删除行用 dd,避免手动处理换行符</li>
+<li><strong>踩坑</strong>: 用 D 删除后发现留了空行,以为没删干净,其实是设计如此</li>
+</ul>
+<h2 id="12-多文件编辑用-bn-bp-切换-不要关闭重开"><a href="#12-多文件编辑用-bn-bp-切换-不要关闭重开" class="headerlink" title="12. 多文件编辑用 :bn&#x2F;:bp 切换,不要关闭重开"></a>12. 多文件编辑用 :bn&#x2F;:bp 切换,不要关闭重开</h2><ul>
+<li><strong>规则</strong>: vim <FILE1> <FILE2> 打开多文件后,:bn 下一个,:bp 上一个,:files 查看列表</li>
+<li><strong>为什么</strong>: 关闭重开会丢失 undo 历史和寄存器内容,缓冲区切换保留所有状态</li>
+<li><strong>踩坑</strong>: 不知道文件已在缓冲区,用 :e <FILE> 重复打开,导致多个副本混乱</li>
+</ul>
+<h2 id="13-分屏用-sp-vsp-而非手动开多个终端"><a href="#13-分屏用-sp-vsp-而非手动开多个终端" class="headerlink" title="13. 分屏用 :sp&#x2F;:vsp 而非手动开多个终端"></a>13. 分屏用 :sp&#x2F;:vsp 而非手动开多个终端</h2><ul>
+<li><strong>规则</strong>: :sp <FILE> 水平分屏,:vsp <FILE> 垂直分屏,Ctrl+w w 循环切换窗口</li>
+<li><strong>为什么</strong>: 同一 Vim 进程内分屏共享寄存器和配置,跨终端复制粘贴需系统剪贴板</li>
+<li><strong>踩坑</strong>: 分屏后不知道怎么关闭,用 :q 退出整个 Vim,应该用 Ctrl+w c 关闭当前窗口</li>
+</ul>
+<h2 id="14-跳到行首第一个非空字符-0-跳到绝对行首"><a href="#14-跳到行首第一个非空字符-0-跳到绝对行首" class="headerlink" title="14. ^ 跳到行首第一个非空字符,0 跳到绝对行首"></a>14. ^ 跳到行首第一个非空字符,0 跳到绝对行首</h2><ul>
+<li><strong>规则</strong>: ^ (Shift+6) 跳过缩进到内容开始,0 跳到第 0 列,$ (Shift+4) 跳到行尾</li>
+<li><strong>为什么</strong>: 编辑代码时 ^ 更常用,避免光标停在缩进空格上,0 用于处理无缩进文本</li>
+<li><strong>踩坑</strong>: 习惯用 0 后发现光标在缩进前,需要手动右移才能编辑</li>
+</ul>
+<h2 id="15-gg-G-自动格式化整个文件-不需要手动调缩进"><a href="#15-gg-G-自动格式化整个文件-不需要手动调缩进" class="headerlink" title="15. gg&#x3D;G 自动格式化整个文件,不需要手动调缩进"></a>15. gg&#x3D;G 自动格式化整个文件,不需要手动调缩进</h2><ul>
+<li><strong>规则</strong>: gg 跳到文件开头,&#x3D; 是格式化操作,G 是范围(到文件末尾)</li>
+<li><strong>为什么</strong>: 粘贴代码后缩进混乱,手动调整费时,gg&#x3D;G 一键按语法规则重排</li>
+<li><strong>踩坑</strong>: 只在支持的文件类型(C&#x2F;Java&#x2F;Python)生效,纯文本文件无效果</li>
+<li><strong>例外</strong>: 需要 :filetype indent on 配置才能生效</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>Esc 是安全键,迷路时连按两次回到命令模式</strong></li>
+<li><strong>dd 删除即剪切,p 粘贴,不需要单独剪切命令</strong></li>
+<li><strong>替换必须加 &#x2F;g 才全局: :%s&#x2F;<OLD>&#x2F;<NEW>&#x2F;g</strong></li>
+<li><strong>搜索后用 n&#x2F;N 跳转,不要重复输入关键词</strong></li>
+<li><strong>分屏操作都是 Ctrl+w 开头,hjkl 移动光标,c 关闭窗口</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>按键没反应</td>
+<td>按 Esc 确认在命令模式</td>
+</tr>
+<tr>
+<td>只替换了部分内容</td>
+<td>替换命令加 &#x2F;g 标志</td>
+</tr>
+<tr>
+<td>想回到几分钟前的状态</td>
+<td>:earlier <TIME>m 而非狂按 u</td>
+</tr>
+<tr>
+<td>删除后想粘贴</td>
+<td>dd 删除即剪切,直接 p 粘贴</td>
+</tr>
+<tr>
+<td>分屏后不知道怎么切换</td>
+<td>Ctrl+w w 循环切换窗口</td>
+</tr>
+<tr>
+<td>想跳到某一行</td>
+<td>:<LINE_NUM> 或 <LINE_NUM>G</td>
+</tr>
+<tr>
+<td>复制整行</td>
+<td>yy 而非 y</td>
+</tr>
+<tr>
+<td>想关闭当前分屏</td>
+<td>Ctrl+w c 而非 :q</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-24</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vim/">[expanded] [blog] VIM</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

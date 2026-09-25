@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="# [expanded] [blog] vue2 对比 vue3
+
+&gt; 原始问题: [blog] vue2 对比 vue3
+
+# Vue2 vs Vue3 核心差异与迁移技能点
+
+&gt; 场景占位: 组件用 、,数据字段用 ,事件用 
+&gt; 阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手
+
+---">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] vue2 对比 vue3"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] vue2 对比 vue3 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/23/2026-09-23-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">
+                [expanded] [blog] vue2 对比 vue3
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-23</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+# [expanded] [blog] vue2 对比 vue3
+
+> 原始问题: [blog] vue2 对比 vue3
+
+# Vue2 vs Vue3 核心差异与迁移技能点
+
+> 场景占位: 组件用 <ComponentA>、<ComponentB>,数据字段用 <fieldName>,事件用 <eventName>
+> 阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手
+
+---
+
+## 1. setup() 替代 beforeCreate/created,但执行时机更早
+- **规则**: Vue3 setup() 在组件实例创建前执行,内部无法访问 this
+- **为什么**: setup 是 Composition API 入口,此时组件实例未创建,data/methods 都不存在,强制你用 ref/reactive 显式声明响应式
+- **踩坑**: 在 setup 里写 this.$emit 或 this.$refs 直接报错,需改用 context.emit 和返回值暴露
+- **例外**: Options API 模式下仍可用 beforeCreate/created,但混用会导致心智负担
+
+## 2. 父子通信从 prop+$emit 变成 defineProps+defineEmits 编译宏
+- **规则**: Vue3 script setup 中用编译宏声明 props/emits,无需 import 直接用
+- **为什么**: 编译宏在构建时转换成运行时代码,减少样板代码且类型推导更准确
+- **踩坑**: defineProps 返回的是 Proxy 对象,解构会丢失响应式,需用 toRefs 包裹
+- **例外**: 非 script setup 模式仍用 props/emits 选项声明
+
+## 3. ref 标记从字符串变成模板引用函数,需显式声明变量
+- **规则**: Vue3 中 ref="<refName>" 需在 setup 里声明同名 ref 变量并返回
+- **为什么**: Vue2 的 this.$refs 是隐式收集,Vue3 要求显式声明避免命名冲突和类型丢失
+- **踩坑**: 忘记在 setup 返回对象中暴露 ref 变量,模板里拿到 undefined
+- **例外**: Options API 模式下 this.$refs 仍可用但不推荐
+
+## 4. 响应式从 Object.defineProperty 换成 Proxy,数组索引赋值终于响应了
+- **规则**: Vue3 中 reactive 对象的数组可直接用 arr[0] = newVal 触发更新
+- **为什么**: Proxy 可拦截所有属性操作,Vue2 的 defineProperty 只能劫持已存在属性,数组索引需 $set
+- **踩坑**: Vue2 老代码里大量 this.$set(arr, index, val) 在 Vue3 里多余但不报错,造成冗余
+- **例外**: Map/Set 等内置类型仍需用 reactive 包裹,直接赋值无法触发
+
+## 5. 生命周期钩子加 on 前缀且需在 setup 内注册
+- **规则**: mounted 变 onMounted,需从 vue 导入并在 setup 里调用注册
+- **为什么**: Composition API 要求所有逻辑在 setup 内组合,生命周期变成可导入函数便于复用和 tree-shaking
+- **踩坑**: 在 setup 外部调用 onMounted 不生效,必须在 setup 同步执行期间注册
+- **例外**: beforeCreate/created 被 setup 替代,无对应 on 函数
+
+## 6. watch 需显式指定 deep/immediate,默认浅层监听
+- **规则**: Vue3 watch 第一个参数是 getter 函数或 ref,监听对象需显式 { deep: true }
+- **为什么**: Vue2 watch 默认深度监听对象易造成性能浪费,Vue3 强制显式声明避免隐式开销
+- **踩坑**: 监听 reactive 对象时忘加 deep,嵌套属性变更不触发回调
+- **例外**: watchEffect 自动追踪依赖无需指定监听目标,但无法获取 oldValue
+
+## 7. 渲染函数从 h(createElement) 变成全局导入的 h 函数
+- **规则**: Vue3 render 函数不再接收 h 参数,需从 vue 导入使用
+- **为什么**: 统一导入方式便于 tree-shaking,且 h 函数签名简化(子节点直接传数组)
+- **踩坑**: Vue2 的 render(h) 参数在 Vue3 里被忽略,直接用会报 h is not defined
+- **例外**: 模板编译后的渲染函数仍自动注入 h,手写 JSX 需配置插件
+
+## 8. v-model 从单向绑定变成支持多个且自定义修饰符
+- **规则**: Vue3 组件可声明多个 v-model,用 v-model:<propName> 语法绑定
+- **为什么**: Vue2 只支持一个 v-model(本质是 value+input 语法糖),多属性双向绑定需 .sync,Vue3 统一为 v-model
+- **踩坑**: Vue2 的 model 选项(自定义 prop/event)在 Vue3 里失效,需改用 defineModel 或手动 props+emits
+- **例外**: 原生表单元素的 v-model 行为不变
+
+## 9. 全局 API 从 Vue.xxx 变成 app 实例方法
+- **规则**: Vue.component/directive/mixin 改为 app.component/directive/mixin
+- **为什么**: Vue2 全局 API 污染原型链且多应用实例共享配置,Vue3 用 createApp 隔离实例
+- **踩坑**: 插件里直接用 Vue.use 在 Vue3 报错,需改成 app.use 且在 createApp 后调用
+- **例外**: Vue.nextTick 改为从 vue 导入的 nextTick 函数
+
+## 10. Teleport 替代 portal 实现跨层级渲染
+- **规则**: 用 <Teleport to="<selector>"> 将内容渲染到 DOM 任意位置
+- **为什么**: 模态框/通知等组件需挂到 body 下避免 z-index/overflow 问题,Vue2 需第三方库
+- **踩坑**: to 属性必须是已存在的 DOM 选择器,目标节点不存在时内容不渲染且不报错
+- **例外**: SSR 场景下 Teleport 需特殊处理,目标节点需在客户端激活前存在
+
+## 11. Fragment 支持多根节点组件,template 不再强制单根
+- **规则**: Vue3 组件 template 可直接写多个并列根元素
+- **为什么**: Vue2 虚拟 DOM 要求单根便于 diff,Vue3 用 Fragment 节点包裹多根,运行时自动处理
+- **踩坑**: 多根组件的 $attrs 继承行为改变,需手动指定哪个根元素接收
+- **例外**: transition 等特殊组件仍要求单根子元素
+
+## 12. 异步组件从工厂函数变成 defineAsyncComponent 包裹
+- **规则**: 动态导入组件需用 defineAsyncComponent(() => import('<path>'))
+- **为什么**: 统一异步组件定义方式,支持 loading/error/timeout 等高级选项
+- **踩坑**: Vue2 的 () => import() 直接用在 components 选项里,Vue3 需显式包裹否则类型推导失败
+- **例外**: 路由懒加载仍可直接用 () => import(),vue-router 内部处理
+
+## 13. 过滤器被移除,改用方法或计算属性
+- **规则**: Vue2 的 {{ <value> | <filterName> }} 语法在 Vue3 不可用
+- **为什么**: 过滤器语法增加学习成本且功能可被方法/computed 完全替代,移除减少 API 表面积
+- **踩坑**: 迁移时全局过滤器需改成全局方法挂到 app.config.globalProperties
+- **例外**: 第三方库(如 vue-i18n)的自定义指令可模拟过滤器行为
+
+## 14. $children 被移除,需用 ref 或 provide/inject 访问子组件
+- **规则**: Vue3 无法通过 this.$children 遍历子组件实例
+- **为什么**: $children 依赖渲染顺序且类型不安全,鼓励显式通信而非隐式访问
+- **踩坑**: 表单组件库依赖 $children 收集字段的代码需重构为 provide/inject 模式
+- **例外**: $parent 仍保留但不推荐,优先用 emit 向上通信
+
+## 15. 响应式丢失陷阱:解构 props 和 reactive 对象需 toRefs
+- **规则**: const { <fieldName> } = props 会丢失响应式,需 const { <fieldName> } = toRefs(props)
+- **为什么**: 解构操作提取的是值的快照,toRefs 将每个属性转为独立 ref 保持响应式链接
+- **踩坑**: 解构后的变量在模板里不更新,但直接用 props.<fieldName> 正常,难以排查
+- **例外**: 解构后立即用于非响应式场景(如传给第三方库)可不用 toRefs
+
+---
+
+## 🔥 5 秒必记 5 条
+1. **setup 内无 this,用 defineProps/defineEmits 编译宏替代 props/emit**
+2. **ref 标记需在 setup 里声明同名变量并返回,否则拿到 undefined**
+3. **解构 props 和 reactive 必加 toRefs,否则丢失响应式**
+4. **生命周期加 on 前缀且必须在 setup 同步期间注册**
+5. **全局 API 从 Vue.xxx 改为 app.xxx,createApp 后调用**
+
+## 决策速查(遇到 X 想 Y)
+
+| 遇到 | 想 |
+|---|---|
+| 需要访问组件实例 | setup 第二参数 context 或 getCurrentInstance()(不推荐) |
+| 父组件要调子组件方法 | 子组件 defineExpose 暴露,父组件 ref 获取 |
+| 监听对象嵌套属性变化 | watch 第三参数加 { deep: true } |
+| 数组索引赋值不更新 | Vue3 已支持,检查是否用 reactive 包裹 |
+| 多个 v-model 双向绑定 | v-model:<propName> 语法,子组件 emit update:<propName> |
+| 模态框渲染到 body | Teleport to="body" 包裹内容 |
+| 迁移全局过滤器 | 改为 app.config.globalProperties.<methodName> |
+| $children 遍历子组件 | 重构为 provide/inject 或显式 ref 数组 |
+
+---
+_by claude-sonnet-5 nightly expand · 2026-09-23_
+
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vim/">[expanded] [blog] VIM</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

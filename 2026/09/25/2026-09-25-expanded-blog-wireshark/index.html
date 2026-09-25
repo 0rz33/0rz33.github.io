@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] [blog] Wireshark
+原始问题: [blog] Wireshark
+
+Wireshark 网络抓包分析技能清单
+场景占位: 用  表示本机地址,  表示远端地址,  表示服务端口阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手
+
+
+1. 过滤器写在捕获前还是捕">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] Wireshark"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] Wireshark - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">
+                [expanded] [blog] Wireshark
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-25</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-blog-Wireshark"><a href="#expanded-blog-Wireshark" class="headerlink" title="[expanded] [blog] Wireshark"></a>[expanded] [blog] Wireshark</h1><blockquote>
+<p>原始问题: [blog] Wireshark</p>
+</blockquote>
+<h1 id="Wireshark-网络抓包分析技能清单"><a href="#Wireshark-网络抓包分析技能清单" class="headerlink" title="Wireshark 网络抓包分析技能清单"></a>Wireshark 网络抓包分析技能清单</h1><blockquote>
+<p>场景占位: 用 <LOCAL_IP> 表示本机地址, <REMOTE_IP> 表示远端地址, <SERVICE_PORT> 表示服务端口<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-过滤器写在捕获前还是捕获后决定性能和完整性"><a href="#1-过滤器写在捕获前还是捕获后决定性能和完整性" class="headerlink" title="1. 过滤器写在捕获前还是捕获后决定性能和完整性"></a>1. 过滤器写在捕获前还是捕获后决定性能和完整性</h2><ul>
+<li><strong>规则</strong>: 捕获过滤器(Capture Filter)丢弃不符合条件的包且不可恢复,显示过滤器(Display Filter)仅隐藏但数据仍在</li>
+<li><strong>为什么</strong>: 捕获过滤器用 BPF 语法在内核层丢包,显示过滤器用 Wireshark 语法在应用层过滤,90% 的人混用导致抓不到关键包或文件过大</li>
+<li><strong>踩坑</strong>: 生产环境用捕获过滤器 <code>host &lt;REMOTE_IP&gt;</code> 后发现漏抓了中间代理的包,因为真实通信经过 <PROXY_IP></li>
+<li><strong>例外</strong>: 排查未知问题时先全量捕获再用显示过滤器,避免过早丢弃线索</li>
+</ul>
+<h2 id="2-ip-addr-是双向匹配会抓到意料外的流量"><a href="#2-ip-addr-是双向匹配会抓到意料外的流量" class="headerlink" title="2. ip.addr 是双向匹配会抓到意料外的流量"></a>2. ip.addr 是双向匹配会抓到意料外的流量</h2><ul>
+<li><strong>规则</strong>: <code>ip.addr == &lt;TARGET_IP&gt;</code> 匹配源地址或目的地址,需要单向过滤必须用 <code>ip.src</code> 或 <code>ip.dst</code></li>
+<li><strong>为什么</strong>: 大部分协议是双向的,用 ip.addr 会同时抓到请求和响应,导致包数量翻倍且难以区分主动连接方</li>
+<li><strong>踩坑</strong>: 想抓客户端主动发起的连接用了 <code>ip.addr == &lt;CLIENT_IP&gt;</code>,结果把服务端响应也抓进来,误判为客户端发包频率异常</li>
+<li><strong>例外</strong>: 分析完整会话时 ip.addr 更方便,配合 <code>tcp.stream eq &lt;N&gt;</code> 追踪单条流</li>
+</ul>
+<h2 id="3-包编号-No-在过滤后不连续是正常的"><a href="#3-包编号-No-在过滤后不连续是正常的" class="headerlink" title="3. 包编号(No.)在过滤后不连续是正常的"></a>3. 包编号(No.)在过滤后不连续是正常的</h2><ul>
+<li><strong>规则</strong>: Wireshark 的 No. 列是捕获时的全局序号,应用显示过滤器后编号会跳跃但不会重新编号</li>
+<li><strong>为什么</strong>: 编号对应 pcap 文件中的物理位置,重新编号会导致无法与原始文件对应,这是设计而非 bug</li>
+<li><strong>踩坑</strong>: 过滤后看到 No. 从 1234 跳到 5678,以为中间的包丢失了,实际是被过滤条件隐藏</li>
+<li><strong>例外</strong>: 导出过滤后的包为新文件时,新文件会重新从 1 开始编号</li>
+</ul>
+<h2 id="4-TCP-三次握手的-Seq-不是从-0-开始是安全机制"><a href="#4-TCP-三次握手的-Seq-不是从-0-开始是安全机制" class="headerlink" title="4. TCP 三次握手的 Seq 不是从 0 开始是安全机制"></a>4. TCP 三次握手的 Seq 不是从 0 开始是安全机制</h2><ul>
+<li><strong>规则</strong>: SYN 包的 Seq 是随机初始序列号(ISN),Wireshark 默认显示相对序列号(从 0 开始),需要看真实值要关闭 “Relative sequence numbers”</li>
+<li><strong>为什么</strong>: 随机 ISN 防止序列号预测攻击,相对序列号是 Wireshark 为了方便人类阅读做的转换</li>
+<li><strong>踩坑</strong>: 对比两端抓包时发现 Seq 不一致,因为一端开了相对序列号显示,另一端显示的是绝对值</li>
+<li><strong>例外</strong>: 分析 TCP 劫持或序列号预测攻击时必须看绝对序列号</li>
+</ul>
+<h2 id="5-Len-0-的包不是空包而是控制包"><a href="#5-Len-0-的包不是空包而是控制包" class="headerlink" title="5. Len&#x3D;0 的包不是空包而是控制包"></a>5. Len&#x3D;0 的包不是空包而是控制包</h2><ul>
+<li><strong>规则</strong>: TCP 包的 Len 字段表示有效载荷长度,SYN&#x2F;ACK&#x2F;FIN 等控制包 Len&#x3D;0 但仍然消耗序列号</li>
+<li><strong>为什么</strong>: TCP 头部的控制标志位(SYN&#x2F;FIN)本身占用 1 个序列号,但不计入 Len,这是协议设计</li>
+<li><strong>踩坑</strong>: 看到大量 Len&#x3D;0 的包以为网络空转,实际是正常的 keepalive 或连接管理</li>
+<li><strong>例外</strong>: ACK 纯确认包既不消耗序列号也 Len&#x3D;0,但会推进确认号(Ack)</li>
+</ul>
+<h2 id="6-时间戳格式影响问题定位效率"><a href="#6-时间戳格式影响问题定位效率" class="headerlink" title="6. 时间戳格式影响问题定位效率"></a>6. 时间戳格式影响问题定位效率</h2><ul>
+<li><strong>规则</strong>: 默认时间戳是相对第一个包的偏移量,排查超时问题改用 “Time of Day” 格式对照日志</li>
+<li><strong>为什么</strong>: 相对时间适合看包间隔,绝对时间适合与应用日志、数据库慢查询日志对齐</li>
+<li><strong>踩坑</strong>: 应用日志显示 14:32:15 超时,但 Wireshark 显示 +125.334s 无法快速定位到对应的包</li>
+<li><strong>例外</strong>: 分析重传间隔、RTT 时相对时间更直观</li>
+</ul>
+<h2 id="7-同一个-TCP-流的包可能分散在文件各处"><a href="#7-同一个-TCP-流的包可能分散在文件各处" class="headerlink" title="7. 同一个 TCP 流的包可能分散在文件各处"></a>7. 同一个 TCP 流的包可能分散在文件各处</h2><ul>
+<li><strong>规则</strong>: 使用 “Follow TCP Stream” 或过滤 <code>tcp.stream eq &lt;N&gt;</code> 聚合同一条连接的所有包</li>
+<li><strong>为什么</strong>: Wireshark 按时间顺序捕获所有网卡流量,多条并发连接的包会交错出现</li>
+<li><strong>踩坑</strong>: 手动用 <code>ip.addr and tcp.port</code> 过滤后仍看到多条连接混在一起,因为客户端用了不同的源端口</li>
+<li><strong>例外</strong>: UDP 没有流的概念,需要用 <code>ip.addr and udp.port</code> 手动组合过滤</li>
+</ul>
+<h2 id="8-抓包文件过大时先用-editcap-切割再分析"><a href="#8-抓包文件过大时先用-editcap-切割再分析" class="headerlink" title="8. 抓包文件过大时先用 editcap 切割再分析"></a>8. 抓包文件过大时先用 editcap 切割再分析</h2><ul>
+<li><strong>规则</strong>: 超过 500MB 的 pcap 文件会导致 Wireshark 卡顿,用 <code>editcap -c &lt;包数&gt; &lt;输入&gt; &lt;输出前缀&gt;</code> 按包数切割</li>
+<li><strong>为什么</strong>: Wireshark 会将整个文件加载到内存建索引,大文件会耗尽内存或导致 GUI 无响应</li>
+<li><strong>踩坑</strong>: 直接打开 5GB 的抓包文件,Wireshark 卡死 10 分钟后系统 OOM</li>
+<li><strong>例外</strong>: 只需要统计信息时用 <code>capinfos</code> 或 <code>tshark -q -z</code> 无需加载完整文件</li>
+</ul>
+<h2 id="9-显示过滤器支持逻辑运算但优先级反直觉"><a href="#9-显示过滤器支持逻辑运算但优先级反直觉" class="headerlink" title="9. 显示过滤器支持逻辑运算但优先级反直觉"></a>9. 显示过滤器支持逻辑运算但优先级反直觉</h2><ul>
+<li><strong>规则</strong>: <code>and</code> 优先级高于 <code>or</code>,复杂条件必须加括号,如 <code>(ip.src == &lt;IP_A&gt; or ip.src == &lt;IP_B&gt;) and tcp.port == &lt;PORT&gt;</code></li>
+<li><strong>为什么</strong>: 不加括号时 <code>ip.src == &lt;IP_A&gt; or ip.src == &lt;IP_B&gt; and tcp.port == &lt;PORT&gt;</code> 会被解析为 <code>ip.src == &lt;IP_A&gt; or (ip.src == &lt;IP_B&gt; and tcp.port == &lt;PORT&gt;)</code></li>
+<li><strong>踩坑</strong>: 想过滤两个 IP 的 80 端口流量,写成 <code>ip.addr == &lt;IP_A&gt; or ip.addr == &lt;IP_B&gt; and tcp.port == 80</code>,结果把 <IP_A> 的所有端口都抓进来了</li>
+<li><strong>例外</strong>: 单一条件无需考虑优先级</li>
+</ul>
+<h2 id="10-重传包-Retransmission-出现不一定是网络问题"><a href="#10-重传包-Retransmission-出现不一定是网络问题" class="headerlink" title="10. 重传包(Retransmission)出现不一定是网络问题"></a>10. 重传包(Retransmission)出现不一定是网络问题</h2><ul>
+<li><strong>规则</strong>: TCP 重传可能由接收窗口满、应用层处理慢导致,需结合 “TCP Window Full” 和 “TCP ZeroWindow” 分析</li>
+<li><strong>为什么</strong>: 网络丢包和接收端来不及处理都会导致重传,但根因不同,前者查网络设备,后者查应用性能</li>
+<li><strong>踩坑</strong>: 看到大量 Retransmission 就升级带宽,实际是数据库查询慢导致应用接收缓冲区满</li>
+<li><strong>例外</strong>: 无线网络环境下少量重传(&lt; 1%)是正常的</li>
+</ul>
+<h2 id="11-Expert-Info-的-Warning-不等于故障"><a href="#11-Expert-Info-的-Warning-不等于故障" class="headerlink" title="11. Expert Info 的 Warning 不等于故障"></a>11. Expert Info 的 Warning 不等于故障</h2><ul>
+<li><strong>规则</strong>: Expert Info 中的 “TCP Previous segment not captured” 可能是抓包点不完整,不一定是真丢包</li>
+<li><strong>为什么</strong>: 在客户端抓包时看不到服务端发出但未到达的包,在中间设备抓包时可能因端口镜像丢包</li>
+<li><strong>踩坑</strong>: 在负载均衡器后的服务器抓包,看到大量 “Previous segment not captured”,实际是流量分散到其他服务器了</li>
+<li><strong>例外</strong>: 在发送端抓包仍出现此告警,大概率是真丢包</li>
+</ul>
+<h2 id="12-解密-HTTPS-流量需要提前配置不能事后补救"><a href="#12-解密-HTTPS-流量需要提前配置不能事后补救" class="headerlink" title="12. 解密 HTTPS 流量需要提前配置不能事后补救"></a>12. 解密 HTTPS 流量需要提前配置不能事后补救</h2><ul>
+<li><strong>规则</strong>: 必须在抓包前设置环境变量 <code>SSLKEYLOGFILE=&lt;路径&gt;</code> 让应用记录会话密钥,或导入服务器私钥(仅 RSA 且无前向保密)</li>
+<li><strong>为什么</strong>: TLS 1.3 和使用 ECDHE 的 TLS 1.2 有完美前向保密,抓包后无法通过私钥解密</li>
+<li><strong>踩坑</strong>: 抓完包才想起来要解密 HTTPS,即使有服务器私钥也解不开,因为用了 ECDHE 密钥交换</li>
+<li><strong>例外</strong>: 中间人代理(如 mitmproxy)可以实时解密,但会改变证书链</li>
+</ul>
+<h2 id="13-协议解析错误时手动指定-“Decode-As”"><a href="#13-协议解析错误时手动指定-“Decode-As”" class="headerlink" title="13. 协议解析错误时手动指定 “Decode As”"></a>13. 协议解析错误时手动指定 “Decode As”</h2><ul>
+<li><strong>规则</strong>: 非标准端口的协议(如 8080 跑 HTTP)需要右键包选择 “Decode As” 指定协议类型</li>
+<li><strong>为什么</strong>: Wireshark 默认靠端口号判断协议,自定义端口会被识别为 TCP 原始数据</li>
+<li><strong>踩坑</strong>: 抓到 <SERVICE_PORT> 的流量显示为乱码,实际是 HTTP 协议但 Wireshark 不认识</li>
+<li><strong>例外</strong>: 部分协议有特征字节(如 HTTP 的 “GET”),Wireshark 会启发式识别</li>
+</ul>
+<h2 id="14-导出对象功能只对完整流有效"><a href="#14-导出对象功能只对完整流有效" class="headerlink" title="14. 导出对象功能只对完整流有效"></a>14. 导出对象功能只对完整流有效</h2><ul>
+<li><strong>规则</strong>: “File -&gt; Export Objects -&gt; HTTP” 导出文件时,如果 TCP 流不完整(缺 SYN 或 FIN)会导出失败</li>
+<li><strong>为什么</strong>: Wireshark 需要完整的 HTTP 请求响应对才能重组文件,中途开始抓包会缺少流的起始部分</li>
+<li><strong>踩坑</strong>: 抓包过程中才打开 Wireshark,想导出传输的文件时发现列表为空</li>
+<li><strong>例外</strong>: 使用 “Follow TCP Stream” 手动复制 payload 可以绕过此限制</li>
+</ul>
+<h2 id="15-统计功能比逐包分析更快定位瓶颈"><a href="#15-统计功能比逐包分析更快定位瓶颈" class="headerlink" title="15. 统计功能比逐包分析更快定位瓶颈"></a>15. 统计功能比逐包分析更快定位瓶颈</h2><ul>
+<li><strong>规则</strong>: 用 “Statistics -&gt; Conversations” 找出流量最大的连接,”Statistics -&gt; IO Graph” 看流量趋势</li>
+<li><strong>为什么</strong>: 逐包分析 10 万个包需要数小时,统计视图 10 秒内就能发现异常连接或流量突刺</li>
+<li><strong>踩坑</strong>: 网络慢但不知道哪个服务占带宽,逐个过滤 IP 查了半天,用 Conversations 按 Bytes 排序 5 秒找到</li>
+<li><strong>例外</strong>: 分析协议细节(如异常标志位)时仍需逐包检查</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>捕获过滤器丢包不可恢复,显示过滤器仅隐藏,排查未知问题先全抓</strong></li>
+<li><strong>ip.addr 是双向匹配,单向过滤必须用 ip.src&#x2F;dst</strong></li>
+<li><strong>重传包需结合 Window Full 判断是网络丢包还是接收端慢</strong></li>
+<li><strong>解密 HTTPS 必须抓包前配置 SSLKEYLOGFILE,事后无法补救</strong></li>
+<li><strong>大文件先用 editcap 切割,统计用 Conversations 比逐包快 100 倍</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>过滤后包编号不连续</td>
+<td>正常,编号是捕获时全局序号不会重编</td>
+</tr>
+<tr>
+<td>Len&#x3D;0 的包很多</td>
+<td>检查是否 SYN&#x2F;ACK&#x2F;FIN 控制包或 keepalive</td>
+</tr>
+<tr>
+<td>Retransmission 告警</td>
+<td>先看有无 TCP Window Full,区分网络丢包和应用慢</td>
+</tr>
+<tr>
+<td>Expert Info 显示 “Previous segment not captured”</td>
+<td>检查抓包点是否完整,可能是镜像端口丢包</td>
+</tr>
+<tr>
+<td>非标准端口协议显示乱码</td>
+<td>右键 “Decode As” 手动指定协议</td>
+</tr>
+<tr>
+<td>想导出 HTTP 传输的文件</td>
+<td>确保抓到完整 TCP 流(有 SYN),用 Export Objects</td>
+</tr>
+<tr>
+<td>抓包文件超过 500MB 卡顿</td>
+<td>用 editcap -c 切割或 tshark 命令行分析</td>
+</tr>
+<tr>
+<td>需要对照应用日志时间</td>
+<td>改时间戳格式为 “Time of Day”</td>
+</tr>
+<tr>
+<td>想看同一条连接的所有包</td>
+<td>Follow TCP Stream 或过滤 tcp.stream eq N</td>
+</tr>
+<tr>
+<td>HTTPS 抓包后想解密</td>
+<td>检查是否提前设置了 SSLKEYLOGFILE,否则无解</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vim/">[expanded] [blog] VIM</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

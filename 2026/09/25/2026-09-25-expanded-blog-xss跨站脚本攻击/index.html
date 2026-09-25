@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[expanded] [blog] XSS跨站脚本攻击
+原始问题: [blog] XSS跨站脚本攻击
+
+XSS 跨站脚本攻击技能点清单
+场景占位: 攻击者向  注入 , 用户  浏览触发, 管理员  成为提权跳板阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手
+
+
+1. 把管理员当首要攻击目标">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="[expanded] [blog] XSS跨站脚本攻击"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>[expanded] [blog] XSS跨站脚本攻击 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/09/25/2026-09-25-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
+                [expanded] [blog] XSS跨站脚本攻击
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-09-25</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <h1 id="expanded-blog-XSS跨站脚本攻击"><a href="#expanded-blog-XSS跨站脚本攻击" class="headerlink" title="[expanded] [blog] XSS跨站脚本攻击"></a>[expanded] [blog] XSS跨站脚本攻击</h1><blockquote>
+<p>原始问题: [blog] XSS跨站脚本攻击</p>
+</blockquote>
+<h1 id="XSS-跨站脚本攻击技能点清单"><a href="#XSS-跨站脚本攻击技能点清单" class="headerlink" title="XSS 跨站脚本攻击技能点清单"></a>XSS 跨站脚本攻击技能点清单</h1><blockquote>
+<p>场景占位: 攻击者向 <TARGET_SITE> 注入 <MALICIOUS_SCRIPT>, 用户 <VICTIM_USER> 浏览触发, 管理员 <ADMIN_USER> 成为提权跳板<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
+</blockquote>
+<hr>
+<h2 id="1-把管理员当首要攻击目标而非普通用户"><a href="#1-把管理员当首要攻击目标而非普通用户" class="headerlink" title="1. 把管理员当首要攻击目标而非普通用户"></a>1. 把管理员当首要攻击目标而非普通用户</h2><ul>
+<li><strong>规则</strong>: XSS 攻击优先瞄准管理员账户, 利用其高权限作为服务端攻击跳板</li>
+<li><strong>为什么</strong>: 管理员浏览留言板&#x2F;日志页面时触发 XSS 可直接获得文件管理&#x2F;数据库操作权限, 本质是把客户端漏洞转化为服务端突破口</li>
+<li><strong>踩坑</strong>: 只盯着普通用户 Cookie 窃取, 忽略管理后台才是真正价值目标</li>
+<li><strong>例外</strong>: 目标是批量钓鱼或流量劫持时才优先覆盖普通用户</li>
+</ul>
+<h2 id="2-输出点比输入点更关键"><a href="#2-输出点比输入点更关键" class="headerlink" title="2. 输出点比输入点更关键"></a>2. 输出点比输入点更关键</h2><ul>
+<li><strong>规则</strong>: 手工测试时先追踪数据在哪里输出(HTML&#x2F;JS&#x2F;属性), 再考虑输入绕过</li>
+<li><strong>为什么</strong>: 同一个输入可能在多处输出且上下文不同, 输出在 <code>&lt;script&gt;</code> 标签内和在 <code>href</code> 属性里的闭合方式完全不同</li>
+<li><strong>踩坑</strong>: 只在输入框测试 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, 不看源码里实际插入位置导致误判无漏洞</li>
+</ul>
+<h2 id="3-存储型-XSS-危害等级远超反射型"><a href="#3-存储型-XSS-危害等级远超反射型" class="headerlink" title="3. 存储型 XSS 危害等级远超反射型"></a>3. 存储型 XSS 危害等级远超反射型</h2><ul>
+<li><strong>规则</strong>: 存储型(持久化到数据库)评为高危, 反射型(URL 参数触发)评为中危</li>
+<li><strong>为什么</strong>: 存储型一次注入永久生效, 所有访问该页面的用户自动中招, 反射型需要诱骗点击特制链接</li>
+<li><strong>踩坑</strong>: 看到需要构造 URL 的 XSS 就认为是低危, 忽略留言板&#x2F;评论区的存储型才是批量收割</li>
+</ul>
+<h2 id="4-用唯一标识符定位而非直接测-Payload"><a href="#4-用唯一标识符定位而非直接测-Payload" class="headerlink" title="4. 用唯一标识符定位而非直接测 Payload"></a>4. 用唯一标识符定位而非直接测 Payload</h2><ul>
+<li><strong>规则</strong>: 输入 <code>特殊字符+&lt;UNIQUE_ID_12345&gt;</code>, 在响应源码搜索 <code>&lt;UNIQUE_ID_12345&gt;</code> 查看过滤情况</li>
+<li><strong>为什么</strong>: 直接测 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 被 WAF 拦截时无法区分是输入过滤还是输出编码, 唯一 ID 能精确定位数据流</li>
+<li><strong>踩坑</strong>: 测试 Payload 被拦截就放弃, 不知道用无害字符串先探路</li>
+</ul>
+<h2 id="5-DOM-型-XSS-不经过服务端"><a href="#5-DOM-型-XSS-不经过服务端" class="headerlink" title="5. DOM 型 XSS 不经过服务端"></a>5. DOM 型 XSS 不经过服务端</h2><ul>
+<li><strong>规则</strong>: DOM 型漏洞的输入输出全在浏览器 JS 执行, 抓包看不到 Payload</li>
+<li><strong>为什么</strong>: <code>document.location.hash</code> 或 <code>window.name</code> 等客户端数据源直接被 <code>innerHTML</code> 使用, 服务端日志和 WAF 完全失效</li>
+<li><strong>踩坑</strong>: 用 Burp 改包测试 DOM 型 XSS, 实际需要在浏览器 Console 直接操作 DOM API</li>
+</ul>
+<h2 id="6-特殊字符组合比完整-Payload-更有效"><a href="#6-特殊字符组合比完整-Payload-更有效" class="headerlink" title="6. 特殊字符组合比完整 Payload 更有效"></a>6. 特殊字符组合比完整 Payload 更有效</h2><ul>
+<li><strong>规则</strong>: 手工测试先输入 <code>&#39;&quot;;&gt;&lt;()</code> 观察哪些被过滤, 再针对性构造闭合</li>
+<li><strong>为什么</strong>: 完整 <code>&lt;script&gt;</code> 标签容易被正则拦截, 但单引号闭合属性值或尖括号逃逸标签的组合常被遗漏</li>
+<li><strong>踩坑</strong>: 只测试教科书式的 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, 遇到标签过滤就认为安全</li>
+</ul>
+<h2 id="7-输出在-JS-上下文时用反斜杠逃逸"><a href="#7-输出在-JS-上下文时用反斜杠逃逸" class="headerlink" title="7. 输出在 JS 上下文时用反斜杠逃逸"></a>7. 输出在 JS 上下文时用反斜杠逃逸</h2><ul>
+<li><strong>规则</strong>: 数据输出在 <code>&lt;script&gt;var x=&#39;&lt;USER_INPUT&gt;&#39;&lt;/script&gt;</code> 时, 测试 <code>\&#39;;alert(1)//</code></li>
+<li><strong>为什么</strong>: HTML 实体编码在 JS 字符串内不生效, 需要用反斜杠逃逸单引号再注入代码</li>
+<li><strong>踩坑</strong>: 在 JS 上下文里测试 <code>&amp;lt;script&amp;gt;</code> 这种 HTML 编码, 浏览器不会解析</li>
+</ul>
+<h2 id="8-属性上下文优先测试事件处理器"><a href="#8-属性上下文优先测试事件处理器" class="headerlink" title="8. 属性上下文优先测试事件处理器"></a>8. 属性上下文优先测试事件处理器</h2><ul>
+<li><strong>规则</strong>: 输出在 <code>&lt;input value=&quot;&lt;USER_INPUT&gt;&quot;&gt;</code> 时, 测试 <code>&quot; onmouseover=&quot;alert(1)</code></li>
+<li><strong>为什么</strong>: 闭合双引号后可直接添加事件属性, 比构造完整标签更隐蔽且绕过部分过滤</li>
+<li><strong>踩坑</strong>: 在属性里还想插入 <code>&lt;script&gt;</code> 标签, 不知道事件处理器才是正确姿势</li>
+</ul>
+<h2 id="9-反射型-XSS-需要社会工程学配合"><a href="#9-反射型-XSS-需要社会工程学配合" class="headerlink" title="9. 反射型 XSS 需要社会工程学配合"></a>9. 反射型 XSS 需要社会工程学配合</h2><ul>
+<li><strong>规则</strong>: 发现反射型漏洞后必须构造短链接或伪装成正常功能诱导点击</li>
+<li><strong>为什么</strong>: URL 里明文 <code>&lt;script&gt;</code> 会被邮件客户端&#x2F;IM 工具拦截, 需要编码或跳转混淆</li>
+<li><strong>踩坑</strong>: 直接把带 Payload 的长 URL 发给目标, 对方一眼识破或被安全软件拦截</li>
+</ul>
+<h2 id="10-工具扫描只能发现-30-的-XSS"><a href="#10-工具扫描只能发现-30-的-XSS" class="headerlink" title="10. 工具扫描只能发现 30% 的 XSS"></a>10. 工具扫描只能发现 30% 的 XSS</h2><ul>
+<li><strong>规则</strong>: AWVS&#x2F;AppScan 跑完后必须手工复测输入输出点</li>
+<li><strong>为什么</strong>: 扫描器无法理解业务逻辑(如多步骤表单&#x2F;异步加载), 且对 DOM 型和复杂编码场景误报率高</li>
+<li><strong>踩坑</strong>: 扫描器报告显示无漏洞就认为安全, 实际留言板&#x2F;富文本编辑器等高危点需人工深挖</li>
+</ul>
+<h2 id="11-HttpOnly-标志只防-Cookie-窃取不防-XSS"><a href="#11-HttpOnly-标志只防-Cookie-窃取不防-XSS" class="headerlink" title="11. HttpOnly 标志只防 Cookie 窃取不防 XSS"></a>11. HttpOnly 标志只防 Cookie 窃取不防 XSS</h2><ul>
+<li><strong>规则</strong>: 看到 Cookie 设置 HttpOnly 不代表 XSS 无危害</li>
+<li><strong>为什么</strong>: XSS 还能读取页面内容(CSRF Token)&#x2F;发起请求(修改密码)&#x2F;键盘记录, Cookie 窃取只是利用方式之一</li>
+<li><strong>踩坑</strong>: 防御方只加 HttpOnly 就以为高枕无忧, 攻击方放弃 XSS 利用</li>
+</ul>
+<h2 id="12-CSP-策略需检查-unsafe-inline-和-unsafe-eval"><a href="#12-CSP-策略需检查-unsafe-inline-和-unsafe-eval" class="headerlink" title="12. CSP 策略需检查 unsafe-inline 和 unsafe-eval"></a>12. CSP 策略需检查 unsafe-inline 和 unsafe-eval</h2><ul>
+<li><strong>规则</strong>: 遇到 Content-Security-Policy 响应头, 重点看是否包含 <code>&#39;unsafe-inline&#39;</code> 或 <code>&#39;unsafe-eval&#39;</code></li>
+<li><strong>为什么</strong>: 这两个指令允许内联脚本和 eval 执行, 使 CSP 形同虚设</li>
+<li><strong>踩坑</strong>: 看到有 CSP 就认为 XSS 无法利用, 不检查具体策略配置</li>
+</ul>
+<h2 id="13-富文本编辑器是存储型-XSS-重灾区"><a href="#13-富文本编辑器是存储型-XSS-重灾区" class="headerlink" title="13. 富文本编辑器是存储型 XSS 重灾区"></a>13. 富文本编辑器是存储型 XSS 重灾区</h2><ul>
+<li><strong>规则</strong>: 测试文章发布&#x2F;评论系统时, 优先在富文本编辑器源码模式插入 Payload</li>
+<li><strong>为什么</strong>: 富文本需要保留部分 HTML 标签(如 <code>&lt;img&gt;</code> <code>&lt;a&gt;</code>), 过滤逻辑复杂容易遗漏 <code>onerror</code> 等事件属性</li>
+<li><strong>踩坑</strong>: 只测试纯文本输入框, 忽略编辑器的 HTML 模式和 Markdown 解析</li>
+</ul>
+<h2 id="14-测试时用-alert-document-domain-而非-alert-1"><a href="#14-测试时用-alert-document-domain-而非-alert-1" class="headerlink" title="14. 测试时用 alert(document.domain) 而非 alert(1)"></a>14. 测试时用 alert(document.domain) 而非 alert(1)</h2><ul>
+<li><strong>规则</strong>: PoC 里用 <code>alert(document.domain)</code> 证明代码执行</li>
+<li><strong>为什么</strong>: 证明脚本在目标域执行而非本地测试环境, 且能绕过某些基于关键词的 WAF</li>
+<li><strong>踩坑</strong>: 用 <code>alert(1)</code> 被 WAF 特征匹配拦截, 或无法向甲方证明是在其域名下执行</li>
+</ul>
+<h2 id="15-JSON-接口的-XSS-需要-Content-Type-配合"><a href="#15-JSON-接口的-XSS-需要-Content-Type-配合" class="headerlink" title="15. JSON 接口的 XSS 需要 Content-Type 配合"></a>15. JSON 接口的 XSS 需要 Content-Type 配合</h2><ul>
+<li><strong>规则</strong>: API 返回 <code>&#123;&quot;data&quot;:&quot;&lt;USER_INPUT&gt;&quot;&#125;</code> 时, 检查 Content-Type 是否为 <code>text/html</code></li>
+<li><strong>为什么</strong>: <code>application/json</code> 类型浏览器不会解析 HTML, 只有错误配置成 <code>text/html</code> 才能触发 XSS</li>
+<li><strong>踩坑</strong>: 在 JSON 响应里发现未过滤的 <code>&lt;script&gt;</code> 就报漏洞, 实际浏览器不执行</li>
+</ul>
+<hr>
+<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
+<li><strong>管理员是 XSS 的真正目标, 客户端漏洞可转化为服务端突破</strong></li>
+<li><strong>存储型(高危)一次注入全员中招, 反射型(中危)需诱导点击</strong></li>
+<li><strong>先用唯一 ID 定位输出点和过滤情况, 再构造闭合 Payload</strong></li>
+<li><strong>DOM 型 XSS 不过服务端, 抓包测不出来要看 JS 代码</strong></li>
+<li><strong>工具扫描只能发现 30%, 富文本编辑器&#x2F;管理后台必须手工深测</strong></li>
+</ol>
+<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
+<thead>
+<tr>
+<th>遇到</th>
+<th>想</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入被过滤</td>
+<td>先用 <code>&#39;&quot;;&gt;&lt;</code> + 唯一 ID 定位输出上下文, 再选闭合方式</td>
+</tr>
+<tr>
+<td>输出在 <code>&lt;script&gt;</code> 内</td>
+<td>用 <code>\&#39;;alert(1)//</code> 逃逸 JS 字符串</td>
+</tr>
+<tr>
+<td>输出在 HTML 属性</td>
+<td>用 <code>&quot; onmouseover=&quot;alert(1)</code> 闭合并注入事件</td>
+</tr>
+<tr>
+<td>发现反射型 XSS</td>
+<td>构造短链接+社工话术, 瞄准管理员而非普通用户</td>
+</tr>
+<tr>
+<td>看到 CSP 响应头</td>
+<td>检查是否有 <code>unsafe-inline</code> 或 <code>unsafe-eval</code></td>
+</tr>
+<tr>
+<td>测试富文本编辑器</td>
+<td>切换到源码&#x2F;HTML 模式, 测试 <code>&lt;img src=x onerror=alert(1)&gt;</code></td>
+</tr>
+<tr>
+<td>JSON API 返回未过滤内容</td>
+<td>确认 Content-Type 是否为 <code>text/html</code> 才能触发</td>
+</tr>
+<tr>
+<td>Cookie 有 HttpOnly</td>
+<td>XSS 仍可读页面内容&#x2F;发请求&#x2F;键盘记录, 不只是偷 Cookie</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/深度扩写/">#深度扩写</a> <a href="/tags/nightly-expanded/">#nightly-expanded</a> <a href="/tags/shanggu/">#shanggu</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vim/">[expanded] [blog] VIM</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
