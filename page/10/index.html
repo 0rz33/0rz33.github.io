@@ -184,13 +184,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/20/2026-09-20-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
-                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+            <a href="/2026/10/16/2026-10-16-redis-commands-latency-doctor-md/">
+                [redis] commands/latency-doctor.md
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-20</span>
+                <span class="date">2026-10-16</span>
             
             
             
@@ -199,149 +199,28 @@
 
     
         <div class="content">
-            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
-<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
-</blockquote>
-<h1 id="CloudFront-Distribution-跨账号迁移技能点清单"><a href="#CloudFront-Distribution-跨账号迁移技能点清单" class="headerlink" title="CloudFront Distribution 跨账号迁移技能点清单"></a>CloudFront Distribution 跨账号迁移技能点清单</h1><blockquote>
-<p>场景占位: 源账号 <ACCOUNT_A>, 目标账号 <ACCOUNT_B>, CNAME <DOMAIN>, Distribution ID <DIST_ID><br>阅读顺序: 扫标题 → 记住反直觉 3-5 条即可动手</p>
-</blockquote>
-<hr>
-<h2 id="1-先在目标账号创建-Distribution-再删源账号-CNAME-绑定"><a href="#1-先在目标账号创建-Distribution-再删源账号-CNAME-绑定" class="headerlink" title="1. 先在目标账号创建 Distribution,再删源账号 CNAME 绑定"></a>1. 先在目标账号创建 Distribution,再删源账号 CNAME 绑定</h2><ul>
-<li><strong>规则</strong>: 在 <ACCOUNT_B> 创建新 Distribution 时不要立即添加 <DOMAIN>,等 <ACCOUNT_A> 的 Distribution 解绑 CNAME 后再添加</li>
-<li><strong>为什么</strong>: AWS 全局唯一性检查会阻止同一 CNAME 同时绑定两个 Distribution,即使跨账号也不行,错误信息是 CNAMEAlreadyExists</li>
-<li><strong>踩坑</strong>: 以为跨账号可以并行配置,结果新 Distribution 创建失败或卡在 InProgress 状态数小时</li>
-<li><strong>例外</strong>: 使用 CloudFormation StackSets 跨区域部署时,需要在删除旧资源的 DependsOn 中显式声明依赖</li>
-</ul>
-<h2 id="2-证书必须在-us-east-1-申请且目标账号提前准备好"><a href="#2-证书必须在-us-east-1-申请且目标账号提前准备好" class="headerlink" title="2. 证书必须在 us-east-1 申请且目标账号提前准备好"></a>2. 证书必须在 us-east-1 申请且目标账号提前准备好</h2><ul>
-<li><strong>规则</strong>: 如果 <DOMAIN> 使用自定义 SSL 证书,必须在 <ACCOUNT_B> 的 us-east-1 区域提前申请 ACM 证书并完成验证</li>
-<li><strong>为什么</strong>: CloudFront 是全局服务但只认 us-east-1 的证书,跨账号迁移时无法共享证书,DNS 验证需要 5-30 分钟</li>
-<li><strong>踩坑</strong>: 迁移当天才申请证书,DNS 验证延迟导致计划内 5 分钟停机变成 40 分钟</li>
-<li><strong>例外</strong>: 使用 CloudFront 默认证书(*.cloudfront.net)不受此限制</li>
-</ul>
-<h2 id="3-解绑-CNAME-需要等-Distribution-状态变为-Deployed-才生效"><a href="#3-解绑-CNAME-需要等-Distribution-状态变为-Deployed-才生效" class="headerlink" title="3. 解绑 CNAME 需要等 Distribution 状态变为 Deployed 才生效"></a>3. 解绑 CNAME 需要等 Distribution 状态变为 Deployed 才生效</h2><ul>
-<li><strong>规则</strong>: 从 <ACCOUNT_A> 删除 CNAME 配置后,必须等待 Distribution 状态从 InProgress 变为 Deployed(通常 15-20 分钟),才能在 <ACCOUNT_B> 添加</li>
-<li><strong>为什么</strong>: AWS 后台需要将配置同步到全球边缘节点,状态未完成前 CNAME 占用锁不会释放</li>
-<li><strong>踩坑</strong>: 看到控制台显示 CNAME 已删除就立即在新账号添加,结果报错 CNAMEAlreadyExists,反复重试浪费 1 小时</li>
-<li><strong>例外</strong>: 使用 AWS CLI 的 wait distribution-deployed 命令可自动轮询状态</li>
-</ul>
-<h2 id="4-DNS-TTL-必须提前降到-60-秒并等待老-TTL-过期"><a href="#4-DNS-TTL-必须提前降到-60-秒并等待老-TTL-过期" class="headerlink" title="4. DNS TTL 必须提前降到 60 秒并等待老 TTL 过期"></a>4. DNS TTL 必须提前降到 60 秒并等待老 TTL 过期</h2><ul>
-<li><strong>规则</strong>: 迁移前 24-48 小时将 <DOMAIN> 的 DNS 记录 TTL 从默认值(通常 300-3600 秒)降至 60 秒</li>
-<li><strong>为什么</strong>: 切换 DNS 指向新 Distribution 时,客户端和递归 DNS 会缓存老记录,高 TTL 导致部分用户长时间访问旧 Distribution 甚至 404</li>
-<li><strong>踩坑</strong>: 保持 TTL 1800 秒,切换后发现 30% 用户仍访问老 Distribution,被迫回滚</li>
-<li><strong>例外</strong>: 内部系统且能控制所有客户端 DNS 缓存时可跳过</li>
-</ul>
-<h2 id="5-Origin-访问权限需要在目标账号重新配置-OAI-OAC"><a href="#5-Origin-访问权限需要在目标账号重新配置-OAI-OAC" class="headerlink" title="5. Origin 访问权限需要在目标账号重新配置 OAI&#x2F;OAC"></a>5. Origin 访问权限需要在目标账号重新配置 OAI&#x2F;OAC</h2><ul>
-<li><strong>规则</strong>: 如果源是 S3 且使用 Origin Access Identity(OAI)或 Origin Access Control(OAC),需在 <ACCOUNT_B> 创建新 OAI&#x2F;OAC 并更新 S3 bucket policy</li>
-<li><strong>为什么</strong>: OAI&#x2F;OAC 是账号级资源,无法跨账号复用,bucket policy 中的 Principal 必须指向新账号的 OAI&#x2F;OAC ARN</li>
-<li><strong>踩坑</strong>: 复制了 Distribution 配置但忘记更新 S3 权限,新 Distribution 返回 403 Forbidden</li>
-<li><strong>例外</strong>: Origin 是公开 S3 website endpoint 或自定义 HTTP 源不受影响</li>
-</ul>
-<h2 id="6-Lambda-Edge-函数需要在-us-east-1-重新部署并关联"><a href="#6-Lambda-Edge-函数需要在-us-east-1-重新部署并关联" class="headerlink" title="6. Lambda@Edge 函数需要在 us-east-1 重新部署并关联"></a>6. Lambda@Edge 函数需要在 us-east-1 重新部署并关联</h2><ul>
-<li><strong>规则</strong>: Lambda@Edge 函数必须在 <ACCOUNT_B> 的 us-east-1 重新创建,execution role 需要信任 lambda.amazonaws.com 和 edgelambda.amazonaws.com</li>
-<li><strong>为什么</strong>: Lambda@Edge 函数版本 ARN 包含账号 ID,跨账号无法引用,且只能在 us-east-1 创建后自动复制到边缘节点</li>
-<li><strong>踩坑</strong>: 直接复制函数代码但忘记发布新版本(必须是带版本号的 ARN 不能是 $LATEST),Distribution 部署失败</li>
-<li><strong>例外</strong>: 不使用 Lambda@Edge 可跳过,CloudFront Functions 同样需要在新账号重建</li>
-</ul>
-<h2 id="7-日志配置的-S3-bucket-需要授权新-Distribution-写入"><a href="#7-日志配置的-S3-bucket-需要授权新-Distribution-写入" class="headerlink" title="7. 日志配置的 S3 bucket 需要授权新 Distribution 写入"></a>7. 日志配置的 S3 bucket 需要授权新 Distribution 写入</h2><ul>
-<li><strong>规则</strong>: 如果启用访问日志,目标 S3 bucket 的 ACL 或 bucket policy 必须允许 CloudFront 日志投递服务(awslogsdelivery)写入</li>
-<li><strong>为什么</strong>: CloudFront 使用特定服务账号投递日志,新 Distribution 的日志投递权限需要显式授予,否则日志静默丢失</li>
-<li><strong>踩坑</strong>: 迁移后发现日志停止更新 3 天才注意到,丢失关键访问数据用于故障排查</li>
-<li><strong>例外</strong>: 禁用日志或使用 CloudWatch Logs 集成(实时日志)不受影响</li>
-</ul>
-<h2 id="8-WAF-Web-ACL-需要在目标账号重建或使用-Firewall-Manager-共享"><a href="#8-WAF-Web-ACL-需要在目标账号重建或使用-Firewall-Manager-共享" class="headerlink" title="8. WAF Web ACL 需要在目标账号重建或使用 Firewall Manager 共享"></a>8. WAF Web ACL 需要在目标账号重建或使用 Firewall Manager 共享</h2><ul>
-<li><strong>规则</strong>: WAF Web ACL 是区域资源(CloudFront 关联的是 us-east-1 global),需在 <ACCOUNT_B> 重新创建规则或通过 AWS Firewall Manager 跨账号管理</li>
-<li><strong>为什么</strong>: Web ACL ARN 包含账号 ID,跨账号无法直接关联,规则需要逐条迁移(IP sets&#x2F;regex pattern sets 也需要重建)</li>
-<li><strong>踩坑</strong>: 以为 WAF 是全局服务可以跨账号引用,新 Distribution 上线后遭受原本被阻挡的攻击流量</li>
-<li><strong>例外</strong>: 不使用 WAF 可跳过,使用 AWS Managed Rules 可快速在新账号启用相同规则集</li>
-</ul>
-<h2 id="9-切换-DNS-前必须验证新-Distribution-的-CloudFront-域名可访问"><a href="#9-切换-DNS-前必须验证新-Distribution-的-CloudFront-域名可访问" class="headerlink" title="9. 切换 DNS 前必须验证新 Distribution 的 CloudFront 域名可访问"></a>9. 切换 DNS 前必须验证新 Distribution 的 CloudFront 域名可访问</h2><ul>
-<li><strong>规则</strong>: 修改 <DOMAIN> 的 DNS 记录前,先用新 Distribution 的 *.cloudfront.net 域名 + Host header 测试完整请求链路</li>
-<li><strong>为什么</strong>: DNS 切换是单向操作,回滚需要等 TTL,提前用 curl -H “Host: <DOMAIN>“ https:&#x2F;&#x2F;<DIST_ID>.cloudfront.net 可发现 Origin&#x2F;证书&#x2F;缓存配置问题</li>
-<li><strong>踩坑</strong>: 直接切换 DNS 后发现新 Distribution 的 Origin 配置错误返回 502,紧急回滚但 25% 用户已受影响</li>
-<li><strong>例外</strong>: 蓝绿部署使用加权 DNS 记录可逐步切流,但仍需提前测试</li>
-</ul>
-<h2 id="10-使用-Invalidation-清除缓存会产生跨账号计费差异"><a href="#10-使用-Invalidation-清除缓存会产生跨账号计费差异" class="headerlink" title="10. 使用 Invalidation 清除缓存会产生跨账号计费差异"></a>10. 使用 Invalidation 清除缓存会产生跨账号计费差异</h2><ul>
-<li><strong>规则</strong>: 迁移后前 1000 次 invalidation paths 免费额度重新计算,但老 Distribution 的缓存不会自动失效</li>
-<li><strong>为什么</strong>: 两个账号的 CloudFront 免费额度独立,老 Distribution 禁用前其缓存仍在边缘节点(可能 24 小时),可能导致部分用户看到过期内容</li>
-<li><strong>踩坑</strong>: 迁移后未 invalidate 老 Distribution,部分用户缓存命中老节点看到旧版静态资源,CSS&#x2F;JS 版本不匹配页面错乱</li>
-<li><strong>例外</strong>: 使用版本化 URL(如 &#x2F;static&#x2F;v2&#x2F;app.js)或短 Cache-Control max-age 可避免</li>
-</ul>
-<h2 id="11-迁移窗口选择需避开-CloudFront-全球部署高峰时段"><a href="#11-迁移窗口选择需避开-CloudFront-全球部署高峰时段" class="headerlink" title="11. 迁移窗口选择需避开 CloudFront 全球部署高峰时段"></a>11. 迁移窗口选择需避开 CloudFront 全球部署高峰时段</h2><ul>
-<li><strong>规则</strong>: 避免在 UTC 工作日 14:00-18:00(对应美东上午)执行迁移,这是 CloudFront 配置变更部署最慢的时段</li>
-<li><strong>为什么</strong>: AWS 全球客户集中在此时段变更配置,边缘节点同步队列拥堵,Distribution 状态从 InProgress 到 Deployed 可能超过 40 分钟</li>
-<li><strong>踩坑</strong>: 选择北京时间晚上 10 点(UTC 14:00)迁移,预期 15 分钟的部署耗时 50 分钟,超出维护窗口</li>
-<li><strong>例外</strong>: 紧急故障恢复场景无法选择时段,需在变更计划中预留 2 倍时间 buffer</li>
-</ul>
-<h2 id="12-保留老-Distribution-禁用状态-7-天用于应急回滚"><a href="#12-保留老-Distribution-禁用状态-7-天用于应急回滚" class="headerlink" title="12. 保留老 Distribution 禁用状态 7 天用于应急回滚"></a>12. 保留老 Distribution 禁用状态 7 天用于应急回滚</h2><ul>
-<li><strong>规则</strong>: 迁移成功后不要立即删除 <ACCOUNT_A> 的 Distribution,先 Disable 保留 7 天,确认无问题再删除</li>
-<li><strong>为什么</strong>: Disable 状态不计费但保留配置,如果新 Distribution 出现隐藏问题(如特定地区 POP 节点异常),可快速 Enable 老 Distribution 并回滚 DNS</li>
-<li><strong>踩坑</strong>: 迁移当天删除老 Distribution,第 3 天发现新 Distribution 在亚太区域 30% 请求 timeout,无法快速回滚只能紧急修复</li>
-<li><strong>例外</strong>: 合规要求必须立即删除资源时,至少导出完整配置 JSON 留存</li>
-</ul>
-<h2 id="13-自定义错误页面的-S3-路径需要更新-bucket-引用"><a href="#13-自定义错误页面的-S3-路径需要更新-bucket-引用" class="headerlink" title="13. 自定义错误页面的 S3 路径需要更新 bucket 引用"></a>13. 自定义错误页面的 S3 路径需要更新 bucket 引用</h2><ul>
-<li><strong>规则</strong>: 如果配置了自定义错误响应(如 404 返回 &#x2F;error.html),且错误页面存储在 S3,需确认 <ACCOUNT_B> 的 S3 bucket 包含相同路径文件</li>
-<li><strong>为什么</strong>: CloudFront 错误页面配置只存储路径不存储完整 URL,跨账号后如果 bucket 名称或路径变化会导致错误页面失效返回默认 CloudFront 错误</li>
-<li><strong>踩坑</strong>: 老账号使用 s3:&#x2F;&#x2F;account-a-errors&#x2F;404.html,新账号 bucket 改名为 account-b-assets,忘记更新错误页面路径,用户看到原始 XML 错误</li>
-<li><strong>例外</strong>: 错误页面使用 Origin 相对路径(如 &#x2F;errors&#x2F;404.html)且 Origin 配置正确则不受影响</li>
-</ul>
-<h2 id="14-Trusted-Key-Groups-签名-URL-需要在目标账号重新生成密钥对"><a href="#14-Trusted-Key-Groups-签名-URL-需要在目标账号重新生成密钥对" class="headerlink" title="14. Trusted Key Groups 签名 URL 需要在目标账号重新生成密钥对"></a>14. Trusted Key Groups 签名 URL 需要在目标账号重新生成密钥对</h2><ul>
-<li><strong>规则</strong>: 如果使用签名 URL&#x2F;Cookie(私有内容),需在 <ACCOUNT_B> 创建新 public key 并更新 Trusted Key Groups,所有签名 URL 生成逻辑需使用新私钥</li>
-<li><strong>为什么</strong>: CloudFront 签名验证基于 key pair ID 和账号绑定,跨账号后老签名 URL 全部失效,需要应用层同步更新签名密钥</li>
-<li><strong>踩坑</strong>: 迁移后移动 App 内的签名 URL 全部返回 403,需要强制用户更新 App 版本重新获取签名 URL,影响 10 万用户</li>
-<li><strong>例外</strong>: 使用 CloudFront 签名 Cookie 可在迁移时同时下发新旧两组 Cookie 实现平滑过渡</li>
-</ul>
-<h2 id="15-监控告警需要在目标账号重建-CloudWatch-Alarms-和-Dashboard"><a href="#15-监控告警需要在目标账号重建-CloudWatch-Alarms-和-Dashboard" class="headerlink" title="15. 监控告警需要在目标账号重建 CloudWatch Alarms 和 Dashboard"></a>15. 监控告警需要在目标账号重建 CloudWatch Alarms 和 Dashboard</h2><ul>
-<li><strong>规则</strong>: CloudFront metrics(4xxErrorRate&#x2F;5xxErrorRate 等)是账号级资源,需在 <ACCOUNT_B> 重新创建 CloudWatch Alarms 和 SNS 通知</li>
-<li><strong>为什么</strong>: 跨账号后老告警不会自动触发,如果忘记重建监控,新 Distribution 故障时运维团队不会收到通知</li>
-<li><strong>踩坑</strong>: 迁移后新 Distribution 5xxErrorRate 飙升到 15% 持续 2 小时无人知晓,直到用户投诉才发现</li>
-<li><strong>例外</strong>: 使用第三方监控(Datadog&#x2F;New Relic)且配置了新账号 IAM role 可自动采集新 Distribution metrics</li>
-</ul>
-<hr>
-<h2 id="🔥-5-秒必记-5-条"><a href="#🔥-5-秒必记-5-条" class="headerlink" title="🔥 5 秒必记 5 条"></a>🔥 5 秒必记 5 条</h2><ol>
-<li><strong>CNAME 全局唯一:必须先解绑老 Distribution 等 Deployed 再绑新的</strong></li>
-<li><strong>证书提前备好:us-east-1 的 ACM 证书 DNS 验证需要 30 分钟</strong></li>
-<li><strong>DNS TTL 降到 60 秒:提前 48 小时降低,切换时才能快速生效</strong></li>
-<li><strong>OAI&#x2F;OAC 重建:S3 bucket policy 必须更新新账号的 Principal ARN</strong></li>
-<li><strong>先测 CloudFront 域名:切 DNS 前用 curl + Host header 验证完整链路</strong></li>
-</ol>
-<h2 id="决策速查-遇到-X-想-Y"><a href="#决策速查-遇到-X-想-Y" class="headerlink" title="决策速查(遇到 X 想 Y)"></a>决策速查(遇到 X 想 Y)</h2><table>
-<thead>
-<tr>
-<th>遇到</th>
-<th>想</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>CNAMEAlreadyExists 错误</td>
-<td>老 Distribution 状态是否 Deployed,等 15 分钟重试</td>
-</tr>
-<tr>
-<td>新 Distribution 返回 403</td>
-<td>检查 S3 bucket policy 的 OAI&#x2F;OAC Principal 是否更新</td>
-</tr>
-<tr>
-<td>部分用户访问旧内容</td>
-<td>DNS TTL 是否提前降低,是否 invalidate 老 Distribution</td>
-</tr>
-<tr>
-<td>Lambda@Edge 关联失败</td>
-<td>函数是否在 us-east-1,是否发布了版本(不能用 $LATEST)</td>
-</tr>
-<tr>
-<td>迁移超时超过 30 分钟</td>
-<td>是否在 UTC 14:00-18:00 高峰时段,下次避开</td>
-</tr>
-<tr>
-<td>签名 URL 全部失效</td>
-<td>应用层是否更新为新账号的私钥,考虑双密钥过渡期</td>
-</tr>
-<tr>
-<td>监控无数据</td>
-<td>CloudWatch Alarms 是否在新账号重建,SNS topic 是否订阅</td>
-</tr>
-</tbody></table>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-20</em></p>
+            
+The `LATENCY DOCTOR` command reports about different latency-related issues and advises about possible remedies.
+
+This command is the most powerful analysis tool in the latency monitoring
+framework, and is able to provide additional statistical data like the average
+period between latency spikes, the median deviation, and a human-readable
+analysis of the event. For certain events, like `fork`, additional information
+is provided, like the rate at which the system forks processes.
+
+This is the output you should post in the Redis mailing list if you are
+looking for help about Latency related issues.
+
+@examples
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; latency doctor</span><br><span class="line"></span><br><span class="line">Dave, I have observed latency spikes in this Redis instance.</span><br><span class="line">You don&#x27;t mind talking about it, do you Dave?</span><br><span class="line"></span><br><span class="line">1. command: 5 latency spikes (average 300ms, mean deviation 120ms,</span><br><span class="line">    period 73.40 sec). Worst all time event 500ms.</span><br><span class="line"></span><br><span class="line">I have a few advices for you:</span><br><span class="line"></span><br><span class="line">- Your current Slow Log configuration only logs events that are</span><br><span class="line">    slower than your configured latency monitor threshold. Please</span><br><span class="line">    use &#x27;CONFIG SET slowlog-log-slower-than 1000&#x27;.</span><br><span class="line">- Check your Slow Log to understand what are the commands you are</span><br><span class="line">    running which are too slow to execute. Please check</span><br><span class="line">    http://redis.io/commands/slowlog for more information.</span><br><span class="line">- Deleting, expiring or evicting (because of maxmemory policy)</span><br><span class="line">    large objects is a blocking operation. If you have very large</span><br><span class="line">    objects that are often deleted, expired, or evicted, try to</span><br><span class="line">    fragment those objects into multiple smaller objects.</span><br></pre></td></tr></table></figure>
+
+**Note:** the doctor has erratic psychological behaviors, so we recommend interacting with it carefully.
+
+For more information refer to the [Latency Monitoring Framework page][lm].
+
+[lm]: /topics/latency-monitor
+
 
         </div>
     
@@ -353,13 +232,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/2026-09-19-expanded-%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E8%98%B8%E6%96%99%E5%B0%8F%E5%A1%91%E6%96%99%E7%9B%92%E6%80%8E%E4%B9%88%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8/">
-                [expanded] 一次性的蘸料小塑料盒怎么废物利用
+            <a href="/2026/10/16/2026-10-16-redis-commands-object-encoding-md/">
+                [redis] commands/object-encoding.md
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-19</span>
+                <span class="date">2026-10-16</span>
             
             
             
@@ -368,23 +247,50 @@
 
     
         <div class="content">
-            <h1 id="expanded-一次性的蘸料小塑料盒怎么废物利用"><a href="#expanded-一次性的蘸料小塑料盒怎么废物利用" class="headerlink" title="[expanded] 一次性的蘸料小塑料盒怎么废物利用"></a>[expanded] 一次性的蘸料小塑料盒怎么废物利用</h1><blockquote>
-<p>原始问题: 一次性的蘸料小塑料盒怎么废物利用</p>
-</blockquote>
-<h1 id="一次性蘸料塑料盒的系统化回收与再利用工程实践"><a href="#一次性蘸料塑料盒的系统化回收与再利用工程实践" class="headerlink" title="一次性蘸料塑料盒的系统化回收与再利用工程实践"></a>一次性蘸料塑料盒的系统化回收与再利用工程实践</h1><h2 id="背景：外卖经济下的塑料容器治理挑战"><a href="#背景：外卖经济下的塑料容器治理挑战" class="headerlink" title="背景：外卖经济下的塑料容器治理挑战"></a>背景：外卖经济下的塑料容器治理挑战</h2><p>在现代外卖配送体系中，一次性蘸料塑料盒（通常为 PP&#x2F;PS 材质，容量 30-50ml）作为标准化包装组件，年产生量已达数十亿只。这类容器具备食品级安全认证、密封性良好、尺寸标准化等特性，但传统处理路径仅为焚烧或填埋，造成显著的资源浪费。从系统工程角度看，这是典型的”可复用资源未进入循环经济闭环”问题。本文基于材料科学、容器工程学和可持续运维实践，提出分级再利用决策树和操作规范。</p>
-<h2 id="诊断步骤：容器适用性评估协议"><a href="#诊断步骤：容器适用性评估协议" class="headerlink" title="诊断步骤：容器适用性评估协议"></a>诊断步骤：容器适用性评估协议</h2><p>在执行任何再利用方案前，必须完成只读检查流程以确定容器状态。首先执行材质识别：检查底部回收标识（三角形内数字 5 为 PP、6 为 PS），PP 材质耐热性更佳（可承受 120°C）。其次进行完整性检测：目视检查是否存在裂纹、变形或残留异味，使用白醋溶液（5% 浓度）浸泡 10 分钟测试化学稳定性。最后评估污染等级：仅接触过干性调料（如椒盐）的容器可直接进入食品级再利用路径，接触过油性酱料的需降级为非食品用途。记录容器来源、材质类型和污染等级，建立再利用决策矩阵。</p>
-<h2 id="正解：分级再利用实施方案"><a href="#正解：分级再利用实施方案" class="headerlink" title="正解：分级再利用实施方案"></a>正解：分级再利用实施方案</h2><h3 id="阶段一：清洁与消毒备份流程"><a href="#阶段一：清洁与消毒备份流程" class="headerlink" title="阶段一：清洁与消毒备份流程"></a>阶段一：清洁与消毒备份流程</h3><p>执行标准化清洁协议前，先将容器按材质分类并拍照存档。使用 40°C 温水加中性洗涤剂（pH 6.5-7.5）浸泡 15 分钟，软毛刷清除残留物后流水冲洗至无泡沫。PP 材质容器可选用沸水消毒 3 分钟或 75% 酒精喷雾静置 5 分钟，PS 材质仅可使用酒精消毒（沸水会导致变形）。消毒后自然晾干，避免使用纸巾擦拭产生纤维残留。建立清洁批次记录，标注处理时间、消毒方式和质检结果，不合格品直接进入回收通道。</p>
-<h3 id="阶段二：场景化部署命令"><a href="#阶段二：场景化部署命令" class="headerlink" title="阶段二：场景化部署命令"></a>阶段二：场景化部署命令</h3><p>根据容器状态执行差异化部署策略。食品级路径（仅限 PP 材质且通过消毒验证）：用于厨房干货分装（盐、糖、香料），每个容器贴标注明内容物和分装日期，建议 3 个月更换一次。通用收纳路径：按尺寸分组用于五金件（螺丝、螺母按规格分类）、文具（回形针、图钉）、药品（创可贴、棉签），透明容器优先用于需可视化管理的场景。园艺路径：底部钻 3-5 个直径 3mm 排水孔，填充营养土用于多肉育苗，容器间距保持 5cm 以上确保通风。每个应用场景设定使用寿命阈值（收纳类 12 个月，园艺类 6 个月），到期强制退役。</p>
-<h3 id="阶段三：退役与回收回滚机制"><a href="#阶段三：退役与回收回滚机制" class="headerlink" title="阶段三：退役与回收回滚机制"></a>阶段三：退役与回收回滚机制</h3><p>当容器出现明显磨损（透明度下降 &gt;30%）、物理损伤（裂纹、缺口）或达到使用寿命上限时，立即触发退役流程。清空内容物后用清水冲洗，去除标签贴纸，按材质分类投入可回收垃圾桶（蓝色桶）。对于混合材质容器（如带硅胶密封圈），需拆解后分别投放。建立退役台账记录容器编号、使用时长和退役原因，用于优化再利用策略。禁止将老化容器继续用于食品接触场景，这是不可妥协的安全红线。每季度审计回收率，目标值应 &gt;85%。</p>
-<h2 id="常见坑：五大典型误判场景"><a href="#常见坑：五大典型误判场景" class="headerlink" title="常见坑：五大典型误判场景"></a>常见坑：五大典型误判场景</h2><p><strong>坑一：材质混淆导致的热变形事故</strong>。PS 材质容器误用于微波加热或沸水消毒，导致释放苯乙烯单体。必须严格执行材质识别，PP 容器底部标识为 5，PS 为 6。<strong>坑二：油污残留引发的二次污染</strong>。未彻底清洁的容器用于存放药品，油脂氧化产生异味污染内容物。清洁验证标准：容器内壁水珠应均匀铺展无油滴聚集。<strong>坑三：过度再利用导致的塑化剂迁移风险</strong>。超过 18 个月的老化容器继续用于食品存储，材料降解加速有害物质释放。强制执行使用寿命上限，食品级应用不超过 12 个月。</p>
-<p><strong>坑四：排水孔设计缺陷造成的根系腐烂</strong>。园艺应用中未设排水孔或孔径过小（&lt;2mm），积水导致植物根腐病。标准配置为底部均匀分布 3-5 个直径 3mm 孔位。<strong>坑五：混合投放破坏回收价值</strong>。退役容器未去除标签或混入其他垃圾，导致整批回收料降级。回收前检查清单：无残留物、无异物、材质单一、标签已移除。</p>
-<h2 id="架构建议：可持续物料管理体系设计"><a href="#架构建议：可持续物料管理体系设计" class="headerlink" title="架构建议：可持续物料管理体系设计"></a>架构建议：可持续物料管理体系设计</h2><p>从 SRE 视角构建容器生命周期管理系统，核心指标包括再利用率（Reuse Rate）、平均使用寿命（MTTF）和回收合规率（Compliance Rate）。实施灰度策略：初期选择 10% 容器进行再利用试点，监控 30 天内是否出现材料降解、污染事件或用户投诉，验证通过后逐步扩大至 50%、100%。建立可观测性体系：为每批次容器分配唯一 ID，记录清洁时间、部署场景、检查记录和退役原因，使用时序数据库存储状态变更事件。</p>
-<p>设定 SLO 指标：食品级应用场景下容器完整性 &gt;99.9%（即千分之一以下的破损率），非食品场景 &gt;95%。当 SLO 违反时触发自动告警，暂停该批次容器的新部署并启动根因分析。实施 Canary 发布：新清洁流程或消毒方案先在 5% 容器上验证 7 天，对比实验组与对照组的微生物检测结果，确认无劣化后全量推广。建立容器池动态调度机制，根据季节性需求（如春季园艺需求上升）自动调整各场景的容器分配比例，提升整体资源利用率至 &gt;80%。</p>
-<h2 id="参考-Runbook：容器运维命令库"><a href="#参考-Runbook：容器运维命令库" class="headerlink" title="参考 Runbook：容器运维命令库"></a>参考 Runbook：容器运维命令库</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 材质识别检查</span></span><br><span class="line">grep -E <span class="string">&quot;PP|PS|5|6&quot;</span> container_bottom_label.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清洁验证测试（水珠铺展角度 &lt;30° 为合格）</span></span><br><span class="line">measure_contact_angle --surface container_inner --liquid water</span><br><span class="line"></span><br><span class="line"><span class="comment"># 消毒流程执行</span></span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$material</span> == <span class="string">&quot;PP&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">  boil_water_sterilize --duration 180s</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  alcohol_spray --concentration 75% --<span class="built_in">wait</span> 300s</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用寿命检查（Unix 时间戳）</span></span><br><span class="line">current_age=$(($(date +%s) - deploy_timestamp))</span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$current_age</span> -gt 31536000 ]]; <span class="keyword">then</span> <span class="built_in">echo</span> <span class="string">&quot;RETIRE&quot;</span>; <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 回收合规性校验</span></span><br><span class="line">validate_recyclable --no-label --no-residue --single-material</span><br></pre></td></tr></table></figure>
+            
+Returns the internal encoding for the Redis object stored at `<key>`
 
-<p>建立定期审计任务（cron 每周日执行），统计各场景容器的平均寿命、故障率和回收率，生成可视化报表支持策略优化决策。</p>
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
+Redis objects can be encoded in different ways:
+
+* Strings can be encoded as: 
+
+    - `raw`, normal string encoding.
+    - `int`, strings representing integers in a 64-bit signed interval, encoded in this way to save space.
+    - `embstr`, an embedded string, which is an object where the internal simple dynamic string, `sds`, is an unmodifiable string allocated in the same chuck as the object itself.
+      `embstr` can be strings with lengths up to the hardcoded limit of `OBJ_ENCODING_EMBSTR_SIZE_LIMIT` or 44 bytes. 
+
+* Lists can be encoded as:
+ 
+    - `linkedlist`, simple list encoding. No longer used, an old list encoding.
+    - `ziplist`, Redis <= 6.2, a space-efficient encoding used for small lists.
+    - `listpack`, Redis >= 7.0, a space-efficient encoding used for small lists.
+    - `quicklist`, encoded as linkedlist of ziplists or listpacks.
+
+* Sets can be encoded as:
+
+    - `hashtable`, normal set encoding.
+    - `intset`, a special encoding used for small sets composed solely of integers.
+    - `listpack`, Redis >= 7.2, a space-efficient encoding used for small sets.
+
+* Hashes can be encoded as:
+
+    - `zipmap`, no longer used, an old hash encoding.
+    - `hashtable`, normal hash encoding.
+    - `ziplist`, Redis <= 6.2, a space-efficient encoding used for small hashes.
+    - `listpack`, Redis >= 7.0, a space-efficient encoding used for small hashes.
+
+* Sorted Sets can be encoded as:
+
+    - `skiplist`, normal sorted set encoding.
+    - `ziplist`, Redis <= 6.2, a space-efficient encoding used for small sorted sets.
+    - `listpack`, Redis >= 7.0, a space-efficient encoding used for small sorted sets.
+
+* Streams can be encoded as:
+
+  - `stream`, encoded as a radix tree of listpacks.
+
+All the specially encoded types are automatically converted to the general type once you perform an operation that makes it impossible for Redis to retain the space saving encoding.
+
 
         </div>
     
@@ -396,13 +302,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/19/2026-09-19-expanded-cloudfront-distribution-%E8%B7%A8%E8%B4%A6%E5%8F%B7%E8%BF%81%E7%A7%BB%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91/">
-                [expanded] CloudFront distribution 跨账号迁移最容易踩的坑
+            <a href="/2026/10/16/2026-10-16-redis-commands-cluster-delslots-md/">
+                [redis] commands/cluster-delslots.md
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-19</span>
+                <span class="date">2026-10-16</span>
             
             
             
@@ -411,82 +317,51 @@
 
     
         <div class="content">
-            <h1 id="expanded-CloudFront-distribution-跨账号迁移最容易踩的坑"><a href="#expanded-CloudFront-distribution-跨账号迁移最容易踩的坑" class="headerlink" title="[expanded] CloudFront distribution 跨账号迁移最容易踩的坑"></a>[expanded] CloudFront distribution 跨账号迁移最容易踩的坑</h1><blockquote>
-<p>原始问题: CloudFront distribution 跨账号迁移最容易踩的坑</p>
-</blockquote>
-<h1 id="CloudFront-Distribution-跨账号迁移的深度实践与避坑指南"><a href="#CloudFront-Distribution-跨账号迁移的深度实践与避坑指南" class="headerlink" title="CloudFront Distribution 跨账号迁移的深度实践与避坑指南"></a>CloudFront Distribution 跨账号迁移的深度实践与避坑指南</h1><h2 id="背景与场景"><a href="#背景与场景" class="headerlink" title="背景与场景"></a>背景与场景</h2><p>CloudFront distribution 跨账号迁移通常发生在企业组织架构调整、业务单元拆分、或安全合规要求下的资源隔离场景。核心挑战在于 CloudFront 的 CNAME 记录具有全局唯一性约束——同一 CNAME 在 AWS 全球范围内只能关联到一个 distribution。这意味着在目标账号 B 创建新 distribution 并配置相同 CNAME 时,必须先从源账号 A 的 distribution 中移除该 CNAME,这个操作窗口会直接导致服务中断。</p>
-<p>典型场景包括:多品牌业务整合后需要统一到独立 AWS Organization;收购兼并后的技术栈迁移;或因 PCI-DSS&#x2F;SOC2 合规要求需要将生产环境隔离到专用账号。迁移过程需要协调 DNS TTL、SSL 证书验证、Origin 访问权限、Lambda@Edge 函数复制等多个维度,任何环节的疏漏都可能导致长时间服务降级。</p>
-<h2 id="诊断与预检步骤"><a href="#诊断与预检步骤" class="headerlink" title="诊断与预检步骤"></a>诊断与预检步骤</h2><p>在执行任何变更前,必须通过 read-only 命令完整采集现有配置状态。首先获取源 distribution 的完整配置清单:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws cloudfront get-distribution --<span class="built_in">id</span> E1234EXAMPLE --profile account-a &gt; dist-config-backup.json</span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234EXAMPLE --profile account-a &gt; dist-config-raw.json</span><br></pre></td></tr></table></figure>
+            
+In Redis Cluster, each node keeps track of which master is serving
+a particular hash slot.
 
-<p>验证关键依赖项的跨账号可访问性。检查 S3 Origin 的 bucket policy 是否允许目标账号的 OAI&#x2F;OAC 访问;检查 ACM 证书是否在 us-east-1 区域且目标账号可访问;列出所有关联的 Lambda@Edge 函数及其版本:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws s3api get-bucket-policy --bucket origin-bucket --profile account-a</span><br><span class="line">aws acm list-certificates --region us-east-1 --profile account-b</span><br><span class="line">aws lambda list-functions --region us-east-1 --profile account-a | jq <span class="string">&#x27;.Functions[] | select(.FunctionName | contains(&quot;edge&quot;))&#x27;</span></span><br></pre></td></tr></table></figure>
+The `CLUSTER DELSLOTS` command asks a particular Redis Cluster node to
+forget which master is serving the hash slots specified as arguments.
 
-<p>记录当前 DNS 配置和 TTL 值,这将决定迁移窗口的最小时长。使用 <code>dig</code> 或 <code>nslookup</code> 确认 CNAME 当前解析目标和 TTL,同时检查是否存在多层 CNAME 链:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dig +nocmd cdn.example.com CNAME +noall +answer</span><br><span class="line">aws route53 list-resource-record-sets --hosted-zone-id Z1234 --query <span class="string">&quot;ResourceRecordSets[?Name==&#x27;cdn.example.com.&#x27;]&quot;</span></span><br></pre></td></tr></table></figure>
+In the context of a node that has received a `CLUSTER DELSLOTS` command and
+has consequently removed the associations for the passed hash slots,
+we say those hash slots are *unbound*. Note that the existence of
+unbound hash slots occurs naturally when a node has not been
+configured to handle them (something that can be done with the
+`CLUSTER ADDSLOTS` command) and if it has not received any information about
+who owns those hash slots (something that it can learn from heartbeat
+or update messages).
 
-<h2 id="迁移方案-备份与准备阶段"><a href="#迁移方案-备份与准备阶段" class="headerlink" title="迁移方案:备份与准备阶段"></a>迁移方案:备份与准备阶段</h2><p>制定完整的回滚预案是跨账号迁移的生命线。导出源 distribution 的完整配置,包括 ETag 用于后续原子更新操作:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ETAG=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234EXAMPLE --profile account-a --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> E1234EXAMPLE --profile account-a --query <span class="string">&#x27;DistributionConfig&#x27;</span> &gt; dist-config-backup.json</span><br></pre></td></tr></table></figure>
+If a node with unbound hash slots receives a heartbeat packet from
+another node that claims to be the owner of some of those hash
+slots, the association is established instantly. Moreover, if a
+heartbeat or update message is received with a configuration epoch
+greater than the node's own, the association is re-established.
 
-<p>在目标账号 B 预先创建所有依赖资源。如果使用 S3 作为 Origin,需要配置 bucket policy 允许新的 Origin Access Control 访问;如果使用自定义 Origin,确保 security group 和 NACLs 允许 CloudFront IP 范围。ACM 证书必须在 us-east-1 区域申请并完成验证:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws acm request-certificate --domain-name cdn.example.com --validation-method DNS --region us-east-1 --profile account-b</span><br><span class="line">aws s3api put-bucket-policy --bucket origin-bucket --policy file://cross-account-policy.json --profile account-b</span><br></pre></td></tr></table></figure>
+However, note that:
 
-<p>创建目标 distribution 配置文件,但<strong>暂不包含 CNAME</strong>。这是关键步骤——先创建不带 CNAME 的 distribution,待其完全部署后再添加 CNAME,可以最小化服务中断窗口:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jq <span class="string">&#x27;del(.Aliases.Items) | .Aliases.Quantity=0&#x27;</span> dist-config-backup.json &gt; dist-config-new.json</span><br><span class="line">aws cloudfront create-distribution --distribution-config file://dist-config-new.json --profile account-b</span><br></pre></td></tr></table></figure>
+1. The command only works if all the specified slots are already
+associated with some node.
+2. The command fails if the same slot is specified multiple times.
+3. As a side effect of the command execution, the node may go into
+*down* state because not all hash slots are covered.
 
-<h2 id="迁移方案-执行切换窗口"><a href="#迁移方案-执行切换窗口" class="headerlink" title="迁移方案:执行切换窗口"></a>迁移方案:执行切换窗口</h2><p>等待目标账号的 distribution 状态变为 <code>Deployed</code>,这通常需要 15-30 分钟。使用 waiter 命令自动轮询状态:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NEW_DIST_ID=$(aws cloudfront list-distributions --profile account-b --query <span class="string">&quot;DistributionList.Items[0].Id&quot;</span> --output text)</span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b</span><br></pre></td></tr></table></figure>
+## Example
 
-<p>在维护窗口开始时,按顺序执行原子操作:先从源 distribution 移除 CNAME,等待配置生效后立即在目标 distribution 添加 CNAME。使用 ETag 确保并发安全:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从账号 A 移除 CNAME</span></span><br><span class="line">jq <span class="string">&#x27;.Aliases.Quantity=0 | del(.Aliases.Items)&#x27;</span> dist-config-backup.json &gt; dist-config-no-cname.json</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> E1234EXAMPLE --distribution-config file://dist-config-no-cname.json --if-match <span class="variable">$ETAG</span> --profile account-a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 等待配置传播(约 5-10 分钟)</span></span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> E1234EXAMPLE --profile account-a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在账号 B 添加 CNAME</span></span><br><span class="line">NEW_ETAG=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">jq <span class="string">&#x27;.Aliases.Quantity=1 | .Aliases.Items=[&quot;cdn.example.com&quot;]&#x27;</span> dist-config-new.json &gt; dist-config-with-cname.json</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://dist-config-with-cname.json --if-match <span class="variable">$NEW_ETAG</span> --profile account-b</span><br></pre></td></tr></table></figure>
+The following command removes the association for slots 5000 and
+5001 from the node receiving the command:
 
-<p>立即更新 DNS 记录指向新的 CloudFront domain name,使用低 TTL(如 60 秒)加速传播。如果使用 Route53,可以通过 API 原子更新:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aws route53 change-resource-record-sets --hosted-zone-id Z1234 --change-batch file://dns-update.json</span><br></pre></td></tr></table></figure>
+    > CLUSTER DELSLOTS 5000 5001
+    OK
 
-<h2 id="迁移方案-验证与回滚机制"><a href="#迁移方案-验证与回滚机制" class="headerlink" title="迁移方案:验证与回滚机制"></a>迁移方案:验证与回滚机制</h2><p>部署后立即执行多维度验证。使用 <code>curl</code> 强制解析到新 distribution 的边缘节点,绕过 DNS 缓存:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NEW_DOMAIN=$(aws cloudfront get-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b --query <span class="string">&#x27;Distribution.DomainName&#x27;</span> --output text)</span><br><span class="line">curl -H <span class="string">&quot;Host: cdn.example.com&quot;</span> https://<span class="variable">$NEW_DOMAIN</span>/health-check -v</span><br><span class="line">curl -I https://cdn.example.com --resolve cdn.example.com:443:$(dig +short <span class="variable">$NEW_DOMAIN</span> | <span class="built_in">head</span> -1)</span><br></pre></td></tr></table></figure>
+## Usage in Redis Cluster
 
-<p>监控 CloudFront 实时指标,对比迁移前后的 4xx&#x2F;5xx 错误率、缓存命中率、Origin 延迟。设置 CloudWatch Alarm 在错误率超过基线 2 倍时触发告警:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name 4xxErrorRate \</span><br><span class="line">  --dimensions Name=DistributionId,Value=<span class="variable">$NEW_DIST_ID</span> --statistics Average \</span><br><span class="line">  --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;10 minutes ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --profile account-b</span><br></pre></td></tr></table></figure>
+This command only works in cluster mode and may be useful for
+debugging and in order to manually orchestrate a cluster configuration
+when a new cluster is created. It is currently not used by `redis-cli`,
+and mainly exists for API completeness.
 
-<p>如果出现严重问题,回滚流程为反向操作:从账号 B 移除 CNAME,恢复到账号 A,并回滚 DNS。关键是保留原始配置的 ETag 和完整 JSON 备份,确保可以在 5 分钟内完成回滚:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 紧急回滚</span></span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://dist-config-no-cname.json --if-match <span class="variable">$NEW_ETAG</span> --profile account-b</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> E1234EXAMPLE --distribution-config file://dist-config-backup.json --if-match <span class="variable">$ORIGINAL_ETAG</span> --profile account-a</span><br><span class="line">aws route53 change-resource-record-sets --hosted-zone-id Z1234 --change-batch file://dns-rollback.json</span><br></pre></td></tr></table></figure>
-
-<h2 id="五大典型踩坑与闭合方案"><a href="#五大典型踩坑与闭合方案" class="headerlink" title="五大典型踩坑与闭合方案"></a>五大典型踩坑与闭合方案</h2><p><strong>坑 1: Lambda@Edge 函数跨账号复制失败</strong>。Lambda@Edge 必须在 us-east-1 区域,且函数版本(非 $LATEST)会被 CloudFront 锁定无法删除。闭合方案是在目标账号重新部署函数,使用相同代码但不同函数名,并在 distribution 配置中更新 ARN。注意 IAM role 的信任关系必须包含 <code>edgelambda.amazonaws.com</code> 和 <code>lambda.amazonaws.com</code>:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws lambda create-function --function-name edge-function-new --runtime nodejs18.x --role arn:aws:iam::ACCOUNT-B:role/lambda-edge-role \</span><br><span class="line">  --handler index.handler --zip-file fileb://function.zip --region us-east-1 --profile account-b</span><br><span class="line">VERSION=$(aws lambda publish-version --function-name edge-function-new --region us-east-1 --profile account-b --query <span class="string">&#x27;Version&#x27;</span> --output text)</span><br></pre></td></tr></table></figure>
-
-<p><strong>坑 2: ACM 证书区域错误或验证超时</strong>。CloudFront 只接受 us-east-1 区域的 ACM 证书,且 DNS 验证记录必须在迁移前完成。闭合方案是提前 24 小时在目标账号申请证书,使用 Route53 自动验证,并在迁移前确认证书状态为 <code>ISSUED</code>:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aws acm describe-certificate --certificate-arn arn:aws:acm:us-east-1:ACCOUNT-B:certificate/xxx --region us-east-1 --profile account-b --query <span class="string">&#x27;Certificate.Status&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>坑 3: Origin Access Identity (OAI) 权限未同步</strong>。旧 distribution 使用的 OAI 无法跨账号共享,必须在目标账号创建新 OAI 并更新 S3 bucket policy。闭合方案是使用新的 Origin Access Control (OAC) 替代 OAI,OAC 支持更细粒度的权限控制和 SSE-KMS 加密:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aws cloudfront create-origin-access-control --origin-access-control-config file://oac-config.json --profile account-b</span><br><span class="line"><span class="comment"># 更新 S3 bucket policy 允许新 OAC</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>坑 4: CNAME 冲突导致 CNAMEAlreadyExists 错误</strong>。在源 distribution 的 CNAME 移除操作未完全传播前(通常需 5-15 分钟),目标 distribution 添加相同 CNAME 会失败。闭合方案是在自动化脚本中加入轮询等待逻辑,每 30 秒检查一次源 distribution 状态,确认 <code>Deployed</code> 后再执行目标 distribution 更新:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span></span><br><span class="line">  STATUS=$(aws cloudfront get-distribution --<span class="built_in">id</span> E1234EXAMPLE --profile account-a --query <span class="string">&#x27;Distribution.Status&#x27;</span> --output text)</span><br><span class="line">  [[ <span class="string">&quot;<span class="variable">$STATUS</span>&quot;</span> == <span class="string">&quot;Deployed&quot;</span> ]] &amp;&amp; <span class="built_in">break</span></span><br><span class="line">  <span class="built_in">sleep</span> 30</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>坑 5: WAF WebACL 关联丢失</strong>。CloudFront 关联的 WAF WebACL 必须在同一账号,跨账号迁移后需要重新创建或关联。闭合方案是使用 AWS Firewall Manager 在目标账号预先部署相同规则集,或导出 WAF 规则为 JSON 后在目标账号重建。注意 WAF 有 rate-based 规则时,需要重新初始化计数器:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">aws wafv2 get-web-acl --name prod-waf --scope CLOUDFRONT --region us-east-1 --profile account-a &gt; waf-backup.json</span><br><span class="line">aws wafv2 create-web-acl --cli-input-json file://waf-backup.json --region us-east-1 --profile account-b</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://dist-with-waf.json --if-match <span class="variable">$ETAG</span> --profile account-b</span><br></pre></td></tr></table></figure>
-
-<h2 id="架构建议与可观测性"><a href="#架构建议与可观测性" class="headerlink" title="架构建议与可观测性"></a>架构建议与可观测性</h2><p>对于高可用性要求的生产环境,建议采用蓝绿部署策略而非直接切换。在目标账号创建完整的 distribution 后,先通过修改本地 <code>/etc/hosts</code> 或使用测试域名进行端到端验证,确认 Origin 连接、缓存行为、Lambda@Edge 执行均正常后再切换 DNS。</p>
-<p>使用 Route53 的加权路由策略实现灰度发布。初始将 10% 流量路由到新 distribution,监控 1 小时后逐步提升至 50%、100%。配置 CloudWatch Contributor Insights 分析 Top N 请求路径的错误率分布:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">aws route53 change-resource-record-sets --hosted-zone-id Z1234 --change-batch <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;Changes&quot;: [&#123;</span></span><br><span class="line"><span class="string">    &quot;Action&quot;: &quot;CREATE&quot;,</span></span><br><span class="line"><span class="string">    &quot;ResourceRecordSet&quot;: &#123;</span></span><br><span class="line"><span class="string">      &quot;Name&quot;: &quot;cdn.example.com&quot;,</span></span><br><span class="line"><span class="string">      &quot;Type&quot;: &quot;CNAME&quot;,</span></span><br><span class="line"><span class="string">      &quot;SetIdentifier&quot;: &quot;new-dist&quot;,</span></span><br><span class="line"><span class="string">      &quot;Weight&quot;: 10,</span></span><br><span class="line"><span class="string">      &quot;TTL&quot;: 60,</span></span><br><span class="line"><span class="string">      &quot;ResourceRecords&quot;: [&#123;&quot;Value&quot;: &quot;&#x27;</span><span class="variable">$NEW_DOMAIN</span><span class="string">&#x27;&quot;&#125;]</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">  &#125;]</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>建立多层监控体系:CloudFront 原生指标(请求数、字节传输、错误率)+ 自定义 Lambda@Edge 日志 + Real User Monitoring。定义明确的 SLO:P99 延迟 &lt; 200ms,可用性 &gt; 99.9%,缓存命中率 &gt; 85%。在迁移窗口设置 15 分钟的 error budget 豁免期,但任何超过 1% 的 5xx 错误率必须立即触发回滚。</p>
-<p>对于全球分布的用户,考虑使用 CloudFront Functions(更轻量)替代 Lambda@Edge 处理简单逻辑如 URL 重写、header 注入,可降低冷启动延迟。在迁移后保留源账号的 distribution 7 天作为应急备份,期间持续对比两个 distribution 的指标差异,确认无异常后再清理。</p>
-<h2 id="参考-Runbook-与命令库"><a href="#参考-Runbook-与命令库" class="headerlink" title="参考 Runbook 与命令库"></a>参考 Runbook 与命令库</h2><p>完整的迁移 runbook 应包含预检、执行、验证、回滚四个阶段的命令清单。预检阶段核心命令:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出完整配置</span></span><br><span class="line">aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --profile account-a &gt; src-dist.json</span><br><span class="line">aws s3api get-bucket-policy --bucket <span class="variable">$ORIGIN_BUCKET</span> --profile account-a &gt; bucket-policy.json</span><br><span class="line">aws acm list-certificates --region us-east-1 --profile account-b</span><br><span class="line">aws wafv2 get-web-acl --name <span class="variable">$WAF_NAME</span> --scope CLOUDFRONT --region us-east-1 --profile account-a &gt; waf.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证跨账号访问</span></span><br><span class="line">aws sts assume-role --role-arn arn:aws:iam::ACCOUNT-B:role/migration-role --role-session-name <span class="built_in">test</span> --profile account-a</span><br></pre></td></tr></table></figure>
-
-<p>执行阶段关键操作序列(建议封装为 bash 脚本并加入幂等性检查):</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 创建目标资源</span></span><br><span class="line">aws cloudfront create-origin-access-control --origin-access-control-config file://oac.json --profile account-b</span><br><span class="line">aws cloudfront create-distribution --distribution-config file://dist-no-cname.json --profile account-b</span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 原子切换 CNAME</span></span><br><span class="line">ETAG_SRC=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --profile account-a --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --distribution-config file://src-no-cname.json --if-match <span class="variable">$ETAG_SRC</span> --profile account-a</span><br><span class="line">aws cloudfront <span class="built_in">wait</span> distribution-deployed --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --profile account-a</span><br><span class="line"></span><br><span class="line">ETAG_NEW=$(aws cloudfront get-distribution-config --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --profile account-b --query <span class="string">&#x27;ETag&#x27;</span> --output text)</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://new-with-cname.json --if-match <span class="variable">$ETAG_NEW</span> --profile account-b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 更新 DNS</span></span><br><span class="line">aws route53 change-resource-record-sets --hosted-zone-id <span class="variable">$ZONE_ID</span> --change-batch file://dns-change.json</span><br></pre></td></tr></table></figure>
-
-<p>验证与监控命令集:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 健康检查</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> &#123;1..10&#125;; <span class="keyword">do</span> curl -w <span class="string">&quot;%&#123;http_code&#125;\n&quot;</span> -o /dev/null -s https://cdn.example.com/health; <span class="built_in">sleep</span> 1; <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时指标</span></span><br><span class="line">aws cloudwatch get-metric-statistics --namespace AWS/CloudFront --metric-name Requests \</span><br><span class="line">  --dimensions Name=DistributionId,Value=<span class="variable">$NEW_DIST_ID</span> --statistics Sum --start-time $(<span class="built_in">date</span> -u -d <span class="string">&#x27;5 minutes ago&#x27;</span> +%Y-%m-%dT%H:%M:%S) \</span><br><span class="line">  --end-time $(<span class="built_in">date</span> -u +%Y-%m-%dT%H:%M:%S) --period 60 --profile account-b</span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志分析(如启用 access logs)</span></span><br><span class="line">aws s3 <span class="built_in">sync</span> s3://<span class="variable">$LOG_BUCKET</span>/<span class="variable">$NEW_DIST_ID</span>/ ./logs/ --profile account-b</span><br><span class="line">zcat logs/*.gz | awk <span class="string">&#x27;&#123;print $9&#125;&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn | <span class="built_in">head</span> -20  <span class="comment"># Top 20 状态码</span></span><br></pre></td></tr></table></figure>
-
-<p>紧急回滚 runbook(应打印并放在运维手册中):</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ROLLBACK PROCEDURE - Execute in order</span></span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$NEW_DIST_ID</span> --distribution-config file://new-no-cname.json --if-match <span class="variable">$ETAG_NEW</span> --profile account-b</span><br><span class="line">aws cloudfront update-distribution --<span class="built_in">id</span> <span class="variable">$SRC_DIST_ID</span> --distribution-config file://src-original.json --if-match <span class="variable">$ETAG_SRC</span> --profile account-a</span><br><span class="line">aws route53 change-resource-record-sets --hosted-zone-id <span class="variable">$ZONE_ID</span> --change-batch file://dns-rollback.json</span><br><span class="line"><span class="comment"># Verify: curl -I https://cdn.example.com</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><em>by claude-sonnet-5 nightly expand · 2026-09-19</em></p>
 
         </div>
     
@@ -498,29 +373,46 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/13/shanggu-%E6%99%9A%E9%97%B4%E9%A5%AE%E5%93%81%E7%9A%84%E5%81%A5%E5%BA%B7%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/">
-                晚间饮品的健康选择指南
+            <a href="/2026/10/16/2026-10-16-redis-commands-restore-md/">
+                [redis] commands/restore.md
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-13</span>
+                <span class="date">2026-10-16</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-09-13 (shanggu distill-docs 覆盖)</em></p>
-<p>晚间选择合适的饮品对睡眠质量和身体健康有重要影响。温白开水是晚间饮用的最佳选择，既能保持身体水分平衡，又不会对睡眠造成干扰。除此之外，温牛奶因含有色氨酸和钙质，能够促进睡眠和放松神经，是很多人的理想选择。花草茶如洋甘菊、玫瑰、茉莉花茶等也能提供温和舒缓的效果，特别是对于需要放松身心的人群。蜂蜜水和酸樱桃汁因含有天然褪黑素，也是帮助入眠的不错选择。</p>
-<p>相比之下，晚间需要避免的饮品同样重要。咖啡和浓茶含有咖啡因，会直接影响睡眠质量。虽然酒精可能在短期内帮助入睡，但会严重破坏睡眠的深度和连贯性。含糖量高的饮料会刺激神经系统，使身体保持兴奋状态。此外，大量液体摄入会导致夜间频繁起床排尿，打扰睡眠。</p>
-<p>在饮用晚间饮品时需要注意几个关键点：饮品温度应该温和舒适，不要过热或过冷；应在睡前1-2小时停止大量饮水，避免影响夜间睡眠；每个人的体质不同，应根据自身状况选择最合适的饮品。这样才能既满足身体补水需求，又能保证良好的睡眠效果。</p>
+            
+Create a key associated with a value that is obtained by deserializing the
+provided serialized value (obtained via `DUMP`).
+
+If `ttl` is 0 the key is created without any expire, otherwise the specified
+expire time (in milliseconds) is set.
+
+If the `ABSTTL` modifier was used, `ttl` should represent an absolute
+[Unix timestamp][hewowu] (in milliseconds) in which the key will expire.
+
+[hewowu]: http://en.wikipedia.org/wiki/Unix_time
+
+For eviction purposes, you may use the `IDLETIME` or `FREQ` modifiers. See
+`OBJECT` for more information.
+
+`!RESTORE` will return a "Target key name is busy" error when `key` already
+exists unless you use the `REPLACE` modifier.
+
+`!RESTORE` checks the RDB version and data checksum.
+If they don't match an error is returned.
+
+@examples
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">redis&gt; DEL mykey</span><br><span class="line">0</span><br><span class="line">redis&gt; RESTORE mykey 0 &quot;\n\x17\x17\x00\x00\x00\x12\x00\x00\x00\x03\x00\</span><br><span class="line">                        x00\xc0\x01\x00\x04\xc0\x02\x00\x04\xc0\x03\x00\</span><br><span class="line">                        xff\x04\x00u#&lt;\xc0;.\xe9\xdd&quot;</span><br><span class="line">OK</span><br><span class="line">redis&gt; TYPE mykey</span><br><span class="line">list</span><br><span class="line">redis&gt; LRANGE mykey 0 -1</span><br><span class="line">1) &quot;1&quot;</span><br><span class="line">2) &quot;2&quot;</span><br><span class="line">3) &quot;3&quot;</span><br></pre></td></tr></table></figure>
+
 
         </div>
     
@@ -532,29 +424,80 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/13/shanggu-%E7%97%9B%E9%A3%8E%E6%82%A3%E8%80%85%E7%9A%84%E6%99%9A%E9%97%B4%E9%A5%AE%E5%93%81%E9%99%90%E5%88%B6%E4%B8%8E%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88/">
-                痛风患者的晚间饮品限制与替代方案
+            <a href="/2026/10/16/2026-10-16-redis-commands-hello-md/">
+                [redis] commands/hello.md
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-13</span>
+                <span class="date">2026-10-16</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-09-13 (shanggu distill-docs 覆盖)</em></p>
-<p>痛风患者在选择晚间饮品时需要特别谨慎，因为很多常见饮品都含有高嘌呤成分，会直接诱发痛风发作或加重病情。对于痛风患者而言，温白开水仍然是最安全有效的首选，它不仅能维持水分平衡，还能帮助身体排出尿酸。低脂牛奶是另一个安全选择，其所含的钙质和蛋白质有助于降低血尿酸水平。清汤（特别是不含内脏的清鸡汤和蔬菜汤）、淡蜂蜜水和无糖苏打水也都适合痛风患者饮用。</p>
-<p>痛风患者必须严格避免的饮品包括啤酒和其他酒精饮料，因为它们的嘌呤含量极高，是诱发痛风的主要因素。浓茶中的鞣酸会影响尿酸排出，咖啡过量也会升高尿酸水平。各类肉汤、海鲜汤和高糖果汁都因嘌呤含量高或促进尿酸生成而应该避免。红酒虽然酒精含量较低，但同样含有嘌呤成分。</p>
-<p>痛风患者维护健康的关键在于建立科学的饮水习惯。每天应保证2-3升的水分摄入，这样可以充分促进尿酸的排出和代谢。选择温水而非冰冷饮品能更好地保护脾胃功能。在睡前30分钟喝一杯温白开水既能补充水分，又能在夜间帮助尿酸排出。同时，痛风患者应定期检查和监测尿酸水平，根据医生建议调整饮食和饮品选择。</p>
+            
+Switch to a different protocol, optionally authenticating and setting the
+connection's name, or provide a contextual client report.
+
+Redis version 6 and above supports two protocols: the old protocol, RESP2, and
+a new one introduced with Redis 6, RESP3. RESP3 has certain advantages since
+when the connection is in this mode, Redis is able to reply with more semantical
+replies: for instance, `HGETALL` will return a *map type*, so a client library
+implementation no longer requires to know in advance to translate the array into
+a hash before returning it to the caller. For a full coverage of RESP3, please
+check the [RESP3 specification](https://github.com/redis/redis-specifications/blob/master/protocol/RESP3.md).
+
+In Redis 6 connections start in RESP2 mode, so clients implementing RESP2 do
+not need to updated or changed. There are no short term plans to drop support for
+RESP2, although future version may default to RESP3.
+
+`HELLO` always replies with a list of current server and connection properties,
+such as: versions, modules loaded, client ID, replication role and so forth.
+When called without any arguments in Redis 6.2 and its default use of RESP2
+protocol, the reply looks like this:
+
+    > HELLO
+     1) "server"
+     2) "redis"
+     3) "version"
+     4) "255.255.255"
+     5) "proto"
+     6) (integer) 2
+     7) "id"
+     8) (integer) 5
+     9) "mode"
+    10) "standalone"
+    11) "role"
+    12) "master"
+    13) "modules"
+    14) (empty array)
+
+Clients that want to handshake using the RESP3 mode need to call the `HELLO`
+command and specify the value "3" as the `protover` argument, like so:
+
+    > HELLO 3
+    1# "server" => "redis"
+    2# "version" => "6.0.0"
+    3# "proto" => (integer) 3
+    4# "id" => (integer) 10
+    5# "mode" => "standalone"
+    6# "role" => "master"
+    7# "modules" => (empty array)
+
+Because `HELLO` replies with useful information, and given that `protover` is
+optional or can be set to "2", client library authors may consider using this
+command instead of the canonical `PING` when setting up the connection.
+
+When called with the optional `protover` argument, this command switches the
+protocol to the specified version and also accepts the following options:
+
+* `AUTH <username> <password>`: directly authenticate the connection in addition to switching to the specified protocol version. This makes calling `AUTH` before `HELLO` unnecessary when setting up a new connection. Note that the `username` can be set to "default" to authenticate against a server that does not use ACLs, but rather the simpler `requirepass` mechanism of Redis prior to version 6.
+* `SETNAME <clientname>`: this is the equivalent of calling `CLIENT SETNAME`.
+
 
         </div>
     
@@ -566,45 +509,459 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E9%93%BE%E8%B7%AF%E7%9A%84%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%BF%9E%E9%80%9A%E6%80%A7%E9%AA%8C%E8%AF%81%E6%8C%87%E5%8D%97/">
-                知识同步链路的测试与连通性验证指南
+            <a href="/2026/10/16/2026-10-16-postgres-https-www-postgresql-org-docs-current-runtime-config-connection-html/">
+                [postgres] https://www.postgresql.org/docs/current/runtime-config-connection.html
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-10-16</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-测试验证的重要性"><a href="#1-测试验证的重要性" class="headerlink" title="1. 测试验证的重要性"></a>1. 测试验证的重要性</h3><p>在自动摄取（Auto-Ingest）与跨系统知识同步架构中，链路的稳定性和数据格式的兼容性是保障系统高可用性的前提。任何网络波动、API 变更或认证过期均可能导致知识流失。因此，建立一套标准化的“测试-同步”（Test-Sync）验证流程是知识管理系统维护的核心规范。</p>
-<h3 id="2-Test-Sync-标准测试流程"><a href="#2-Test-Sync-标准测试流程" class="headerlink" title="2. Test-Sync 标准测试流程"></a>2. Test-Sync 标准测试流程</h3><p>连通性测试应当遵循“极简有效、覆盖全路径”的原则，通常包括以下阶段：</p>
-<h4 id="2-1-极简报文探针测试"><a href="#2-1-极简报文探针测试" class="headerlink" title="2.1 极简报文探针测试"></a>2.1 极简报文探针测试</h4><p>探针测试使用最基础的数据载荷（Payload）发起请求，旨在用最小的开销确认系统处于正常可通状态。</p>
-<ul>
-<li><strong>测试输入</strong>：定义包含最基础数据结构的测试问答对（例如 <code>Q: 测试</code>）。</li>
-<li><strong>预期响应</strong>：系统接收端成功解析并返回匹配的响应结果（例如 <code>A: 这是测试内容</code>）。</li>
-<li><strong>验证指标</strong>：HTTP 200&#x2F;201 返回码、端到端响应延时（RTT &lt; 200ms）、解析器元数据完整性。</li>
-</ul>
-<h4 id="2-2-接口权限与鉴权校验"><a href="#2-2-接口权限与鉴权校验" class="headerlink" title="2.2 接口权限与鉴权校验"></a>2.2 接口权限与鉴权校验</h4><ul>
-<li><strong>Token 有效性检查</strong>：验证 Auto-Ingest 服务在调用写入接口时，Bearer Token 或 API Key 是否具备足够的写入权限。</li>
-<li><strong>作用域校验（Scope Check）</strong>：确认测试节点仅影响测试命名空间或暂存区，不会污染生产环境的主知识库。</li>
-</ul>
-<h4 id="2-3-异常排查与故障恢复-SOP"><a href="#2-3-异常排查与故障恢复-SOP" class="headerlink" title="2.3 异常排查与故障恢复 SOP"></a>2.3 异常排查与故障恢复 SOP</h4><p>当 <code>test-sync</code> 探针失败时，维护人员应按以下顺序进行排查：</p>
-<ol>
-<li><strong>网络层</strong>：检查 Webhook 目标地址的可达性与防火墙规则。</li>
-<li><strong>协议层</strong>：核对 Header 中的 Content-Type 是否为 <code>application/json</code> 或指定的标准格式。</li>
-<li><strong>应用层</strong>：检查接收端日志，确认是否因 Payload 缺失必填字段导致反序列化异常。</li>
-</ol>
-<h3 id="3-自动化回归测试集成"><a href="#3-自动化回归测试集成" class="headerlink" title="3. 自动化回归测试集成"></a>3. 自动化回归测试集成</h3><p>将 <code>test-sync</code> 探针脚本化并集成至 CI&#x2F;CD Pipeline 或定时 HealthCheck 任务中，能够实现系统故障的提前预警。每次知识库系统升级、数据模型变更或第三方 Bot 路由更新后，必须优先通过连通性测试方可开启全量同步服务。</p>
+            
+::::::::: container-fluid
+:::::: {.row .justify-content-md-center}
+::::: col
+[![PostgreSQL Elephant Logo](/media/img/about/press/elephant.png){.logo}](/){.navbar-brand .p-0}
+
+[]{.navbar-toggler-icon}
+
+:::: {#pgNavbar .navbar-collapse}
+- [Home](/ "Home")
+- [About](/about/ "About")
+- [Download](/download/ "Download")
+- [Documentation](/docs/ "Documentation")
+- [Community](/community/ "Community")
+- [Developers](/developer/ "Developers")
+- [Support](/support/ "Support")
+- [Donate](/about/donate/ "Donate")
+- [Your account](/account/ "Your account")
+
+::: input-group
+:::
+::::
+:::::
+::::::
+
+:::: {.row .justify-content-center .pg-shout-box}
+::: {.col .text-white .text-center}
+August 13, 2026: [PostgreSQL 18.6, 17.11, 16.15, 15.19, 14.24 and 19 Beta 3 Released!](/about/news/postgresql-186-1711-1615-1519-1424-and-19-beta-3-released-3365/)
+:::
+::::
+:::::::::
+
+::::::::::::::::::::::::::::::::::::::::::::::: {.container-fluid .margin}
+:::::::::::::::::::::::::::::::::::::::::::::: row
+::::::::::::::::::::::::::::::::::::::::::::: {#pgContentWrap .col-11}
+::::::::::::::: row
+:::::::::::: {.col-md-6 .mb-2}
+::::: row
+:::: col
+::: {}
+[Documentation](/docs/ "Documentation") → [PostgreSQL 18](/docs/18/index.html)
+:::
+::::
+:::::
+
+:::: row
+::: col
+Supported Versions: [Current](/docs/current/runtime-config-connection.html "PostgreSQL 18 - 19.3. Connections and Authentication"){.docs-version-selected} ([18](/docs/18/runtime-config-connection.html "PostgreSQL 18 - 19.3. Connections and Authentication"){.docs-version-selected}) / [17](/docs/17/runtime-config-connection.html "PostgreSQL 17 - 19.3. Connections and Authentication") / [16](/docs/16/runtime-config-connection.html "PostgreSQL 16 - 19.3. Connections and Authentication") / [15](/docs/15/runtime-config-connection.html "PostgreSQL 15 - 19.3. Connections and Authentication") / [14](/docs/14/runtime-config-connection.html "PostgreSQL 14 - 19.3. Connections and Authentication")
+:::
+::::
+
+:::: row
+::: col
+Development Versions: [19](/docs/19/runtime-config-connection.html "PostgreSQL 19 - 19.3. Connections and Authentication"){rel="nofollow"} / [devel](/docs/devel/runtime-config-connection.html "PostgreSQL devel - 19.3. Connections and Authentication"){rel="nofollow"}
+:::
+::::
+
+:::: row
+::: col-12
+Unsupported versions: [13](/docs/13/runtime-config-connection.html "PostgreSQL 13 - 19.3. Connections and Authentication"){rel="nofollow"} / [12](/docs/12/runtime-config-connection.html "PostgreSQL 12 - 19.3. Connections and Authentication"){rel="nofollow"} / [11](/docs/11/runtime-config-connection.html "PostgreSQL 11 - 19.3. Connections and Authentication"){rel="nofollow"} / [10](/docs/10/runtime-config-connection.html "PostgreSQL 10 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.6](/docs/9.6/runtime-config-connection.html "PostgreSQL 9.6 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.5](/docs/9.5/runtime-config-connection.html "PostgreSQL 9.5 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.4](/docs/9.4/runtime-config-connection.html "PostgreSQL 9.4 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.3](/docs/9.3/runtime-config-connection.html "PostgreSQL 9.3 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.2](/docs/9.2/runtime-config-connection.html "PostgreSQL 9.2 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.1](/docs/9.1/runtime-config-connection.html "PostgreSQL 9.1 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.0](/docs/9.0/runtime-config-connection.html "PostgreSQL 9.0 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.4](/docs/8.4/runtime-config-connection.html "PostgreSQL 8.4 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.3](/docs/8.3/runtime-config-connection.html "PostgreSQL 8.3 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.2](/docs/8.2/runtime-config-connection.html "PostgreSQL 8.2 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.1](/docs/8.1/runtime-config-connection.html "PostgreSQL 8.1 - 19.3. Connections and Authentication"){rel="nofollow"}
+:::
+::::
+::::::::::::
+
+:::: {.col-md-6 .col-lg-5 .offset-lg-1}
+::: input-group
+:::
+::::
+:::::::::::::::
+
+:::::::::::::::::::::::::::::: {#docContent}
+::: navheader
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 19.3. Connections and Authentication                                                                                                                                                                                                                                                                                                                       |
++:==================================================================================+:============================================================================+:================================:+==================================================================:+==================================================================================:+
+| [Prev](runtime-config-file-locations.html "19.2. File Locations"){accesskey="p"}  | [Up](runtime-config.html "Chapter 19. Server Configuration"){accesskey="u"} | Chapter 19. Server Configuration | [Home](index.html "PostgreSQL 18.6 Documentation"){accesskey="h"} |  [Next](runtime-config-resource.html "19.4. Resource Consumption"){accesskey="n"} |
++-----------------------------------------------------------------------------------+-----------------------------------------------------------------------------+----------------------------------+-------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+
+------------------------------------------------------------------------
+:::
+
+::::::::::::::::::::::::::: {#RUNTIME-CONFIG-CONNECTION .sect1}
+::::: titlepage
+:::: {}
+::: {}
+## 19.3. Connections and Authentication [\#](#RUNTIME-CONFIG-CONNECTION){.id_link} {#connections-and-authentication .title style="clear: both"}
+:::
+::::
+:::::
+
+::: toc
+[[19.3.1. Connection Settings](runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-SETTINGS)]{.sect2}
+
+[[19.3.2. TCP Settings](runtime-config-connection.html#RUNTIME-CONFIG-TCP-SETTINGS)]{.sect2}
+
+[[19.3.3. Authentication](runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-AUTHENTICATION)]{.sect2}
+
+[[19.3.4. SSL](runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-SSL)]{.sect2}
+:::
+
+::::::: {#RUNTIME-CONFIG-CONNECTION-SETTINGS .sect2}
+::::: titlepage
+:::: {}
+::: {}
+### 19.3.1. Connection Settings [\#](#RUNTIME-CONFIG-CONNECTION-SETTINGS){.id_link} {#connection-settings .title}
+:::
+::::
+:::::
+
+::: variablelist
+
+[`listen_addresses`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.1.1.3 .indexterm}]{.term} [\#](#GUC-LISTEN-ADDRESSES){.id_link}
+
+: Specifies the TCP/IP address(es) on which the server is to listen for connections from client applications. The value takes the form of a comma-separated list of host names and/or numeric IP addresses. The special entry `*`{.literal} corresponds to all available IP interfaces. The entry `0.0.0.0`{.literal} allows listening for all IPv4 addresses and `::`{.literal} allows listening for all IPv6 addresses. If the list is empty, the server does not listen on any IP interface at all, in which case only Unix-domain sockets can be used to connect to it. If the list is not empty, the server will start if it can listen on at least one TCP/IP address. A warning will be emitted for any TCP/IP address which cannot be opened. The default value is [localhost]{.systemitem}, which allows only local TCP/IP ["[loopback]{.quote}"]{.quote} connections to be made.
+
+  While client authentication ([Chapter 20](client-authentication.html "Chapter 20. Client Authentication"){.xref}) allows fine-grained control over who can access the server, `listen_addresses`{.varname} controls which interfaces accept connection attempts, which can help prevent repeated malicious connection requests on insecure network interfaces. This parameter can only be set at server start.
+
+[`port`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.2.1.3 .indexterm}]{.term} [\#](#GUC-PORT){.id_link}
+
+: The TCP port the server listens on; 5432 by default. Note that the same port number is used for all IP addresses the server listens on. This parameter can only be set at server start.
+
+[`max_connections`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.3.1.3 .indexterm}]{.term} [\#](#GUC-MAX-CONNECTIONS){.id_link}
+
+: Determines the maximum number of concurrent connections to the database server. The default is typically 100 connections, but might be less if your kernel settings will not support it (as determined during [initdb]{.application}). This parameter can only be set at server start.
+
+  [PostgreSQL]{.productname} sizes certain resources based directly on the value of `max_connections`{.varname}. Increasing its value leads to higher allocation of those resources, including shared memory.
+
+  When running a standby server, you must set this parameter to the same or higher value than on the primary server. Otherwise, queries will not be allowed in the standby server.
+
+[`reserved_connections`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.4.1.3 .indexterm}]{.term} [\#](#GUC-RESERVED-CONNECTIONS){.id_link}
+
+: Determines the number of connection ["[slots]{.quote}"]{.quote} that are reserved for connections by roles with privileges of the [pg_use_reserved_connections](predefined-roles.html#PREDEFINED-ROLE-PG-USE-RESERVED-CONNECTIONS){.xref} role. Whenever the number of free connection slots is greater than [superuser_reserved_connections](runtime-config-connection.html#GUC-SUPERUSER-RESERVED-CONNECTIONS){.xref} but less than or equal to the sum of `superuser_reserved_connections`{.varname} and `reserved_connections`{.varname}, new connections will be accepted only for superusers and roles with privileges of `pg_use_reserved_connections`{.literal}. If `superuser_reserved_connections`{.varname} or fewer connection slots are available, new connections will be accepted only for superusers.
+
+  The default value is zero connections. The value must be less than `max_connections`{.varname} minus `superuser_reserved_connections`{.varname}. This parameter can only be set at server start.
+
+[`superuser_reserved_connections`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.5.1.3 .indexterm}]{.term} [\#](#GUC-SUPERUSER-RESERVED-CONNECTIONS){.id_link}
+
+: Determines the number of connection ["[slots]{.quote}"]{.quote} that are reserved for connections by [PostgreSQL]{.productname} superusers. At most [max_connections](runtime-config-connection.html#GUC-MAX-CONNECTIONS){.xref} connections can ever be active simultaneously. Whenever the number of active concurrent connections is at least `max_connections`{.varname} minus `superuser_reserved_connections`{.varname}, new connections will be accepted only for superusers. The connection slots reserved by this parameter are intended as final reserve for emergency use after the slots reserved by [reserved_connections](runtime-config-connection.html#GUC-RESERVED-CONNECTIONS){.xref} have been exhausted.
+
+  The default value is three connections. The value must be less than `max_connections`{.varname} minus `reserved_connections`{.varname}. This parameter can only be set at server start.
+
+[`unix_socket_directories`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.6.1.3 .indexterm}]{.term} [\#](#GUC-UNIX-SOCKET-DIRECTORIES){.id_link}
+
+: Specifies the directory of the Unix-domain socket(s) on which the server is to listen for connections from client applications. Multiple sockets can be created by listing multiple directories separated by commas. Whitespace between entries is ignored; surround a directory name with double quotes if you need to include whitespace or commas in the name. An empty value specifies not listening on any Unix-domain sockets, in which case only TCP/IP sockets can be used to connect to the server.
+
+  A value that starts with `@`{.literal} specifies that a Unix-domain socket in the abstract namespace should be created (currently supported on Linux only). In that case, this value does not specify a ["[directory]{.quote}"]{.quote} but a prefix from which the actual socket name is computed in the same manner as for the file-system namespace. While the abstract socket name prefix can be chosen freely, since it is not a file-system location, the convention is to nonetheless use file-system-like values such as `@/tmp`{.literal}.
+
+  The default value is normally `/tmp`{.filename}, but that can be changed at build time. On Windows, the default is empty, which means no Unix-domain socket is created by default. This parameter can only be set at server start.
+
+  In addition to the socket file itself, which is named `.s.PGSQL.`{.literal}*`nnnn`* where *`nnnn`* is the server\'s port number, an ordinary file named `.s.PGSQL.`{.literal}*`nnnn`*`.lock`{.literal} will be created in each of the `unix_socket_directories`{.varname} directories. Neither file should ever be removed manually. For sockets in the abstract namespace, no lock file is created.
+
+[`unix_socket_group`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.7.1.3 .indexterm}]{.term} [\#](#GUC-UNIX-SOCKET-GROUP){.id_link}
+
+: Sets the owning group of the Unix-domain socket(s). (The owning user of the sockets is always the user that starts the server.) In combination with the parameter `unix_socket_permissions`{.varname} this can be used as an additional access control mechanism for Unix-domain connections. By default this is the empty string, which uses the default group of the server user. This parameter can only be set at server start.
+
+  This parameter is not supported on Windows. Any setting will be ignored. Also, sockets in the abstract namespace have no file owner, so this setting is also ignored in that case.
+
+[`unix_socket_permissions`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.8.1.3 .indexterm}]{.term} [\#](#GUC-UNIX-SOCKET-PERMISSIONS){.id_link}
+
+: Sets the access permissions of the Unix-domain socket(s). Unix-domain sockets use the usual Unix file system permission set. The parameter value is expected to be a numeric mode specified in the format accepted by the `chmod`{.function} and `umask`{.function} system calls. (To use the customary octal format the number must start with a `0`{.literal} (zero).)
+
+  The default permissions are `0777`{.literal}, meaning anyone can connect. Reasonable alternatives are `0770`{.literal} (only user and group, see also `unix_socket_group`{.varname}) and `0700`{.literal} (only user). (Note that for a Unix-domain socket, only write permission matters, so there is no point in setting or revoking read or execute permissions.)
+
+  This access control mechanism is independent of the one described in [Chapter 20](client-authentication.html "Chapter 20. Client Authentication"){.xref}.
+
+  This parameter can only be set at server start.
+
+  This parameter is irrelevant on systems, notably Solaris as of Solaris 10, that ignore socket permissions entirely. There, one can achieve a similar effect by pointing `unix_socket_directories`{.varname} to a directory having search permission limited to the desired audience.
+
+  Sockets in the abstract namespace have no file permissions, so this setting is also ignored in that case.
+
+[`bonjour`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.2.2.9.1.3 .indexterm}]{.term} [\#](#GUC-BONJOUR){.id_link}
+
+: Enables advertising the server\'s existence via [Bonjour]{.productname}. The default is off. This parameter can only be set at server start.
+
+[`bonjour_name`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.10.1.3 .indexterm}]{.term} [\#](#GUC-BONJOUR-NAME){.id_link}
+
+: Specifies the [Bonjour]{.productname} service name. The computer name is used if this parameter is set to the empty string `''`{.literal} (which is the default). This parameter is ignored if the server was not compiled with [Bonjour]{.productname} support. This parameter can only be set at server start.
+:::
+:::::::
+
+::::::: {#RUNTIME-CONFIG-TCP-SETTINGS .sect2}
+::::: titlepage
+:::: {}
+::: {}
+### 19.3.2. TCP Settings [\#](#RUNTIME-CONFIG-TCP-SETTINGS){.id_link} {#tcp-settings .title}
+:::
+::::
+:::::
+
+::: variablelist
+
+[`tcp_keepalives_idle`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.1.1.3 .indexterm}]{.term} [\#](#GUC-TCP-KEEPALIVES-IDLE){.id_link}
+
+: Specifies the amount of time with no network activity after which the operating system should send a TCP keepalive message to the client. If this value is specified without units, it is taken as seconds. A value of 0 (the default) selects the operating system\'s default. On Windows, setting a value of 0 will set this parameter to 2 hours, since Windows does not provide a way to read the system default value. This parameter is supported only on systems that support `TCP_KEEPIDLE`{.symbol} or an equivalent socket option, and on Windows; on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
+
+[`tcp_keepalives_interval`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.2.1.3 .indexterm}]{.term} [\#](#GUC-TCP-KEEPALIVES-INTERVAL){.id_link}
+
+: Specifies the amount of time after which a TCP keepalive message that has not been acknowledged by the client should be retransmitted. If this value is specified without units, it is taken as seconds. A value of 0 (the default) selects the operating system\'s default. On Windows, setting a value of 0 will set this parameter to 1 second, since Windows does not provide a way to read the system default value. This parameter is supported only on systems that support `TCP_KEEPINTVL`{.symbol} or an equivalent socket option, and on Windows; on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
+
+[`tcp_keepalives_count`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.3.1.3 .indexterm}]{.term} [\#](#GUC-TCP-KEEPALIVES-COUNT){.id_link}
+
+: Specifies the number of TCP keepalive messages that can be lost before the server\'s connection to the client is considered dead. A value of 0 (the default) selects the operating system\'s default. This parameter is supported only on systems that support `TCP_KEEPCNT`{.symbol} or an equivalent socket option (which does not include Windows); on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
+
+[`tcp_user_timeout`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.4.1.3 .indexterm}]{.term} [\#](#GUC-TCP-USER-TIMEOUT){.id_link}
+
+: Specifies the amount of time that transmitted data may remain unacknowledged before the TCP connection is forcibly closed. If this value is specified without units, it is taken as milliseconds. A value of 0 (the default) selects the operating system\'s default. This parameter is supported only on systems that support `TCP_USER_TIMEOUT`{.symbol} (which does not include Windows); on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
+
+[`client_connection_check_interval`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.5.1.3 .indexterm}]{.term} [\#](#GUC-CLIENT-CONNECTION-CHECK-INTERVAL){.id_link}
+
+: Sets the time interval between optional checks that the client is still connected, while running queries. The check is performed by polling the socket, and allows long running queries to be aborted sooner if the kernel reports that the connection is closed.
+
+  This option relies on kernel events exposed by Linux, macOS, illumos and the BSD family of operating systems, and is not currently available on other systems.
+
+  If the value is specified without units, it is taken as milliseconds. The default value is `0`{.literal}, which disables connection checks. Without connection checks, the server will detect the loss of the connection only at the next interaction with the socket, when it waits for, receives or sends data.
+
+  For the kernel itself to detect lost TCP connections reliably and within a known timeframe in all scenarios including network failure, it may also be necessary to adjust the TCP keepalive settings of the operating system, or the [tcp_keepalives_idle](runtime-config-connection.html#GUC-TCP-KEEPALIVES-IDLE){.xref}, [tcp_keepalives_interval](runtime-config-connection.html#GUC-TCP-KEEPALIVES-INTERVAL){.xref} and [tcp_keepalives_count](runtime-config-connection.html#GUC-TCP-KEEPALIVES-COUNT){.xref} settings of [PostgreSQL]{.productname}.
+:::
+:::::::
+
+::::::: {#RUNTIME-CONFIG-CONNECTION-AUTHENTICATION .sect2}
+::::: titlepage
+:::: {}
+::: {}
+### 19.3.3. Authentication [\#](#RUNTIME-CONFIG-CONNECTION-AUTHENTICATION){.id_link} {#authentication .title}
+:::
+::::
+:::::
+
+::: variablelist
+
+[`authentication_timeout`{.varname} (`integer`{.type}) []{#id-1.6.6.6.4.2.1.1.3 .indexterm} []{#id-1.6.6.6.4.2.1.1.4 .indexterm} []{#id-1.6.6.6.4.2.1.1.5 .indexterm}]{.term} [\#](#GUC-AUTHENTICATION-TIMEOUT){.id_link}
+
+: Maximum amount of time allowed to complete client authentication. If a would-be client has not completed the authentication protocol in this much time, the server closes the connection. This prevents hung clients from occupying a connection indefinitely. If this value is specified without units, it is taken as seconds. The default is one minute (`1m`{.literal}). This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`password_encryption`{.varname} (`enum`{.type}) []{#id-1.6.6.6.4.2.2.1.3 .indexterm}]{.term} [\#](#GUC-PASSWORD-ENCRYPTION){.id_link}
+
+: When a password is specified in [[CREATE ROLE]{.refentrytitle}](sql-createrole.html "CREATE ROLE"){.xref} or [[ALTER ROLE]{.refentrytitle}](sql-alterrole.html "ALTER ROLE"){.xref}, this parameter determines the algorithm to use to encrypt the password. Possible values are `scram-sha-256`{.literal}, which will encrypt the password with SCRAM-SHA-256, and `md5`{.literal}, which stores the password as an MD5 hash. The default is `scram-sha-256`{.literal}.
+
+  Note that older clients might lack support for the SCRAM authentication mechanism, and hence not work with passwords encrypted with SCRAM-SHA-256. See [Section 20.5](auth-password.html "20.5. Password Authentication"){.xref} for more details.
+
+  ::: warning
+  ### Warning {#warning .title}
+
+  Support for MD5-encrypted passwords is deprecated and will be removed in a future release of [PostgreSQL]{.productname}. Refer to [Section 20.5](auth-password.html "20.5. Password Authentication"){.xref} for details about migrating to another password type.
+  :::
+
+[`scram_iterations`{.varname} (`integer`{.type}) []{#id-1.6.6.6.4.2.3.1.3 .indexterm}]{.term} [\#](#GUC-SCRAM-ITERATIONS){.id_link}
+
+: The number of computational iterations to be performed when encrypting a password using SCRAM-SHA-256. The default is `4096`{.literal}. A higher number of iterations provides additional protection against brute-force attacks on stored passwords, but makes authentication slower. Changing the value has no effect on existing passwords encrypted with SCRAM-SHA-256 as the iteration count is fixed at the time of encryption. In order to make use of a changed value, a new password must be set.
+
+  ::: note
+  ### Note {#note .title}
+
+  If a role password was created with a different iteration count than the value of `scram_iterations`{.literal} specified in the `postgresql.conf`{.filename} file or on the server command line, an unauthenticated user can discern the existence of the role by observing discrepancies in the server\'s responses to connection attempts. If you find this concerning, ensure that all role passwords are created with `scram_iterations`{.literal} set to the value specified in the `postgresql.conf`{.filename} file or on the server command line.
+  :::
+
+[`md5_password_warnings`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.4.2.4.1.3 .indexterm}]{.term} [\#](#GUC-MD5-PASSWORD-WARNINGS){.id_link}
+
+: Controls whether a `WARNING`{.literal} about MD5 password deprecation is produced when a `CREATE ROLE`{.command} or `ALTER ROLE`{.command} statement sets an MD5-encrypted password. The default value is `on`{.literal}.
+
+[`krb_server_keyfile`{.varname} (`string`{.type}) []{#id-1.6.6.6.4.2.5.1.3 .indexterm}]{.term} [\#](#GUC-KRB-SERVER-KEYFILE){.id_link}
+
+: Sets the location of the server\'s Kerberos key file. The default is `FILE:/usr/local/pgsql/etc/krb5.keytab`{.filename} (where the directory part is whatever was specified as `sysconfdir`{.varname} at build time; use `pg_config --sysconfdir`{.literal} to determine that). If this parameter is set to an empty string, it is ignored and a system-dependent default is used. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. See [Section 20.6](gssapi-auth.html "20.6. GSSAPI Authentication"){.xref} for more information.
+
+[`krb_caseins_users`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.4.2.6.1.3 .indexterm}]{.term} [\#](#GUC-KRB-CASEINS-USERS){.id_link}
+
+: Sets whether GSSAPI user names should be treated case-insensitively. The default is `off`{.literal} (case sensitive). This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`gss_accept_delegation`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.4.2.7.1.3 .indexterm}]{.term} [\#](#GUC-GSS-ACCEPT-DELEGATION){.id_link}
+
+: Sets whether GSSAPI delegation should be accepted from the client. The default is `off`{.literal} meaning credentials from the client will [*not*]{.emphasis} be accepted. Changing this to `on`{.literal} will make the server accept credentials delegated to it from the client. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`oauth_validator_libraries`{.varname} (`string`{.type}) []{#id-1.6.6.6.4.2.8.1.3 .indexterm}]{.term} [\#](#GUC-OAUTH-VALIDATOR-LIBRARIES){.id_link}
+
+: The library/libraries to use for validating OAuth connection tokens. If only one validator library is provided, it will be used by default for any OAuth connections; otherwise, all [`oauth`{.literal} HBA entries](auth-oauth.html "20.15. OAuth Authorization/Authentication"){.link} must explicitly set a `validator`{.literal} chosen from this list. If set to an empty string (the default), OAuth connections will be refused. This parameter can only be set in the `postgresql.conf`{.filename} file.
+
+  Validator modules must be implemented/obtained separately; [PostgreSQL]{.productname} does not ship with any default implementations. For more information on implementing OAuth validators, see [Chapter 50](oauth-validators.html "Chapter 50. OAuth Validator Modules"){.xref}.
+:::
+:::::::
+
+::::::: {#RUNTIME-CONFIG-CONNECTION-SSL .sect2}
+::::: titlepage
+:::: {}
+::: {}
+### 19.3.4. SSL [\#](#RUNTIME-CONFIG-CONNECTION-SSL){.id_link} {#ssl .title}
+:::
+::::
+:::::
+
+See [Section 18.9](ssl-tcp.html "18.9. Secure TCP/IP Connections with SSL"){.xref} for more information about setting up SSL. The configuration parameters for controlling transfer encryption using TLS protocols are named `ssl`{.literal} for historic reasons, even though support for the SSL protocol has been deprecated. SSL is in this context used interchangeably with TLS.
+
+::: variablelist
+
+[`ssl`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.5.3.1.1.3 .indexterm}]{.term} [\#](#GUC-SSL){.id_link}
+
+: Enables SSL connections. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `off`{.literal}.
+
+[`ssl_ca_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.2.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CA-FILE){.id_link}
+
+: Specifies the name of the file containing the SSL server certificate authority (CA). Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is empty, meaning no CA file is loaded, and client certificate verification is not performed.
+
+[`ssl_cert_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.3.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CERT-FILE){.id_link}
+
+: Specifies the name of the file containing the SSL server certificate. Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `server.crt`{.filename}.
+
+[`ssl_crl_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.4.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CRL-FILE){.id_link}
+
+: Specifies the name of the file containing the SSL client certificate revocation list (CRL). Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is empty, meaning no CRL file is loaded (unless [ssl_crl_dir](runtime-config-connection.html#GUC-SSL-CRL-DIR){.xref} is set).
+
+[`ssl_crl_dir`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.5.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CRL-DIR){.id_link}
+
+: Specifies the name of the directory containing the SSL client certificate revocation list (CRL). Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is empty, meaning no CRLs are used (unless [ssl_crl_file](runtime-config-connection.html#GUC-SSL-CRL-FILE){.xref} is set).
+
+  The directory needs to be prepared with the [OpenSSL]{.productname} command `openssl rehash`{.literal} or `c_rehash`{.literal}. See its documentation for details.
+
+  When using this setting, CRLs in the specified directory are loaded on-demand at connection time. New CRLs can be added to the directory and will be used immediately. This is unlike [ssl_crl_file](runtime-config-connection.html#GUC-SSL-CRL-FILE){.xref}, which causes the CRL in the file to be loaded at server start time or when the configuration is reloaded. Both settings can be used together.
+
+[`ssl_key_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.6.1.3 .indexterm}]{.term} [\#](#GUC-SSL-KEY-FILE){.id_link}
+
+: Specifies the name of the file containing the SSL server private key. Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `server.key`{.filename}.
+
+[`ssl_tls13_ciphers`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.7.1.3 .indexterm}]{.term} [\#](#GUC-SSL-TLS13-CIPHERS){.id_link}
+
+: Specifies a list of cipher suites that are allowed by connections using TLS version 1.3. Multiple cipher suites can be specified by using a colon separated list. If left blank, the default set of cipher suites in [OpenSSL]{.productname} will be used.
+
+  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`ssl_ciphers`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.8.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CIPHERS){.id_link}
+
+: Specifies a list of SSL ciphers that are allowed by connections using TLS version 1.2 and lower, see [ssl_tls13_ciphers](runtime-config-connection.html#GUC-SSL-TLS13-CIPHERS){.xref} for TLS version 1.3 connections. See the [[ciphers]{.refentrytitle}]{.citerefentry} manual page in the [OpenSSL]{.productname} package for the syntax of this setting and a list of supported values. The default value is `HIGH:MEDIUM:+3DES:!aNULL`{.literal}. The default is usually a reasonable choice unless you have specific security requirements.
+
+  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+  Explanation of the default value:
+
+  ::: variablelist
+
+  [`HIGH`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-HIGH){.id_link}
+
+  : Cipher suites that use ciphers from `HIGH`{.literal} group (e.g., AES, Camellia, 3DES)
+
+  [`MEDIUM`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-MEDIUM){.id_link}
+
+  : Cipher suites that use ciphers from `MEDIUM`{.literal} group (e.g., RC4, SEED)
+
+  [`+3DES`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-PLUS-3DES){.id_link}
+
+  : The [OpenSSL]{.productname} default order for `HIGH`{.literal} is problematic because it orders 3DES higher than AES128. This is wrong because 3DES offers less security than AES128, and it is also much slower. `+3DES`{.literal} reorders it after all other `HIGH`{.literal} and `MEDIUM`{.literal} ciphers.
+
+  [`!aNULL`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-NOT-ANULL){.id_link}
+
+  : Disables anonymous cipher suites that do no authentication. Such cipher suites are vulnerable to MITM attacks and therefore should not be used.
+  :::
+
+  Available cipher suite details will vary across [OpenSSL]{.productname} versions. Use the command `openssl ciphers -v 'HIGH:MEDIUM:+3DES:!aNULL'`{.literal} to see actual details for the currently installed [OpenSSL]{.productname} version. Note that this list is filtered at run time based on the server key type.
+
+[`ssl_prefer_server_ciphers`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.5.3.9.1.3 .indexterm}]{.term} [\#](#GUC-SSL-PREFER-SERVER-CIPHERS){.id_link}
+
+: Specifies whether to use the server\'s SSL cipher preferences, rather than the client\'s. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `on`{.literal}.
+
+  [PostgreSQL]{.productname} versions before 9.4 do not have this setting and always use the client\'s preferences. This setting is mainly for backward compatibility with those versions. Using the server\'s preferences is usually better because it is more likely that the server is appropriately configured.
+
+[`ssl_groups`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.10.1.3 .indexterm}]{.term} [\#](#GUC-SSL-GROUPS){.id_link}
+
+: Specifies the named group to use for TLS key exchange. It needs to be supported by all clients that connect. Multiple groups can be specified by using a colon-separated list. It does not need to match the key type used by the server certificate. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `X25519:prime256v1`{.literal}.
+
+  [OpenSSL]{.productname} names for the most common groups are: `prime256v1`{.literal} (NIST P-256), `secp384r1`{.literal} (NIST P-384), `secp521r1`{.literal} (NIST P-521). An incomplete list of available groups can be shown with the command `openssl ecparam -list_curves`{.command}. Not all of them are usable with TLS though, and many supported group names and aliases are omitted.
+
+  In [PostgreSQL]{.productname} versions before 18.0 this setting was named `ssl_ecdh_curve`{.literal} and only accepted a single value.
+
+[`ssl_min_protocol_version`{.varname} (`enum`{.type}) []{#id-1.6.6.6.5.3.11.1.3 .indexterm}]{.term} [\#](#GUC-SSL-MIN-PROTOCOL-VERSION){.id_link}
+
+: Sets the minimum SSL/TLS protocol version to use. Valid values are currently: `TLSv1`{.literal}, `TLSv1.1`{.literal}, `TLSv1.2`{.literal}, `TLSv1.3`{.literal}. Older versions of the [OpenSSL]{.productname} library do not support all values; an error will be raised if an unsupported setting is chosen. Protocol versions before TLS 1.0, namely SSL version 2 and 3, are always disabled.
+
+  The default is `TLSv1.2`{.literal}, which satisfies industry best practices as of this writing.
+
+  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`ssl_max_protocol_version`{.varname} (`enum`{.type}) []{#id-1.6.6.6.5.3.12.1.3 .indexterm}]{.term} [\#](#GUC-SSL-MAX-PROTOCOL-VERSION){.id_link}
+
+: Sets the maximum SSL/TLS protocol version to use. Valid values are as for [ssl_min_protocol_version](runtime-config-connection.html#GUC-SSL-MIN-PROTOCOL-VERSION){.xref}, with addition of an empty string, which allows any protocol version. The default is to allow any version. Setting the maximum protocol version is mainly useful for testing or if some component has issues working with a newer protocol.
+
+  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`ssl_dh_params_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.13.1.3 .indexterm}]{.term} [\#](#GUC-SSL-DH-PARAMS-FILE){.id_link}
+
+: Specifies the name of the file containing Diffie-Hellman parameters used for so-called ephemeral DH family of SSL ciphers. The default is empty, in which case compiled-in default DH parameters used. Using custom DH parameters reduces the exposure if an attacker manages to crack the well-known compiled-in DH parameters. You can create your own DH parameters file with the command `openssl dhparam -out dhparams.pem 2048`{.command}.
+
+  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`ssl_passphrase_command`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.14.1.3 .indexterm}]{.term} [\#](#GUC-SSL-PASSPHRASE-COMMAND){.id_link}
+
+: Sets an external command to be invoked when a passphrase for decrypting an SSL file such as a private key needs to be obtained. By default, this parameter is empty, which means the built-in prompting mechanism is used.
+
+  The command must print the passphrase to the standard output and exit with code 0. In the parameter value, `%p`{.literal} is replaced by a prompt string. (Write `%%`{.literal} for a literal `%`{.literal}.) Note that the prompt string will probably contain whitespace, so be sure to quote adequately. A single newline is stripped from the end of the output if present.
+
+  The command does not actually have to prompt the user for a passphrase. It can read it from a file, obtain it from a keychain facility, or similar. It is up to the user to make sure the chosen mechanism is adequately secure.
+
+  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+
+[`ssl_passphrase_command_supports_reload`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.5.3.15.1.3 .indexterm}]{.term} [\#](#GUC-SSL-PASSPHRASE-COMMAND-SUPPORTS-RELOAD){.id_link}
+
+: This parameter determines whether the passphrase command set by `ssl_passphrase_command`{.varname} will also be called during a configuration reload if a key file needs a passphrase. If this parameter is `off`{.literal} (the default), then `ssl_passphrase_command`{.varname} will be ignored during a reload and the SSL configuration will not be reloaded if a passphrase is needed. That setting is appropriate for a command that requires a TTY for prompting, which might not be available when the server is running. Setting this parameter to on might be appropriate if the passphrase is obtained from a file, for example.
+
+  This parameter must be set to `on`{.literal} when running on [Windows]{.systemitem} since all connections will perform a configuration reload due to the different process model of that platform.
+
+  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
+:::
+:::::::
+:::::::::::::::::::::::::::
+
+::: navfooter
+
+------------------------------------------------------------------------
+
+  ----------------------------------------------------------------------------------- ----------------------------------------------------------------------------- -----------------------------------------------------------------------------------
+  [Prev](runtime-config-file-locations.html "19.2. File Locations"){accesskey="p"}     [Up](runtime-config.html "Chapter 19. Server Configuration"){accesskey="u"}     [Next](runtime-config-resource.html "19.4. Resource Consumption"){accesskey="n"}
+  19.2. File Locations                                                                      [Home](index.html "PostgreSQL 18.6 Documentation"){accesskey="h"}                                                                19.4. Resource Consumption
+  ----------------------------------------------------------------------------------- ----------------------------------------------------------------------------- -----------------------------------------------------------------------------------
+:::
+::::::::::::::::::::::::::::::
+
+::: {#docComments}
+## Submit correction
+
+If you see anything in the documentation that is not correct, does not match your experience with the particular feature or requires further clarification, please use [this form](/account/comments/new/18/runtime-config-connection.html/){rel="nofollow"} to report a documentation issue.
+:::
+:::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::::
+
+::: container
+[Policies](/about/policies/) \| [Code of Conduct](/about/policies/coc/) \| [About PostgreSQL](/about/) \| [Contact](/about/contact/)\
+
+Copyright © 1996-2026 The PostgreSQL Global Development Group
+:::
+
 
         </div>
     
@@ -616,40 +973,66 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">
-                自动化知识同步与数据采集架构规范
+            <a href="/2026/10/16/2026-10-16-redis-commands-lpos-md/">
+                [redis] commands/lpos.md
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-10-16</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-概述与背景"><a href="#1-概述与背景" class="headerlink" title="1. 概述与背景"></a>1. 概述与背景</h3><p>在现代企业与个人知识管理（PKM&#x2F;KM）体系中，分布式沟通工具（如 IM 软件、ChatBot、协作平台）充当着知识产生的第一现场。然而，碎片化的对话内容若缺乏有效的自动采集机制，极易形成信息孤岛。<strong>Chat Auto-Ingest（聊天数据自动摄取）</strong> 机制旨在通过轻量级接口与后台同步服务，实现从聊天上下文到中央知识库的无缝沉淀。</p>
-<h3 id="2-数据采集与同步链路设计"><a href="#2-数据采集与同步链路设计" class="headerlink" title="2. 数据采集与同步链路设计"></a>2. 数据采集与同步链路设计</h3><p>知识的自动摄取链路包含数据监听、数据解析、连通性测试（Test-Sync）以及知识入库四个核心环节：</p>
-<ol>
-<li><strong>事件触发与监听（Triggering &amp; Event Listening）</strong>：<br>通过 Webhook 或长连接监听聊天系统中的指定动作（例如打上特定的 Tag、使用特定的指令或触发特定的 Bot 提问）。</li>
-<li><strong>数据清洗与报文结构化（Payload Parsing）</strong>：<br>原始对话通常包含大量无效噪声（如表情符号、打招呼口语）。同步服务需将其提取为标准的 Q&amp;A（问答对）或 Markdown 片段。</li>
-<li><strong>链路连通性验证（Test-Sync Verification）</strong>：<br>在正式执行高频同步前，系统需支持测试级别的微型数据包同步（如 <code>test-sync</code> 节点）。通过极简的问答测试（如 <code>Q: 测试 -&gt; A: 这是测试内容</code>），验证鉴权 Token、数据通道传输效率及解析器的可读取性。</li>
-<li><strong>长效入库与状态标记（Ingestion &amp; Status Tracking）</strong>：<br>清洗完毕的知识将被推送到暂存区（Staging Area），并赋予同步状态标记（如 <code>synced</code>, <code>pending</code>, <code>failed</code>），便于后续的自动聚类与重构。</li>
-</ol>
-<h3 id="3-同步机制的演进方向"><a href="#3-同步机制的演进方向" class="headerlink" title="3. 同步机制的演进方向"></a>3. 同步机制的演进方向</h3><p>自动化同步并非单纯的数据搬运，而是知识生命周期管理（TLM）的起点。未来的采集架构应重点关注：</p>
-<ul>
-<li><strong>实时性与批处理的平衡</strong>：小微量数据实时同步以确保即时反馈，大文本与历史存档采用定时批处理（Batch Processing）。</li>
-<li><strong>幂等性与去重控制</strong>：避免同一对话记录被多次触发导致知识库膨胀与版本混淆。</li>
-<li><strong>全链路追踪（Traceability）</strong>：每一条沉淀的知识文档都应保留原始对话的时间戳、参与者与上下文链接，确保知识可追溯、可验证。</li>
-</ul>
+            
+The command returns the index of matching elements inside a Redis list.
+By default, when no options are given, it will scan the list from head to tail,
+looking for the first match of "element". If the element is found, its index (the zero-based position in the list) is returned. Otherwise, if no match is found, `nil` is returned.
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; RPUSH mylist a b c 1 2 3 c c</span><br><span class="line">&gt; LPOS mylist c</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
+
+The optional arguments and options can modify the command's behavior.
+The `RANK` option specifies the "rank" of the first element to return, in case there are multiple matches. A rank of 1 means to return the first match, 2 to return the second match, and so forth.
+
+For instance, in the above example the element "c" is present multiple times, if I want the index of the second match, I'll write:
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c RANK 2</span><br><span class="line">6</span><br></pre></td></tr></table></figure>
+
+That is, the second occurrence of "c" is at position 6.
+A negative "rank" as the `RANK` argument tells `LPOS` to invert the search direction, starting from the tail to the head.
+
+So, we want to say, give me the first element starting from the tail of the list:
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c RANK -1</span><br><span class="line">7</span><br></pre></td></tr></table></figure>
+
+Note that the indexes are still reported in the "natural" way, that is, considering the first element starting from the head of the list at index 0, the next element at index 1, and so forth. This basically means that the returned indexes are stable whatever the rank is positive or negative.
+
+Sometimes we want to return not just the Nth matching element, but the position of all the first N matching elements. This can be achieved using the `COUNT` option.
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c COUNT 2</span><br><span class="line">[2,6]</span><br></pre></td></tr></table></figure>
+
+We can combine `COUNT` and `RANK`, so that `COUNT` will try to return up to the specified number of matches, but starting from the Nth match, as specified by the `RANK` option.
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c RANK -1 COUNT 2</span><br><span class="line">[7,6]</span><br></pre></td></tr></table></figure>
+
+When `COUNT` is used, it is possible to specify 0 as the number of matches, as a way to tell the command we want all the matches found returned as an array of indexes. This is better than giving a very large `COUNT` option because it is more general.
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c COUNT 0</span><br><span class="line">[2,6,7]</span><br></pre></td></tr></table></figure>
+
+When `COUNT` is used and no match is found, an empty array is returned. However when `COUNT` is not used and there are no matches, the command returns `nil`.
+
+Finally, the `MAXLEN` option tells the command to compare the provided element only with a given maximum number of list items. So for instance specifying `MAXLEN 1000` will make sure that the command performs only 1000 comparisons, effectively running the algorithm on a subset of the list (the first part or the last part depending on the fact we use a positive or negative rank). This is useful to limit the maximum complexity of the command. It is also useful when we expect the match to be found very early, but want to be sure that in case this is not true, the command does not take too much time to run.
+
+When `MAXLEN` is used, it is possible to specify 0 as the maximum number of comparisons, as a way to tell the command we want unlimited comparisons. This is better than giving a very large `MAXLEN` option because it is more general.
+
+@examples
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RPUSH mylist a b c d 1 2 3 4 3 3 3</span><br><span class="line">LPOS mylist 3</span><br><span class="line">LPOS mylist 3 COUNT 0 RANK 2</span><br></pre></td></tr></table></figure>
+
 
         </div>
     
@@ -661,50 +1044,156 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E9%9D%9E%E7%BB%93%E6%9E%84%E5%8C%96%E7%9F%A5%E8%AF%86%E7%9A%84%E8%81%9A%E7%B1%BB%E6%8F%90%E7%82%BC%E4%B8%8E%E6%96%87%E6%A1%A3%E5%8C%96%E9%87%8D%E6%9E%84/">
-                非结构化知识的聚类提炼与文档化重构
+            <a href="/2026/10/16/2026-10-16-redis-commands-getbit-md/">
+                [redis] commands/getbit.md
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-10-16</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-非结构化碎片知识的挑战"><a href="#1-非结构化碎片知识的挑战" class="headerlink" title="1. 非结构化碎片知识的挑战"></a>1. 非结构化碎片知识的挑战</h3><p>通过聊天工具、便签或自动摄取渠道沉淀的原始知识，普遍存在以下痛点：</p>
-<ul>
-<li><strong>碎片化严重</strong>：大量知识以单一问答（Q&amp;A）、孤立句子或测试性记录（如 <code>test-sync</code> 条目）形式分散呈现。</li>
-<li><strong>缺乏上下文</strong>：缺少背景描述、应用场景与前后逻辑关联，导致二次阅读成本极高。</li>
-<li><strong>信息密度不均</strong>：部分内容仅包含简单的测试占位符，而部分内容包含核心技术细节，缺乏统一的质量标准。</li>
-</ul>
-<h3 id="2-知识聚类与提炼方法论"><a href="#2-知识聚类与提炼方法论" class="headerlink" title="2. 知识聚类与提炼方法论"></a>2. 知识聚类与提炼方法论</h3><p>为了将零散的“知识碎片”转化为具有高可读性与复用价值的“结构化文档”，需要采用<strong>自下而上的主题聚类与自上而下的文档重构</strong>结合的方法。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[原始碎片数据 (Auto-Ingest / Chat Raw)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[主题提取与关联判定 (Clustering &amp; Taxonomy)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[内容综合融合与扩展 (Synthesis &amp; Refinement)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[高质量结构化文档 (Structured Markdown Knowledge)]</span><br></pre></td></tr></table></figure>
+            
+Returns the bit value at _offset_ in the string value stored at _key_.
 
-<h4 id="2-1-主题识别与聚类（Clustering）"><a href="#2-1-主题识别与聚类（Clustering）" class="headerlink" title="2.1 主题识别与聚类（Clustering）"></a>2.1 主题识别与聚类（Clustering）</h4><ol>
-<li><strong>语义相似度分析</strong>：评估不同条目在技术栈、业务域或操作流程上的相关性。</li>
-<li><strong>抽象归纳</strong>：将零散的测试记事、同步日志、技术问答归并到“架构规范”、“测试验证”、“运维指南”等高层级主题下。</li>
-</ol>
-<h4 id="2-2-内容综合与融合（Synthesis）"><a href="#2-2-内容综合与融合（Synthesis）" class="headerlink" title="2.2 内容综合与融合（Synthesis）"></a>2.2 内容综合与融合（Synthesis）</h4><ul>
-<li><strong>废弃无意义占位符</strong>：删除仅用于链路校验的临时数据，提取其背后的机制逻辑。</li>
-<li><strong>上下文补全</strong>：为孤立的问答补充背景背景、操作步骤、注意事项与最佳实践。</li>
-<li><strong>逻辑重构</strong>：按照“概述 -&gt; 核心原理 -&gt; 操作指南 -&gt; 总结”的标准化文档范式重新组织段落，避免简单地堆砌原始问答。</li>
-</ul>
-<h3 id="3-高质量知识文档的标准"><a href="#3-高质量知识文档的标准" class="headerlink" title="3. 高质量知识文档的标准"></a>3. 高质量知识文档的标准</h3><p>重构后的知识文档应满足以下维度规范：</p>
-<ul>
-<li><strong>完整性（Completeness）</strong>：能够独立阐述一个完整的主题或解决方案，不依赖碎片化的上下文提示。</li>
-<li><strong>规范性（Standardization）</strong>：统一采用清晰的 Markdown 层级标题、代码块与结构化列表。</li>
-<li><strong>高可读性（Readability）</strong>：语言表达流畅专业，去除了口语化和冗余字词，适合团队长期归档与查阅。</li>
-</ul>
+When _offset_ is beyond the string length, the string is assumed to be a
+contiguous space with 0 bits.
+When _key_ does not exist it is assumed to be an empty string, so _offset_ is
+always out of range and the value is also assumed to be a contiguous space with
+0 bits.
+
+@examples
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SETBIT mykey 7 1</span><br><span class="line">GETBIT mykey 0</span><br><span class="line">GETBIT mykey 7</span><br><span class="line">GETBIT mykey 100</span><br></pre></td></tr></table></figure>
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/16/2026-10-16-redis-commands-latency-latest-md/">
+                [redis] commands/latency-latest.md
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-16</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+The `LATENCY LATEST` command reports the latest latency events logged.
+
+Each reported event has the following fields:
+
+* Event name.
+* Unix timestamp of the latest latency spike for the event.
+* Latest event latency in millisecond.
+* All-time maximum latency for this event.
+
+"All-time" means the maximum latency since the Redis instance was
+started, or the time that events were reset `LATENCY RESET`.
+
+@examples
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; debug sleep 1</span><br><span class="line">OK</span><br><span class="line">(1.00s)</span><br><span class="line">127.0.0.1:6379&gt; debug sleep .25</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; latency latest</span><br><span class="line">1) 1) &quot;command&quot;</span><br><span class="line">   2) (integer) 1405067976</span><br><span class="line">   3) (integer) 251</span><br><span class="line">   4) (integer) 1001</span><br></pre></td></tr></table></figure>
+
+For more information refer to the [Latency Monitoring Framework page][lm].
+
+[lm]: /topics/latency-monitor
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/13/2026-10-13-redis-commands-cluster-addslots-md/">
+                [redis] commands/cluster-addslots.md
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-13</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+This command is useful in order to modify a node's view of the cluster
+configuration. Specifically it assigns a set of hash slots to the node
+receiving the command. If the command is successful, the node will map
+the specified hash slots to itself, and will start broadcasting the new
+configuration.
+
+However note that:
+
+1. The command only works if all the specified slots are, from the point of view of the node receiving the command, currently not assigned. A node will refuse to take ownership for slots that already belong to some other node (including itself).
+2. The command fails if the same slot is specified multiple times.
+3. As a side effect of the command execution, if a slot among the ones specified as argument is set as `importing`, this state gets cleared once the node assigns the (previously unbound) slot to itself.
+
+## Example
+
+For example the following command assigns slots 1 2 3 to the node receiving
+the command:
+
+    > CLUSTER ADDSLOTS 1 2 3
+    OK
+
+However trying to execute it again results into an error since the slots
+are already assigned:
+
+    > CLUSTER ADDSLOTS 1 2 3
+    ERR Slot 1 is already busy
+
+## Usage in Redis Cluster
+
+This command only works in cluster mode and is useful in the following
+Redis Cluster operations:
+
+1. To create a new `cluster ADDSLOTS` is used in order to initially setup master nodes splitting the available hash slots among them.
+2. In order to fix a broken cluster where certain slots are unassigned.
+
+## Information about slots propagation and warnings
+
+Note that once a node assigns a set of slots to itself, it will start
+propagating this information in heartbeat packet headers. However the
+other nodes will accept the information only if they have the slot as
+not already bound with another node, or if the configuration epoch of the
+node advertising the new hash slot, is greater than the node currently listed
+in the table.
+
+This means that this command should be used with care only by applications
+orchestrating Redis Cluster, like `redis-cli`, and the command if used
+out of the right context can leave the cluster in a wrong state or cause
+data loss.
+
 
         </div>
     
@@ -723,7 +1212,7 @@
                 <a class="" href="/page/9/">
                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                 </a>
-                <a class="disabled" href="/">
+                <a class="" href="/page/11/">
                     <i class="fa fa-chevron-right" aria-hidden="true"></i>
                 </a>
             </div>
@@ -753,19 +1242,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/springboot/">Springboot</a>
+                <a class="footer-post" href="/2026/10/21/php-structure/">PHP框架</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/sqlite/">SQLite</a>
+                <a class="footer-post" href="/2026/10/21/pressure-testing/">压测工具集合</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/sqlmap/">SQLMap</a>
+                <a class="footer-post" href="/2026/10/21/python-interview/">Golang 深浅</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/stock/">股市币市</a>
+                <a class="footer-post" href="/2026/10/21/raspberry-pi/">Raspberry Pi 树莓派</a>
             </li>
             
         </ul>

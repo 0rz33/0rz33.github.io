@@ -184,232 +184,13 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/10/mongodb/">
-                MongoDB
+            <a href="/2026/10/21/house-electric/">
+                家庭-电力节能
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/数据库/">数据库</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#%E5%9F%BA%E7%A1%80">基础</a><ul>
-<li><a href="#MySQL%E5%92%8Cmongodb%E7%9A%84%E5%8C%BA%E5%88%AB">MySQL和mongodb的区别</a></li>
-<li><a href="#CRUD">CRUD</a></li>
-<li><a href="#%E8%81%9A%E5%90%88">聚合查询</a><ul>
-<li><a href="#%E9%AB%98%E7%BA%A7%E6%9F%A5%E8%AF%A2-lookup">高级查询 lookup</a></li>
-<li><a href="#%E9%AB%98%E7%BA%A7%E6%9F%A5%E8%AF%A2-lookup-+-pipeline">高级查询 lookup + pipeline</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB">数据迁移</a>  <!-- * [分析器在MongoDB中的作用](#1.1)
-  * [名字空间(namespace)是](#1.1)
-  * [如果用户移除对象的属性，该属性是否从存储层中删除](#1.1)
-  * [允许空值null吗](#1.1)
-  * [更新操作立刻fsync到磁盘](#1.1)
-  * [如何执行事务/加锁](#1.1)
-  * [数据文件如此庞大](#1.1)
-  * [启用备份故障恢复需要多久](#1.1)
-  * [什么是master或primary](#1.1)
-  * [什么是secondary或slave](#1.1)
-  * [我必须调用getLastError来确保写操作生效了么](#1.1)
-  * [分片(sharding)和复制(replication)是怎样工作的](#1.1)
-  * [数据在什么时候才会扩展到多个分片(shard)里](#1.1) --></li>
-</ul>
-<p>非关系型数据库 -&gt; 文档数据库<br>可提供高性能，高可用性和易扩展性。<br>数据模型实现，接口，对想存储以及复制方法</p>
-<p>GridFS是一种将大型文件存储在MongoDB的文件规范。 所有官方支持的驱动均实现了GridFS规范。 GridFS是MongoDB中的一个内置功能，可以用于存放文件。 数据库支持以(BSON格式<code>Binary JSON</code>)保存二进制对象。</p>
-<h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><table>
-<thead>
-<tr>
-<th>SQL术语&#x2F;概念</th>
-<th>MongoDB 术语&#x2F;概念</th>
-<th>解释&#x2F;说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>database</td>
-<td>database</td>
-<td>数据库</td>
-</tr>
-<tr>
-<td>table</td>
-<td>collection</td>
-<td>数据库表&#x2F;集合</td>
-</tr>
-<tr>
-<td>row</td>
-<td>document</td>
-<td>数据记录行&#x2F;文档</td>
-</tr>
-<tr>
-<td>column</td>
-<td>field</td>
-<td>数据字段&#x2F;域</td>
-</tr>
-<tr>
-<td>index</td>
-<td>index</td>
-<td>索引</td>
-</tr>
-<tr>
-<td>table joins</td>
-<td></td>
-<td>表连接,MongoDB不支持</td>
-</tr>
-<tr>
-<td>primary key</td>
-<td>primary key</td>
-<td>主键,MongoDB自动将_id字段设置为主键</td>
-</tr>
-</tbody></table>
-<h2 id="MySQL和mongodb的区别"><a href="#MySQL和mongodb的区别" class="headerlink" title="MySQL和mongodb的区别"></a>MySQL和mongodb的区别</h2><table>
-<thead>
-<tr>
-<th>形式</th>
-<th>MongoDB</th>
-<th>MySQL</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>数据库模型</td>
-<td>非关系型</td>
-<td>关系型</td>
-</tr>
-<tr>
-<td>存储方式</td>
-<td></td>
-<td>虚拟内存+持久化</td>
-</tr>
-<tr>
-<td>查询语句</td>
-<td>独特的MongoDB查询方式</td>
-<td>传统SQL语句</td>
-</tr>
-<tr>
-<td>架构特点</td>
-<td>副本集以及分片</td>
-<td>常见单点、M-S、MHA、MMM等架构方式</td>
-</tr>
-<tr>
-<td>数据处理方式</td>
-<td>基于内存，将热数据存在物理内存中，从而达到高速读写</td>
-<td>不同的引擎拥有自己的特点</td>
-</tr>
-<tr>
-<td>使用场景</td>
-<td>事件的记录，内容管理或者博客平台等数据大且非结构化数据的场景</td>
-<td>适用于数据量少且很多结构化数据</td>
-</tr>
-</tbody></table>
-<p>索引类型</p>
-<ul>
-<li>单字段索引(Single Field Indexes)</li>
-<li>复合索引(Compound Indexes)</li>
-<li>多键索引(Multikey Indexes)</li>
-<li>全文索引(text Indexes)</li>
-<li>Hash 索引(Hash Indexes)</li>
-<li>通配符索引(Wildcard Index)</li>
-<li>2dsphere索引(2dsphere Indexes)</li>
-</ul>
-<h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 批量更新 click, favorite, love, notlove</span></span><br><span class="line">db.getCollection(<span class="string">&quot;post&quot;</span>).updateMany(&#123; <span class="variable">$set</span>: &#123;</span><br><span class="line">        click: 0,</span><br><span class="line">        favorite: 0,</span><br><span class="line">        love: 0,</span><br><span class="line">        notlove:0</span><br><span class="line">    &#125; </span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查询age字段不存在并且批量更新为1</span></span><br><span class="line">db.getCollection(<span class="string">&quot;users&quot;</span>).updateMany(</span><br><span class="line">    &#123; age: &#123; <span class="variable">$exists</span>: <span class="literal">false</span> &#125; &#125;, </span><br><span class="line">    &#123; <span class="variable">$set</span>: &#123; age: 18 &#125; &#125; </span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h2 id="CRUD"><a href="#CRUD" class="headerlink" title="CRUD"></a>CRUD</h2><h3 id="Create-新增"><a href="#Create-新增" class="headerlink" title="Create 新增"></a>Create 新增</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">insertOne</span>(&#123;</span><br><span class="line">  <span class="attr">_id</span>: <span class="string">&quot;5d168c26ba27e53ccab8b743a1492d23&quot;</span>,</span><br><span class="line">  <span class="attr">order_sn</span>: <span class="string">&quot;aaaa&quot;</span>,</span><br><span class="line">  <span class="attr">user_id</span>: <span class="number">4568</span>,</span><br><span class="line">  <span class="attr">username</span>: <span class="string">&quot;0KLd&quot;</span>,</span><br><span class="line">  <span class="attr">object_id</span>: <span class="number">2</span>,</span><br><span class="line">  <span class="attr">object_type</span>: <span class="string">&quot;face1&quot;</span>,</span><br><span class="line">  <span class="attr">object_money_old</span>: <span class="number">10</span>,</span><br><span class="line">  <span class="attr">register_at</span>: <span class="number">1750145943</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Delete-删除"><a href="#Delete-删除" class="headerlink" title="Delete 删除"></a>Delete 删除</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">deleteOne</span>(&#123;</span><br><span class="line">  <span class="attr">_id</span>: <span class="string">&quot;5d168c26ba27e53ccab8b743a1492d23&quot;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Update-更新"><a href="#Update-更新" class="headerlink" title="Update 更新"></a>Update 更新</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">updateOne</span>(</span><br><span class="line">  &#123; <span class="attr">_id</span>: <span class="string">&quot;5d168c26ba27e53ccab8b743a1492d23&quot;</span> &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">$set</span>: &#123;</span><br><span class="line">      <span class="attr">out_data</span>: [</span><br><span class="line">        <span class="string">&quot;/md-204/m3u8-download/a嗷嗷aa.m3u8&quot;</span>,</span><br><span class="line">        <span class="string">&quot;/md-204/ai-out-files/5a.zip&quot;</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Read-查询"><a href="#Read-查询" class="headerlink" title="Read 查询"></a>Read 查询</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">user</span>.<span class="title function_">findOne</span>(&#123; <span class="attr">name</span>: <span class="string">&quot;Alice&quot;</span> &#125;)</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="聚合"><a href="#聚合" class="headerlink" title="聚合"></a>聚合</h2><h3 id="高级查询-lookup"><a href="#高级查询-lookup" class="headerlink" title="高级查询 lookup"></a>高级查询 lookup</h3><p><code>$lookup</code> 是 MongoDB 聚合框架中的一个阶段，用来在两个集合之间进行联表查询（类似 SQL 的 JOIN）。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">orders</span>.<span class="title function_">aggregate</span>([</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">$lookup</span>: &#123;</span><br><span class="line">      <span class="attr">from</span>: <span class="string">&quot;users&quot;</span>,           <span class="comment">// 要连接的集合名</span></span><br><span class="line">      <span class="attr">localField</span>: <span class="string">&quot;user_id&quot;</span>,   <span class="comment">// orders 中的字段</span></span><br><span class="line">      <span class="attr">foreignField</span>: <span class="string">&quot;_id&quot;</span>,     <span class="comment">// users 中的字段</span></span><br><span class="line">      <span class="attr">as</span>: <span class="string">&quot;user_info&quot;</span>          <span class="comment">// 输出的新字段（数组）</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
-
-<h3 id="高级查询-lookup-pipeline"><a href="#高级查询-lookup-pipeline" class="headerlink" title="高级查询 lookup + pipeline"></a>高级查询 lookup + pipeline</h3><p>pipeline高级方式，支持表达式和子查询</p>
-<p>📘 场景设定<br>orders 集合（订单）：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> ObjectId(<span class="string">&quot;665fa1f1e2c9a3701fabc123&quot;</span>)<span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;item&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Laptop&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pending&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>users 集合（用户）：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> ObjectId(<span class="string">&quot;665fa1f1e2c9a3701fabc123&quot;</span>)<span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;item&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Laptop&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pending&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>🎯 目标<br>想查出 orders，并只联表关联<strong>is_active &#x3D; true</strong> 的用户信息</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">db.<span class="property">orders</span>.<span class="title function_">aggregate</span>([</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">$lookup</span>: &#123;</span><br><span class="line">      <span class="attr">from</span>: <span class="string">&quot;users&quot;</span>,</span><br><span class="line">      <span class="attr">let</span>: &#123; <span class="attr">uid</span>: <span class="string">&quot;$user_id&quot;</span> &#125;,</span><br><span class="line">      <span class="attr">pipeline</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">$match</span>: &#123;</span><br><span class="line">            <span class="attr">$expr</span>: &#123; <span class="attr">$eq</span>: [<span class="string">&quot;$_id&quot;</span>, <span class="string">&quot;$$uid&quot;</span>] &#125;,   <span class="comment">// 条件：user._id == orders.user_id</span></span><br><span class="line">            <span class="attr">is_active</span>: <span class="literal">true</span>                      <span class="comment">// 只关联激活用户</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">$project</span>: &#123; <span class="attr">name</span>: <span class="number">1</span>, <span class="attr">_id</span>: <span class="number">0</span> &#125;           <span class="comment">// 可选：控制输出字段</span></span><br><span class="line">        &#125;</span><br><span class="line">      ],</span><br><span class="line">      <span class="attr">as</span>: <span class="string">&quot;user_info&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123; <span class="attr">$unwind</span>: <span class="string">&quot;$user_info&quot;</span> &#125; <span class="comment">// 如果你只要一个用户对象而不是数组</span></span><br><span class="line">])</span><br></pre></td></tr></table></figure>
-<p>✅ 查询结果</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_id&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> ObjectId(<span class="string">&quot;665fa1f1e2c9a3701fabc123&quot;</span>)<span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;item&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Laptop&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pending&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;user_info&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Alice&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">  &#x27;$group&#x27; =&gt; <span class="punctuation">[</span></span><br><span class="line">    &#x27;_id&#x27;         =&gt; &#x27;$object_type&#x27;<span class="punctuation">,</span></span><br><span class="line">    &#x27;total_count&#x27; =&gt; <span class="punctuation">[</span>&#x27;$sum&#x27; =&gt; <span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    &#x27;total_money&#x27; =&gt; <span class="punctuation">[</span>&#x27;$sum&#x27; =&gt; &#x27;$object_money&#x27;<span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
-
-<p>💡 说明</p>
-<table>
-<thead>
-<tr>
-<th>关键点</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>let: &#123; uid: &quot;$user_id&quot; &#125;</code></td>
-<td>把外部变量传入内部 pipeline</td>
-</tr>
-<tr>
-<td><code>$expr</code> + <code>$eq</code></td>
-<td>允许字段与字段对比（而不是固定值）</td>
-</tr>
-<tr>
-<td><code>is_active: true</code></td>
-<td>增加自定义的过滤逻辑</td>
-</tr>
-<tr>
-<td><code>$project</code></td>
-<td>控制最终关联的字段</td>
-</tr>
-<tr>
-<td><code>$unwind</code></td>
-<td>把数组变成对象，常用于一对一关系</td>
-</tr>
-</tbody></table>
-<h1 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h1><ul>
-<li>导入 - 多集合</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置部分</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span> </span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span> </span><br><span class="line">DATABASE=<span class="string">&quot;&quot;</span> </span><br><span class="line">FOLDER_PATH=<span class="string">&quot;/data/db/backup_dev_20250115&quot;</span> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历文件夹 </span></span><br><span class="line"><span class="keyword">for</span> DIR <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$FOLDER_PATH</span>&quot;</span>/*/; <span class="keyword">do</span> </span><br><span class="line">	COLLECTION_NAME=$(<span class="built_in">basename</span> <span class="string">&quot;<span class="variable">$DIR</span>&quot;</span>) </span><br><span class="line">	mongorestore --db <span class="variable">$COLLECTION_NAME</span> <span class="variable">$DIR</span>  -j 100</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;所有文件导入完成！&quot;</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>备份-多集合</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># === 基础配置 ===</span></span><br><span class="line">MONGO_HOST=<span class="string">&quot;localhost&quot;</span></span><br><span class="line">MONGO_PORT=<span class="string">&quot;27017&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/data/db/dbback&quot;</span></span><br><span class="line">PJ=<span class="string">&quot;dev&quot;</span></span><br><span class="line">DATE=$(<span class="built_in">date</span> +%Y%m%d)</span><br><span class="line">LOG_FILE=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>.log&quot;</span></span><br><span class="line"><span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># === 日志函数 ===</span></span><br><span class="line"><span class="function"><span class="title">log_msg</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;<span class="subst">$(date +&#x27;%Y-%m-%d %H:%M:%S&#x27;)</span> - <span class="variable">$1</span>&quot;</span> | <span class="built_in">tee</span> -a <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># === 获取集合名 ===</span></span><br><span class="line"><span class="function"><span class="title">get_all_collections</span></span>() &#123;</span><br><span class="line">    <span class="built_in">local</span> db=<span class="variable">$1</span></span><br><span class="line">    mongo --quiet --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> --<span class="built_in">eval</span> <span class="string">&quot;db.getSiblingDB(&#x27;<span class="variable">$db</span>&#x27;).getCollectionNames().join(&#x27; &#x27;)&quot;</span> 2&gt;/dev/null</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># === 交互 ===</span></span><br><span class="line"><span class="built_in">declare</span> -A FULL_COLLECTIONS_MAP</span><br><span class="line"><span class="built_in">declare</span> -A STRUCT_ONLY_COLLECTIONS_MAP</span><br><span class="line"></span><br><span class="line"><span class="built_in">read</span> -p <span class="string">&quot;请输入需要备份的数据库数量: &quot;</span> DB_COUNT</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> ((i=<span class="number">1</span>; i&lt;=DB_COUNT; i++)); <span class="keyword">do</span></span><br><span class="line">    <span class="built_in">read</span> -p <span class="string">&quot;请输入第 <span class="variable">$i</span> 个数据库名: &quot;</span> DB_NAME</span><br><span class="line"></span><br><span class="line">    <span class="built_in">read</span> -p <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 中【完整备份（含数据）】的集合（支持 all / exclude xxx / 指定）: &quot;</span> full_input</span><br><span class="line">    <span class="built_in">read</span> -p <span class="string">&quot;数据库 <span class="variable">$DB_NAME</span> 中【只备结构】的集合（支持 all / 指定）: &quot;</span> struct_input</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理含数据集合</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$full_input</span>&quot;</span> == <span class="string">&quot;all&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">        FULL_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="subst">$(get_all_collections <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>)</span>&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> [[ <span class="string">&quot;<span class="variable">$full_input</span>&quot;</span> =~ ^exclude ]]; <span class="keyword">then</span></span><br><span class="line">        all_cols=($(get_all_collections <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>))</span><br><span class="line">        exclude_cols=(<span class="variable">$&#123;full_input[@]:1&#125;</span>)</span><br><span class="line">        keep_cols=()</span><br><span class="line">        <span class="keyword">for</span> col <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;all_cols[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">            <span class="keyword">if</span> [[ ! <span class="string">&quot; <span class="variable">$&#123;exclude_cols[*]&#125;</span> &quot;</span> =~ <span class="string">&quot; <span class="variable">$col</span> &quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">                keep_cols+=(<span class="string">&quot;<span class="variable">$col</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">fi</span></span><br><span class="line">        <span class="keyword">done</span></span><br><span class="line">        FULL_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="variable">$&#123;keep_cols[*]&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        FULL_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="variable">$full_input</span>&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理只结构集合</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$struct_input</span>&quot;</span> == <span class="string">&quot;all&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">        STRUCT_ONLY_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="subst">$(get_all_collections <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>)</span>&quot;</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        STRUCT_ONLY_COLLECTIONS_MAP[<span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span>]=<span class="string">&quot;<span class="variable">$struct_input</span>&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># === 备份逻辑 ===</span></span><br><span class="line"><span class="keyword">for</span> DB_NAME <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;!FULL_COLLECTIONS_MAP[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">    BACKUP_PATH=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DB_NAME&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span></span><br><span class="line">    <span class="built_in">mkdir</span> -p <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line">    </span><br><span class="line">    log_msg <span class="string">&quot;📦 正在备份数据库 <span class="variable">$DB_NAME</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> COLLECTION <span class="keyword">in</span> <span class="variable">$&#123;FULL_COLLECTIONS_MAP[$DB_NAME]&#125;</span>; <span class="keyword">do</span></span><br><span class="line">        log_msg <span class="string">&quot;📥 备份集合 <span class="variable">$DB_NAME</span>.<span class="variable">$COLLECTION</span>（含数据）&quot;</span></span><br><span class="line">        mongodump --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> \</span><br><span class="line">                  --db <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span> --collection <span class="string">&quot;<span class="variable">$COLLECTION</span>&quot;</span> \</span><br><span class="line">                  --out <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> COLLECTION <span class="keyword">in</span> <span class="variable">$&#123;STRUCT_ONLY_COLLECTIONS_MAP[$DB_NAME]&#125;</span>; <span class="keyword">do</span></span><br><span class="line">        log_msg <span class="string">&quot;🧱 备份集合 <span class="variable">$DB_NAME</span>.<span class="variable">$COLLECTION</span>（仅结构）&quot;</span></span><br><span class="line">        mongodump --host <span class="string">&quot;<span class="variable">$MONGO_HOST</span>&quot;</span> --port <span class="string">&quot;<span class="variable">$MONGO_PORT</span>&quot;</span> \</span><br><span class="line">                  --db <span class="string">&quot;<span class="variable">$DB_NAME</span>&quot;</span> --collection <span class="string">&quot;<span class="variable">$COLLECTION</span>&quot;</span> \</span><br><span class="line">                  --query <span class="string">&#x27;&#123;&#125;&#x27;</span> --<span class="built_in">limit</span> 0 \</span><br><span class="line">                  --out <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">    TAR_NAME=<span class="string">&quot;<span class="variable">$&#123;BACKUP_DIR&#125;</span>/backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DB_NAME&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>.tar.gz&quot;</span></span><br><span class="line">    log_msg <span class="string">&quot;🗜️ 压缩 <span class="variable">$DB_NAME</span> 到 <span class="variable">$TAR_NAME</span>&quot;</span></span><br><span class="line">    tar -zcf <span class="string">&quot;<span class="variable">$TAR_NAME</span>&quot;</span> -C <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_<span class="variable">$&#123;DB_NAME&#125;</span>_<span class="variable">$&#123;DATE&#125;</span>&quot;</span> &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line">    <span class="built_in">rm</span> -rf <span class="string">&quot;<span class="variable">$BACKUP_PATH</span>&quot;</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">log_msg <span class="string">&quot;🧹 删除7天前的旧备份...&quot;</span></span><br><span class="line">find <span class="string">&quot;<span class="variable">$BACKUP_DIR</span>&quot;</span> -<span class="built_in">type</span> f -name <span class="string">&quot;backup_<span class="variable">$&#123;PJ&#125;</span>_*.tar.gz&quot;</span> -mtime +7 -<span class="built_in">exec</span> <span class="built_in">rm</span> -f &#123;&#125; \; &amp;&gt;&gt; <span class="string">&quot;<span class="variable">$LOG_FILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">log_msg <span class="string">&quot;✅ 所有备份任务完成！&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如何使用脚本</span></span><br><span class="line"><span class="comment"># 请输入需要备份的数据库数量: 2</span></span><br><span class="line"><span class="comment"># 请输入第 1 个数据库名: userdb</span></span><br><span class="line"><span class="comment"># 请输入数据库 userdb 中要【完整备份（含数据）】的集合（空格分隔，支持 all / exclude xxx）: all</span></span><br><span class="line"><span class="comment"># 请输入数据库 userdb 中要【只备结构】的集合（空格分隔，支持 all）: app_log post_log</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 请输入第 2 个数据库名: productdb</span></span><br><span class="line"><span class="comment"># 请输入数据库 productdb 中要【完整备份（含数据）】的集合（空格分隔，支持 all / exclude xxx）: exclude items post_log</span></span><br><span class="line"><span class="comment"># 请输入数据库 productdb 中要【只备结构】的集合（空格分隔，支持 all）: app_log </span></span><br></pre></td></tr></table></figure>
-
-
-<p>mongodb 副本集的主的选举–优先级设置</p>
-<p>分片<br>复制集</p>
-<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904186300071943">https://juejin.cn/post/6844904186300071943</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/10/music/">
-                音乐
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-10</span>
+                <span class="date">2026-10-21</span>
             
             
             
@@ -422,558 +203,69 @@
 
     
         <div class="content">
-            <!-- [集合 Alonzo - Determine [Banlieue 13 Ultimatum Soundtrack]](ttps://www.youtube.com/watch?v=bZZaZ2DILbU&list=RDoIZ7sCtZyUY&index=6)
-[พงษ์สิทธิ์ คำภีร์ - มือปืน](https://www.youtube.com/watch?v=RwC3p1mdaYI) -->
-
-
-<!-- raw -->
-
-<script>
-  // 扁平化的数据结构：每首歌 4 个维度字段
-  // genre(风格) / occasion(场景) / language(语种) / tag(标签)
-  // 多值用英文逗号分隔，例如 tag: "黑帮,电影"
-const songs = [
-    // ===== Rap =====
-    { title: "Lose Yourself", link: "https://www.youtube.com/watch?v=tR1ECf4sEpw", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Eminem - Mockingbird", link: "https://www.youtube.com/watch?v=S9bCLPwzSC0", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Lil Nas X - Old Town Road", link: "https://www.youtube.com/watch?v=r7qovpFAGrQ", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "2PAC - Do Or Die", link: "https://www.youtube.com/watch?v=DYZmH_xe6R0", genre: "Rap", occasion: "走路", language: "英语", tag: "黑帮" },
-    { title: "十三の砂山（Flip）", link: "https://www.youtube.com/watch?v=Xv99lG1xp5E", genre: "trap", occasion: "", language: "日语", tag: "" },
-    { title: "TroyBoi - KinjaBang", link: "https://www.youtube.com/watch?v=K2MahpdSipQ", genre: "trap", occasion: "", language: "日语", tag: "" },
-    { title: "The Godfather", link: "https://www.youtube.com/watch?v=uSSkhP4taAw", genre: "Rap", occasion: "", language: "粤语", tag: "黑帮" },
-    { title: "珂拉琪 Collage／萬千花蕊慈母悲哀", link: "https://www.youtube.com/watch?v=kkUWlcjmOew&list=RDkkUWlcjmOew&start_radio=1", genre: "Rap", occasion: "", language: "闽南语", tag: "" },
-    { title: "LOVIXX - How old i am", link: "https://www.youtube.com/watch?v=7UyHMUrfFfg", genre: "Rap", occasion: "走路,开车", language: "英语", tag: "黑帮" },
-    { title: "MORGENSHTERN - ICE", link: "https://www.youtube.com/watch?v=5e6JkYzYHxY", genre: "Rap", occasion: "走路", language: "俄语", tag: "" },
-    { title: "Four Barang In A Tuktuk (Remix)", link: "https://www.youtube.com/watch?v=41rJXh9VCps", genre: "Rap", occasion: "放松", language: "柬埔寨语", tag: "" },
-    { title: "Красное полусладкое (feat. Кот Балу, Банума)", link: "https://www.youtube.com/watch?v=Inxey-lD8Xo", genre: "Rap", occasion: "抒情", language: "俄语", tag: "" },
-    { title: "Jah Khalib - На параллельных путях", link: "https://www.youtube.com/watch?v=un1aPU8wFEw", genre: "Rap", occasion: "抒情", language: "俄语", tag: "" },
-    { title: "Don't Compare | SOVATH MONIVANN", link: "https://www.youtube.com/watch?v=TNMNkPtmTrw", genre: "Rap", occasion: "走路", language: "柬埔寨语", tag: "" },
-    { title: "F.HERO x VannDa - RUN THE TOWN", link: "https://www.youtube.com/watch?v=cdt7WfRVXVk", genre: "Rap", occasion: "走路", language: "柬埔寨语", tag: "" },
-    { title: "OXMO PUCCINO - JE SUIS COOL MAIS PAS SYMPA", link: "https://www.youtube.com/watch?v=z53OLLf3g88", genre: "Rap", occasion: "走路", language: "法语", tag: "" },
-    { title: "Alonzo - Determine [Banlieue 13 Ultimatum Soundtrack] 暴力街区", link: "https://www.youtube.com/watch?v=oIZ7sCtZyUY", genre: "Rap", occasion: "走路", language: "法语", tag: "电影" },
-    { title: "Axiom - La Tour Des Miracles", link: "https://www.youtube.com/watch?v=bZZaZ2DILbU&list=RDoIZ7sCtZyUY&index=6", genre: "Rap", occasion: "走路", language: "法语", tag: "" },
-    { title: "Eminem - Till I Collapse [HD]", link: "https://www.youtube.com/watch?v=ytQ5CYE1VZw&list=RDoIZ7sCtZyUY&index=3", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "50 Cent - In Da Club", link: "https://www.youtube.com/watch?v=5qm8PH4xAss&list=RDoIZ7sCtZyUY&index=4", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Eminem - Venom", link: "https://www.youtube.com/watch?v=qtLXOKC1SHE", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Kendrick Lamar - HUMBLE.", link: "https://www.youtube.com/watch?v=tvTRZJ-4EyI", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Dr Dre Still D R E Remix", link: "https://www.youtube.com/watch?v=N09oxcuM8P4", genre: "Rap", occasion: "走路", language: "英语", tag: "" },
-    { title: "Awich, tubaki, OZworld & CHICO CARLITO - RASEN in OKINAWA", link: "https://www.youtube.com/watch?v=ShcfsKtI5_U", genre: "Rap", occasion: "走路", language: "日语", tag: "" },
-    { title: "Keith Ape - 잊지마 (It G Ma)", link: "https://www.youtube.com/watch?v=DPC9erC5WqU", genre: "Rap", occasion: "走路", language: "韩语", tag: "" },
-    { title: "宋岳庭 Life's a Struggle", link: "https://www.youtube.com/watch?v=5SrU7pFm0Mg", genre: "Rap", occasion: "走路", language: "国语", tag: "" },
-    { title: "大懒堂 集合", link: "https://www.youtube.com/watch?v=DrCgK5tZ2lU&list=PLdHH0GpoKKjMfZPUxpEhR6lyI7XhcsM5j", genre: "Rap", occasion: "走路", language: "粤语", tag: "集合" },
-    { title: "黑社會 Hak se wui - Election theme OST", link: "https://www.youtube.com/watch?v=_CqeEbfl3Cg&list=RD_CqeEbfl3Cg&start_radio=1", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "黑社會片頭2006 / Election 1 Opening Credit", link: "https://www.youtube.com/watch?v=PKHRtqZiRnY", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "陳冠希 Edison Chen《戰爭》", link: "https://www.youtube.com/watch?v=qBh7Dzi97L0&list=RDqBh7Dzi97L0&start_radio=1", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "香港地 (feat. 陳奐仁, 胡蓓蔚, MC 仁)", link: "https://www.youtube.com/watch?v=_v-y7z6LKG0&list=RD_v-y7z6LKG0&start_radio=1", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-    { title: "鄭秀文 Sammi Cheng ft. LMF -《愛是》", link: "https://www.youtube.com/watch?v=XSMZCJMdaVo&list=RD_v-y7z6LKG0&index=2", genre: "Rap", occasion: "走路", language: "粤语", tag: "黑帮" },
-
-    // ===== 摇滚 =====
-    { title: "แสงสุดท้าย bodyslam for fanclub version", link: "https://www.youtube.com/watch?v=wseMK6ni3DI", genre: "摇滚", occasion: "", language: "泰语", tag: "" },
-    { title: "เรา #OurSong - bodyslam", link: "https://www.youtube.com/watch?v=947yxJJdqIA", genre: "摇滚", occasion: "", language: "泰语", tag: "" },
-    { title: "พงษ์สิทธิ์ คำภีร์ - มือปืน", link: "https://www.youtube.com/watch?v=RwC3p1mdaYI", genre: "摇滚", occasion: "", language: "泰语", tag: "" },
-    { title: "AC/DC 合辑", link: "https://www.youtube.com/watch?v=VWG4-4Y6Z60&list=RDEMDs8vWIQKMflBG8QUQQaUrw&index=29", genre: "摇滚", occasion: "", language: "英语", tag: "集合" },
-
-    // ===== 流行 - 英语 =====
-    { title: "Heartbreak Anniversary", link: "https://www.youtube.com/watch?v=uWRlisQu4fo", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "WILDFLOWER - Billie Eilish", link: "https://www.youtube.com/watch?v=l08Zw-RY__Q", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Megan Thee Stallion - Mamushi (feat. Yuki Chiba)", link: "https://www.youtube.com/watch?v=OdxSbc0ap-s", genre: "流行", occasion: "", language: "英语", tag: "" },
-    { title: "The Sun Is Shining Down", link: "https://www.youtube.com/watch?v=euRvhvtNbq4", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "Willie Nelson - A Woman's Love", link: "https://www.youtube.com/watch?v=8EmVfVuan3c", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "The Eden Project - Crazy in Love ft. Leah Kelly", link: "https://www.youtube.com/watch?v=dzTjefCK8Zk", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Creep - Vintage Postmodern Jukebox Radiohead", link: "https://www.youtube.com/watch?v=m3lF2qEA2cw", genre: "流行", occasion: "伤感", language: "英语", tag: "经典" },
-    { title: "Django (Luis Bacalov)", link: "https://www.youtube.com/watch?v=OhlVBpEnjig&list=PLcpBBg8UA1Oxz7973OVcCzyBR-caH7hCQ", genre: "流行", occasion: "", language: "英语", tag: "集合" },
-    { title: "twenty one pilots - Heathens", link: "https://www.youtube.com/watch?v=actRHG9uQy0", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "twenty one pilots - Sucker for Pain", link: "https://www.youtube.com/watch?v=An7Q1GkEf3g", genre: "流行", occasion: "", language: "英语", tag: "经典" },
-    { title: "Sam Smith - Writing's On The Wall", link: "https://www.youtube.com/watch?v=8jzDnsjYv9A", genre: "流行", occasion: "伤感", language: "英语", tag: "电影,007" },
-    { title: "Mississippi - JJ Grey & Mofro", link: "https://www.youtube.com/watch?v=0BcBu6DC3j8", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "" },
-    { title: "Eagles - Hotel California", link: "https://www.youtube.com/watch?v=dLl4PZtxia8", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "经典" },
-    { title: "Chris Stapleton - Tennessee Whiskey", link: "https://www.youtube.com/watch?v=4zAThXFOy2c", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "美国乡村" },
-    { title: "Teddy Swims - Lose Control (The Village Sessions)", link: "https://www.youtube.com/watch?v=9gWIIIr2Asw", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "美国乡村" },
-    { title: "Rag'n'Bone Man - Skin", link: "https://www.youtube.com/watch?v=1Al-nuR1iAU", genre: "流行", occasion: "开车,舒缓", language: "英语", tag: "美国乡村" },
-    { title: "Hozier - Take Me To Church", link: "https://www.youtube.com/watch?v=PVjiKRfKpPI", genre: "流行", occasion: "舒缓", language: "英语", tag: "" },
-    { title: "Adam Levine - Lost Stars", link: "https://www.youtube.com/watch?v=cL4uhaQ58Rk", genre: "流行", occasion: "舒缓,伤感", language: "英语", tag: "" },
-    { title: "Maroon 5 - Sugar", link: "https://www.youtube.com/watch?v=09R8_2nJtjg", genre: "流行", occasion: "舒缓", language: "英语", tag: "快乐" },
-    { title: "City of Stars - La La Land OST", link: "https://www.youtube.com/watch?v=GTWqwSNQCcg", genre: "流行", occasion: "舒缓", language: "英语", tag: "电影" },
-    { title: "Polarrana - who am i", link: "https://www.youtube.com/watch?v=2qS1CrOPnEQ", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Bebe - Siempre me quedará", link: "https://www.youtube.com/watch?v=QsjAgjbMVWA", genre: "流行", occasion: "抒情", language: "西班牙语", tag: "" },
-    { title: "Wave - TEEKS", link: "https://www.youtube.com/watch?v=18GNaEr11kE&list=PLoskdo1F_P9VeuzgPBrfc0i_JfW18SVTQ&index=2", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "Here Before - TEEKS", link: "https://www.youtube.com/watch?v=tPb5CEiaS1w&list=PLoskdo1F_P9VeuzgPBrfc0i_JfW18SVTQ&index=7", genre: "流行", occasion: "伤感", language: "英语", tag: "唱歌" },
-    { title: "John Denver - Take Me Home, Country Roads", link: "https://www.youtube.com/watch?v=uu7j_xljCRY", genre: "流行", occasion: "", language: "英语", tag: "美国乡村,唱歌" },
-    { title: "美國公路鄉村音樂", link: "https://www.youtube.com/watch?v=KuQjq-8Yn6A", genre: "流行", occasion: "", language: "英语", tag: "美国乡村,集合" },
-    { title: "New York City", link: "https://www.youtube.com/watch?v=Rfd8AdJce8Q", genre: "流行", occasion: "放松", language: "英语", tag: "" },
-    { title: "Cambodia Shine - Draco 11:11", link: "https://www.youtube.com/watch?v=I2gKiQ3W4nU", genre: "流行", occasion: "放松", language: "英语", tag: "" },
-    { title: "Angkor Green Spirit", link: "https://www.youtube.com/watch?v=VrGsz4na2XI&list=OLAK5uy_neS3Q85Abs6Dbz0VL_sEdl3w67DBjzQPw&index=1", genre: "流行", occasion: "放松", language: "英语", tag: "" },
-    { title: "Don't Mind Me", link: "https://www.youtube.com/watch?v=TdSrS0pNjGU", genre: "流行", occasion: "伤感", language: "英语", tag: "" },
-    { title: "OsMan - Lost", link: "https://www.youtube.com/watch?v=7PtyNbdlhP0", genre: "流行", occasion: "开车", language: "英语", tag: "" },
-    { title: "Bang Bang | Paloma & James", link: "https://www.youtube.com/watch?v=0EsUUeW6V-8", genre: "流行", occasion: "热情", language: "英语", tag: "" },
-    { title: "Dove Cameron - MONTERO", link: "https://www.youtube.com/watch?v=u-8qb1eOJZI", genre: "流行", occasion: "热情", language: "英语", tag: "" },
-    { title: "Mondo Bongo - Joe Strummer (Mr and Mrs. Smith)", link: "https://www.youtube.com/watch?v=pOKfHXVLnkY", genre: "流行", occasion: "柔情舞曲", language: "英语", tag: "电影" },
-    { title: "Autumn Leaves", link: "https://www.youtube.com/watch?v=npUK_dnv1VM", genre: "流行", occasion: "柔情舞曲,抒情", language: "英语", tag: "" },
-    { title: "Sexy in Black", link: "https://www.youtube.com/watch?v=JEqdQywFPnU", genre: "流行", occasion: "热情", language: "英语", tag: "sexy" },
-    { title: "Apashe - Good News", link: "https://www.youtube.com/watch?v=Slv9aYoC4FM", genre: "流行", occasion: "暴走", language: "英语", tag: "" },
-    { title: "Sting - Shape of My Heart (Leon)", link: "https://www.youtube.com/watch?v=QK-Z1K67uaA", genre: "流行", occasion: "", language: "英语", tag: "电影,经典" },
-    { title: "Music for Men Who Stay Silent | Gentleman Dark Blues", link: "https://www.youtube.com/watch?v=aV7W2oF-l1E", genre: "流行", occasion: "", language: "英语", tag: "集合" },
-    { title: "slow and easy", link: "https://www.youtube.com/watch?v=cEpTYBuR7vY", genre: "流行", occasion: "抒情", language: "英语", tag: "集合" },
-    { title: "Quando, Quando, Quando", link: "https://www.youtube.com/watch?v=tTYzGEvLvMc", genre: "流行", occasion: "放松,舞曲", language: "英语", tag: "" },
-
-    // ===== 流行 - 粤语 =====
-    { title: "劉惜君【忘記他】", link: "https://www.youtube.com/watch?v=dAAC0cr17CU", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "不該用情 - 勝嶼", link: "https://www.youtube.com/watch?v=SBya0SwVyNk", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "最愛 - 周慧敏", link: "https://www.youtube.com/watch?v=WNHik8RR6u0", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "你瞞我瞞 - 陳柏宇", link: "https://www.youtube.com/watch?v=YfvR3zccdV", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "劉惜君 粵語《漫步人生路》", link: "https://www.youtube.com/watch?v=19T9M4Pl9xg&list=RD19T9M4Pl9xg&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "側田 Justin Lo -《命硬》", link: "https://www.youtube.com/watch?v=E9BgBB0JQ8E&list=RDE9BgBB0JQ8E&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "周柏豪 - 夠鍾", link: "https://www.youtube.com/watch?v=3pVujJij6Xo&list=RD3pVujJij6Xo&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "月半小夜曲 李克勤", link: "https://www.youtube.com/watch?v=c-2UG5q9qGA", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "讲不出再见 谭咏麟", link: "https://www.youtube.com/watch?v=h9YssUWW5MM", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "陳百強 Danny Chan -《偏偏喜歡你》", link: "https://www.youtube.com/watch?v=RmTAUDlcPSk&list=RDRmTAUDlcPSk&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "吳雨霏 - 吳哥窟", link: "https://www.youtube.com/watch?v=b9v1xfoWAFg&list=RDb9v1xfoWAFg&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "陳慧嫻 傻女", link: "https://www.youtube.com/watch?v=GDOeOKtrxh0&list=RDGDOeOKtrxh0&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "BEYOND 光輝嵗月", link: "https://www.youtube.com/watch?v=EhxMnz6zntQ", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "BEYOND 海闊天空", link: "https://www.youtube.com/watch?v=WtB_teKYvVY", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "潘德林/文迪/劉金羽 - 無悔當下", link: "https://www.youtube.com/watch?v=1iYdKPjiMyk&list=RD1iYdKPjiMyk&start_radio=1", genre: "流行", occasion: "伤感", language: "粤语", tag: "港台老歌" },
-    { title: "《嘉賓》廣東話版 - 潘靜文", link: "https://www.youtube.com/watch?v=mSxb27LyphI", genre: "流行", occasion: "伤感", language: "粤语", tag: "" },
-    { title: "无条件 陈奕迅", link: "https://www.youtube.com/watch?v=nYLqnj1C9Ig", genre: "流行", occasion: "舒缓", language: "粤语", tag: "" },
-
-    // ===== 流行 - 中文 =====
-    { title: "愛就一個字（女聲版）", link: "https://www.youtube.com/watch?v=nBj9E-8Qvj0", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "淒美地 The Fog Space - 郭頂", link: "https://www.youtube.com/watch?v=I2zkRvCevgw", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "水星記 Mercury Records - 郭頂", link: "https://www.youtube.com/watch?v=ENKFTmJxBaY", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "海闊天空 - 日本東京街頭日語版", link: "https://www.youtube.com/watch?v=uo3pN3gcA8s", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-    { title: "只要平凡", link: "https://www.youtube.com/watch?v=mSxb27LyphI", genre: "流行", occasion: "伤感", language: "中文", tag: "" },
-
-    // ===== 流行 - 闽南语 =====
-    { title: "沈文程 - 心事誰人知", link: "https://www.youtube.com/watch?v=pjmSkRfJr-c", genre: "流行", occasion: "伤感", language: "闽南语", tag: "经典老歌" },
-    { title: "蔡秋鳳 - 金包銀", link: "https://www.youtube.com/watch?v=4Z1l0sbdV4I", genre: "流行", occasion: "伤感", language: "闽南语", tag: "经典老歌" },
-    { title: "愛拼才會贏 (葉啟田)", link: "https://www.youtube.com/watch?v=buCkOl5hV_o", genre: "流行", occasion: "伤感", language: "闽南语", tag: "经典老歌" },
-
-    // ===== 流行 - 日语 =====
-    { title: "furino - zen state of mind pt. 2", link: "https://www.youtube.com/watch?v=PZaAVP4obR8", genre: "流行", occasion: "伤感", language: "日语", tag: "" },
-
-    // ===== 流行 - 韩语 =====
-    { title: "你不要担心 전인권 밴드 - 걱정 말아요 그대", link: "https://www.youtube.com/watch?v=wsabRiEGgrE", genre: "流行", occasion: "伤感", language: "韩语", tag: "" },
-    { title: "假如爱有天意（韩文原版中文翻译）", link: "https://www.youtube.com/watch?v=KCtOLrGyEPE", genre: "流行", occasion: "伤感", language: "韩语", tag: "" },
-    { title: "윤민수&신용재 - 인연 (姻缘)", link: "https://www.youtube.com/watch?v=M4T9vaPVo0Y", genre: "流行", occasion: "伤感", language: "韩语", tag: "" },
-    { title: "하얀나비 (수상한 그녀 OST) - 奇怪的她", link: "https://www.youtube.com/watch?v=0ZA2Wuo-OZ0&list=PL4HLAMpAhTDxCG1p3KD1X3IEGcplHg3yQ&index=1", genre: "流行", occasion: "伤感", language: "韩语", tag: "电影" },
-    { title: "沈恩敬 (심은경) - 빗물 (雨水) - 奇怪的她", link: "https://www.youtube.com/watch?v=tYyK0ozHhZ0&list=PL4HLAMpAhTDxCG1p3KD1X3IEGcplHg3yQ&index=2", genre: "流行", occasion: "伤感", language: "韩语", tag: "电影" },
-    { title: "金潤吉 - Tell Me (韓文版)", link: "https://www.youtube.com/watch?v=Vom4KCdZ3TE&list=RDVom4KCdZ3TE&start_radio=1", genre: "流行", occasion: "浪漫", language: "韩语", tag: "" },
-    { title: "IF YOU", link: "https://www.youtube.com/watch?v=h9hdorPqukU", genre: "流行", occasion: "放松", language: "韩语", tag: "" },
-    { title: "FEARLESS - LE SSERAFIM", link: "https://www.youtube.com/watch?v=q_eoXfZr0yQ", genre: "流行", occasion: "舞曲", language: "韩语", tag: "K-POP" },
-
-    // ===== 流行 - 俄语 =====
-    { title: "Камин", link: "https://www.youtube.com/watch?v=yCUQSto0Bwc", genre: "流行", occasion: "伤感", language: "俄语", tag: "" },
-    { title: "Умри если меня не любишь", link: "https://www.youtube.com/watch?v=u2Pr8B6CFaw", genre: "流行", occasion: "伤感", language: "俄语", tag: "" },
-    { title: "Rauf & Faik - мосты", link: "https://www.youtube.com/watch?v=2TyXC5F3T_w", genre: "流行", occasion: "伤感", language: "俄语", tag: "" },
-    { title: "Гио Пика - Фонтанчик с дельфином", link: "https://www.youtube.com/watch?v=2As9IANvLzQ", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "MiyaGi - Колибри", link: "https://www.youtube.com/watch?v=RHyB2DeKQRs", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "ЛИТВИНЕНКО & ARCHI - Любит Хулигана", link: "https://www.youtube.com/watch?v=ysjl6A6eNcY&list=RDysjl6A6eNcY&start_radio=1", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "Буйно Голова - Гио Пика", link: "https://www.youtube.com/watch?v=0McYFDA1zKI&list=RDysjl6A6eNcY&index=5", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "Ты Расскажи Ка Мне (фильм: Преступник 2012)", link: "https://www.youtube.com/watch?v=7X181m6w6Pc&list=RDysjl6A6eNcY&index=10", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮,电影" },
-    { title: "Джанки Джин ft. Мастер Дрон – Там таз стелит | BBM REMIX", link: "https://www.youtube.com/watch?v=0eLr8znLHmY&list=RDysjl6A6eNcY&index=16", genre: "流行", occasion: "走路,伤感", language: "俄语", tag: "黑帮" },
-    { title: "Леша Стелит & Andery Toronto - Стая", link: "https://www.youtube.com/watch?v=YYfmGDVu8p0", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "ЛИТВИНЕНКО - Оп, Мусорок (R.I.P Giorgi Tevzadze)", link: "https://www.youtube.com/watch?v=a_aE7Y9KFw0", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "Cnv Sound, Vol. 14 (Slowed)", link: "https://www.youtube.com/watch?v=xTQN4-pCIS4", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-    { title: "CBeat de rap 'vida pérdida' base, instrumental", link: "https://www.youtube.com/watch?v=vlruQhPghW0", genre: "流行", occasion: "抒情", language: "俄语", tag: "" },
-    { title: "Doshka My Love feat. Mihaita Piticu", link: "https://www.youtube.com/watch?v=QimRAKTKxkE", genre: "流行", occasion: "走路", language: "俄语", tag: "黑帮" },
-
-    // ===== 流行 - 法语 =====
-    { title: "nuits d'été", link: "https://www.youtube.com/watch?v=B3JcHWCA-VA", genre: "流行", occasion: "小清新", language: "法语", tag: "" },
-    { title: "Mon amour (Slimane) ⎜Beccä COVER", link: "https://www.youtube.com/watch?v=26Kf0x71fHk", genre: "流行", occasion: "伤感", language: "法语", tag: "" },
-    { title: "Louis Armstrong - La vie en rose", link: "https://www.youtube.com/watch?v=9n-hyA2-FDg", genre: "流行", occasion: "", language: "法语", tag: "" },
-    { title: "Le courage d'aimer: Noël", link: "https://www.youtube.com/watch?v=A2cvjX_izOI", genre: "流行", occasion: "", language: "法语", tag: "" },
-    { title: "La Cubana Caliente", link: "https://www.youtube.com/watch?v=mMCDMyzler4", genre: "流行", occasion: "", language: "法语", tag: "" },
-    { title: "Gérard Darmon feat. Amel Bent - Pardon mon amour", link: "https://www.youtube.com/watch?v=2BqmHx88z7c", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "Maintenant", link: "https://www.youtube.com/watch?v=-FvVRYCRFC8", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "KLAUS&KINSKI - Mengele y el amor", link: "https://www.youtube.com/watch?v=55xK8vxerLc", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "Mil pasos (feat. Antoine Essertier)", link: "https://www.youtube.com/watch?v=D47FMzmVNA8", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "Govi - Espresso", link: "https://www.youtube.com/watch?v=5cICI4yIai4", genre: "流行", occasion: "放松,舞曲", language: "法语", tag: "" },
-    { title: "French Paris Chanson - Un Voyage Romantique", link: "https://www.youtube.com/watch?v=DInuHQGpe_0", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-    { title: "Chanson Française d'Amour", link: "https://www.youtube.com/watch?v=n3gDRzagDJk", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-    { title: "The Elegance of Silence - Relaxing French Songs", link: "https://www.youtube.com/watch?v=p5x6m91CzDA", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-    { title: "Cigarette in Paris | French Emotional Chill", link: "https://www.youtube.com/watch?v=B8hywVKUr3w&list=RDB8hywVKUr3w&start_radio=1", genre: "流行", occasion: "抒情", language: "法语", tag: "集合" },
-
-    // ===== 流行 - 西班牙语 =====
-    { title: "Cachao - Master Sessions: El Son No Ha Muerto", link: "https://www.youtube.com/watch?v=UVt2by_EOT4", genre: "流行", occasion: "放松", language: "西班牙语", tag: "" },
-    { title: "¿Donde Estas, Yolanda?", link: "https://www.youtube.com/watch?v=RfAfQt0i0GU", genre: "流行", occasion: "放松,舞曲", language: "西班牙语", tag: "" },
-    { title: "La Llorona - Carmen Goett", link: "https://www.youtube.com/watch?v=i3ASIYixqUI", genre: "流行", occasion: "抒情", language: "西班牙语", tag: "" },
-
-    // ===== 流行 - 意大利语 =====
-    { title: "Rome Night Serenades | Vintage Italian Love Songs Playlist", link: "https://www.youtube.com/watch?v=JZ6l6rvNcj80", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-    { title: "Italian Love Story at Lake Como (1960s Golden Era)", link: "https://www.youtube.com/watch?v=Bv3Y6hnoMv8", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-    { title: "Malena | Vintage 50s-60s Italian Love Songs Playlist", link: "https://www.youtube.com/watch?v=MlSKw1Q9y6M", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-    { title: "Serenades in Rome at Dusk | Vintage Italian Love Songs", link: "https://www.youtube.com/watch?v=xr8e_hpVOrg", genre: "流行", occasion: "抒情", language: "意大利语", tag: "集合" },
-
-    // ===== 流行 - 蒙古/其他 =====
-    { title: "Amyran - Altai Kai", link: "https://www.youtube.com/watch?v=T04628YySJQ", genre: "流行", occasion: "伤感", language: "蒙古语", tag: "" },
-    { title: "Saa Magni - Oumou Sangaré", link: "https://www.youtube.com/watch?v=4_YyroDeZrY", genre: "流行", occasion: "放松", language: "语言不详", tag: "" },
-
-    // ===== 流行 - 柬埔寨语 =====
-    { title: "Woman Wants To Drink", link: "https://www.youtube.com/watch?v=WyfvwyExIrY", genre: "流行", occasion: "放松", language: "柬埔寨语", tag: "" },
-    { title: "កូនកំសត់ - រស់ សេរីសុធា | Kon Komsot", link: "https://www.youtube.com/watch?v=zVgLickmTPw", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "" },
-    { title: "ផាត់ជាយបណ្តូលចិត្ត (2024 Remaster)", link: "https://www.youtube.com/watch?v=SzVMi3w-xbE&list=OLAK5uy_notHicqy7ErtQQCa9muIBivkcBbj4s_go&index=12", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "" },
-    { title: "ខ្លាចបាត់បង COVER BY ATHA", link: "https://www.youtube.com/watch?v=Hvv-edtuHrY", genre: "流行", occasion: "伤感", language: "柬埔寨语", tag: "" },
-    { title: "Suly Pheng - មិនច្បាស់ជាមួយអូន ft. Olica", link: "https://www.youtube.com/watch?v=DAMbnO11g_I", genre: "流行", occasion: "伤感", language: "柬埔寨语", tag: "" },
-    { title: "ត្រៀមចិត្តសំរាប់ឈឺ", link: "https://www.youtube.com/watch?v=gW7YoA6JHFo", genre: "流行", occasion: "伤感", language: "柬埔寨语", tag: "" },
-    { title: "G-Devith ft. Hour Lavy - ឱ! សង្សារបងហ្អេីយ", link: "https://www.youtube.com/watch?v=9MD53nS5wZg", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "" },
-    { title: "ផាត់ជាយបណ្តូលចិត្ត", link: "https://www.youtube.com/watch?v=XmkEppXe6ug", genre: "流行", occasion: "抒情", language: "柬埔寨语", tag: "回忆" },
-
-    // ===== 流行 - 菲律宾语 =====
-    { title: "Arthur Nery - Pagsamo", link: "https://www.youtube.com/watch?v=mPY4klSa1EA", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "Moira Dela Torre - Babalik Sa'yo", link: "https://www.youtube.com/watch?v=uPklMSpmvGs", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "Tagpuan - Moira Dela Torre", link: "https://www.youtube.com/watch?v=Xkj1csb3bws", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "PAUBAYA - Moira Dela Torre", link: "https://www.youtube.com/watch?v=DmVjmzOmUO4&list=RDEMZw8pq3NkhwGJEII9zQa3Tw&index=4", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-    { title: "Malaya - Moira Dela Torre", link: "https://www.youtube.com/watch?v=T2uwdcqZq08&list=RDEMZw8pq3NkhwGJEII9zQa3Tw&index=18", genre: "流行", occasion: "抒情", language: "菲律宾语", tag: "" },
-
-    // ===== 黑帮合辑 =====
-    { title: "RUSSIAN MAFIA 808: Krov i Ten 2026", link: "https://www.youtube.com/watch?v=YCMkEM54wQ4&list=RDYCMkEM54wQ4&start_radio=1", genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-    { title: "Russian Mafia Rap 2026 - Criminals", link: "https://www.youtube.com/watch?v=dTM95-nzJSQ&list=RDdTM95-nzJSQ&start_radio=1", genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-    { title: "Italian Mafia Lofi Rain | 1940s String Noir Beats", link: "https://www.youtube.com/watch?v=2WWZvIMX-V4&list=RD2WWZvIMX-V4&start_radio=1", genre: "流行", occasion: "", language: "意大利语", tag: "黑帮,集合,纯音乐" },
-    { title: "Gangsta Virus - 2Pac Feat. Tech N9ne, Ice Cube, Eminem (DJ Mimo Remix)", link: "https://www.youtube.com/watch?v=TlNUUxRzI9M&list=RDTlNUUxRzI9M&start_radio=1", genre: "Rap", occasion: "", language: "英语", tag: "黑帮,集合" },
-    { title: "Живём на краю @BratSevera", link: "https://www.youtube.com/watch?v=c7jXxqJvOhg&list=RDc7jXxqJvOhg&start_radio=1", genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-    { title: "Живём на краю @BratSevera", link: "https://www.youtube.com/watch?v=vj2mw8GVnsw&list=RDvj2mw8GVnsw&start_radio=1, genre: "Rap", occasion: "", language: "俄语", tag: "黑帮,集合" },
-
-    // ===== 日系trap =====
-    { title: "Japanese Trap Beat Mix", link: "https://www.youtube.com/watch?v=nj33MArNjC8&list=RDnj33MArNjC8&start_radio=1", genre: "日系trap", occasion: "", language: "纯音乐", tag: "集合" },
-    { title: "Dark Samurai - Type Beat", link: "https://www.youtube.com/watch?v=RqdovpDZ1l4&list=RDRqdovpDZ1l4&start_radio=1", genre: "日系trap", occasion: "", language: "纯音乐", tag: "集合" },
-    { title: "HATTORI - 服部", link: "https://www.youtube.com/watch?v=BLyz7_Ou5bY&list=RDBLyz7_Ou5bY&start_radio=1", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-    { title: "HATTORI - 服部 (Version 2)", link: "https://www.youtube.com/watch?v=raZ4YSXziUU", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-    { title: "SAMURAI【武士】", link: "https://www.youtube.com/watch?v=ht7NLjVISIE", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-    { title: "Japanese Type Beat - Yasuke (Hard)", link: "https://www.youtube.com/watch?v=rMirfImmYfA", genre: "trap", occasion: "走路", language: "纯音乐", tag: "" },
-
-    // ===== 中国古典 =====
-    { title: "琵琶語（林海）", link: "https://www.youtube.com/watch?v=VUJASgchLyg", genre: "中国古典", occasion: "禅修", language: "纯音乐", tag: "伤感" },
-    { title: "忆江南 方锦龙", link: "https://www.youtube.com/watch?v=K2JUJvZjxko", genre: "中国古典", occasion: "禅修", language: "纯音乐", tag: "" },
-    { title: "半山听雨", link: "https://www.youtube.com/watch?v=3XFVORZNYTM", genre: "中国古典", occasion: "禅修", language: "纯音乐", tag: "" },
-
-    // ===== 古典乐 =====
-    { title: "Mozart - Requiem", link: "https://www.youtube.com/watch?v=Zi8vJ_lMxQI&list=RDEMuF6xHfdoEKN-ecgY4pwzXw&index=22", genre: "古典乐", occasion: "", language: "纯音乐", tag: "" },
-    { title: "15 首古典杰作 - 古典音乐", link: "https://www.youtube.com/watch?v=-drBYX40tAk", genre: "古典乐", occasion: "", language: "纯音乐", tag: "集合" },
-    { title: "約翰·威廉斯：帝國進行曲 (John Williams: The Imperial March)", link: "https://www.youtube.com/watch?v=d_DQ5oGYow4", genre: "古典乐", occasion: "", language: "纯音乐", tag: "电影,星球大战" },
-
-    // ===== 电影 | 游戏 纯音乐 =====
-    { title: "1 HOUR DAVY JONES | PLAYED ON HARP", link: "https://www.youtube.com/watch?v=Wvx3dkYoX34", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,加勒比海盗" },
-    { title: "Interstellar Main Theme - Hans Zimmer", link: "https://www.youtube.com/watch?v=kpz8lpoLvrA", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,星际穿越" },
-    { title: "電影主題曲 The Lord of the Rings", link: "https://www.youtube.com/watch?v=tx9wK5TgZp8", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,指环王" },
-    { title: "Takiya Genji Fights | Crow Zero | Into the Battlefield", link: "https://www.youtube.com/watch?v=l18Wd98IoyQ", genre: "流行", occasion: "走路", language: "纯音乐", tag: "电影,热血高校,黑帮" },
-    { title: "Kill Bill OST", link: "https://www.youtube.com/watch?v=9KHEcUF_fvQ&list=PLF64CCABF06A9F273", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,集合" },
-    { title: "The Godfather OST", link: "https://www.youtube.com/watch?v=MnSEZQEAPmE&list=RDEMuF6xHfdoEKN-ecgY4pwzXw&index=6", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,黑帮,集合" },
-    { title: "Nocturne", link: "https://www.youtube.com/watch?v=_fjbR0qKT8w", genre: "流行", occasion: "", language: "纯音乐", tag: "电影" },
-    { title: "Official World of Warcraft 魔兽世界", link: "https://www.youtube.com/watch?v=800be1ZmGd0&list=PL15C476DB9D6B0D61&index=1", genre: "流行", occasion: "", language: "纯音乐", tag: "游戏,魔兽世界,集合" },
-    { title: "300 OST #4 Returns A King", link: "https://www.youtube.com/watch?v=zScsGbMnYHk&list=PL6A42B9906E1DBA37&index=4", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,斯巴达300勇士,集合" },
-    { title: "A Dark Knight 蝙蝠侠黑暗骑士崛起", link: "https://www.youtube.com/watch?v=zScsGbMnYHk&list=PL6A42B9906E1DBA37&index=4", genre: "流行", occasion: "", language: "纯音乐", tag: "电影,黑暗骑士,集合" },
-    { title: "Planetarium", link: "https://www.youtube.com/watch?v=qV1KxmGDkk8", genre: "流行", occasion: "", language: "纯音乐", tag: "电影" },
-    { title: "Mia & Sebastian's Theme", link: "https://www.youtube.com/watch?v=Wk7RrtEGDyo", genre: "流行", occasion: "", language: "纯音乐", tag: "电影" },
-
-    // ===== 蓝调 =====
-    { title: "芝加哥蓝调音乐 – 放松灵魂蓝调精选集 Vol.010", link: "https://www.youtube.com/watch?v=LBHhL1Socb4", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-    { title: "Whiskey Blues - Melodies for Evening Chill", link: "https://www.youtube.com/watch?v=Aja2q5XAIQ0", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-    { title: "2025微醺紳士暗黑藍調", link: "https://www.youtube.com/watch?v=vcCOThSdoMs", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-    { title: "Music for Men Who Stay Silent | Gentleman Dark Blues", link: "https://www.youtube.com/watch?v=VQdubB5nng4", genre: "蓝调", occasion: "放松", language: "英语", tag: "集合" },
-
-    // ===== 舞曲 | 纯音乐 =====
-    { title: "La Cumparsita", link: "https://www.youtube.com/watch?v=6lmN994zTlI", genre: "流行", occasion: "放松,舞曲", language: "纯音乐", tag: "" },
-
-    // ===== 伴奏 =====
-    { title: "Okean Elzy - Obijmy (CallmeArco Remix) / GTR and SRT Showtime", link: "https://www.youtube.com/watch?v=EwZB5pgGo1M&list=RDEwZB5pgGo1M&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "完美" },
-
-    // ===== 纯音乐（走路/开车）=====
-    { title: "La Câlin", link: "https://www.youtube.com/watch?v=28W_sotzXUw", genre: "流行", occasion: "走路,开车", language: "纯音乐", tag: "" },
-    { title: "La Câlin Remix", link: "https://www.youtube.com/watch?v=BLyz7_Ou5bY", genre: "流行", occasion: "走路,开车", language: "纯音乐", tag: "" },
-    { title: "Prison Break - Strings Of Prisoners - Extended", link: "https://www.youtube.com/watch?v=aXBVoZ48fRc", genre: "流行", occasion: "走路", language: "纯音乐", tag: "美剧" },
-    { title: "N2V - Hanayoi Dochu 花宵道中", link: "https://www.youtube.com/watch?v=yDaOv5o_bV4&list=RDyDaOv5o_bV4&start_radio=1", genre: "日系trap", occasion: "", language: "纯音乐", tag: "花宵道中" },
-    { title: "DIRTY CLASS - CHINA", link: "https://www.youtube.com/watch?v=ilHyxox4G2w&list=RDilHyxox4G2w&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "" },
-    { title: "Celestial Symphony 云宫迅音 黑神话:悟空", link: "https://www.youtube.com/watch?v=w_13U6FrK4U&list=RDw_13U6FrK4U&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "游戏,黑神话悟空" },
-    { title: "Arabian Nights Instrumental (Desert Vibes version)", link: "https://www.youtube.com/watch?v=gin_VBYqWBo&list=RDgin_VBYqWBo&start_radio=1", genre: "流行", occasion: "", language: "纯音乐", tag: "阿拉伯" },
-    { title: "WYR GEMI - Black Samurai", link: "https://www.youtube.com/watch?v=ptLqwJDGbjw", genre: "Rap", occasion: "走路", language: "纯音乐", tag: "黑帮" },
-
-    // ===== Hillsong 敬拜 =====
-    { title: "His Glory Appears - Hillsong Faith+Hope+Love", link: "https://www.youtube.com/watch?v=UJRR3TEjm7Q&list=RDUJRR3TEjm7Q&index=1", genre: "流行", occasion: "敬拜", language: "英语", tag: "集合" },
-    { title: "I Surrender - Hillsong Worship", link: "https://www.youtube.com/watch?v=s7jXASBWwwI", genre: "流行", occasion: "敬拜", language: "英语", tag: "" },
-    { title: "Hillsong Worship", link: "https://www.youtube.com/watch?v=8YKJVx4qxcs", genre: "流行", occasion: "敬拜", language: "英语", tag: "集合" },
-
-    // ===== Coffee =====
-    { title: "温馨冬日咖啡馆 舒缓爵士乐和温暖壁炉声", link: "https://www.youtube.com/watch?v=UVs37Q70VrE", genre: "流行", occasion: "咖啡馆", language: "纯音乐", tag: "集合" },
-
-
-
-    { title: "Andy Williams' Speak Softly, Love (from 'The Godfather')", link: "https://www.youtube.com/watch?v=PQBW6G0hSrs&list=RDEMuF6xHfdoEKN-ecgY4pwzXw&index=22", genre: "流行", occasion: "咖啡馆", language: "英文", tag: "集合,黑帮" },
-
-    { title: "Okean Elzy - Obijmy (Dabro Remix) (La Calin) ", link: "https://www.youtube.com/watch?v=HB5VK_evUQw", genre: "流行", occasion: "万能", language: "英文", tag: "万能" },
-];
-</script>
-
-
-<style>
-  body {
-    background-color: #222222;
-    color: #e0e0e0;
-    font-family: sans-serif;
-    padding: 20px;
-  }
-
-  a, a:visited, a:active, a:hover {
-    text-decoration: none !important;
-    border-bottom: none !important;
-    outline: none !important;
-  }
-
-  /* 搜索框 */
-  .search-box {
-    width: 100%;
-    max-width: 500px;
-    padding: 10px 14px;
-    font-size: 15px;
-    background-color: #333;
-    border: 1px solid #555;
-    border-radius: 6px;
-    color: #e0e0e0;
-    margin-bottom: 20px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .search-box:focus {
-    border-color: #d7ecff;
-    box-shadow: 0 0 8px rgba(215, 236, 255, 0.3);
-  }
-
-  .filters {
-    margin-bottom: 30px;
-  }
-
-  /* 分类标题 */
-  .filter-category-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #d7ecff;
-    margin-top: 20px;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #444;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .filter-category-title:first-of-type {
-    margin-top: 0;
-  }
-
-  .filter-button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-
-  .filter-btn {
-    background-color: #555;
-    border: 1px solid #666;
-    color: #aaaaaa;
-    padding: 7px 13px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    font-size: 13px;
-  }
-
-  .filter-btn:hover {
-    background-color: #666;
-    color: #cccccc;
-  }
-
-  .filter-btn.active {
-    background-color: transparent;
-    color: #ffffff;
-    box-shadow: 0 0 10px #d7ecff, 0 0 20px #d7ecff;
-    border: 1px solid #d7ecff;
-  }
-
-  /* 清除 & 统计 */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-  }
-  .clear-btn {
-    background-color: #7a3a3a;
-    color: #fff;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .clear-btn:hover {
-    background-color: #a04a4a;
-  }
-  .stats {
-    color: #888;
-    font-size: 13px;
-  }
-
-  .song-list-container {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  .song-item {
-    display: block;
-    margin: 10px 0;
-    color: #999999;
-    transition: color 0.2s;
-  }
-
-  .song-item:hover {
-    color: #d7ecff;
-  }
-</style>
-
-<input type="text" class="search-box" id="search-box" placeholder="🔍 搜索歌名...">
-
-<div class="toolbar">
-  <button class="clear-btn" onclick="clearAllFilters()">清除筛选</button>
-  <span class="stats" id="stats"></span>
-</div>
-
-<div class="filters" id="filter-buttons"></div>
-<ul class="song-list-container" id="music-list"></ul>
-
-<script>
-  const filterContainer = document.getElementById("filter-buttons");
-  const musicListContainer = document.getElementById("music-list");
-  const searchBox = document.getElementById("search-box");
-  const statsEl = document.getElementById("stats");
-
-  // 每个分类独立存放激活的筛选值
-  const activeFilters = {
-    genre: new Set(),
-    occasion: new Set(),
-    language: new Set(),
-    tag: new Set()
-  };
-
-  // 分类元信息（顺序决定显示顺序）
-  const filterCategories = [
-    { field: "genre",    label: "风格" },
-    { field: "occasion", label: "场景" },
-    { field: "language", label: "语种" },
-    { field: "tag",      label: "标签" }
-  ];
-
-  // 把 "黑帮,电影" 这种字符串拆成数组
-  function splitValues(str) {
-    if (!str) return [];
-    return str.split(",").map(s => s.trim()).filter(s => s);
-  }
-
-  // 自动从 songs 数据中提取某字段的所有唯一值
-  function extractUniqueValues(field) {
-    const set = new Set();
-    songs.forEach(song => {
-      splitValues(song[field]).forEach(v => set.add(v));
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh-CN'));
-  }
-
-  function generateFilterButtons() {
-    filterContainer.innerHTML = "";
-    filterCategories.forEach(category => {
-      const values = extractUniqueValues(category.field);
-      if (values.length === 0) return;
-
-      const title = document.createElement("div");
-      title.className = "filter-category-title";
-      title.textContent = category.label + "  (" + values.length + ")";
-      filterContainer.appendChild(title);
-
-      const group = document.createElement("div");
-      group.className = "filter-button-group";
-
-      values.forEach(val => {
-        const btn = document.createElement("button");
-        btn.className = "filter-btn";
-        btn.textContent = val;
-        btn.dataset.field = category.field;
-        btn.dataset.value = val;
-        btn.addEventListener("click", () => toggleFilter(category.field, val, btn));
-        group.appendChild(btn);
-      });
-
-      filterContainer.appendChild(group);
-    });
-  }
-
-  function toggleFilter(field, value, btn) {
-    const set = activeFilters[field];
-    if (set.has(value)) {
-      set.delete(value);
-      btn.classList.remove("active");
-    } else {
-      set.add(value);
-      btn.classList.add("active");
-    }
-    renderMusicList();
-  }
-
-  function clearAllFilters() {
-    Object.values(activeFilters).forEach(s => s.clear());
-    document.querySelectorAll(".filter-btn.active").forEach(b => b.classList.remove("active"));
-    searchBox.value = "";
-    renderMusicList();
-  }
-
-  function songMatches(song) {
-    // 同一分类 OR，不同分类 AND
-    for (const cat of filterCategories) {
-      const active = activeFilters[cat.field];
-      if (active.size === 0) continue;
-      const values = splitValues(song[cat.field]);
-      const hit = [...active].some(v => values.includes(v));
-      if (!hit) return false;
-    }
-    return true;
-  }
-
-  function renderMusicList() {
-    musicListContainer.innerHTML = "";
-    const keyword = searchBox.value.trim().toLowerCase();
-
-    const filtered = songs.filter(song => {
-      if (!songMatches(song)) return false;
-      if (keyword && !song.title.toLowerCase().includes(keyword)) return false;
-      return true;
-    });
-
-    statsEl.textContent = "共 " + songs.length + " 首，当前显示 " + filtered.length + " 首";
-
-    if (filtered.length === 0) {
-      const li = document.createElement("li");
-      li.style.color = "#666";
-      li.textContent = "没有找到匹配的歌曲";
-      musicListContainer.appendChild(li);
-      return;
-    }
-
-    filtered.forEach(song => {
-      const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.href = song.link;
-      a.target = "_blank";
-      a.textContent = song.title;
-      a.className = "song-item";
-      li.appendChild(a);
-      musicListContainer.appendChild(li);
-    });
-  }
-
-  searchBox.addEventListener("input", renderMusicList);
-
-  generateFilterButtons();
-  renderMusicList();
-</script>
-
-<!-- endraw -->
+            <ul>
+<li><a href="#%E8%8A%82%E8%83%BD%E6%96%B9%E6%A1%88">节能方案</a></li>
+<li><a href="#%E5%AF%BC%E5%85%89%E5%99%A8%E5%88%B6%E4%BD%9C">导光器制作</a></li>
+<li><a href="#%E5%85%89%E4%BC%8F%E5%82%A8%E8%83%BD%E6%B7%B7%E5%90%88%E7%B3%BB%E7%BB%9F">光伏储能混合系统</a></li>
+<li><a href="#%E7%94%B5%E5%8A%9B%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">电力节能设计方案</a></li>
+</ul>
+<h1 id="节能方案"><a href="#节能方案" class="headerlink" title="节能方案"></a>节能方案</h1><h2 id="公寓节能-东南亚环境"><a href="#公寓节能-东南亚环境" class="headerlink" title="公寓节能 东南亚环境"></a>公寓节能 东南亚环境</h2><ol>
+<li>白天光伏+储能 → 主要供夜晚和小家电使用</li>
+<li>小型风力或人体动能 → 辅助应急或小功率设备</li>
+<li>光导照明 → 白天节省照明电力</li>
+<li>智能节电+遮阳通风 → 降低整体用电</li>
+<li>热空气 → 被动通风&#x2F;热能收集</li>
+</ol>
+<h1 id="导光器制作"><a href="#导光器制作" class="headerlink" title="导光器制作"></a>导光器制作</h1><p>反光杯 + 聚光透镜 + 光纤 &#x3D; 高效导光器</p>
+<p>反光杯：手电筒的灯胆<br>聚光透镜就是：一半的凸透镜<br>光纤：导光的</p>
+<p>优势：光强高、光斑小、光纤耦合效率高<br>限制：光源功率、焦点热量、光纤耐热、精密对准<br>可以说这是 DIY 高效率光纤引光器的最佳组合之一，比单透镜或单反光杯效率高很多。</p>
+<h1 id="光伏储能混合系统（Hybrid-PV-System）"><a href="#光伏储能混合系统（Hybrid-PV-System）" class="headerlink" title="光伏储能混合系统（Hybrid PV System）"></a>光伏储能混合系统（Hybrid PV System）</h1><p>其实就是 “太阳能板 + 电池 + 混合逆变器 + 家用电网” 的综合解决方案。</p>
+<pre class="mermaid">flowchart TB
+  subgraph PV_SIDE["光伏侧 PV Side"]
+    A["光伏阵列\nPV Array"] --> B["直流汇流箱\nDC Combiner"]
+    B --> C["直流断路器/隔离开关\nDC Isolator"]
+    C --> D["混合逆变器\nHybrid Inverter (MPPT)"]
+  end
+
+  subgraph STORAGE["储能 Storage"]
+    E["电池组\nBattery Bank (LiFePO4)"] --> F["BMS"]
+    F --> D
+  end
+
+  subgraph AC_SIDE["交流侧 AC Side"]
+    D --> G["交流输出\nAC Output"]
+    G --> H["总配电箱\nMain Distribution Panel"]
+    H --> I["日常负载\nHousehold Loads"]
+    H --> J["重要负载子配电箱\nCritical Loads (Backup)\nvia ATS/Transfer Switch"]
+    H --> K["双向电表\nBi-directional Meter"]
+    K --> L["电网\nUtility Grid"]
+  end</pre>
+
+<h2 id="所需硬件"><a href="#所需硬件" class="headerlink" title="所需硬件"></a>所需硬件</h2><h3 id="核心部件"><a href="#核心部件" class="headerlink" title="核心部件"></a>核心部件</h3><ul>
+<li><p>光伏组件（Solar PV Modules &#x2F; Solar Panels）<br>作用：把太阳光转为直流电（DC）。<br>要点：选单晶硅、高转换效率（≥19% 更优）、带 PID 抗衰能力。组件功率按屋顶面积&#x2F;需求选择（如 300–540 W&#x2F;panel）。<br>数量 &#x3D; 目标系统容量（kW） ÷ 单板功率（kW）。</p>
+</li>
+<li><p>混合逆变器（Hybrid Inverter &#x2F; PV Inverter with ESS）<br>作用：DC→AC、MPPT、管理电池充放电、并网与离网切换。<br>要点：支持双向充放电、并网认证、离网&#x2F;备电输出、通信（RS485 &#x2F; CAN &#x2F; Wi-Fi）、峰值输出能力要匹配家中最大同时功率。<br>常见规格：3kW &#x2F; 5kW &#x2F; 10kW 等；直流输入电压&#x2F;最大 MPPT 电流要能接入你的 PV 阵列。</p>
+</li>
+<li><p>储能电池（Battery Bank） — 推荐 LiFePO4（磷酸铁锂）<br>作用：存储白天多余电能，用于夜间或停电时供电。<br>要点：选择带 BMS 的电池包；标注循环寿命（≥3000 次@80% DOD 更好）；额定电压（48V 系统常见）或模块化 400V 系统（取决逆变器）。<br>容量建议（家庭参考）：5 kWh &#x2F; 10 kWh &#x2F; 20 kWh。</p>
+</li>
+<li><p>电池管理系统（BMS）<br>作用：电池保护（过充、过放、均衡、温度保护）和与逆变器通讯。<br>要点：必须与电池和逆变器兼容，支持报警与远程通信。</p>
+</li>
+</ul>
+<h2 id="电力节能设计方案"><a href="#电力节能设计方案" class="headerlink" title="电力节能设计方案"></a>电力节能设计方案</h2><h3 id="☀️-主动节能设备"><a href="#☀️-主动节能设备" class="headerlink" title="☀️ 主动节能设备"></a>☀️ 主动节能设备</h3><ul>
+<li>太阳能板（光伏发电系统）。</li>
+<li>太阳能热水器（辅助电加热）。</li>
+<li>LED 节能灯具 + 红外&#x2F;光控感应装置。</li>
+<li>高能效空调（EER ≥ 3.5，支持变频与定时功能）。</li>
+<li>智能用电控制系统（外出一键断电、自动温控）。</li>
+</ul>
+<h3 id="❄️-被动节能设计"><a href="#❄️-被动节能设计" class="headerlink" title="❄️ 被动节能设计"></a>❄️ 被动节能设计</h3><ul>
+<li>屋顶加隔热层、使用双层中空玻璃。</li>
+<li>交叉通风、中庭风道设计。</li>
+<li>高反射屋面材料（如白色瓦&#x2F;反光涂层）。</li>
+<li>插座集中控制，防止待机耗电。</li>
+</ul>
+<hr>
+<h2 id="光伏板安装"><a href="#光伏板安装" class="headerlink" title="光伏板安装"></a>光伏板安装</h2><h2 id=""><a href="#" class="headerlink" title=""></a></h2>
         </div>
     
 
@@ -984,13 +276,307 @@ const songs = [
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/10/house-recycling/">
+            <a href="/2026/10/21/house-maker/">
+                家庭-自建房
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#%E4%B8%9C%E5%8D%97%E4%BA%9A%E5%88%AB%E5%A2%85%E5%BB%BA%E8%AE%BE%E4%B8%8E%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E5%85%A8%E6%94%BB%E7%95%A5">东南亚别墅建设与节能设计全攻略</a><ul>
+<li><a href="#%E5%9C%B0%E5%9F%BA%E9%98%B6%E6%AE%B5%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">地基阶段注意事项</a></li>
+<li><a href="#%E7%94%B5%E5%8A%9B%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">电力节能设计方案</a></li>
+<li><a href="#%E6%B0%B4%E8%B5%84%E6%BA%90%E8%8A%82%E8%83%BD%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88">水资源节能设计方案</a></li>
+<li><a href="#%E5%AE%A4%E5%86%85%E8%A3%85%E4%BF%AE%E9%98%B6%E6%AE%B5%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">室内装修阶段注意事项</a></li>
+</ul>
+</li>
+<li><a href="#%E5%85%AC%E5%AF%93%E5%AE%A4%E5%86%85%E8%A3%85%E4%BF%AE">公寓室内装修</a></li>
+<li><a href="#%E4%BA%91%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">云操作系统</a></li>
+<li><a href="#DIY">DIY</a></li>
+<li><a href="#%E6%B0%B4%E5%9F%B9%E8%94%AC%E8%8F%9C">水培蔬菜</a></li>
+<li><a href="#%E7%94%9F%E6%80%81%E9%B1%BC%E7%BC%B8">生态鱼缸</a></li>
+</ul>
+<p>基础配置</p>
+<ul>
+<li>楼高-两层半足矣</li>
+<li>一楼：厨房、餐厅、客厅、停车位、老人房、公用洗手间、蓄电房</li>
+<li>二楼：主卧、次卧、次卧</li>
+</ul>
+<h1 id="东南亚别墅建设与节能设计全攻略"><a href="#东南亚别墅建设与节能设计全攻略" class="headerlink" title="东南亚别墅建设与节能设计全攻略"></a>东南亚别墅建设与节能设计全攻略</h1><h2 id="地基阶段注意事项"><a href="#地基阶段注意事项" class="headerlink" title="地基阶段注意事项"></a>地基阶段注意事项</h2><h3 id="防水处理"><a href="#防水处理" class="headerlink" title="防水处理"></a>防水处理</h3><ul>
+<li>关键节点加强防水：厨房、卫生间的地面与墙面交界处，务必采用聚氨酯或水泥基防水涂料，并向上返高≥30cm。</li>
+<li>设置防潮层：一楼地面下应预铺防潮膜（如PVC或自粘式沥青卷材），有效阻隔地气上升。</li>
+<li>户外地面坡度设计：屋外地坪应高于周边排水沟至少10cm，地面向外倾斜2~3%，防止雨水回流。</li>
+</ul>
+<h3 id="热水-供水布局"><a href="#热水-供水布局" class="headerlink" title="热水&#x2F;供水布局"></a>热水&#x2F;供水布局</h3><ul>
+<li>热水管道预埋：采用PPR或PE-RT热水专用管，外包保温棉，防止热量流失。</li>
+<li>太阳能热水系统预留：<ul>
+<li>上水、回水、溢水管道预埋；</li>
+<li>储水箱位置尽量设于高处以确保自然水压；</li>
+</ul>
+</li>
+<li>泵系统智能化：<ul>
+<li>安装断电自停功能，避免干烧；</li>
+<li>可选变频恒压泵以提升用水舒适度与节能效果。</li>
+</ul>
+</li>
+</ul>
+<h3 id="防蚊虫叮咬"><a href="#防蚊虫叮咬" class="headerlink" title="防蚊虫叮咬"></a>防蚊虫叮咬</h3><ul>
+<li>高离地设计：将地面层抬高 40–80 cm，有效减少地面湿气与虫害滋生源。</li>
+<li>水沟与排水坡度设计：避免积水死角，是预防蚊虫滋生的核心设计。</li>
+<li>屋顶排水顺畅设计：设置排水沟槽、防堵落叶网，防止雨后积水孳生蚊子。</li>
+<li>无死角阴暗空间：减少蚊虫栖息区域，尤其在厨房、厕所、天花板边缘。</li>
+</ul>
+<h3 id="节能导向的地基设计"><a href="#节能导向的地基设计" class="headerlink" title="节能导向的地基设计"></a>节能导向的地基设计</h3><ul>
+<li>保温层预留：在地坪施工前铺设XPS 挤塑板或泡沫混凝土，减少地面热传导；</li>
+<li>太阳能系统预布线：地基预留光伏电缆通道、电池房管线槽；</li>
+<li>雨水收集系统接口：预埋雨水排入储水池的管道，用于冲厕、浇花等二次利用。</li>
+</ul>
+<hr>
+<h2 id="电力节能设计方案"><a href="#电力节能设计方案" class="headerlink" title="电力节能设计方案"></a>电力节能设计方案</h2><a href="/2026/10/21/house-electric/" title="家庭-电力节能">家庭-电力节能</a>
+
+<h2 id="水资源节能设计方案"><a href="#水资源节能设计方案" class="headerlink" title="水资源节能设计方案"></a>水资源节能设计方案</h2><table>
+<thead>
+<tr>
+<th>级别</th>
+<th>水质要求</th>
+<th>用水场景</th>
+<th>推荐水源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>✅ 一级水</td>
+<td><strong>可直接饮用</strong></td>
+<td>饮水、做饭</td>
+<td>自来水 &#x2F; 反渗透（RO）处理后的雨水或地下水</td>
+</tr>
+<tr>
+<td>✅ 二级水</td>
+<td><strong>可接触皮肤</strong></td>
+<td>洗澡、泳池、洗手</td>
+<td>雨水+三级过滤杀菌 &#x2F; 污水深度处理水</td>
+</tr>
+<tr>
+<td>✅ 三级水</td>
+<td><strong>无皮肤接触</strong></td>
+<td>冲厕、洗衣机、室内清洁</td>
+<td>雨水+普通过滤 &#x2F; 灰水处理出水</td>
+</tr>
+<tr>
+<td>✅ 四级水</td>
+<td><strong>非接触景观水</strong></td>
+<td>浇花、冲地、喷泉、景观池补水</td>
+<td>荷花池雨水原水 &#x2F; 简单过滤的灰水</td>
+</tr>
+</tbody></table>
+<p>🔧 每级水处理建议方案</p>
+<ul>
+<li>🥇 一级水（饮用）<ul>
+<li>推荐：自来水 或<ul>
+<li>RO膜+UV消毒雨水系统</li>
+<li>末端设置净水龙头（饮水分开）</li>
+</ul>
+</li>
+<li>用于：厨房饮用水、泡茶、做饭</li>
+</ul>
+</li>
+<li>🥈 二级水（洗澡 &#x2F; 泳池）<ul>
+<li>雨水处理需：<ul>
+<li>多级砂滤 + 活性炭 + 紫外线（或臭氧）</li>
+</ul>
+</li>
+<li>池水需循环过滤系统 + 定期杀菌</li>
+</ul>
+</li>
+<li>🥉 三级水（冲厕 &#x2F; 洗衣）<ul>
+<li>雨水+简单过滤即可；</li>
+<li>或使用处理后的灰水（洗澡水）</li>
+</ul>
+</li>
+<li>🧯 四级水（浇花 &#x2F; 景观）<ul>
+<li>不需杀菌；</li>
+<li>可直接从荷花池抽取或雨水初滤水</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/house-maker-1.png"></p>
+<h3 id="🌧️-雨水管理与回用"><a href="#🌧️-雨水管理与回用" class="headerlink" title="🌧️ 雨水管理与回用"></a>🌧️ 雨水管理与回用</h3><ul>
+<li>屋顶雨水收集系统（落水管 + 滤网 + 蓄水桶）。</li>
+<li>灰水（洗澡&#x2F;洗衣水）过滤后回用：冲厕、浇花。</li>
+<li>智能水表 + 水流实时监控，漏水报警。</li>
+</ul>
+<h3 id="🚿-节水设备与生活用水优化"><a href="#🚿-节水设备与生活用水优化" class="headerlink" title="🚿 节水设备与生活用水优化"></a>🚿 节水设备与生活用水优化</h3><ul>
+<li>节水型洁具（双档马桶、节水花洒、起泡龙头）。</li>
+<li>可降解洗涤剂（适配灰水系统，避免堵塞&#x2F;污染）。</li>
+<li>花园微滴灌系统，减少水耗、提高效率。</li>
+</ul>
+<h3 id="♻️-污水处理与再利用"><a href="#♻️-污水处理与再利用" class="headerlink" title="♻️ 污水处理与再利用"></a>♻️ 污水处理与再利用</h3><ul>
+<li><p><strong>处理方式</strong>：</p>
+<ul>
+<li>三格式化粪池：基础版，适用于1~3户。</li>
+<li>一体化小型污水处理设备：出水可灌溉&#x2F;冲厕。</li>
+<li>MBR 膜处理系统：可达中水标准，回用广泛。</li>
+</ul>
+</li>
+<li><p><strong>运行优化</strong>：</p>
+<ul>
+<li>使用电曝气或风曝气系统提升处理效率。</li>
+<li>搭配太阳能曝气机节能运行。</li>
+</ul>
+</li>
+<li><p><strong>回用建议</strong>：</p>
+<ul>
+<li>出水仅用于非饮用途，如景观、花园、厕所冲水。</li>
+<li>设置绿植过滤带&#x2F;湿地吸收，提升生态安全性。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="室内装修阶段注意事项"><a href="#室内装修阶段注意事项" class="headerlink" title="室内装修阶段注意事项"></a>室内装修阶段注意事项</h2><h3 id="🚽-卫生间设计"><a href="#🚽-卫生间设计" class="headerlink" title="🚽 卫生间设计"></a>🚽 卫生间设计</h3><ul>
+<li>洗手台面应有微斜排水设计，避免水滞留。</li>
+<li>地面坡度 ≥1.5%，设置地漏 ≥2个，防止积水。</li>
+<li>建议做干湿分离（玻璃隔断&#x2F;推拉门）。</li>
+</ul>
+<h3 id="🪟-窗户设计"><a href="#🪟-窗户设计" class="headerlink" title="🪟 窗户设计"></a>🪟 窗户设计</h3><ul>
+<li>落地窗滑轮推荐安装于上方，更防尘易维护。</li>
+<li>建议使用中空双层玻璃 + 隔热断桥铝材料。</li>
+<li>窗户加装密封条，提升隔音与保温性能。</li>
+</ul>
+<h3 id="🍳-厨房设计"><a href="#🍳-厨房设计" class="headerlink" title="🍳 厨房设计"></a>🍳 厨房设计</h3><ul>
+<li>选 ≥17m³&#x2F;min 吸力油烟机，配备止回阀。</li>
+<li>抽油烟口向外，带防虫防雨罩。</li>
+<li>橱柜下方设计通风口或百叶门，防潮防霉。</li>
+</ul>
+<h3 id="照明与配电系统设计"><a href="#照明与配电系统设计" class="headerlink" title="照明与配电系统设计"></a>照明与配电系统设计</h3><p>配电安全</p>
+<ul>
+<li>强电&#x2F;弱电分离布线，避免干扰，布线使用阻燃线管。</li>
+<li>所有空调、热水器、厨房电器应设置独立回路 + 空气开关；</li>
+<li>建议安装漏电保护器（ELCB）+ 电涌保护器（SPD），应对雷击等风险。</li>
+</ul>
+<p>照明布局</p>
+<ul>
+<li>主照明建议使用LED 吸顶灯或筒灯，高效节能；</li>
+<li>卧室、走廊、卫生间建议搭配感应灯或夜灯，便捷又节能；</li>
+<li>考虑预埋智能照明控制系统（如 Zigbee、Wi-Fi、KNX），后期可接入 Home Assistant 等智能中枢。</li>
+</ul>
+<hr>
+<h2 id="🌿-节能建筑设计辅助方案"><a href="#🌿-节能建筑设计辅助方案" class="headerlink" title="🌿 节能建筑设计辅助方案"></a>🌿 节能建筑设计辅助方案</h2><h3 id="🍃-通风与遮阳设计"><a href="#🍃-通风与遮阳设计" class="headerlink" title="🍃 通风与遮阳设计"></a>🍃 通风与遮阳设计</h3><ul>
+<li>中庭通风井、开窗对流、屋檐挑出 ≥0.8m。</li>
+<li>百叶窗与高位排气窗配合，增强排热与遮阳效果。</li>
+</ul>
+<h3 id="🧱-材料与结构选择"><a href="#🧱-材料与结构选择" class="headerlink" title="🧱 材料与结构选择"></a>🧱 材料与结构选择</h3><ul>
+<li>使用本地天然建材（竹、柚木、红土砖），低碳环保。</li>
+<li>坡屋顶利于排水与热对流。</li>
+<li>设置独立“设备房”：集中布置电池、泵、过滤设备等，方便维护与检修。</li>
+</ul>
+<hr>
+<h2 id="✅-附加建议（施工实用）"><a href="#✅-附加建议（施工实用）" class="headerlink" title="✅ 附加建议（施工实用）"></a>✅ 附加建议（施工实用）</h2><ul>
+<li>插座预留合理，避免后期拖线。</li>
+<li>弱电布线提前规划：摄像头、Wi-Fi、门禁等。</li>
+<li>屋顶可加绿植或设凉亭，降温又美观。</li>
+<li>建议双管排水（黑水&#x2F;灰水分离），提升回用系统效率。</li>
+</ul>
+<h1 id="云操作系统"><a href="#云操作系统" class="headerlink" title="云操作系统"></a>云操作系统</h1><a href="/2026/10/21/house-system/" title="家庭-中控系统">家庭-中控系统</a>
+
+<h1 id="公寓室内装修"><a href="#公寓室内装修" class="headerlink" title="公寓室内装修"></a>公寓室内装修</h1><a href="/2026/10/21/house-condo/" title="家庭-公寓">家庭-公寓</a>
+
+
+<h1 id="DIY"><a href="#DIY" class="headerlink" title="DIY"></a>DIY</h1><a href="/2026/10/21/house-diy/" title="家庭-DIY">家庭-DIY</a>
+
+
+<h4 id="投影仪"><a href="#投影仪" class="headerlink" title="投影仪"></a>投影仪</h4><p>小米 1S 激光</p>
+<h1 id="水培蔬菜"><a href="#水培蔬菜" class="headerlink" title="水培蔬菜"></a>水培蔬菜</h1><a href="/2026/10/21/house-vegetable/" title="家庭-阳台生态">家庭-阳台生态</a>
+
+<h1 id="生态鱼缸"><a href="#生态鱼缸" class="headerlink" title="生态鱼缸"></a>生态鱼缸</h1><h2 id="阳光充足房-面朝南"><a href="#阳光充足房-面朝南" class="headerlink" title="阳光充足房 面朝南"></a>阳光充足房 面朝南</h2><h3 id="所需"><a href="#所需" class="headerlink" title="所需"></a>所需</h3><ul>
+<li>鱼 (功能：观赏,粪便可为花园提供养分)</li>
+<li>淡水蚬 (功能：帮助净化水质,人可食用)</li>
+<li>黑壳虾 (功能：可以吃死鱼和死蚬)</li>
+<li>迷你睡莲 (功能：观赏)</li>
+<li>水草 (功能：帮助净化水质,给鱼当食物)</li>
+<li>假山 上面有天湖荽</li>
+<li>瀑布</li>
+<li>鱼缸底部 是火山石 小沙粒(淡水蚬需要)</li>
+</ul>
+<h2 id="生态鱼缸系统总结与维护要点"><a href="#生态鱼缸系统总结与维护要点" class="headerlink" title="生态鱼缸系统总结与维护要点"></a>生态鱼缸系统总结与维护要点</h2><p>这个系统之所以能接近“不用护理”的状态，核心在于构建了一个功能完备的食物链和分解链，实现了养分在系统内部的良性循环：</p>
+<h3 id="核心优势：完整的生态循环链"><a href="#核心优势：完整的生态循环链" class="headerlink" title="核心优势：完整的生态循环链"></a>核心优势：完整的生态循环链</h3><ul>
+<li><p><strong>生产者：</strong></p>
+<ul>
+<li>水草和睡莲利用阳光和鱼的粪便生长。</li>
+</ul>
+</li>
+<li><p><strong>初级消费者：</strong></p>
+<ul>
+<li>鱼和虾吃藻类和水草（少量）。</li>
+</ul>
+</li>
+<li><p><strong>分解者（关键）：</strong></p>
+<ul>
+<li>黑壳虾是吃死鱼、死虾和死蚬的“主力军”，防止尸体腐烂污染水质。</li>
+<li>蚬滤食水中的微生物和碎屑。</li>
+<li>细菌最终分解所有有机物。</li>
+</ul>
+</li>
+<li><p><strong>养分循环：</strong></p>
+<ul>
+<li>植物吸收分解后的废物，水质保持清澈，形成良性循环。</li>
+</ul>
+</li>
+</ul>
+<h3 id="还需要注意什么？"><a href="#还需要注意什么？" class="headerlink" title="还需要注意什么？"></a>还需要注意什么？</h3><p>虽然系统设计得很完善，但要实现<strong>完全“不用护理”是不可能的</strong>。您依然需要进行最基础的维护：</p>
+<ul>
+<li><p><strong>光照管理：</strong></p>
+<ul>
+<li>阳光充足的南向房是优势，但需要注意<strong>遮阳</strong>，避免阳光直射时间过长导致夏天水温过高或藻类大爆发。您可能需要拉一下窗帘。</li>
+</ul>
+</li>
+<li><p><strong>水量补充：</strong></p>
+<ul>
+<li>瀑布蒸发会带走水分，需要定期（比如每周）补充蒸发掉的水分。</li>
+</ul>
+</li>
+<li><p><strong>生物密度控制：</strong></p>
+<ul>
+<li>如果鱼和虾繁殖过多，系统可能会不堪重负，需要适度捕捞或移出部分生物。</li>
+</ul>
+</li>
+<li><p><strong>偶尔的清理：</strong></p>
+<ul>
+<li>睡莲枯叶、堆积过多的螺壳（如前所述）等，偶尔需要手动清除一下。</li>
+</ul>
+</li>
+</ul>
+<h3 id="结论："><a href="#结论：" class="headerlink" title="结论："></a>结论：</h3><p>这个配置方案非常棒，只要您控制好生物数量和光照，它确实能实现极低维护的状态，是您想要的“生态鱼缸”的理想模型。</p>
+<h3 id="水培和鱼缸共通-让黑壳虾随去自由"><a href="#水培和鱼缸共通-让黑壳虾随去自由" class="headerlink" title="水培和鱼缸共通 让黑壳虾随去自由"></a>水培和鱼缸共通 让黑壳虾随去自由</h3><p><img src="/images/%E6%B0%B4%E5%9F%B9%E9%B1%BC%E7%BC%B8.png" alt="蓝色为鱼缸水 红色为营养液"></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/21/house-recycling/">
                 家庭-♻️废物循环利用
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-10</span>
+                <span class="date">2026-10-21</span>
             
             
             
@@ -1022,369 +608,13 @@ const songs = [
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/10/house-vegetable/">
-                家庭-阳台生态
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#%E6%A0%B8%E5%BF%83%E9%9C%80%E6%B1%82">核心需求</a></li>
-<li><a href="#%E7%B3%BB%E7%BB%9F%E6%90%AD%E5%BB%BA%E6%AD%A5%E9%AA%A4">系统搭建步骤</a></li>
-<li><a href="#%E9%98%B3%E5%8F%B0%E7%94%9F%E6%80%81%E5%BE%AA%E7%8E%AF%E7%B3%BB%E7%BB%9F%E5%AE%8C%E6%95%B4%E6%96%B9%E6%A1%88">阳台生态循环系统完整方案</a><ul>
-<li><a href="#%E6%95%B4%E4%BD%93%E7%94%9F%E6%80%81%E7%BB%93%E6%9E%84">整体生态结构</a></li>
-<li><a href="#%E9%98%B3%E5%8F%B0%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%92">阳台分区规划</a></li>
-<li><a href="#%E5%8E%A8%E4%BD%99%E4%BA%A7%E7%94%9F%E5%88%A9%E7%94%A8">厨余产生利用</a></li>
-<li><a href="#%E6%8E%A8%E8%8D%90%E7%A7%8D%E6%A4%8D">推荐种植</a></li>
-<li><a href="#%E9%B1%BC%E8%8F%9C%E5%85%B1%E7%94%9F%E7%B3%BB%E7%BB%9F">鱼菜共生系统</a></li>
-<li><a href="#%E7%BB%B4%E6%8A%A4">维护</a></li>
-</ul>
-</li>
-<li><a href="#%E5%9C%9F%E5%A3%A4%E7%A7%8D%E6%A4%8D">土壤种植</a><ul>
-<li><a href="#%E6%A4%8D%E7%89%A9%E7%94%9F%E7%97%85">植物生病</a></li>
-<li><a href="#%E8%82%A5%E6%96%99%E8%8E%B7%E5%8F%96-%E5%8E%A8%E6%88%BF%E5%BA%9F%E6%96%99">肥料获取-厨房废料</a></li>
-<li><a href="#%E5%88%9D%E9%98%B6%E5%9C%9F%E5%9F%B9">初阶土培</a></li>
-<li><a href="#%E9%AB%98%E9%98%B6%E5%9C%9F%E5%9F%B9">高阶土培</a></li>
-</ul>
-</li>
-<li><a href="#%E6%B0%B4%E5%9F%B9%E7%A7%8D%E6%A4%8D">水培种植</a><ul>
-<li><a href="#%E5%88%9D%E9%98%B6%E6%B0%B4%E5%9F%B9">初阶水培</a></li>
-</ul>
-</li>
-</ul>
-<h1 id="核心需求"><a href="#核心需求" class="headerlink" title="核心需求"></a>核心需求</h1><ol>
-<li>蔬菜水果的自给自足 （小）</li>
-<li>能够靠种菜来维持生活 - 卖菜 (大)</li>
-</ol>
-<p>过程：从半自动到全自动</p>
-<h1 id="阳台生态循环系统完整方案"><a href="#阳台生态循环系统完整方案" class="headerlink" title="阳台生态循环系统完整方案"></a>阳台生态循环系统完整方案</h1><p>🌱 阳台生态循环系统完整方案（低成本 · 低维护 · 无异味）</p>
-<blockquote>
-<p><strong>目标</strong>：构建家庭阳台微型生态闭环</p>
-<ul>
-<li>厨余 → 肥料 | 肥料水</li>
-<li>鱼缸 → 植物营养水</li>
-<li>水培 + 土培共存</li>
-<li>长期稳定、可持续</li>
-</ul>
-</blockquote>
-<hr>
-<h2 id="整体生态结构"><a href="#整体生态结构" class="headerlink" title="整体生态结构"></a>整体生态结构</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">厨房厨余</span><br><span class="line">├─ 植物性湿垃圾</span><br><span class="line">│   ↓</span><br><span class="line">│   发酵液肥 / 密封堆肥桶</span><br><span class="line">│   ↓</span><br><span class="line">│   土培植物吸收</span><br><span class="line">│   ↓</span><br><span class="line">│   修剪残渣 / 枯叶</span><br><span class="line">│   └──────→ 回到堆肥桶</span><br><span class="line">│</span><br><span class="line">├─ 鸡蛋壳</span><br><span class="line">│   ↓ 清洗 · 晾干 · 炒干 · 碾粉</span><br><span class="line">│   ↓ 补钙 / 改良土壤</span><br><span class="line">│</span><br><span class="line">└─ 其他厨余（分流处理）</span><br><span class="line"></span><br><span class="line">鱼缸系统</span><br><span class="line">鱼 / 虾</span><br><span class="line">↓ 排泄物（氨氮）</span><br><span class="line">↓ 过滤 + 水草硝化</span><br><span class="line">↓ 定期换水</span><br><span class="line">↓</span><br><span class="line">水培植物吸收</span><br><span class="line">↓</span><br><span class="line">剩余营养水</span><br><span class="line">↓</span><br><span class="line">土培植物</span><br><span class="line"></span><br><span class="line">♻ 最终形成双循环：</span><br><span class="line">厨余 → 肥料 → 植物 → 残渣 → 肥料</span><br><span class="line">鱼 → 营养水 → 植物 → 净化 → 再利用</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="阳台分区规划"><a href="#阳台分区规划" class="headerlink" title="阳台分区规划"></a>阳台分区规划</h2><h3 id="🅐-厨余处理区（源头）"><a href="#🅐-厨余处理区（源头）" class="headerlink" title="🅐 厨余处理区（源头）"></a>🅐 厨余处理区（源头）</h3><ul>
-<li>密封式堆肥桶（防虫防臭）</li>
-<li>发酵液肥瓶（带放气）</li>
-</ul>
-<h3 id="🅑-土培区（主产出）"><a href="#🅑-土培区（主产出）" class="headerlink" title="🅑 土培区（主产出）"></a>🅑 土培区（主产出）</h3><ul>
-<li>🌱幼苗成长区</li>
-<li>花盆 &#x2F; 种植箱</li>
-<li>使用自制堆肥 + 蛋壳粉</li>
-</ul>
-<h3 id="🅒-水培区（吸收营养水）"><a href="#🅒-水培区（吸收营养水）" class="headerlink" title="🅒 水培区（吸收营养水）"></a>🅒 水培区（吸收营养水）</h3><ul>
-<li>静态水培瓶 &#x2F; PVC 水培槽</li>
-<li>直接使用鱼缸换水</li>
-</ul>
-<h3 id="🅓-鱼缸区（生态核心）"><a href="#🅓-鱼缸区（生态核心）" class="headerlink" title="🅓 鱼缸区（生态核心）"></a>🅓 鱼缸区（生态核心）</h3><ul>
-<li>鱼缸 + 过滤 + 水草</li>
-<li>稳定供给氮源</li>
-</ul>
-<hr>
-<h2 id="厨余产生利用"><a href="#厨余产生利用" class="headerlink" title="厨余产生利用"></a>厨余产生利用</h2><h3 id="分类原则"><a href="#分类原则" class="headerlink" title="分类原则"></a>分类原则</h3><ul>
-<li><strong>能变肥的一定变肥</strong></li>
-<li><strong>需处理的先处理再进生态</strong></li>
-<li><strong>高风险物质分流</strong></li>
-</ul>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">① 可直接堆肥</span><br><span class="line">② 可加工再利用</span><br><span class="line">③ 可二次利用但不进生态</span><br><span class="line">④ 必须丢弃（极少）</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h3 id="①-可直接堆肥（阳台生态能源）"><a href="#①-可直接堆肥（阳台生态能源）" class="headerlink" title="① 可直接堆肥（阳台生态能源）"></a>① 可直接堆肥（阳台生态能源）</h3><p><strong>植物性湿垃圾</strong></p>
-<ul>
-<li>水果皮 &#x2F; 果渣</li>
-<li>蔬菜边角 &#x2F; 烂叶</li>
-<li>米饭、面食（少量）</li>
-<li>茶渣、咖啡渣</li>
-</ul>
-<p>❌ 避免：</p>
-<ul>
-<li>高油、高盐、重辣</li>
-</ul>
-<p>👉 处理方式：</p>
-<h3 id="懒人阳台堆肥操作流程（无液肥版）"><a href="#懒人阳台堆肥操作流程（无液肥版）" class="headerlink" title="懒人阳台堆肥操作流程（无液肥版）"></a>懒人阳台堆肥操作流程（无液肥版）</h3><ol>
-<li><p><strong>底层铺土</strong>  </p>
-<ul>
-<li>使用普通园土，厚度覆盖桶底即可</li>
-</ul>
-</li>
-<li><p><strong>投入湿垃圾</strong>  </p>
-<ul>
-<li>做饭前不要的菜叶、果渣、茶渣等</li>
-</ul>
-</li>
-<li><p><strong>覆盖土层</strong>  </p>
-<ul>
-<li>完全盖住湿垃圾，确保看不到垃圾</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="②-可加工再利用（处理后进生态）"><a href="#②-可加工再利用（处理后进生态）" class="headerlink" title="② 可加工再利用（处理后进生态）"></a>② 可加工再利用（处理后进生态）</h3><p><strong>🥚 鸡蛋壳</strong></p>
-<ul>
-<li>清洗 → 晾干 → 炒干 → 碾粉</li>
-<li>作用：补钙、调节酸碱、防虫</li>
-</ul>
-<p><strong>🦐 虾壳 &#x2F; 蟹壳（进阶）</strong></p>
-<ul>
-<li>煮去盐 → 晒干 → 粉碎</li>
-<li>少量混土（缓释钙、甲壳素）</li>
-</ul>
-<hr>
-<h3 id="③-可再利用但不进生态"><a href="#③-可再利用但不进生态" class="headerlink" title="③ 可再利用但不进生态"></a>③ 可再利用但不进生态</h3><p><strong>🛍 塑料袋 &#x2F; 包装袋</strong></p>
-<ul>
-<li>分类收纳</li>
-<li>用途：垃圾袋、防潮垫、临时种植袋</li>
-</ul>
-<hr>
-<h3 id="④-必须丢弃（不进阳台系统）"><a href="#④-必须丢弃（不进阳台系统）" class="headerlink" title="④ 必须丢弃（不进阳台系统）"></a>④ 必须丢弃（不进阳台系统）</h3><ul>
-<li>重油肉汤</li>
-<li>高盐腌制品</li>
-<li>化学污染食物</li>
-</ul>
-<hr>
-<h2 id="推荐种植"><a href="#推荐种植" class="headerlink" title="推荐种植"></a>推荐种植</h2><h3 id="土培推荐植物"><a href="#土培推荐植物" class="headerlink" title="土培推荐植物"></a>土培推荐植物</h3><ul>
-<li>九层塔（罗勒）</li>
-<li>蒜苗</li>
-<li>青柠</li>
-<li>辣椒</li>
-<li>小番茄</li>
-<li>泰国小茄子</li>
-</ul>
-<h3 id="水培推荐植物"><a href="#水培推荐植物" class="headerlink" title="水培推荐植物"></a>水培推荐植物</h3><ul>
-<li>生菜</li>
-<li>葱苗</li>
-<li>空心菜</li>
-<li>薄荷</li>
-</ul>
-<h3 id="水培推荐植物（升级版-AB液）"><a href="#水培推荐植物（升级版-AB液）" class="headerlink" title="水培推荐植物（升级版 AB液）"></a>水培推荐植物（升级版 AB液）</h3><ul>
-<li>高产果菜</li>
-</ul>
-<hr>
-<h2 id="鱼菜共生系统"><a href="#鱼菜共生系统" class="headerlink" title="鱼菜共生系统"></a>鱼菜共生系统</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">============================================================</span><br><span class="line">              全自动“两站式”极简循环架构</span><br><span class="line">============================================================</span><br><span class="line"></span><br><span class="line">       +--------------------------+</span><br><span class="line">       |   【 蔬菜种植床 】        |  &lt;-- 自动虹吸钟 (核心)</span><br><span class="line">       |   (铺满陶粒+细菌)         |      满水自动排，干水自动停</span><br><span class="line">       +------------|-------------+</span><br><span class="line">             ▲      |</span><br><span class="line">             |      | (干净的水经重力流下)</span><br><span class="line">    [水泵向上送水]    ▼</span><br><span class="line">             |    +-----------------------+</span><br><span class="line">             |    |     【 鱼 缸 】       | </span><br><span class="line">             +----|  (兼作集水仓/生化池)   |</span><br><span class="line">                  +-----------------------+</span><br><span class="line">============================================================</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="维护"><a href="#维护" class="headerlink" title="维护"></a>维护</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">每日：丢厨余进堆肥桶</span><br><span class="line">每周：收集鱼缸换水 → 浇水培</span><br><span class="line">每月：翻堆肥 / 补蛋壳粉</span><br></pre></td></tr></table></figure>
-
-<hr>
-<h1 id="土壤种植"><a href="#土壤种植" class="headerlink" title="土壤种植"></a>土壤种植</h1><h2 id="植物生病"><a href="#植物生病" class="headerlink" title="植物生病"></a>植物生病</h2><blockquote>
-<p>糖水 - 促进根部生长</p>
-</blockquote>
-<hr>
-<h2 id="肥料获取-厨房废料"><a href="#肥料获取-厨房废料" class="headerlink" title="肥料获取-厨房废料"></a>肥料获取-厨房废料</h2><h3 id="获取方法"><a href="#获取方法" class="headerlink" title="获取方法"></a>获取方法</h3><ol>
-<li>多准备土壤  </li>
-<li>每次吃饭前，将果渣、菜渣丢进肥料桶  </li>
-<li>在废料上铺一层土  </li>
-<li>重复：丢果渣&#x2F;菜渣 → 铺土，直至桶满</li>
-</ol>
-<h3 id="桶的准备"><a href="#桶的准备" class="headerlink" title="桶的准备"></a>桶的准备</h3><ul>
-<li><strong>桶A</strong>：储存土壤  </li>
-<li><strong>桶B</strong>：堆肥桶，用于发酵厨房废料</li>
-</ul>
-<hr>
-<h2 id="初阶土培"><a href="#初阶土培" class="headerlink" title="初阶土培"></a>初阶土培</h2><p><em><strong>适合种植：蒜</strong></em> </p>
-<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><ol>
-<li><strong>水培阶段</strong></li>
-</ol>
-<ul>
-<li>果核 - 清理核上的果肉残渣避免菌种繁殖污染幼苗的水质 </li>
-<li>根系 - 先用水培方式培育出蔬菜根系</li>
-</ul>
-<ol start="2">
-<li><strong>转入土壤</strong></li>
-</ol>
-<ul>
-<li>将水培成苗的蔬菜移入土壤  </li>
-<li>适量添加自制肥料，提高营养</li>
-</ul>
-<h2 id="高阶土培"><a href="#高阶土培" class="headerlink" title="高阶土培"></a>高阶土培</h2><p><em><strong>适合种植：辣椒</strong></em></p>
-<h4 id="步骤-1"><a href="#步骤-1" class="headerlink" title="步骤"></a>步骤</h4><ol>
-<li><strong>幼苗阶段</strong></li>
-</ol>
-<ul>
-<li>把种子放入土肥中 离地1-2cm</li>
-<li>浇水 浇透</li>
-<li>用塑料袋包裹着 使其温度 处于温室状态</li>
-<li>记得一定要水</li>
-<li>幼苗 （温度，水）</li>
-</ul>
-<ol start="2">
-<li><strong>转入土壤</strong></li>
-</ol>
-<ul>
-<li>此阶段重要 注意</li>
-</ul>
-<h1 id="水培种植"><a href="#水培种植" class="headerlink" title="水培种植"></a>水培种植</h1><h2 id="初阶水培"><a href="#初阶水培" class="headerlink" title="初阶水培"></a>初阶水培</h2><p><em><strong>适合种植：生菜, 空心菜, 洋葱</strong></em> </p>
-<h1 id="中级水培种植"><a href="#中级水培种植" class="headerlink" title="中级水培种植"></a>中级水培种植</h1><h4 id="✅-特点"><a href="#✅-特点" class="headerlink" title="✅ 特点"></a>✅ 特点</h4><ul>
-<li>小型循环系统，提升效率</li>
-<li>半自动化管理</li>
-<li>可持续多种蔬菜</li>
-</ul>
-<h4 id="🍀-推荐蔬菜"><a href="#🍀-推荐蔬菜" class="headerlink" title="🍀 推荐蔬菜"></a>🍀 推荐蔬菜</h4><ul>
-<li>菠菜</li>
-<li>茼蒿</li>
-<li>芥蓝</li>
-<li>西洋菜</li>
-<li>紫苏 &#x2F; 九层塔</li>
-</ul>
-<h4 id="🛠-方法"><a href="#🛠-方法" class="headerlink" title="🛠 方法"></a>🛠 方法</h4><ul>
-<li>系统：NFT（营养液膜技术）管道循环系统</li>
-<li>设备：微型水泵、定时器、LED 补光灯、pH&#x2F;EC 计</li>
-<li>营养液管理：每 1014 天更换一次，EC 控制在 0.81.4，pH 在 5.5~6.5</li>
-<li>光照：自然光 + LED 补光（每天 8~12 小时）</li>
-<li>环境控制：建议放在阳台&#x2F;封闭阳光房中</li>
-</ul>
-<h1 id="Arduino-自制-自动检测并起补充营养"><a href="#Arduino-自制-自动检测并起补充营养" class="headerlink" title="Arduino 自制 - 自动检测并起补充营养"></a>Arduino 自制 - 自动检测并起补充营养</h1><p>传感器监控 + 泵时间控制 + EC&#x2F;pH目标设定</p>
-<h3 id="🌿-系统结构（推荐架构）"><a href="#🌿-系统结构（推荐架构）" class="headerlink" title="🌿 系统结构（推荐架构）"></a>🌿 系统结构（推荐架构）</h3><table>
-<thead>
-<tr>
-<th>模块</th>
-<th>功能</th>
-<th>建议型号</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Arduino UNO &#x2F; MEGA</td>
-<td>主控制板</td>
-<td>ESP32（集成Wi-Fi和蓝牙）</td>
-</tr>
-<tr>
-<td><strong>EC 传感器</strong></td>
-<td>检测营养液浓度</td>
-<td>Gravity EC Sensor（DFRobot）</td>
-</tr>
-<tr>
-<td><strong>pH 传感器</strong></td>
-<td>检测酸碱度</td>
-<td>Gravity pH Sensor</td>
-</tr>
-<tr>
-<td><strong>温度传感器</strong></td>
-<td>修正EC读数</td>
-<td>DS18B20</td>
-</tr>
-<tr>
-<td><strong>蠕动泵 × 4</strong></td>
-<td>A液、B液、pH-、pH+</td>
-<td>12V 微型蠕动泵</td>
-</tr>
-<tr>
-<td><strong>继电器模块</strong></td>
-<td>控制泵通断</td>
-<td>4通道继电器</td>
-</tr>
-<tr>
-<td><strong>搅拌马达（可选）</strong></td>
-<td>混合营养液</td>
-<td>5V&#x2F;12V 直流电机</td>
-</tr>
-<tr>
-<td><strong>LCD&#x2F;OLED 屏幕</strong></td>
-<td>显示 EC、pH、状态</td>
-<td>1602 或 0.96 OLED</td>
-</tr>
-<tr>
-<td><strong>按钮或Wi-Fi模块（ESP8266）</strong></td>
-<td>设定目标参数</td>
-<td>方便远程调节</td>
-</tr>
-</tbody></table>
-<h3 id="⚙️-工作逻辑（核心控制思路）"><a href="#⚙️-工作逻辑（核心控制思路）" class="headerlink" title="⚙️ 工作逻辑（核心控制思路）"></a>⚙️ 工作逻辑（核心控制思路）</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Loop:</span><br><span class="line">  读取当前 EC 与 pH</span><br><span class="line">  如果 EC &lt; 目标值：</span><br><span class="line">      启动 A泵 和 B泵（时间相同）</span><br><span class="line">      停止后搅拌5秒</span><br><span class="line">  如果 pH &gt; 6.5：</span><br><span class="line">      启动 pH- 泵（加酸）</span><br><span class="line">  如果 pH &lt; 5.5：</span><br><span class="line">      启动 pH+ 泵（加碱）</span><br><span class="line">  等待30秒，重复检测</span><br></pre></td></tr></table></figure>
-
-<h3 id="可直接运行的-Arduino-自动水培营养液控制程序。"><a href="#可直接运行的-Arduino-自动水培营养液控制程序。" class="headerlink" title="可直接运行的 Arduino 自动水培营养液控制程序。"></a>可直接运行的 Arduino 自动水培营养液控制程序。</h3><p>这个程序包括：</p>
-<p>✅ EC检测<br>✅ pH检测<br>✅ A&#x2F;B营养液自动配比<br>✅ pH自动调节<br>✅ 搅拌控制<br>✅ 参数可修改</p>
-<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p><a target="_blank" rel="noopener" href="https://www.reddit.com/r/Hydroponics/comments/nbii8y/next_step_in_hydroponics_greenhouse_ph_ec_temp/?tl=zh-hans">水培温室的下一步。带液晶显示屏的 pH 值、EC 值、温度计。将来会通过 i2c 将数据发送到树莓派。</a></p>
-<h1 id="🥦-高级水培种植"><a href="#🥦-高级水培种植" class="headerlink" title="🥦 高级水培种植"></a>🥦 高级水培种植</h1><h4 id="✅-特点-1"><a href="#✅-特点-1" class="headerlink" title="✅ 特点"></a>✅ 特点</h4><ul>
-<li>全自动控制系统</li>
-<li>稳定高产，适合商业</li>
-<li>技术要求高，可远程管理</li>
-</ul>
-<h4 id="🍀-推荐蔬菜-作物"><a href="#🍀-推荐蔬菜-作物" class="headerlink" title="🍀 推荐蔬菜 &#x2F; 作物"></a>🍀 推荐蔬菜 &#x2F; 作物</h4><ul>
-<li>番茄</li>
-<li>黄瓜</li>
-<li>青椒、彩椒</li>
-<li>草莓</li>
-<li>香草（罗勒、百里香等）</li>
-</ul>
-<h4 id="🛠-方法-1"><a href="#🛠-方法-1" class="headerlink" title="🛠 方法"></a>🛠 方法</h4><ul>
-<li>系统类型：<ul>
-<li>DWC（深水培）</li>
-<li>滴灌式</li>
-<li>雾培（AeroPonics）</li>
-</ul>
-</li>
-<li>控制系统：<ul>
-<li>自动营养液配比</li>
-<li>温湿度传感器、pH&#x2F;EC 自动监控</li>
-<li>接入 Home Assistant &#x2F; Node-RED 实现自动化</li>
-</ul>
-</li>
-<li>光照管理：LED植物灯 + 光照时控系统</li>
-<li>CO₂&#x2F;环境控制：封闭温室或小型 Grow Tent</li>
-</ul>
-<p>📈 晋级路线建议</p>
-<table>
-<thead>
-<tr>
-<th>当前级别</th>
-<th>升级方式</th>
-<th>所需技能</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>初级 → 中级</td>
-<td>添加 NFT 循环系统 + 简单补光</td>
-<td>简单电工，照明布线</td>
-</tr>
-<tr>
-<td>中级 → 高级</td>
-<td>增加传感器，接入自动化控制系统</td>
-<td>YAML 配置，HA 自动化基础</td>
-</tr>
-<tr>
-<td>高级 → 商业</td>
-<td>建立温室，部署全环境智能控制系统</td>
-<td>IoT + 农业自动化系统知识</td>
-</tr>
-</tbody></table>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/10/house-system/">
+            <a href="/2026/10/21/house-system/">
                 家庭-中控系统
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-10</span>
+                <span class="date">2026-10-21</span>
             
             
             
@@ -1903,13 +1133,369 @@ const songs = [
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/10/java-interview/">
+            <a href="/2026/10/21/house-vegetable/">
+                家庭-阳台生态
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/新/">新</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <ul>
+<li><a href="#%E6%A0%B8%E5%BF%83%E9%9C%80%E6%B1%82">核心需求</a></li>
+<li><a href="#%E7%B3%BB%E7%BB%9F%E6%90%AD%E5%BB%BA%E6%AD%A5%E9%AA%A4">系统搭建步骤</a></li>
+<li><a href="#%E9%98%B3%E5%8F%B0%E7%94%9F%E6%80%81%E5%BE%AA%E7%8E%AF%E7%B3%BB%E7%BB%9F%E5%AE%8C%E6%95%B4%E6%96%B9%E6%A1%88">阳台生态循环系统完整方案</a><ul>
+<li><a href="#%E6%95%B4%E4%BD%93%E7%94%9F%E6%80%81%E7%BB%93%E6%9E%84">整体生态结构</a></li>
+<li><a href="#%E9%98%B3%E5%8F%B0%E5%88%86%E5%8C%BA%E8%A7%84%E5%88%92">阳台分区规划</a></li>
+<li><a href="#%E5%8E%A8%E4%BD%99%E4%BA%A7%E7%94%9F%E5%88%A9%E7%94%A8">厨余产生利用</a></li>
+<li><a href="#%E6%8E%A8%E8%8D%90%E7%A7%8D%E6%A4%8D">推荐种植</a></li>
+<li><a href="#%E9%B1%BC%E8%8F%9C%E5%85%B1%E7%94%9F%E7%B3%BB%E7%BB%9F">鱼菜共生系统</a></li>
+<li><a href="#%E7%BB%B4%E6%8A%A4">维护</a></li>
+</ul>
+</li>
+<li><a href="#%E5%9C%9F%E5%A3%A4%E7%A7%8D%E6%A4%8D">土壤种植</a><ul>
+<li><a href="#%E6%A4%8D%E7%89%A9%E7%94%9F%E7%97%85">植物生病</a></li>
+<li><a href="#%E8%82%A5%E6%96%99%E8%8E%B7%E5%8F%96-%E5%8E%A8%E6%88%BF%E5%BA%9F%E6%96%99">肥料获取-厨房废料</a></li>
+<li><a href="#%E5%88%9D%E9%98%B6%E5%9C%9F%E5%9F%B9">初阶土培</a></li>
+<li><a href="#%E9%AB%98%E9%98%B6%E5%9C%9F%E5%9F%B9">高阶土培</a></li>
+</ul>
+</li>
+<li><a href="#%E6%B0%B4%E5%9F%B9%E7%A7%8D%E6%A4%8D">水培种植</a><ul>
+<li><a href="#%E5%88%9D%E9%98%B6%E6%B0%B4%E5%9F%B9">初阶水培</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="核心需求"><a href="#核心需求" class="headerlink" title="核心需求"></a>核心需求</h1><ol>
+<li>蔬菜水果的自给自足 （小）</li>
+<li>能够靠种菜来维持生活 - 卖菜 (大)</li>
+</ol>
+<p>过程：从半自动到全自动</p>
+<h1 id="阳台生态循环系统完整方案"><a href="#阳台生态循环系统完整方案" class="headerlink" title="阳台生态循环系统完整方案"></a>阳台生态循环系统完整方案</h1><p>🌱 阳台生态循环系统完整方案（低成本 · 低维护 · 无异味）</p>
+<blockquote>
+<p><strong>目标</strong>：构建家庭阳台微型生态闭环</p>
+<ul>
+<li>厨余 → 肥料 | 肥料水</li>
+<li>鱼缸 → 植物营养水</li>
+<li>水培 + 土培共存</li>
+<li>长期稳定、可持续</li>
+</ul>
+</blockquote>
+<hr>
+<h2 id="整体生态结构"><a href="#整体生态结构" class="headerlink" title="整体生态结构"></a>整体生态结构</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">厨房厨余</span><br><span class="line">├─ 植物性湿垃圾</span><br><span class="line">│   ↓</span><br><span class="line">│   发酵液肥 / 密封堆肥桶</span><br><span class="line">│   ↓</span><br><span class="line">│   土培植物吸收</span><br><span class="line">│   ↓</span><br><span class="line">│   修剪残渣 / 枯叶</span><br><span class="line">│   └──────→ 回到堆肥桶</span><br><span class="line">│</span><br><span class="line">├─ 鸡蛋壳</span><br><span class="line">│   ↓ 清洗 · 晾干 · 炒干 · 碾粉</span><br><span class="line">│   ↓ 补钙 / 改良土壤</span><br><span class="line">│</span><br><span class="line">└─ 其他厨余（分流处理）</span><br><span class="line"></span><br><span class="line">鱼缸系统</span><br><span class="line">鱼 / 虾</span><br><span class="line">↓ 排泄物（氨氮）</span><br><span class="line">↓ 过滤 + 水草硝化</span><br><span class="line">↓ 定期换水</span><br><span class="line">↓</span><br><span class="line">水培植物吸收</span><br><span class="line">↓</span><br><span class="line">剩余营养水</span><br><span class="line">↓</span><br><span class="line">土培植物</span><br><span class="line"></span><br><span class="line">♻ 最终形成双循环：</span><br><span class="line">厨余 → 肥料 → 植物 → 残渣 → 肥料</span><br><span class="line">鱼 → 营养水 → 植物 → 净化 → 再利用</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="阳台分区规划"><a href="#阳台分区规划" class="headerlink" title="阳台分区规划"></a>阳台分区规划</h2><h3 id="🅐-厨余处理区（源头）"><a href="#🅐-厨余处理区（源头）" class="headerlink" title="🅐 厨余处理区（源头）"></a>🅐 厨余处理区（源头）</h3><ul>
+<li>密封式堆肥桶（防虫防臭）</li>
+<li>发酵液肥瓶（带放气）</li>
+</ul>
+<h3 id="🅑-土培区（主产出）"><a href="#🅑-土培区（主产出）" class="headerlink" title="🅑 土培区（主产出）"></a>🅑 土培区（主产出）</h3><ul>
+<li>🌱幼苗成长区</li>
+<li>花盆 &#x2F; 种植箱</li>
+<li>使用自制堆肥 + 蛋壳粉</li>
+</ul>
+<h3 id="🅒-水培区（吸收营养水）"><a href="#🅒-水培区（吸收营养水）" class="headerlink" title="🅒 水培区（吸收营养水）"></a>🅒 水培区（吸收营养水）</h3><ul>
+<li>静态水培瓶 &#x2F; PVC 水培槽</li>
+<li>直接使用鱼缸换水</li>
+</ul>
+<h3 id="🅓-鱼缸区（生态核心）"><a href="#🅓-鱼缸区（生态核心）" class="headerlink" title="🅓 鱼缸区（生态核心）"></a>🅓 鱼缸区（生态核心）</h3><ul>
+<li>鱼缸 + 过滤 + 水草</li>
+<li>稳定供给氮源</li>
+</ul>
+<hr>
+<h2 id="厨余产生利用"><a href="#厨余产生利用" class="headerlink" title="厨余产生利用"></a>厨余产生利用</h2><h3 id="分类原则"><a href="#分类原则" class="headerlink" title="分类原则"></a>分类原则</h3><ul>
+<li><strong>能变肥的一定变肥</strong></li>
+<li><strong>需处理的先处理再进生态</strong></li>
+<li><strong>高风险物质分流</strong></li>
+</ul>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">① 可直接堆肥</span><br><span class="line">② 可加工再利用</span><br><span class="line">③ 可二次利用但不进生态</span><br><span class="line">④ 必须丢弃（极少）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="①-可直接堆肥（阳台生态能源）"><a href="#①-可直接堆肥（阳台生态能源）" class="headerlink" title="① 可直接堆肥（阳台生态能源）"></a>① 可直接堆肥（阳台生态能源）</h3><p><strong>植物性湿垃圾</strong></p>
+<ul>
+<li>水果皮 &#x2F; 果渣</li>
+<li>蔬菜边角 &#x2F; 烂叶</li>
+<li>米饭、面食（少量）</li>
+<li>茶渣、咖啡渣</li>
+</ul>
+<p>❌ 避免：</p>
+<ul>
+<li>高油、高盐、重辣</li>
+</ul>
+<p>👉 处理方式：</p>
+<h3 id="懒人阳台堆肥操作流程（无液肥版）"><a href="#懒人阳台堆肥操作流程（无液肥版）" class="headerlink" title="懒人阳台堆肥操作流程（无液肥版）"></a>懒人阳台堆肥操作流程（无液肥版）</h3><ol>
+<li><p><strong>底层铺土</strong>  </p>
+<ul>
+<li>使用普通园土，厚度覆盖桶底即可</li>
+</ul>
+</li>
+<li><p><strong>投入湿垃圾</strong>  </p>
+<ul>
+<li>做饭前不要的菜叶、果渣、茶渣等</li>
+</ul>
+</li>
+<li><p><strong>覆盖土层</strong>  </p>
+<ul>
+<li>完全盖住湿垃圾，确保看不到垃圾</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="②-可加工再利用（处理后进生态）"><a href="#②-可加工再利用（处理后进生态）" class="headerlink" title="② 可加工再利用（处理后进生态）"></a>② 可加工再利用（处理后进生态）</h3><p><strong>🥚 鸡蛋壳</strong></p>
+<ul>
+<li>清洗 → 晾干 → 炒干 → 碾粉</li>
+<li>作用：补钙、调节酸碱、防虫</li>
+</ul>
+<p><strong>🦐 虾壳 &#x2F; 蟹壳（进阶）</strong></p>
+<ul>
+<li>煮去盐 → 晒干 → 粉碎</li>
+<li>少量混土（缓释钙、甲壳素）</li>
+</ul>
+<hr>
+<h3 id="③-可再利用但不进生态"><a href="#③-可再利用但不进生态" class="headerlink" title="③ 可再利用但不进生态"></a>③ 可再利用但不进生态</h3><p><strong>🛍 塑料袋 &#x2F; 包装袋</strong></p>
+<ul>
+<li>分类收纳</li>
+<li>用途：垃圾袋、防潮垫、临时种植袋</li>
+</ul>
+<hr>
+<h3 id="④-必须丢弃（不进阳台系统）"><a href="#④-必须丢弃（不进阳台系统）" class="headerlink" title="④ 必须丢弃（不进阳台系统）"></a>④ 必须丢弃（不进阳台系统）</h3><ul>
+<li>重油肉汤</li>
+<li>高盐腌制品</li>
+<li>化学污染食物</li>
+</ul>
+<hr>
+<h2 id="推荐种植"><a href="#推荐种植" class="headerlink" title="推荐种植"></a>推荐种植</h2><h3 id="土培推荐植物"><a href="#土培推荐植物" class="headerlink" title="土培推荐植物"></a>土培推荐植物</h3><ul>
+<li>九层塔（罗勒）</li>
+<li>蒜苗</li>
+<li>青柠</li>
+<li>辣椒</li>
+<li>小番茄</li>
+<li>泰国小茄子</li>
+</ul>
+<h3 id="水培推荐植物"><a href="#水培推荐植物" class="headerlink" title="水培推荐植物"></a>水培推荐植物</h3><ul>
+<li>生菜</li>
+<li>葱苗</li>
+<li>空心菜</li>
+<li>薄荷</li>
+</ul>
+<h3 id="水培推荐植物（升级版-AB液）"><a href="#水培推荐植物（升级版-AB液）" class="headerlink" title="水培推荐植物（升级版 AB液）"></a>水培推荐植物（升级版 AB液）</h3><ul>
+<li>高产果菜</li>
+</ul>
+<hr>
+<h2 id="鱼菜共生系统"><a href="#鱼菜共生系统" class="headerlink" title="鱼菜共生系统"></a>鱼菜共生系统</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">============================================================</span><br><span class="line">              全自动“两站式”极简循环架构</span><br><span class="line">============================================================</span><br><span class="line"></span><br><span class="line">       +--------------------------+</span><br><span class="line">       |   【 蔬菜种植床 】        |  &lt;-- 自动虹吸钟 (核心)</span><br><span class="line">       |   (铺满陶粒+细菌)         |      满水自动排，干水自动停</span><br><span class="line">       +------------|-------------+</span><br><span class="line">             ▲      |</span><br><span class="line">             |      | (干净的水经重力流下)</span><br><span class="line">    [水泵向上送水]    ▼</span><br><span class="line">             |    +-----------------------+</span><br><span class="line">             |    |     【 鱼 缸 】       | </span><br><span class="line">             +----|  (兼作集水仓/生化池)   |</span><br><span class="line">                  +-----------------------+</span><br><span class="line">============================================================</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="维护"><a href="#维护" class="headerlink" title="维护"></a>维护</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">每日：丢厨余进堆肥桶</span><br><span class="line">每周：收集鱼缸换水 → 浇水培</span><br><span class="line">每月：翻堆肥 / 补蛋壳粉</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="土壤种植"><a href="#土壤种植" class="headerlink" title="土壤种植"></a>土壤种植</h1><h2 id="植物生病"><a href="#植物生病" class="headerlink" title="植物生病"></a>植物生病</h2><blockquote>
+<p>糖水 - 促进根部生长</p>
+</blockquote>
+<hr>
+<h2 id="肥料获取-厨房废料"><a href="#肥料获取-厨房废料" class="headerlink" title="肥料获取-厨房废料"></a>肥料获取-厨房废料</h2><h3 id="获取方法"><a href="#获取方法" class="headerlink" title="获取方法"></a>获取方法</h3><ol>
+<li>多准备土壤  </li>
+<li>每次吃饭前，将果渣、菜渣丢进肥料桶  </li>
+<li>在废料上铺一层土  </li>
+<li>重复：丢果渣&#x2F;菜渣 → 铺土，直至桶满</li>
+</ol>
+<h3 id="桶的准备"><a href="#桶的准备" class="headerlink" title="桶的准备"></a>桶的准备</h3><ul>
+<li><strong>桶A</strong>：储存土壤  </li>
+<li><strong>桶B</strong>：堆肥桶，用于发酵厨房废料</li>
+</ul>
+<hr>
+<h2 id="初阶土培"><a href="#初阶土培" class="headerlink" title="初阶土培"></a>初阶土培</h2><p><em><strong>适合种植：蒜</strong></em> </p>
+<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><ol>
+<li><strong>水培阶段</strong></li>
+</ol>
+<ul>
+<li>果核 - 清理核上的果肉残渣避免菌种繁殖污染幼苗的水质 </li>
+<li>根系 - 先用水培方式培育出蔬菜根系</li>
+</ul>
+<ol start="2">
+<li><strong>转入土壤</strong></li>
+</ol>
+<ul>
+<li>将水培成苗的蔬菜移入土壤  </li>
+<li>适量添加自制肥料，提高营养</li>
+</ul>
+<h2 id="高阶土培"><a href="#高阶土培" class="headerlink" title="高阶土培"></a>高阶土培</h2><p><em><strong>适合种植：辣椒</strong></em></p>
+<h4 id="步骤-1"><a href="#步骤-1" class="headerlink" title="步骤"></a>步骤</h4><ol>
+<li><strong>幼苗阶段</strong></li>
+</ol>
+<ul>
+<li>把种子放入土肥中 离地1-2cm</li>
+<li>浇水 浇透</li>
+<li>用塑料袋包裹着 使其温度 处于温室状态</li>
+<li>记得一定要水</li>
+<li>幼苗 （温度，水）</li>
+</ul>
+<ol start="2">
+<li><strong>转入土壤</strong></li>
+</ol>
+<ul>
+<li>此阶段重要 注意</li>
+</ul>
+<h1 id="水培种植"><a href="#水培种植" class="headerlink" title="水培种植"></a>水培种植</h1><h2 id="初阶水培"><a href="#初阶水培" class="headerlink" title="初阶水培"></a>初阶水培</h2><p><em><strong>适合种植：生菜, 空心菜, 洋葱</strong></em> </p>
+<h1 id="中级水培种植"><a href="#中级水培种植" class="headerlink" title="中级水培种植"></a>中级水培种植</h1><h4 id="✅-特点"><a href="#✅-特点" class="headerlink" title="✅ 特点"></a>✅ 特点</h4><ul>
+<li>小型循环系统，提升效率</li>
+<li>半自动化管理</li>
+<li>可持续多种蔬菜</li>
+</ul>
+<h4 id="🍀-推荐蔬菜"><a href="#🍀-推荐蔬菜" class="headerlink" title="🍀 推荐蔬菜"></a>🍀 推荐蔬菜</h4><ul>
+<li>菠菜</li>
+<li>茼蒿</li>
+<li>芥蓝</li>
+<li>西洋菜</li>
+<li>紫苏 &#x2F; 九层塔</li>
+</ul>
+<h4 id="🛠-方法"><a href="#🛠-方法" class="headerlink" title="🛠 方法"></a>🛠 方法</h4><ul>
+<li>系统：NFT（营养液膜技术）管道循环系统</li>
+<li>设备：微型水泵、定时器、LED 补光灯、pH&#x2F;EC 计</li>
+<li>营养液管理：每 1014 天更换一次，EC 控制在 0.81.4，pH 在 5.5~6.5</li>
+<li>光照：自然光 + LED 补光（每天 8~12 小时）</li>
+<li>环境控制：建议放在阳台&#x2F;封闭阳光房中</li>
+</ul>
+<h1 id="Arduino-自制-自动检测并起补充营养"><a href="#Arduino-自制-自动检测并起补充营养" class="headerlink" title="Arduino 自制 - 自动检测并起补充营养"></a>Arduino 自制 - 自动检测并起补充营养</h1><p>传感器监控 + 泵时间控制 + EC&#x2F;pH目标设定</p>
+<h3 id="🌿-系统结构（推荐架构）"><a href="#🌿-系统结构（推荐架构）" class="headerlink" title="🌿 系统结构（推荐架构）"></a>🌿 系统结构（推荐架构）</h3><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>功能</th>
+<th>建议型号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Arduino UNO &#x2F; MEGA</td>
+<td>主控制板</td>
+<td>ESP32（集成Wi-Fi和蓝牙）</td>
+</tr>
+<tr>
+<td><strong>EC 传感器</strong></td>
+<td>检测营养液浓度</td>
+<td>Gravity EC Sensor（DFRobot）</td>
+</tr>
+<tr>
+<td><strong>pH 传感器</strong></td>
+<td>检测酸碱度</td>
+<td>Gravity pH Sensor</td>
+</tr>
+<tr>
+<td><strong>温度传感器</strong></td>
+<td>修正EC读数</td>
+<td>DS18B20</td>
+</tr>
+<tr>
+<td><strong>蠕动泵 × 4</strong></td>
+<td>A液、B液、pH-、pH+</td>
+<td>12V 微型蠕动泵</td>
+</tr>
+<tr>
+<td><strong>继电器模块</strong></td>
+<td>控制泵通断</td>
+<td>4通道继电器</td>
+</tr>
+<tr>
+<td><strong>搅拌马达（可选）</strong></td>
+<td>混合营养液</td>
+<td>5V&#x2F;12V 直流电机</td>
+</tr>
+<tr>
+<td><strong>LCD&#x2F;OLED 屏幕</strong></td>
+<td>显示 EC、pH、状态</td>
+<td>1602 或 0.96 OLED</td>
+</tr>
+<tr>
+<td><strong>按钮或Wi-Fi模块（ESP8266）</strong></td>
+<td>设定目标参数</td>
+<td>方便远程调节</td>
+</tr>
+</tbody></table>
+<h3 id="⚙️-工作逻辑（核心控制思路）"><a href="#⚙️-工作逻辑（核心控制思路）" class="headerlink" title="⚙️ 工作逻辑（核心控制思路）"></a>⚙️ 工作逻辑（核心控制思路）</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Loop:</span><br><span class="line">  读取当前 EC 与 pH</span><br><span class="line">  如果 EC &lt; 目标值：</span><br><span class="line">      启动 A泵 和 B泵（时间相同）</span><br><span class="line">      停止后搅拌5秒</span><br><span class="line">  如果 pH &gt; 6.5：</span><br><span class="line">      启动 pH- 泵（加酸）</span><br><span class="line">  如果 pH &lt; 5.5：</span><br><span class="line">      启动 pH+ 泵（加碱）</span><br><span class="line">  等待30秒，重复检测</span><br></pre></td></tr></table></figure>
+
+<h3 id="可直接运行的-Arduino-自动水培营养液控制程序。"><a href="#可直接运行的-Arduino-自动水培营养液控制程序。" class="headerlink" title="可直接运行的 Arduino 自动水培营养液控制程序。"></a>可直接运行的 Arduino 自动水培营养液控制程序。</h3><p>这个程序包括：</p>
+<p>✅ EC检测<br>✅ pH检测<br>✅ A&#x2F;B营养液自动配比<br>✅ pH自动调节<br>✅ 搅拌控制<br>✅ 参数可修改</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p><a target="_blank" rel="noopener" href="https://www.reddit.com/r/Hydroponics/comments/nbii8y/next_step_in_hydroponics_greenhouse_ph_ec_temp/?tl=zh-hans">水培温室的下一步。带液晶显示屏的 pH 值、EC 值、温度计。将来会通过 i2c 将数据发送到树莓派。</a></p>
+<h1 id="🥦-高级水培种植"><a href="#🥦-高级水培种植" class="headerlink" title="🥦 高级水培种植"></a>🥦 高级水培种植</h1><h4 id="✅-特点-1"><a href="#✅-特点-1" class="headerlink" title="✅ 特点"></a>✅ 特点</h4><ul>
+<li>全自动控制系统</li>
+<li>稳定高产，适合商业</li>
+<li>技术要求高，可远程管理</li>
+</ul>
+<h4 id="🍀-推荐蔬菜-作物"><a href="#🍀-推荐蔬菜-作物" class="headerlink" title="🍀 推荐蔬菜 &#x2F; 作物"></a>🍀 推荐蔬菜 &#x2F; 作物</h4><ul>
+<li>番茄</li>
+<li>黄瓜</li>
+<li>青椒、彩椒</li>
+<li>草莓</li>
+<li>香草（罗勒、百里香等）</li>
+</ul>
+<h4 id="🛠-方法-1"><a href="#🛠-方法-1" class="headerlink" title="🛠 方法"></a>🛠 方法</h4><ul>
+<li>系统类型：<ul>
+<li>DWC（深水培）</li>
+<li>滴灌式</li>
+<li>雾培（AeroPonics）</li>
+</ul>
+</li>
+<li>控制系统：<ul>
+<li>自动营养液配比</li>
+<li>温湿度传感器、pH&#x2F;EC 自动监控</li>
+<li>接入 Home Assistant &#x2F; Node-RED 实现自动化</li>
+</ul>
+</li>
+<li>光照管理：LED植物灯 + 光照时控系统</li>
+<li>CO₂&#x2F;环境控制：封闭温室或小型 Grow Tent</li>
+</ul>
+<p>📈 晋级路线建议</p>
+<table>
+<thead>
+<tr>
+<th>当前级别</th>
+<th>升级方式</th>
+<th>所需技能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>初级 → 中级</td>
+<td>添加 NFT 循环系统 + 简单补光</td>
+<td>简单电工，照明布线</td>
+</tr>
+<tr>
+<td>中级 → 高级</td>
+<td>增加传感器，接入自动化控制系统</td>
+<td>YAML 配置，HA 自动化基础</td>
+</tr>
+<tr>
+<td>高级 → 商业</td>
+<td>建立温室，部署全环境智能控制系统</td>
+<td>IoT + 农业自动化系统知识</td>
+</tr>
+</tbody></table>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/21/java-interview/">
                 Java 面试题
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-10</span>
+                <span class="date">2026-10-21</span>
             
             
             
@@ -2030,44 +1616,13 @@ const songs = [
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/10/kerberos/">
-                Kerberos
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/知/">知</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903955416219661">引用-看完您如果还不明白 Kerberos 原理</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/liugp/p/16468514.html">Kerberos认证原理与环境部署</a></p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/10/k8s-basic/">
+            <a href="/2026/10/21/k8s-basic/">
                 K8S
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-10</span>
+                <span class="date">2026-10-21</span>
             
             
             
@@ -2624,13 +2179,75 @@ const songs = [
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/10/lang-version/">
+            <a href="/2026/10/21/kali/">
+                Kali
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透/">渗透</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p><a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/420393.html">kali</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/21/kerberos/">
+                Kerberos
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-10-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/知/">知</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <h2 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903955416219661">引用-看完您如果还不明白 Kerberos 原理</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/liugp/p/16468514.html">Kerberos认证原理与环境部署</a></p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/10/21/lang-version/">
                 各类版本控制管理
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-10</span>
+                <span class="date">2026-10-21</span>
             
             
             
@@ -2670,96 +2287,6 @@ const songs = [
 <li><a target="_blank" rel="noopener" href="https://github.com/0rz33/dnmp">php-多版本多项目管理-docker-composer</a></li>
 </ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">http[s]://[你的域名]/72       <span class="comment"># PHP72</span></span><br><span class="line">http[s]://[你的域名]/73       <span class="comment"># PHP73</span></span><br><span class="line">http[s]://[你的域名]/74       <span class="comment"># PHP74</span></span><br><span class="line">http[s]://[你的域名]/80       <span class="comment"># PHP80</span></span><br><span class="line">http[s]://[你的域名]/81       <span class="comment"># PHP81</span></span><br><span class="line">http[s]://[你的域名]/82       <span class="comment"># PHP82</span></span><br><span class="line">http[s]://[你的域名]/83       <span class="comment"># PHP83</span></span><br><span class="line">http[s]://[你的域名]/84       <span class="comment"># PHP84</span></span><br></pre></td></tr></table></figure>
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/10/language/">
-                世界语言体系
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-10</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/语言/">语言</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <pre class="mermaid">flowchart LR
-    A[世界七大语系]
-    
-    A --> B[汉藏语系]
-    B --> B1[汉语]
-    B1 --> B1B[北方方言]
-    B1 --> B1C[吴方言]
-    B1 --> B1D[湘方言]
-    B1 --> B1E[赣方言]
-    B1 --> B1F[客家]
-    B1 --> B1G[闽北方言->福州]
-    B1 --> B1H[闽南方言]
-    B1 --> B1I[粤方言]
-    B --> B2[藏缅语]
-    B2 --> B2A[缅甸语]
-    B2 --> B2B[泰语]
-    B2 --> B2C[越南语]
-    B2 --> B2D[柬埔寨语]
-
-    A --> C[印欧语系]
-    C --> C1[日耳曼语族]
-    C1 --> C1A[英语]
-    C1 --> C1B[德语]
-    C1 --> C1C[荷兰语]
-    C --> C2[罗曼语族]
-    C2 --> C2A[法语]
-    C2 --> C2B[西班牙语]
-    C2 --> C2C[意大利语]
-    C --> C3[斯拉夫语族]
-    C3 --> C3A[俄语]
-    C3 --> C3B[波兰语]
-    C3 --> C3C[捷克语]
-    C --> C4[印度-伊朗语族]
-    C4 --> C4A[印地语]
-    C4 --> C4B[波斯语]
-
-    A --> D[阿尔泰语系]
-    D --> D1[突厥语族]
-    D1 --> D1A[土耳其语]
-    D --> D2[蒙古语族]
-    D2 --> D2A[蒙古语]
-    D --> D3[满-通古斯语族]
-    D3 --> D3A[满语]
-
-    A --> E[闪含语系]
-    E --> E1[阿拉伯语]
-    E --> E2[希伯来语]
-
-    A --> F[南岛语系]
-    F --> F1[马来语]
-    F --> F2[印度尼西亚语]
-    F --> F3[他加禄语]
-    F3 --> F3A[比萨亚]
-
-    A --> G[尼日尔-科尔多凡语系]
-    G --> G1[斯瓦希里语]
-    G --> G2[约鲁巴语]
-
-    A --> H[达罗毗荼语系]
-    H --> H1[泰米尔语]
-    H --> H2[泰卢固语]</pre>
         </div>
     
 
@@ -2807,19 +2334,19 @@ const songs = [
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/springboot/">Springboot</a>
+                <a class="footer-post" href="/2026/10/21/php-structure/">PHP框架</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/sqlite/">SQLite</a>
+                <a class="footer-post" href="/2026/10/21/pressure-testing/">压测工具集合</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/sqlmap/">SQLMap</a>
+                <a class="footer-post" href="/2026/10/21/python-interview/">Golang 深浅</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/10/10/stock/">股市币市</a>
+                <a class="footer-post" href="/2026/10/21/raspberry-pi/">Raspberry Pi 树莓派</a>
             </li>
             
         </ul>
