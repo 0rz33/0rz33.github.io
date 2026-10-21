@@ -184,43 +184,40 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-latency-doctor-md/">
-                [redis] commands/latency-doctor.md
+            <a href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">
+                自动化知识同步与数据采集架构规范
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-16</span>
+                <span class="date">2026-08-25</span>
             
             
+            
+                <span class="category">
+                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
+                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            
-The `LATENCY DOCTOR` command reports about different latency-related issues and advises about possible remedies.
-
-This command is the most powerful analysis tool in the latency monitoring
-framework, and is able to provide additional statistical data like the average
-period between latency spikes, the median deviation, and a human-readable
-analysis of the event. For certain events, like `fork`, additional information
-is provided, like the rate at which the system forks processes.
-
-This is the output you should post in the Redis mailing list if you are
-looking for help about Latency related issues.
-
-@examples
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; latency doctor</span><br><span class="line"></span><br><span class="line">Dave, I have observed latency spikes in this Redis instance.</span><br><span class="line">You don&#x27;t mind talking about it, do you Dave?</span><br><span class="line"></span><br><span class="line">1. command: 5 latency spikes (average 300ms, mean deviation 120ms,</span><br><span class="line">    period 73.40 sec). Worst all time event 500ms.</span><br><span class="line"></span><br><span class="line">I have a few advices for you:</span><br><span class="line"></span><br><span class="line">- Your current Slow Log configuration only logs events that are</span><br><span class="line">    slower than your configured latency monitor threshold. Please</span><br><span class="line">    use &#x27;CONFIG SET slowlog-log-slower-than 1000&#x27;.</span><br><span class="line">- Check your Slow Log to understand what are the commands you are</span><br><span class="line">    running which are too slow to execute. Please check</span><br><span class="line">    http://redis.io/commands/slowlog for more information.</span><br><span class="line">- Deleting, expiring or evicting (because of maxmemory policy)</span><br><span class="line">    large objects is a blocking operation. If you have very large</span><br><span class="line">    objects that are often deleted, expired, or evicted, try to</span><br><span class="line">    fragment those objects into multiple smaller objects.</span><br></pre></td></tr></table></figure>
-
-**Note:** the doctor has erratic psychological behaviors, so we recommend interacting with it carefully.
-
-For more information refer to the [Latency Monitoring Framework page][lm].
-
-[lm]: /topics/latency-monitor
-
+            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
+<h3 id="1-概述与背景"><a href="#1-概述与背景" class="headerlink" title="1. 概述与背景"></a>1. 概述与背景</h3><p>在现代企业与个人知识管理（PKM&#x2F;KM）体系中，分布式沟通工具（如 IM 软件、ChatBot、协作平台）充当着知识产生的第一现场。然而，碎片化的对话内容若缺乏有效的自动采集机制，极易形成信息孤岛。<strong>Chat Auto-Ingest（聊天数据自动摄取）</strong> 机制旨在通过轻量级接口与后台同步服务，实现从聊天上下文到中央知识库的无缝沉淀。</p>
+<h3 id="2-数据采集与同步链路设计"><a href="#2-数据采集与同步链路设计" class="headerlink" title="2. 数据采集与同步链路设计"></a>2. 数据采集与同步链路设计</h3><p>知识的自动摄取链路包含数据监听、数据解析、连通性测试（Test-Sync）以及知识入库四个核心环节：</p>
+<ol>
+<li><strong>事件触发与监听（Triggering &amp; Event Listening）</strong>：<br>通过 Webhook 或长连接监听聊天系统中的指定动作（例如打上特定的 Tag、使用特定的指令或触发特定的 Bot 提问）。</li>
+<li><strong>数据清洗与报文结构化（Payload Parsing）</strong>：<br>原始对话通常包含大量无效噪声（如表情符号、打招呼口语）。同步服务需将其提取为标准的 Q&amp;A（问答对）或 Markdown 片段。</li>
+<li><strong>链路连通性验证（Test-Sync Verification）</strong>：<br>在正式执行高频同步前，系统需支持测试级别的微型数据包同步（如 <code>test-sync</code> 节点）。通过极简的问答测试（如 <code>Q: 测试 -&gt; A: 这是测试内容</code>），验证鉴权 Token、数据通道传输效率及解析器的可读取性。</li>
+<li><strong>长效入库与状态标记（Ingestion &amp; Status Tracking）</strong>：<br>清洗完毕的知识将被推送到暂存区（Staging Area），并赋予同步状态标记（如 <code>synced</code>, <code>pending</code>, <code>failed</code>），便于后续的自动聚类与重构。</li>
+</ol>
+<h3 id="3-同步机制的演进方向"><a href="#3-同步机制的演进方向" class="headerlink" title="3. 同步机制的演进方向"></a>3. 同步机制的演进方向</h3><p>自动化同步并非单纯的数据搬运，而是知识生命周期管理（TLM）的起点。未来的采集架构应重点关注：</p>
+<ul>
+<li><strong>实时性与批处理的平衡</strong>：小微量数据实时同步以确保即时反馈，大文本与历史存档采用定时批处理（Batch Processing）。</li>
+<li><strong>幂等性与去重控制</strong>：避免同一对话记录被多次触发导致知识库膨胀与版本混淆。</li>
+<li><strong>全链路追踪（Traceability）</strong>：每一条沉淀的知识文档都应保留原始对话的时间戳、参与者与上下文链接，确保知识可追溯、可验证。</li>
+</ul>
 
         </div>
     
@@ -232,968 +229,50 @@ For more information refer to the [Latency Monitoring Framework page][lm].
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-object-encoding-md/">
-                [redis] commands/object-encoding.md
+            <a href="/2026/08/25/shanggu-%E9%9D%9E%E7%BB%93%E6%9E%84%E5%8C%96%E7%9F%A5%E8%AF%86%E7%9A%84%E8%81%9A%E7%B1%BB%E6%8F%90%E7%82%BC%E4%B8%8E%E6%96%87%E6%A1%A3%E5%8C%96%E9%87%8D%E6%9E%84/">
+                非结构化知识的聚类提炼与文档化重构
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-10-16</span>
+                <span class="date">2026-08-25</span>
             
             
+            
+                <span class="category">
+                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
+                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            
-Returns the internal encoding for the Redis object stored at `<key>`
-
-Redis objects can be encoded in different ways:
-
-* Strings can be encoded as: 
-
-    - `raw`, normal string encoding.
-    - `int`, strings representing integers in a 64-bit signed interval, encoded in this way to save space.
-    - `embstr`, an embedded string, which is an object where the internal simple dynamic string, `sds`, is an unmodifiable string allocated in the same chuck as the object itself.
-      `embstr` can be strings with lengths up to the hardcoded limit of `OBJ_ENCODING_EMBSTR_SIZE_LIMIT` or 44 bytes. 
-
-* Lists can be encoded as:
- 
-    - `linkedlist`, simple list encoding. No longer used, an old list encoding.
-    - `ziplist`, Redis <= 6.2, a space-efficient encoding used for small lists.
-    - `listpack`, Redis >= 7.0, a space-efficient encoding used for small lists.
-    - `quicklist`, encoded as linkedlist of ziplists or listpacks.
-
-* Sets can be encoded as:
-
-    - `hashtable`, normal set encoding.
-    - `intset`, a special encoding used for small sets composed solely of integers.
-    - `listpack`, Redis >= 7.2, a space-efficient encoding used for small sets.
-
-* Hashes can be encoded as:
-
-    - `zipmap`, no longer used, an old hash encoding.
-    - `hashtable`, normal hash encoding.
-    - `ziplist`, Redis <= 6.2, a space-efficient encoding used for small hashes.
-    - `listpack`, Redis >= 7.0, a space-efficient encoding used for small hashes.
-
-* Sorted Sets can be encoded as:
-
-    - `skiplist`, normal sorted set encoding.
-    - `ziplist`, Redis <= 6.2, a space-efficient encoding used for small sorted sets.
-    - `listpack`, Redis >= 7.0, a space-efficient encoding used for small sorted sets.
-
-* Streams can be encoded as:
-
-  - `stream`, encoded as a radix tree of listpacks.
-
-All the specially encoded types are automatically converted to the general type once you perform an operation that makes it impossible for Redis to retain the space saving encoding.
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-cluster-delslots-md/">
-                [redis] commands/cluster-delslots.md
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-16</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-In Redis Cluster, each node keeps track of which master is serving
-a particular hash slot.
-
-The `CLUSTER DELSLOTS` command asks a particular Redis Cluster node to
-forget which master is serving the hash slots specified as arguments.
-
-In the context of a node that has received a `CLUSTER DELSLOTS` command and
-has consequently removed the associations for the passed hash slots,
-we say those hash slots are *unbound*. Note that the existence of
-unbound hash slots occurs naturally when a node has not been
-configured to handle them (something that can be done with the
-`CLUSTER ADDSLOTS` command) and if it has not received any information about
-who owns those hash slots (something that it can learn from heartbeat
-or update messages).
-
-If a node with unbound hash slots receives a heartbeat packet from
-another node that claims to be the owner of some of those hash
-slots, the association is established instantly. Moreover, if a
-heartbeat or update message is received with a configuration epoch
-greater than the node's own, the association is re-established.
-
-However, note that:
-
-1. The command only works if all the specified slots are already
-associated with some node.
-2. The command fails if the same slot is specified multiple times.
-3. As a side effect of the command execution, the node may go into
-*down* state because not all hash slots are covered.
-
-## Example
-
-The following command removes the association for slots 5000 and
-5001 from the node receiving the command:
-
-    > CLUSTER DELSLOTS 5000 5001
-    OK
-
-## Usage in Redis Cluster
-
-This command only works in cluster mode and may be useful for
-debugging and in order to manually orchestrate a cluster configuration
-when a new cluster is created. It is currently not used by `redis-cli`,
-and mainly exists for API completeness.
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-restore-md/">
-                [redis] commands/restore.md
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-16</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-Create a key associated with a value that is obtained by deserializing the
-provided serialized value (obtained via `DUMP`).
-
-If `ttl` is 0 the key is created without any expire, otherwise the specified
-expire time (in milliseconds) is set.
-
-If the `ABSTTL` modifier was used, `ttl` should represent an absolute
-[Unix timestamp][hewowu] (in milliseconds) in which the key will expire.
-
-[hewowu]: http://en.wikipedia.org/wiki/Unix_time
-
-For eviction purposes, you may use the `IDLETIME` or `FREQ` modifiers. See
-`OBJECT` for more information.
-
-`!RESTORE` will return a "Target key name is busy" error when `key` already
-exists unless you use the `REPLACE` modifier.
-
-`!RESTORE` checks the RDB version and data checksum.
-If they don't match an error is returned.
-
-@examples
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">redis&gt; DEL mykey</span><br><span class="line">0</span><br><span class="line">redis&gt; RESTORE mykey 0 &quot;\n\x17\x17\x00\x00\x00\x12\x00\x00\x00\x03\x00\</span><br><span class="line">                        x00\xc0\x01\x00\x04\xc0\x02\x00\x04\xc0\x03\x00\</span><br><span class="line">                        xff\x04\x00u#&lt;\xc0;.\xe9\xdd&quot;</span><br><span class="line">OK</span><br><span class="line">redis&gt; TYPE mykey</span><br><span class="line">list</span><br><span class="line">redis&gt; LRANGE mykey 0 -1</span><br><span class="line">1) &quot;1&quot;</span><br><span class="line">2) &quot;2&quot;</span><br><span class="line">3) &quot;3&quot;</span><br></pre></td></tr></table></figure>
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-hello-md/">
-                [redis] commands/hello.md
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-16</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-Switch to a different protocol, optionally authenticating and setting the
-connection's name, or provide a contextual client report.
-
-Redis version 6 and above supports two protocols: the old protocol, RESP2, and
-a new one introduced with Redis 6, RESP3. RESP3 has certain advantages since
-when the connection is in this mode, Redis is able to reply with more semantical
-replies: for instance, `HGETALL` will return a *map type*, so a client library
-implementation no longer requires to know in advance to translate the array into
-a hash before returning it to the caller. For a full coverage of RESP3, please
-check the [RESP3 specification](https://github.com/redis/redis-specifications/blob/master/protocol/RESP3.md).
-
-In Redis 6 connections start in RESP2 mode, so clients implementing RESP2 do
-not need to updated or changed. There are no short term plans to drop support for
-RESP2, although future version may default to RESP3.
-
-`HELLO` always replies with a list of current server and connection properties,
-such as: versions, modules loaded, client ID, replication role and so forth.
-When called without any arguments in Redis 6.2 and its default use of RESP2
-protocol, the reply looks like this:
-
-    > HELLO
-     1) "server"
-     2) "redis"
-     3) "version"
-     4) "255.255.255"
-     5) "proto"
-     6) (integer) 2
-     7) "id"
-     8) (integer) 5
-     9) "mode"
-    10) "standalone"
-    11) "role"
-    12) "master"
-    13) "modules"
-    14) (empty array)
-
-Clients that want to handshake using the RESP3 mode need to call the `HELLO`
-command and specify the value "3" as the `protover` argument, like so:
-
-    > HELLO 3
-    1# "server" => "redis"
-    2# "version" => "6.0.0"
-    3# "proto" => (integer) 3
-    4# "id" => (integer) 10
-    5# "mode" => "standalone"
-    6# "role" => "master"
-    7# "modules" => (empty array)
-
-Because `HELLO` replies with useful information, and given that `protover` is
-optional or can be set to "2", client library authors may consider using this
-command instead of the canonical `PING` when setting up the connection.
-
-When called with the optional `protover` argument, this command switches the
-protocol to the specified version and also accepts the following options:
-
-* `AUTH <username> <password>`: directly authenticate the connection in addition to switching to the specified protocol version. This makes calling `AUTH` before `HELLO` unnecessary when setting up a new connection. Note that the `username` can be set to "default" to authenticate against a server that does not use ACLs, but rather the simpler `requirepass` mechanism of Redis prior to version 6.
-* `SETNAME <clientname>`: this is the equivalent of calling `CLIENT SETNAME`.
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-postgres-https-www-postgresql-org-docs-current-runtime-config-connection-html/">
-                [postgres] https://www.postgresql.org/docs/current/runtime-config-connection.html
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-16</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-::::::::: container-fluid
-:::::: {.row .justify-content-md-center}
-::::: col
-[![PostgreSQL Elephant Logo](/media/img/about/press/elephant.png){.logo}](/){.navbar-brand .p-0}
-
-[]{.navbar-toggler-icon}
-
-:::: {#pgNavbar .navbar-collapse}
-- [Home](/ "Home")
-- [About](/about/ "About")
-- [Download](/download/ "Download")
-- [Documentation](/docs/ "Documentation")
-- [Community](/community/ "Community")
-- [Developers](/developer/ "Developers")
-- [Support](/support/ "Support")
-- [Donate](/about/donate/ "Donate")
-- [Your account](/account/ "Your account")
-
-::: input-group
-:::
-::::
-:::::
-::::::
-
-:::: {.row .justify-content-center .pg-shout-box}
-::: {.col .text-white .text-center}
-August 13, 2026: [PostgreSQL 18.6, 17.11, 16.15, 15.19, 14.24 and 19 Beta 3 Released!](/about/news/postgresql-186-1711-1615-1519-1424-and-19-beta-3-released-3365/)
-:::
-::::
-:::::::::
-
-::::::::::::::::::::::::::::::::::::::::::::::: {.container-fluid .margin}
-:::::::::::::::::::::::::::::::::::::::::::::: row
-::::::::::::::::::::::::::::::::::::::::::::: {#pgContentWrap .col-11}
-::::::::::::::: row
-:::::::::::: {.col-md-6 .mb-2}
-::::: row
-:::: col
-::: {}
-[Documentation](/docs/ "Documentation") → [PostgreSQL 18](/docs/18/index.html)
-:::
-::::
-:::::
-
-:::: row
-::: col
-Supported Versions: [Current](/docs/current/runtime-config-connection.html "PostgreSQL 18 - 19.3. Connections and Authentication"){.docs-version-selected} ([18](/docs/18/runtime-config-connection.html "PostgreSQL 18 - 19.3. Connections and Authentication"){.docs-version-selected}) / [17](/docs/17/runtime-config-connection.html "PostgreSQL 17 - 19.3. Connections and Authentication") / [16](/docs/16/runtime-config-connection.html "PostgreSQL 16 - 19.3. Connections and Authentication") / [15](/docs/15/runtime-config-connection.html "PostgreSQL 15 - 19.3. Connections and Authentication") / [14](/docs/14/runtime-config-connection.html "PostgreSQL 14 - 19.3. Connections and Authentication")
-:::
-::::
-
-:::: row
-::: col
-Development Versions: [19](/docs/19/runtime-config-connection.html "PostgreSQL 19 - 19.3. Connections and Authentication"){rel="nofollow"} / [devel](/docs/devel/runtime-config-connection.html "PostgreSQL devel - 19.3. Connections and Authentication"){rel="nofollow"}
-:::
-::::
-
-:::: row
-::: col-12
-Unsupported versions: [13](/docs/13/runtime-config-connection.html "PostgreSQL 13 - 19.3. Connections and Authentication"){rel="nofollow"} / [12](/docs/12/runtime-config-connection.html "PostgreSQL 12 - 19.3. Connections and Authentication"){rel="nofollow"} / [11](/docs/11/runtime-config-connection.html "PostgreSQL 11 - 19.3. Connections and Authentication"){rel="nofollow"} / [10](/docs/10/runtime-config-connection.html "PostgreSQL 10 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.6](/docs/9.6/runtime-config-connection.html "PostgreSQL 9.6 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.5](/docs/9.5/runtime-config-connection.html "PostgreSQL 9.5 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.4](/docs/9.4/runtime-config-connection.html "PostgreSQL 9.4 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.3](/docs/9.3/runtime-config-connection.html "PostgreSQL 9.3 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.2](/docs/9.2/runtime-config-connection.html "PostgreSQL 9.2 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.1](/docs/9.1/runtime-config-connection.html "PostgreSQL 9.1 - 19.3. Connections and Authentication"){rel="nofollow"} / [9.0](/docs/9.0/runtime-config-connection.html "PostgreSQL 9.0 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.4](/docs/8.4/runtime-config-connection.html "PostgreSQL 8.4 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.3](/docs/8.3/runtime-config-connection.html "PostgreSQL 8.3 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.2](/docs/8.2/runtime-config-connection.html "PostgreSQL 8.2 - 19.3. Connections and Authentication"){rel="nofollow"} / [8.1](/docs/8.1/runtime-config-connection.html "PostgreSQL 8.1 - 19.3. Connections and Authentication"){rel="nofollow"}
-:::
-::::
-::::::::::::
-
-:::: {.col-md-6 .col-lg-5 .offset-lg-1}
-::: input-group
-:::
-::::
-:::::::::::::::
-
-:::::::::::::::::::::::::::::: {#docContent}
-::: navheader
-+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| 19.3. Connections and Authentication                                                                                                                                                                                                                                                                                                                       |
-+:==================================================================================+:============================================================================+:================================:+==================================================================:+==================================================================================:+
-| [Prev](runtime-config-file-locations.html "19.2. File Locations"){accesskey="p"}  | [Up](runtime-config.html "Chapter 19. Server Configuration"){accesskey="u"} | Chapter 19. Server Configuration | [Home](index.html "PostgreSQL 18.6 Documentation"){accesskey="h"} |  [Next](runtime-config-resource.html "19.4. Resource Consumption"){accesskey="n"} |
-+-----------------------------------------------------------------------------------+-----------------------------------------------------------------------------+----------------------------------+-------------------------------------------------------------------+-----------------------------------------------------------------------------------+
-
-------------------------------------------------------------------------
-:::
-
-::::::::::::::::::::::::::: {#RUNTIME-CONFIG-CONNECTION .sect1}
-::::: titlepage
-:::: {}
-::: {}
-## 19.3. Connections and Authentication [\#](#RUNTIME-CONFIG-CONNECTION){.id_link} {#connections-and-authentication .title style="clear: both"}
-:::
-::::
-:::::
-
-::: toc
-[[19.3.1. Connection Settings](runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-SETTINGS)]{.sect2}
-
-[[19.3.2. TCP Settings](runtime-config-connection.html#RUNTIME-CONFIG-TCP-SETTINGS)]{.sect2}
-
-[[19.3.3. Authentication](runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-AUTHENTICATION)]{.sect2}
-
-[[19.3.4. SSL](runtime-config-connection.html#RUNTIME-CONFIG-CONNECTION-SSL)]{.sect2}
-:::
-
-::::::: {#RUNTIME-CONFIG-CONNECTION-SETTINGS .sect2}
-::::: titlepage
-:::: {}
-::: {}
-### 19.3.1. Connection Settings [\#](#RUNTIME-CONFIG-CONNECTION-SETTINGS){.id_link} {#connection-settings .title}
-:::
-::::
-:::::
-
-::: variablelist
-
-[`listen_addresses`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.1.1.3 .indexterm}]{.term} [\#](#GUC-LISTEN-ADDRESSES){.id_link}
-
-: Specifies the TCP/IP address(es) on which the server is to listen for connections from client applications. The value takes the form of a comma-separated list of host names and/or numeric IP addresses. The special entry `*`{.literal} corresponds to all available IP interfaces. The entry `0.0.0.0`{.literal} allows listening for all IPv4 addresses and `::`{.literal} allows listening for all IPv6 addresses. If the list is empty, the server does not listen on any IP interface at all, in which case only Unix-domain sockets can be used to connect to it. If the list is not empty, the server will start if it can listen on at least one TCP/IP address. A warning will be emitted for any TCP/IP address which cannot be opened. The default value is [localhost]{.systemitem}, which allows only local TCP/IP ["[loopback]{.quote}"]{.quote} connections to be made.
-
-  While client authentication ([Chapter 20](client-authentication.html "Chapter 20. Client Authentication"){.xref}) allows fine-grained control over who can access the server, `listen_addresses`{.varname} controls which interfaces accept connection attempts, which can help prevent repeated malicious connection requests on insecure network interfaces. This parameter can only be set at server start.
-
-[`port`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.2.1.3 .indexterm}]{.term} [\#](#GUC-PORT){.id_link}
-
-: The TCP port the server listens on; 5432 by default. Note that the same port number is used for all IP addresses the server listens on. This parameter can only be set at server start.
-
-[`max_connections`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.3.1.3 .indexterm}]{.term} [\#](#GUC-MAX-CONNECTIONS){.id_link}
-
-: Determines the maximum number of concurrent connections to the database server. The default is typically 100 connections, but might be less if your kernel settings will not support it (as determined during [initdb]{.application}). This parameter can only be set at server start.
-
-  [PostgreSQL]{.productname} sizes certain resources based directly on the value of `max_connections`{.varname}. Increasing its value leads to higher allocation of those resources, including shared memory.
-
-  When running a standby server, you must set this parameter to the same or higher value than on the primary server. Otherwise, queries will not be allowed in the standby server.
-
-[`reserved_connections`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.4.1.3 .indexterm}]{.term} [\#](#GUC-RESERVED-CONNECTIONS){.id_link}
-
-: Determines the number of connection ["[slots]{.quote}"]{.quote} that are reserved for connections by roles with privileges of the [pg_use_reserved_connections](predefined-roles.html#PREDEFINED-ROLE-PG-USE-RESERVED-CONNECTIONS){.xref} role. Whenever the number of free connection slots is greater than [superuser_reserved_connections](runtime-config-connection.html#GUC-SUPERUSER-RESERVED-CONNECTIONS){.xref} but less than or equal to the sum of `superuser_reserved_connections`{.varname} and `reserved_connections`{.varname}, new connections will be accepted only for superusers and roles with privileges of `pg_use_reserved_connections`{.literal}. If `superuser_reserved_connections`{.varname} or fewer connection slots are available, new connections will be accepted only for superusers.
-
-  The default value is zero connections. The value must be less than `max_connections`{.varname} minus `superuser_reserved_connections`{.varname}. This parameter can only be set at server start.
-
-[`superuser_reserved_connections`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.5.1.3 .indexterm}]{.term} [\#](#GUC-SUPERUSER-RESERVED-CONNECTIONS){.id_link}
-
-: Determines the number of connection ["[slots]{.quote}"]{.quote} that are reserved for connections by [PostgreSQL]{.productname} superusers. At most [max_connections](runtime-config-connection.html#GUC-MAX-CONNECTIONS){.xref} connections can ever be active simultaneously. Whenever the number of active concurrent connections is at least `max_connections`{.varname} minus `superuser_reserved_connections`{.varname}, new connections will be accepted only for superusers. The connection slots reserved by this parameter are intended as final reserve for emergency use after the slots reserved by [reserved_connections](runtime-config-connection.html#GUC-RESERVED-CONNECTIONS){.xref} have been exhausted.
-
-  The default value is three connections. The value must be less than `max_connections`{.varname} minus `reserved_connections`{.varname}. This parameter can only be set at server start.
-
-[`unix_socket_directories`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.6.1.3 .indexterm}]{.term} [\#](#GUC-UNIX-SOCKET-DIRECTORIES){.id_link}
-
-: Specifies the directory of the Unix-domain socket(s) on which the server is to listen for connections from client applications. Multiple sockets can be created by listing multiple directories separated by commas. Whitespace between entries is ignored; surround a directory name with double quotes if you need to include whitespace or commas in the name. An empty value specifies not listening on any Unix-domain sockets, in which case only TCP/IP sockets can be used to connect to the server.
-
-  A value that starts with `@`{.literal} specifies that a Unix-domain socket in the abstract namespace should be created (currently supported on Linux only). In that case, this value does not specify a ["[directory]{.quote}"]{.quote} but a prefix from which the actual socket name is computed in the same manner as for the file-system namespace. While the abstract socket name prefix can be chosen freely, since it is not a file-system location, the convention is to nonetheless use file-system-like values such as `@/tmp`{.literal}.
-
-  The default value is normally `/tmp`{.filename}, but that can be changed at build time. On Windows, the default is empty, which means no Unix-domain socket is created by default. This parameter can only be set at server start.
-
-  In addition to the socket file itself, which is named `.s.PGSQL.`{.literal}*`nnnn`* where *`nnnn`* is the server\'s port number, an ordinary file named `.s.PGSQL.`{.literal}*`nnnn`*`.lock`{.literal} will be created in each of the `unix_socket_directories`{.varname} directories. Neither file should ever be removed manually. For sockets in the abstract namespace, no lock file is created.
-
-[`unix_socket_group`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.7.1.3 .indexterm}]{.term} [\#](#GUC-UNIX-SOCKET-GROUP){.id_link}
-
-: Sets the owning group of the Unix-domain socket(s). (The owning user of the sockets is always the user that starts the server.) In combination with the parameter `unix_socket_permissions`{.varname} this can be used as an additional access control mechanism for Unix-domain connections. By default this is the empty string, which uses the default group of the server user. This parameter can only be set at server start.
-
-  This parameter is not supported on Windows. Any setting will be ignored. Also, sockets in the abstract namespace have no file owner, so this setting is also ignored in that case.
-
-[`unix_socket_permissions`{.varname} (`integer`{.type}) []{#id-1.6.6.6.2.2.8.1.3 .indexterm}]{.term} [\#](#GUC-UNIX-SOCKET-PERMISSIONS){.id_link}
-
-: Sets the access permissions of the Unix-domain socket(s). Unix-domain sockets use the usual Unix file system permission set. The parameter value is expected to be a numeric mode specified in the format accepted by the `chmod`{.function} and `umask`{.function} system calls. (To use the customary octal format the number must start with a `0`{.literal} (zero).)
-
-  The default permissions are `0777`{.literal}, meaning anyone can connect. Reasonable alternatives are `0770`{.literal} (only user and group, see also `unix_socket_group`{.varname}) and `0700`{.literal} (only user). (Note that for a Unix-domain socket, only write permission matters, so there is no point in setting or revoking read or execute permissions.)
-
-  This access control mechanism is independent of the one described in [Chapter 20](client-authentication.html "Chapter 20. Client Authentication"){.xref}.
-
-  This parameter can only be set at server start.
-
-  This parameter is irrelevant on systems, notably Solaris as of Solaris 10, that ignore socket permissions entirely. There, one can achieve a similar effect by pointing `unix_socket_directories`{.varname} to a directory having search permission limited to the desired audience.
-
-  Sockets in the abstract namespace have no file permissions, so this setting is also ignored in that case.
-
-[`bonjour`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.2.2.9.1.3 .indexterm}]{.term} [\#](#GUC-BONJOUR){.id_link}
-
-: Enables advertising the server\'s existence via [Bonjour]{.productname}. The default is off. This parameter can only be set at server start.
-
-[`bonjour_name`{.varname} (`string`{.type}) []{#id-1.6.6.6.2.2.10.1.3 .indexterm}]{.term} [\#](#GUC-BONJOUR-NAME){.id_link}
-
-: Specifies the [Bonjour]{.productname} service name. The computer name is used if this parameter is set to the empty string `''`{.literal} (which is the default). This parameter is ignored if the server was not compiled with [Bonjour]{.productname} support. This parameter can only be set at server start.
-:::
-:::::::
-
-::::::: {#RUNTIME-CONFIG-TCP-SETTINGS .sect2}
-::::: titlepage
-:::: {}
-::: {}
-### 19.3.2. TCP Settings [\#](#RUNTIME-CONFIG-TCP-SETTINGS){.id_link} {#tcp-settings .title}
-:::
-::::
-:::::
-
-::: variablelist
-
-[`tcp_keepalives_idle`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.1.1.3 .indexterm}]{.term} [\#](#GUC-TCP-KEEPALIVES-IDLE){.id_link}
-
-: Specifies the amount of time with no network activity after which the operating system should send a TCP keepalive message to the client. If this value is specified without units, it is taken as seconds. A value of 0 (the default) selects the operating system\'s default. On Windows, setting a value of 0 will set this parameter to 2 hours, since Windows does not provide a way to read the system default value. This parameter is supported only on systems that support `TCP_KEEPIDLE`{.symbol} or an equivalent socket option, and on Windows; on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
-
-[`tcp_keepalives_interval`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.2.1.3 .indexterm}]{.term} [\#](#GUC-TCP-KEEPALIVES-INTERVAL){.id_link}
-
-: Specifies the amount of time after which a TCP keepalive message that has not been acknowledged by the client should be retransmitted. If this value is specified without units, it is taken as seconds. A value of 0 (the default) selects the operating system\'s default. On Windows, setting a value of 0 will set this parameter to 1 second, since Windows does not provide a way to read the system default value. This parameter is supported only on systems that support `TCP_KEEPINTVL`{.symbol} or an equivalent socket option, and on Windows; on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
-
-[`tcp_keepalives_count`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.3.1.3 .indexterm}]{.term} [\#](#GUC-TCP-KEEPALIVES-COUNT){.id_link}
-
-: Specifies the number of TCP keepalive messages that can be lost before the server\'s connection to the client is considered dead. A value of 0 (the default) selects the operating system\'s default. This parameter is supported only on systems that support `TCP_KEEPCNT`{.symbol} or an equivalent socket option (which does not include Windows); on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
-
-[`tcp_user_timeout`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.4.1.3 .indexterm}]{.term} [\#](#GUC-TCP-USER-TIMEOUT){.id_link}
-
-: Specifies the amount of time that transmitted data may remain unacknowledged before the TCP connection is forcibly closed. If this value is specified without units, it is taken as milliseconds. A value of 0 (the default) selects the operating system\'s default. This parameter is supported only on systems that support `TCP_USER_TIMEOUT`{.symbol} (which does not include Windows); on other systems, it must be zero. In sessions connected via a Unix-domain socket, this parameter is ignored and always reads as zero.
-
-[`client_connection_check_interval`{.varname} (`integer`{.type}) []{#id-1.6.6.6.3.2.5.1.3 .indexterm}]{.term} [\#](#GUC-CLIENT-CONNECTION-CHECK-INTERVAL){.id_link}
-
-: Sets the time interval between optional checks that the client is still connected, while running queries. The check is performed by polling the socket, and allows long running queries to be aborted sooner if the kernel reports that the connection is closed.
-
-  This option relies on kernel events exposed by Linux, macOS, illumos and the BSD family of operating systems, and is not currently available on other systems.
-
-  If the value is specified without units, it is taken as milliseconds. The default value is `0`{.literal}, which disables connection checks. Without connection checks, the server will detect the loss of the connection only at the next interaction with the socket, when it waits for, receives or sends data.
-
-  For the kernel itself to detect lost TCP connections reliably and within a known timeframe in all scenarios including network failure, it may also be necessary to adjust the TCP keepalive settings of the operating system, or the [tcp_keepalives_idle](runtime-config-connection.html#GUC-TCP-KEEPALIVES-IDLE){.xref}, [tcp_keepalives_interval](runtime-config-connection.html#GUC-TCP-KEEPALIVES-INTERVAL){.xref} and [tcp_keepalives_count](runtime-config-connection.html#GUC-TCP-KEEPALIVES-COUNT){.xref} settings of [PostgreSQL]{.productname}.
-:::
-:::::::
-
-::::::: {#RUNTIME-CONFIG-CONNECTION-AUTHENTICATION .sect2}
-::::: titlepage
-:::: {}
-::: {}
-### 19.3.3. Authentication [\#](#RUNTIME-CONFIG-CONNECTION-AUTHENTICATION){.id_link} {#authentication .title}
-:::
-::::
-:::::
-
-::: variablelist
-
-[`authentication_timeout`{.varname} (`integer`{.type}) []{#id-1.6.6.6.4.2.1.1.3 .indexterm} []{#id-1.6.6.6.4.2.1.1.4 .indexterm} []{#id-1.6.6.6.4.2.1.1.5 .indexterm}]{.term} [\#](#GUC-AUTHENTICATION-TIMEOUT){.id_link}
-
-: Maximum amount of time allowed to complete client authentication. If a would-be client has not completed the authentication protocol in this much time, the server closes the connection. This prevents hung clients from occupying a connection indefinitely. If this value is specified without units, it is taken as seconds. The default is one minute (`1m`{.literal}). This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`password_encryption`{.varname} (`enum`{.type}) []{#id-1.6.6.6.4.2.2.1.3 .indexterm}]{.term} [\#](#GUC-PASSWORD-ENCRYPTION){.id_link}
-
-: When a password is specified in [[CREATE ROLE]{.refentrytitle}](sql-createrole.html "CREATE ROLE"){.xref} or [[ALTER ROLE]{.refentrytitle}](sql-alterrole.html "ALTER ROLE"){.xref}, this parameter determines the algorithm to use to encrypt the password. Possible values are `scram-sha-256`{.literal}, which will encrypt the password with SCRAM-SHA-256, and `md5`{.literal}, which stores the password as an MD5 hash. The default is `scram-sha-256`{.literal}.
-
-  Note that older clients might lack support for the SCRAM authentication mechanism, and hence not work with passwords encrypted with SCRAM-SHA-256. See [Section 20.5](auth-password.html "20.5. Password Authentication"){.xref} for more details.
-
-  ::: warning
-  ### Warning {#warning .title}
-
-  Support for MD5-encrypted passwords is deprecated and will be removed in a future release of [PostgreSQL]{.productname}. Refer to [Section 20.5](auth-password.html "20.5. Password Authentication"){.xref} for details about migrating to another password type.
-  :::
-
-[`scram_iterations`{.varname} (`integer`{.type}) []{#id-1.6.6.6.4.2.3.1.3 .indexterm}]{.term} [\#](#GUC-SCRAM-ITERATIONS){.id_link}
-
-: The number of computational iterations to be performed when encrypting a password using SCRAM-SHA-256. The default is `4096`{.literal}. A higher number of iterations provides additional protection against brute-force attacks on stored passwords, but makes authentication slower. Changing the value has no effect on existing passwords encrypted with SCRAM-SHA-256 as the iteration count is fixed at the time of encryption. In order to make use of a changed value, a new password must be set.
-
-  ::: note
-  ### Note {#note .title}
-
-  If a role password was created with a different iteration count than the value of `scram_iterations`{.literal} specified in the `postgresql.conf`{.filename} file or on the server command line, an unauthenticated user can discern the existence of the role by observing discrepancies in the server\'s responses to connection attempts. If you find this concerning, ensure that all role passwords are created with `scram_iterations`{.literal} set to the value specified in the `postgresql.conf`{.filename} file or on the server command line.
-  :::
-
-[`md5_password_warnings`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.4.2.4.1.3 .indexterm}]{.term} [\#](#GUC-MD5-PASSWORD-WARNINGS){.id_link}
-
-: Controls whether a `WARNING`{.literal} about MD5 password deprecation is produced when a `CREATE ROLE`{.command} or `ALTER ROLE`{.command} statement sets an MD5-encrypted password. The default value is `on`{.literal}.
-
-[`krb_server_keyfile`{.varname} (`string`{.type}) []{#id-1.6.6.6.4.2.5.1.3 .indexterm}]{.term} [\#](#GUC-KRB-SERVER-KEYFILE){.id_link}
-
-: Sets the location of the server\'s Kerberos key file. The default is `FILE:/usr/local/pgsql/etc/krb5.keytab`{.filename} (where the directory part is whatever was specified as `sysconfdir`{.varname} at build time; use `pg_config --sysconfdir`{.literal} to determine that). If this parameter is set to an empty string, it is ignored and a system-dependent default is used. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. See [Section 20.6](gssapi-auth.html "20.6. GSSAPI Authentication"){.xref} for more information.
-
-[`krb_caseins_users`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.4.2.6.1.3 .indexterm}]{.term} [\#](#GUC-KRB-CASEINS-USERS){.id_link}
-
-: Sets whether GSSAPI user names should be treated case-insensitively. The default is `off`{.literal} (case sensitive). This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`gss_accept_delegation`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.4.2.7.1.3 .indexterm}]{.term} [\#](#GUC-GSS-ACCEPT-DELEGATION){.id_link}
-
-: Sets whether GSSAPI delegation should be accepted from the client. The default is `off`{.literal} meaning credentials from the client will [*not*]{.emphasis} be accepted. Changing this to `on`{.literal} will make the server accept credentials delegated to it from the client. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`oauth_validator_libraries`{.varname} (`string`{.type}) []{#id-1.6.6.6.4.2.8.1.3 .indexterm}]{.term} [\#](#GUC-OAUTH-VALIDATOR-LIBRARIES){.id_link}
-
-: The library/libraries to use for validating OAuth connection tokens. If only one validator library is provided, it will be used by default for any OAuth connections; otherwise, all [`oauth`{.literal} HBA entries](auth-oauth.html "20.15. OAuth Authorization/Authentication"){.link} must explicitly set a `validator`{.literal} chosen from this list. If set to an empty string (the default), OAuth connections will be refused. This parameter can only be set in the `postgresql.conf`{.filename} file.
-
-  Validator modules must be implemented/obtained separately; [PostgreSQL]{.productname} does not ship with any default implementations. For more information on implementing OAuth validators, see [Chapter 50](oauth-validators.html "Chapter 50. OAuth Validator Modules"){.xref}.
-:::
-:::::::
-
-::::::: {#RUNTIME-CONFIG-CONNECTION-SSL .sect2}
-::::: titlepage
-:::: {}
-::: {}
-### 19.3.4. SSL [\#](#RUNTIME-CONFIG-CONNECTION-SSL){.id_link} {#ssl .title}
-:::
-::::
-:::::
-
-See [Section 18.9](ssl-tcp.html "18.9. Secure TCP/IP Connections with SSL"){.xref} for more information about setting up SSL. The configuration parameters for controlling transfer encryption using TLS protocols are named `ssl`{.literal} for historic reasons, even though support for the SSL protocol has been deprecated. SSL is in this context used interchangeably with TLS.
-
-::: variablelist
-
-[`ssl`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.5.3.1.1.3 .indexterm}]{.term} [\#](#GUC-SSL){.id_link}
-
-: Enables SSL connections. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `off`{.literal}.
-
-[`ssl_ca_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.2.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CA-FILE){.id_link}
-
-: Specifies the name of the file containing the SSL server certificate authority (CA). Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is empty, meaning no CA file is loaded, and client certificate verification is not performed.
-
-[`ssl_cert_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.3.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CERT-FILE){.id_link}
-
-: Specifies the name of the file containing the SSL server certificate. Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `server.crt`{.filename}.
-
-[`ssl_crl_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.4.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CRL-FILE){.id_link}
-
-: Specifies the name of the file containing the SSL client certificate revocation list (CRL). Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is empty, meaning no CRL file is loaded (unless [ssl_crl_dir](runtime-config-connection.html#GUC-SSL-CRL-DIR){.xref} is set).
-
-[`ssl_crl_dir`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.5.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CRL-DIR){.id_link}
-
-: Specifies the name of the directory containing the SSL client certificate revocation list (CRL). Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is empty, meaning no CRLs are used (unless [ssl_crl_file](runtime-config-connection.html#GUC-SSL-CRL-FILE){.xref} is set).
-
-  The directory needs to be prepared with the [OpenSSL]{.productname} command `openssl rehash`{.literal} or `c_rehash`{.literal}. See its documentation for details.
-
-  When using this setting, CRLs in the specified directory are loaded on-demand at connection time. New CRLs can be added to the directory and will be used immediately. This is unlike [ssl_crl_file](runtime-config-connection.html#GUC-SSL-CRL-FILE){.xref}, which causes the CRL in the file to be loaded at server start time or when the configuration is reloaded. Both settings can be used together.
-
-[`ssl_key_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.6.1.3 .indexterm}]{.term} [\#](#GUC-SSL-KEY-FILE){.id_link}
-
-: Specifies the name of the file containing the SSL server private key. Relative paths are relative to the data directory. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `server.key`{.filename}.
-
-[`ssl_tls13_ciphers`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.7.1.3 .indexterm}]{.term} [\#](#GUC-SSL-TLS13-CIPHERS){.id_link}
-
-: Specifies a list of cipher suites that are allowed by connections using TLS version 1.3. Multiple cipher suites can be specified by using a colon separated list. If left blank, the default set of cipher suites in [OpenSSL]{.productname} will be used.
-
-  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`ssl_ciphers`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.8.1.3 .indexterm}]{.term} [\#](#GUC-SSL-CIPHERS){.id_link}
-
-: Specifies a list of SSL ciphers that are allowed by connections using TLS version 1.2 and lower, see [ssl_tls13_ciphers](runtime-config-connection.html#GUC-SSL-TLS13-CIPHERS){.xref} for TLS version 1.3 connections. See the [[ciphers]{.refentrytitle}]{.citerefentry} manual page in the [OpenSSL]{.productname} package for the syntax of this setting and a list of supported values. The default value is `HIGH:MEDIUM:+3DES:!aNULL`{.literal}. The default is usually a reasonable choice unless you have specific security requirements.
-
-  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-  Explanation of the default value:
-
-  ::: variablelist
-
-  [`HIGH`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-HIGH){.id_link}
-
-  : Cipher suites that use ciphers from `HIGH`{.literal} group (e.g., AES, Camellia, 3DES)
-
-  [`MEDIUM`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-MEDIUM){.id_link}
-
-  : Cipher suites that use ciphers from `MEDIUM`{.literal} group (e.g., RC4, SEED)
-
-  [`+3DES`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-PLUS-3DES){.id_link}
-
-  : The [OpenSSL]{.productname} default order for `HIGH`{.literal} is problematic because it orders 3DES higher than AES128. This is wrong because 3DES offers less security than AES128, and it is also much slower. `+3DES`{.literal} reorders it after all other `HIGH`{.literal} and `MEDIUM`{.literal} ciphers.
-
-  [`!aNULL`{.literal}]{.term} [\#](#GUC-SSL-CIPHERS-NOT-ANULL){.id_link}
-
-  : Disables anonymous cipher suites that do no authentication. Such cipher suites are vulnerable to MITM attacks and therefore should not be used.
-  :::
-
-  Available cipher suite details will vary across [OpenSSL]{.productname} versions. Use the command `openssl ciphers -v 'HIGH:MEDIUM:+3DES:!aNULL'`{.literal} to see actual details for the currently installed [OpenSSL]{.productname} version. Note that this list is filtered at run time based on the server key type.
-
-[`ssl_prefer_server_ciphers`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.5.3.9.1.3 .indexterm}]{.term} [\#](#GUC-SSL-PREFER-SERVER-CIPHERS){.id_link}
-
-: Specifies whether to use the server\'s SSL cipher preferences, rather than the client\'s. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `on`{.literal}.
-
-  [PostgreSQL]{.productname} versions before 9.4 do not have this setting and always use the client\'s preferences. This setting is mainly for backward compatibility with those versions. Using the server\'s preferences is usually better because it is more likely that the server is appropriately configured.
-
-[`ssl_groups`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.10.1.3 .indexterm}]{.term} [\#](#GUC-SSL-GROUPS){.id_link}
-
-: Specifies the named group to use for TLS key exchange. It needs to be supported by all clients that connect. Multiple groups can be specified by using a colon-separated list. It does not need to match the key type used by the server certificate. This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line. The default is `X25519:prime256v1`{.literal}.
-
-  [OpenSSL]{.productname} names for the most common groups are: `prime256v1`{.literal} (NIST P-256), `secp384r1`{.literal} (NIST P-384), `secp521r1`{.literal} (NIST P-521). An incomplete list of available groups can be shown with the command `openssl ecparam -list_curves`{.command}. Not all of them are usable with TLS though, and many supported group names and aliases are omitted.
-
-  In [PostgreSQL]{.productname} versions before 18.0 this setting was named `ssl_ecdh_curve`{.literal} and only accepted a single value.
-
-[`ssl_min_protocol_version`{.varname} (`enum`{.type}) []{#id-1.6.6.6.5.3.11.1.3 .indexterm}]{.term} [\#](#GUC-SSL-MIN-PROTOCOL-VERSION){.id_link}
-
-: Sets the minimum SSL/TLS protocol version to use. Valid values are currently: `TLSv1`{.literal}, `TLSv1.1`{.literal}, `TLSv1.2`{.literal}, `TLSv1.3`{.literal}. Older versions of the [OpenSSL]{.productname} library do not support all values; an error will be raised if an unsupported setting is chosen. Protocol versions before TLS 1.0, namely SSL version 2 and 3, are always disabled.
-
-  The default is `TLSv1.2`{.literal}, which satisfies industry best practices as of this writing.
-
-  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`ssl_max_protocol_version`{.varname} (`enum`{.type}) []{#id-1.6.6.6.5.3.12.1.3 .indexterm}]{.term} [\#](#GUC-SSL-MAX-PROTOCOL-VERSION){.id_link}
-
-: Sets the maximum SSL/TLS protocol version to use. Valid values are as for [ssl_min_protocol_version](runtime-config-connection.html#GUC-SSL-MIN-PROTOCOL-VERSION){.xref}, with addition of an empty string, which allows any protocol version. The default is to allow any version. Setting the maximum protocol version is mainly useful for testing or if some component has issues working with a newer protocol.
-
-  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`ssl_dh_params_file`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.13.1.3 .indexterm}]{.term} [\#](#GUC-SSL-DH-PARAMS-FILE){.id_link}
-
-: Specifies the name of the file containing Diffie-Hellman parameters used for so-called ephemeral DH family of SSL ciphers. The default is empty, in which case compiled-in default DH parameters used. Using custom DH parameters reduces the exposure if an attacker manages to crack the well-known compiled-in DH parameters. You can create your own DH parameters file with the command `openssl dhparam -out dhparams.pem 2048`{.command}.
-
-  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`ssl_passphrase_command`{.varname} (`string`{.type}) []{#id-1.6.6.6.5.3.14.1.3 .indexterm}]{.term} [\#](#GUC-SSL-PASSPHRASE-COMMAND){.id_link}
-
-: Sets an external command to be invoked when a passphrase for decrypting an SSL file such as a private key needs to be obtained. By default, this parameter is empty, which means the built-in prompting mechanism is used.
-
-  The command must print the passphrase to the standard output and exit with code 0. In the parameter value, `%p`{.literal} is replaced by a prompt string. (Write `%%`{.literal} for a literal `%`{.literal}.) Note that the prompt string will probably contain whitespace, so be sure to quote adequately. A single newline is stripped from the end of the output if present.
-
-  The command does not actually have to prompt the user for a passphrase. It can read it from a file, obtain it from a keychain facility, or similar. It is up to the user to make sure the chosen mechanism is adequately secure.
-
-  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-
-[`ssl_passphrase_command_supports_reload`{.varname} (`boolean`{.type}) []{#id-1.6.6.6.5.3.15.1.3 .indexterm}]{.term} [\#](#GUC-SSL-PASSPHRASE-COMMAND-SUPPORTS-RELOAD){.id_link}
-
-: This parameter determines whether the passphrase command set by `ssl_passphrase_command`{.varname} will also be called during a configuration reload if a key file needs a passphrase. If this parameter is `off`{.literal} (the default), then `ssl_passphrase_command`{.varname} will be ignored during a reload and the SSL configuration will not be reloaded if a passphrase is needed. That setting is appropriate for a command that requires a TTY for prompting, which might not be available when the server is running. Setting this parameter to on might be appropriate if the passphrase is obtained from a file, for example.
-
-  This parameter must be set to `on`{.literal} when running on [Windows]{.systemitem} since all connections will perform a configuration reload due to the different process model of that platform.
-
-  This parameter can only be set in the `postgresql.conf`{.filename} file or on the server command line.
-:::
-:::::::
-:::::::::::::::::::::::::::
-
-::: navfooter
-
-------------------------------------------------------------------------
-
-  ----------------------------------------------------------------------------------- ----------------------------------------------------------------------------- -----------------------------------------------------------------------------------
-  [Prev](runtime-config-file-locations.html "19.2. File Locations"){accesskey="p"}     [Up](runtime-config.html "Chapter 19. Server Configuration"){accesskey="u"}     [Next](runtime-config-resource.html "19.4. Resource Consumption"){accesskey="n"}
-  19.2. File Locations                                                                      [Home](index.html "PostgreSQL 18.6 Documentation"){accesskey="h"}                                                                19.4. Resource Consumption
-  ----------------------------------------------------------------------------------- ----------------------------------------------------------------------------- -----------------------------------------------------------------------------------
-:::
-::::::::::::::::::::::::::::::
-
-::: {#docComments}
-## Submit correction
-
-If you see anything in the documentation that is not correct, does not match your experience with the particular feature or requires further clarification, please use [this form](/account/comments/new/18/runtime-config-connection.html/){rel="nofollow"} to report a documentation issue.
-:::
-:::::::::::::::::::::::::::::::::::::::::::::
-::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::
-
-::: container
-[Policies](/about/policies/) \| [Code of Conduct](/about/policies/coc/) \| [About PostgreSQL](/about/) \| [Contact](/about/contact/)\
-
-Copyright © 1996-2026 The PostgreSQL Global Development Group
-:::
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-lpos-md/">
-                [redis] commands/lpos.md
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-16</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-The command returns the index of matching elements inside a Redis list.
-By default, when no options are given, it will scan the list from head to tail,
-looking for the first match of "element". If the element is found, its index (the zero-based position in the list) is returned. Otherwise, if no match is found, `nil` is returned.
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; RPUSH mylist a b c 1 2 3 c c</span><br><span class="line">&gt; LPOS mylist c</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
-
-The optional arguments and options can modify the command's behavior.
-The `RANK` option specifies the "rank" of the first element to return, in case there are multiple matches. A rank of 1 means to return the first match, 2 to return the second match, and so forth.
-
-For instance, in the above example the element "c" is present multiple times, if I want the index of the second match, I'll write:
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c RANK 2</span><br><span class="line">6</span><br></pre></td></tr></table></figure>
-
-That is, the second occurrence of "c" is at position 6.
-A negative "rank" as the `RANK` argument tells `LPOS` to invert the search direction, starting from the tail to the head.
-
-So, we want to say, give me the first element starting from the tail of the list:
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c RANK -1</span><br><span class="line">7</span><br></pre></td></tr></table></figure>
-
-Note that the indexes are still reported in the "natural" way, that is, considering the first element starting from the head of the list at index 0, the next element at index 1, and so forth. This basically means that the returned indexes are stable whatever the rank is positive or negative.
-
-Sometimes we want to return not just the Nth matching element, but the position of all the first N matching elements. This can be achieved using the `COUNT` option.
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c COUNT 2</span><br><span class="line">[2,6]</span><br></pre></td></tr></table></figure>
-
-We can combine `COUNT` and `RANK`, so that `COUNT` will try to return up to the specified number of matches, but starting from the Nth match, as specified by the `RANK` option.
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c RANK -1 COUNT 2</span><br><span class="line">[7,6]</span><br></pre></td></tr></table></figure>
-
-When `COUNT` is used, it is possible to specify 0 as the number of matches, as a way to tell the command we want all the matches found returned as an array of indexes. This is better than giving a very large `COUNT` option because it is more general.
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; LPOS mylist c COUNT 0</span><br><span class="line">[2,6,7]</span><br></pre></td></tr></table></figure>
-
-When `COUNT` is used and no match is found, an empty array is returned. However when `COUNT` is not used and there are no matches, the command returns `nil`.
-
-Finally, the `MAXLEN` option tells the command to compare the provided element only with a given maximum number of list items. So for instance specifying `MAXLEN 1000` will make sure that the command performs only 1000 comparisons, effectively running the algorithm on a subset of the list (the first part or the last part depending on the fact we use a positive or negative rank). This is useful to limit the maximum complexity of the command. It is also useful when we expect the match to be found very early, but want to be sure that in case this is not true, the command does not take too much time to run.
-
-When `MAXLEN` is used, it is possible to specify 0 as the maximum number of comparisons, as a way to tell the command we want unlimited comparisons. This is better than giving a very large `MAXLEN` option because it is more general.
-
-@examples
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RPUSH mylist a b c d 1 2 3 4 3 3 3</span><br><span class="line">LPOS mylist 3</span><br><span class="line">LPOS mylist 3 COUNT 0 RANK 2</span><br></pre></td></tr></table></figure>
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-getbit-md/">
-                [redis] commands/getbit.md
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-16</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-Returns the bit value at _offset_ in the string value stored at _key_.
-
-When _offset_ is beyond the string length, the string is assumed to be a
-contiguous space with 0 bits.
-When _key_ does not exist it is assumed to be an empty string, so _offset_ is
-always out of range and the value is also assumed to be a contiguous space with
-0 bits.
-
-@examples
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SETBIT mykey 7 1</span><br><span class="line">GETBIT mykey 0</span><br><span class="line">GETBIT mykey 7</span><br><span class="line">GETBIT mykey 100</span><br></pre></td></tr></table></figure>
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/16/2026-10-16-redis-commands-latency-latest-md/">
-                [redis] commands/latency-latest.md
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-16</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-The `LATENCY LATEST` command reports the latest latency events logged.
-
-Each reported event has the following fields:
-
-* Event name.
-* Unix timestamp of the latest latency spike for the event.
-* Latest event latency in millisecond.
-* All-time maximum latency for this event.
-
-"All-time" means the maximum latency since the Redis instance was
-started, or the time that events were reset `LATENCY RESET`.
-
-@examples
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; debug sleep 1</span><br><span class="line">OK</span><br><span class="line">(1.00s)</span><br><span class="line">127.0.0.1:6379&gt; debug sleep .25</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; latency latest</span><br><span class="line">1) 1) &quot;command&quot;</span><br><span class="line">   2) (integer) 1405067976</span><br><span class="line">   3) (integer) 251</span><br><span class="line">   4) (integer) 1001</span><br></pre></td></tr></table></figure>
-
-For more information refer to the [Latency Monitoring Framework page][lm].
-
-[lm]: /topics/latency-monitor
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/13/2026-10-13-redis-commands-cluster-addslots-md/">
-                [redis] commands/cluster-addslots.md
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-13</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-This command is useful in order to modify a node's view of the cluster
-configuration. Specifically it assigns a set of hash slots to the node
-receiving the command. If the command is successful, the node will map
-the specified hash slots to itself, and will start broadcasting the new
-configuration.
-
-However note that:
-
-1. The command only works if all the specified slots are, from the point of view of the node receiving the command, currently not assigned. A node will refuse to take ownership for slots that already belong to some other node (including itself).
-2. The command fails if the same slot is specified multiple times.
-3. As a side effect of the command execution, if a slot among the ones specified as argument is set as `importing`, this state gets cleared once the node assigns the (previously unbound) slot to itself.
-
-## Example
-
-For example the following command assigns slots 1 2 3 to the node receiving
-the command:
-
-    > CLUSTER ADDSLOTS 1 2 3
-    OK
-
-However trying to execute it again results into an error since the slots
-are already assigned:
-
-    > CLUSTER ADDSLOTS 1 2 3
-    ERR Slot 1 is already busy
-
-## Usage in Redis Cluster
-
-This command only works in cluster mode and is useful in the following
-Redis Cluster operations:
-
-1. To create a new `cluster ADDSLOTS` is used in order to initially setup master nodes splitting the available hash slots among them.
-2. In order to fix a broken cluster where certain slots are unassigned.
-
-## Information about slots propagation and warnings
-
-Note that once a node assigns a set of slots to itself, it will start
-propagating this information in heartbeat packet headers. However the
-other nodes will accept the information only if they have the slot as
-not already bound with another node, or if the configuration epoch of the
-node advertising the new hash slot, is greater than the node currently listed
-in the table.
-
-This means that this command should be used with care only by applications
-orchestrating Redis Cluster, like `redis-cli`, and the command if used
-out of the right context can leave the cluster in a wrong state or cause
-data loss.
-
+            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
+<h3 id="1-非结构化碎片知识的挑战"><a href="#1-非结构化碎片知识的挑战" class="headerlink" title="1. 非结构化碎片知识的挑战"></a>1. 非结构化碎片知识的挑战</h3><p>通过聊天工具、便签或自动摄取渠道沉淀的原始知识，普遍存在以下痛点：</p>
+<ul>
+<li><strong>碎片化严重</strong>：大量知识以单一问答（Q&amp;A）、孤立句子或测试性记录（如 <code>test-sync</code> 条目）形式分散呈现。</li>
+<li><strong>缺乏上下文</strong>：缺少背景描述、应用场景与前后逻辑关联，导致二次阅读成本极高。</li>
+<li><strong>信息密度不均</strong>：部分内容仅包含简单的测试占位符，而部分内容包含核心技术细节，缺乏统一的质量标准。</li>
+</ul>
+<h3 id="2-知识聚类与提炼方法论"><a href="#2-知识聚类与提炼方法论" class="headerlink" title="2. 知识聚类与提炼方法论"></a>2. 知识聚类与提炼方法论</h3><p>为了将零散的“知识碎片”转化为具有高可读性与复用价值的“结构化文档”，需要采用<strong>自下而上的主题聚类与自上而下的文档重构</strong>结合的方法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[原始碎片数据 (Auto-Ingest / Chat Raw)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[主题提取与关联判定 (Clustering &amp; Taxonomy)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[内容综合融合与扩展 (Synthesis &amp; Refinement)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[高质量结构化文档 (Structured Markdown Knowledge)]</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-1-主题识别与聚类（Clustering）"><a href="#2-1-主题识别与聚类（Clustering）" class="headerlink" title="2.1 主题识别与聚类（Clustering）"></a>2.1 主题识别与聚类（Clustering）</h4><ol>
+<li><strong>语义相似度分析</strong>：评估不同条目在技术栈、业务域或操作流程上的相关性。</li>
+<li><strong>抽象归纳</strong>：将零散的测试记事、同步日志、技术问答归并到“架构规范”、“测试验证”、“运维指南”等高层级主题下。</li>
+</ol>
+<h4 id="2-2-内容综合与融合（Synthesis）"><a href="#2-2-内容综合与融合（Synthesis）" class="headerlink" title="2.2 内容综合与融合（Synthesis）"></a>2.2 内容综合与融合（Synthesis）</h4><ul>
+<li><strong>废弃无意义占位符</strong>：删除仅用于链路校验的临时数据，提取其背后的机制逻辑。</li>
+<li><strong>上下文补全</strong>：为孤立的问答补充背景背景、操作步骤、注意事项与最佳实践。</li>
+<li><strong>逻辑重构</strong>：按照“概述 -&gt; 核心原理 -&gt; 操作指南 -&gt; 总结”的标准化文档范式重新组织段落，避免简单地堆砌原始问答。</li>
+</ul>
+<h3 id="3-高质量知识文档的标准"><a href="#3-高质量知识文档的标准" class="headerlink" title="3. 高质量知识文档的标准"></a>3. 高质量知识文档的标准</h3><p>重构后的知识文档应满足以下维度规范：</p>
+<ul>
+<li><strong>完整性（Completeness）</strong>：能够独立阐述一个完整的主题或解决方案，不依赖碎片化的上下文提示。</li>
+<li><strong>规范性（Standardization）</strong>：统一采用清晰的 Markdown 层级标题、代码块与结构化列表。</li>
+<li><strong>高可读性（Readability）</strong>：语言表达流畅专业，去除了口语化和冗余字词，适合团队长期归档与查阅。</li>
+</ul>
 
         </div>
     
@@ -1212,7 +291,7 @@ data loss.
                 <a class="" href="/page/9/">
                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                 </a>
-                <a class="" href="/page/11/">
+                <a class="disabled" href="/">
                     <i class="fa fa-chevron-right" aria-hidden="true"></i>
                 </a>
             </div>
@@ -1242,15 +321,15 @@ data loss.
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/10/21/php-structure/">PHP框架</a>
-            </li>
-            
-            <li>
                 <a class="footer-post" href="/2026/10/21/pressure-testing/">压测工具集合</a>
             </li>
             
             <li>
                 <a class="footer-post" href="/2026/10/21/python-interview/">Golang 深浅</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/10/21/redis/">Redis</a>
             </li>
             
             <li>
