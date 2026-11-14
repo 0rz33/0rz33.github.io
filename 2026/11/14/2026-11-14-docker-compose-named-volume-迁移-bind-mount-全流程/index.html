@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="**原问题**: Docker Compose 项目如何从 named volume 迁移到 bind mount，保留 PostgreSQL 数据和产出文件
+
+**答案**:
+
+# Docker Compose 从 Named Volume 迁移到 Bind Mount：数据持久化改造
+
+## 背">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Docker Compose Named Volume 迁移 Bind Mount 全流程"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>Docker Compose Named Volume 迁移 Bind Mount 全流程 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/14/2026-11-14-docker-compose-named-volume-%E8%BF%81%E7%A7%BB-bind-mount-%E5%85%A8%E6%B5%81%E7%A8%8B/">
+                Docker Compose Named Volume 迁移 Bind Mount 全流程
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+**原问题**: Docker Compose 项目如何从 named volume 迁移到 bind mount，保留 PostgreSQL 数据和产出文件
+
+**答案**:
+
+# Docker Compose 从 Named Volume 迁移到 Bind Mount：数据持久化改造
+
+## 背景与场景
+
+seo-loop 是一套 SEO 自动化流水线（Vue SPA + Node daemon + PostgreSQL + Redis），部署在一台 worker 机器上。原始部署不是通过 `git clone` 拉取的（目录中没有 `.git`），且数据存储使用的是 Docker named volume。这导致两个问题：一是代码更新无法 `git pull`，只能手动覆盖文件；二是数据和项目目录解耦，整目录迁移或备份时 named volume 里的 PostgreSQL 数据和产出文件会被遗漏。本次改造的目标是将 named volume 替换为 bind mount（`./data/`），使数据跟着项目目录走。
+
+## 核心结论
+
+1. **先导出数据再拆容器**：`docker compose exec -T postgres pg_dump` 导出 SQL，`docker cp` 拷出 daemon 产出文件，然后才能安全 `docker compose down` 删除旧 named volume。
+
+2. **`docker compose ps -q` 在容器停止后返回空**：`docker cp $(docker compose ps -q daemon):/app/out/. data/seo-out/` 会报 `must specify at least one container source`，因为 `-q` 只返回运行中容器的 ID。必须用硬编码容器名 `docker cp seo-loop-daemon-1:/app/out/. ...`。
+
+3. **Bind mount 路径统一到 `./data/` 子目录**：PostgreSQL → `./data/postgres`，daemon 产出 → `./data/seo-out`。整个 `data/` 目录可以 tar 打包迁移，不再依赖 `docker volume`。
+
+4. **非 git 仓库的部署环境用 `cat > file <<'EOF'` 覆盖配置**：没有 `.git` 就没法 `git pull`，直接 heredoc 写入 `docker-compose.yaml` 是最快的更新方式。
+
+5. **数据恢复顺序：先起 postgres，等 healthy，再灌 dump，最后起全栈**。不能 `up -d` 一把梭——daemon 启动时会连 DB，如果数据还没灌完会导致 schema 不匹配。
+
+## 实现方案
+
+### 1. 停服并导出数据
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停应用容器（保留 postgres 运行以便导出）</span></span><br><span class="line">docker compose stop app daemon</span><br><span class="line"></span><br><span class="line"><span class="comment"># 导出 PostgreSQL 全库</span></span><br><span class="line"><span class="built_in">mkdir</span> -p data</span><br><span class="line">docker compose <span class="built_in">exec</span> -T postgres pg_dump -U seo_loop seo_loop &gt; data/pg-dump.sql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷出 daemon 产出文件（注意：用硬编码容器名，不要用 ps -q）</span></span><br><span class="line"><span class="built_in">mkdir</span> -p data/seo-out</span><br><span class="line">docker <span class="built_in">cp</span> seo-loop-daemon-1:/app/out/. data/seo-out/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认数据完整后，销毁全部容器 + named volume</span></span><br><span class="line">docker compose down</span><br></pre></td></tr></table></figure>
+
+### 2. 覆盖 docker-compose.yaml
+
+将 named volume 替换为 bind mount，关键改动：
+- `postgres` 的 volume: `./data/postgres:/var/lib/postgresql/data`
+- `app` 和 `daemon` 共享: `./data/seo-out:/app/out`
+- 底部删除 `volumes:` 声明段
+
+### 3. 恢复数据并启动
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一步：只起 postgres，等它初始化 bind mount 目录并通过 healthcheck</span></span><br><span class="line">docker compose up -d postgres &amp;&amp; <span class="built_in">sleep</span> 8</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二步：灌入之前导出的 dump</span></span><br><span class="line"><span class="built_in">cat</span> data/pg-dump.sql | docker compose <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三步：全栈启动</span></span><br><span class="line">docker compose up -d</span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+1. **`docker compose ps -q <service>` 在容器未运行时返回空字符串** — 用 `-a` 或硬编码容器名
+2. **`pg_dump` 导出时不要先 `docker compose down`** — 导出需要 postgres 在运行
+3. **Bind mount 目录权限** — PG 容器以 uid 999 运行，手动 mkdir 并设 root-only 权限会导致启动失败
+4. **非 git 仓库长期维护** — heredoc 覆盖是应急，长期应 `git init && git remote add && git reset --hard origin/main`
+
+## 底层机制
+
+Named volume 由 Docker 引擎管理，数据在 `/var/lib/docker/volumes/<name>/_data`，生命周期独立于 compose 项目。Bind mount 将宿主机目录直接映射进容器，数据是普通文件。对于单机部署小型项目，bind mount 到 `./data/` 几乎总是更好——数据可见、可 git-ignore、可整目录迁移，符合"项目即目录"的运维心智模型。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/Docker/">#Docker</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-named-volume-%E8%BF%81%E7%A7%BB-bind-mount-%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose Named Volu</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-ci-%E8%AF%AF%E5%88%A0-pg-%E6%95%B0%E6%8D%AE%E5%90%8E-named-volume-%E6%95%91%E6%8F%B4%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose CI 误删 PG 数</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/tree/">树 ADT</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/vim/">VIM</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%AE%B6%E5%BA%AD/">家庭</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

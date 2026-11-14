@@ -184,13 +184,189 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/network-protocal/">
+            <a href="/2026/11/14/mysql-migrate/">
+                Mysql-数据迁移-基础篇
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库迁移"><a href="#数据库迁移" class="headerlink" title="数据库迁移"></a>数据库迁移</h2><h3 id="从旧数据迁移到正在跑的新数据里面"><a href="#从旧数据迁移到正在跑的新数据里面" class="headerlink" title="从旧数据迁移到正在跑的新数据里面"></a>从旧数据迁移到正在跑的新数据里面</h3><blockquote>
+<p>首先把 mysq.ini 配置打开</p>
+</blockquote>
+<ul>
+<li><p><code>secure_file_priv</code>变量是MySQL服务器用来限制数据导入和导出路径的一项安全措施<br><img src="/images/mysql-config-db-migrate.png"></p>
+</li>
+<li><p>重启数据库 并可启用 secure_file_priv</p>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;secure_file_priv&#x27;</span>;</span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>bash脚本 并进行数据提取  -(数据导出)</p>
+<blockquote>
+<p> export_data.sh</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># MySQL 相关配置信息</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;xxxx&quot;</span>        <span class="comment"># MySQL 用户名</span></span><br><span class="line">MYSQL_PASSWORD=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 密码</span></span><br><span class="line">MYSQL_DATABASE=<span class="string">&quot;xxxx&quot;</span>  <span class="comment"># MySQL 数据库</span></span><br><span class="line">OUTPUT_FILE=<span class="string">&quot;/tmp/mysqlfiles/postt.txt&quot;</span>  <span class="comment"># 输出文件路径</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询并导出数据</span></span><br><span class="line">mysql -u <span class="variable">$MYSQL_USER</span> -p<span class="variable">$MYSQL_PASSWORD</span> -D <span class="variable">$MYSQL_DATABASE</span> -e <span class="string">&quot;</span></span><br><span class="line"><span class="string">SELECT </span></span><br><span class="line"><span class="string">    title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type </span></span><br><span class="line"><span class="string">FROM </span></span><br><span class="line"><span class="string">    post </span></span><br><span class="line"><span class="string">WHERE </span></span><br><span class="line"><span class="string">    userid LIKE &#x27;1337&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">INTO OUTFILE &#x27;<span class="variable">$OUTPUT_FILE</span>&#x27;</span></span><br><span class="line"><span class="string">FIELDS TERMINATED BY &#x27;,&#x27; </span></span><br><span class="line"><span class="string">ENCLOSED BY &#x27;\&quot;&#x27; </span></span><br><span class="line"><span class="string">LINES TERMINATED BY &#x27;\n&#x27;;</span></span><br><span class="line"><span class="string">&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查导出是否成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据成功导出到 <span class="variable">$OUTPUT_FILE</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;数据导出失败，请检查数据库连接和权限。&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>python脚本 数据批量插入 -(数据插入)</p>
+<blockquote>
+<p>importDB.py –适用2.7版本python<br>安装pandas 还有pymysql 两个包使用pip</p>
+</blockquote>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line">import pandas as pd</span><br><span class="line">import pymysql</span><br><span class="line">import numpy as np</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取txt文件</span></span><br><span class="line">data = pd.read_csv(<span class="string">&#x27;vhVS7pmmNCEC.txt&#x27;</span>, delimiter=<span class="string">&#x27;,&#x27;</span>, header=None, encoding=<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加列名</span></span><br><span class="line">data.columns = [<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;videocover&#x27;</span>, <span class="string">&#x27;videourl&#x27;</span>, <span class="string">&#x27;imglist&#x27;</span>, <span class="string">&#x27;hot&#x27;</span>, <span class="string">&#x27;ptime&#x27;</span>, <span class="string">&#x27;likes&#x27;</span>, <span class="string">&#x27;topic&#x27;</span>, <span class="string">&#x27;ftime&#x27;</span>, <span class="string">&#x27;ishow&#x27;</span>, <span class="string">&#x27;need_vip&#x27;</span>, <span class="string">&#x27;is_free&#x27;</span>, <span class="string">&#x27;type&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将NaN值替换为None，这样可以插入到MySQL中</span></span><br><span class="line">data = data.replace(&#123;np.nan: <span class="string">&#x27;&#x27;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 连接到MySQL数据库</span></span><br><span class="line">try:</span><br><span class="line">    connection = pymysql.connect(</span><br><span class="line">        host=<span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">        user=<span class="string">&#x27;xxx&#x27;</span>,</span><br><span class="line">        password=<span class="string">&#x27;xxxxxx&#x27;</span>,</span><br><span class="line">        db=<span class="string">&#x27;xxxxx&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接成功&quot;</span>)  <span class="comment"># 提示数据库是否连接成功</span></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接失败: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    <span class="built_in">exit</span>()  <span class="comment"># 如果连接失败，退出程序</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建游标</span></span><br><span class="line">cursor = connection.cursor()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 循环插入数据</span></span><br><span class="line">try:</span><br><span class="line">    <span class="keyword">for</span> index, row <span class="keyword">in</span> data.iterrows():</span><br><span class="line">            </span><br><span class="line">        sql = <span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">        INSERT INTO post (title, videocover, videourl, imglist, hot, ptime, likes, topic, ftime, ishow, need_vip, is_free, type, userid)</span></span><br><span class="line"><span class="string">        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)</span></span><br><span class="line"><span class="string">        &quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">        cursor.execute(sql, (</span><br><span class="line">            row[<span class="string">&#x27;title&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videocover&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;videourl&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;imglist&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;hot&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ptime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;likes&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;topic&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ftime&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;ishow&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;need_vip&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;is_free&#x27;</span>], </span><br><span class="line">            row[<span class="string">&#x27;type&#x27;</span>],</span><br><span class="line">            1337</span><br><span class="line">        ))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提交事务</span></span><br><span class="line">    connection.commit()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据插入成功&quot;</span>)  <span class="comment"># 提示数据插入成功</span></span><br><span class="line"></span><br><span class="line">except pymysql.MySQLError as e:</span><br><span class="line">    <span class="comment"># 如果出现错误，回滚事务</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;插入数据时出错，正在回滚: &#123;&#125;&quot;</span>.format(e))</span><br><span class="line">    connection.rollback()</span><br><span class="line"></span><br><span class="line">finally:</span><br><span class="line">    <span class="comment"># 关闭连接</span></span><br><span class="line">    connection.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;数据库连接已关闭&quot;</span>)</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/14/mysql/">
+                Mysql-basic
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/数据库/">数据库</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>文章</p>
+<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><h3 id="常用mysql语句"><a href="#常用mysql语句" class="headerlink" title="常用mysql语句"></a>常用mysql语句</h3><ul>
+<li>添加字段</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE <span class="built_in">users</span></span><br><span class="line">ADD COLUMN username VARCHAR(255);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>所有字段更新</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UPDATE  <span class="built_in">users</span> SET role_id=<span class="string">&quot;1&quot;</span>;</span><br><span class="line"><span class="comment">##更新部分字段</span></span><br><span class="line"><span class="built_in">where</span> XXX</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>批量替换   旧的 -》新的</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UPDATE your_table</span><br><span class="line">SET your_column = REPLACE(your_column, <span class="string">&#x27;http://107.148.73.24:83/uploads/tool/202409/&#x27;</span>, <span class="string">&#x27;http://aaa.com/uploads/tool/202409/&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="mysql-删除重复记录-去重"><a href="#mysql-删除重复记录-去重" class="headerlink" title="mysql 删除重复记录 去重"></a>mysql 删除重复记录 去重</h3><p>peopleId 去重</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">DELETE </span><br><span class="line">FROM </span><br><span class="line">    people </span><br><span class="line">WHERE </span><br><span class="line">    peopleId IN (</span><br><span class="line">		SELECT	</span><br><span class="line">            peopleId </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY </span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">	)</span><br><span class="line">AND </span><br><span class="line">    rowid </span><br><span class="line">    NOT IN ( </span><br><span class="line">        SELECT </span><br><span class="line">            min(rowid) </span><br><span class="line">        FROM </span><br><span class="line">            people </span><br><span class="line">        GROUP BY	</span><br><span class="line">            peopleId HAVING count(peopleId) &gt; 1</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">DELETE</span><br><span class="line">FROM</span><br><span class="line">	user</span><br><span class="line">WHERE</span><br><span class="line">	<span class="built_in">id</span> NOT IN (</span><br><span class="line">SELECT <span class="built_in">id</span> FROM (</span><br><span class="line">		SELECT</span><br><span class="line">			MAX(<span class="built_in">id</span>) AS <span class="built_in">id</span></span><br><span class="line">		FROM</span><br><span class="line">			user</span><br><span class="line">		GROUP BY</span><br><span class="line">			username</span><br><span class="line">	) AS d</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据二进制备份-binlog"><a href="#数据二进制备份-binlog" class="headerlink" title="数据二进制备份 binlog"></a>数据二进制备份 binlog</h3><p> binlog，也称为二进制日志，记录对数据发生或潜在发生更改的SQL语句，并以二进制的形式保存在磁盘中，可以用来查看数据库的变更历史（具体的时间点所有的SQL操作）、数据库增量备份和恢复（增量备份和基于时间点的恢复）、Mysql的复制（主主数据库的复制、主从数据库的复制）。</p>
+<ul>
+<li>查看是否开启binlog</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like <span class="string">&#x27;%bin%&#x27;</span>  </span><br><span class="line"></span><br><span class="line">off 关</span><br><span class="line">no 开</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>开启binlog<br>只需要打开mysql的配置文件my.ini（也可能是my.cnf），找到log-bin</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log-bin=mysql-bin </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>mysqlbinlog 导入二进制binlog文件</li>
+</ul>
+<h3 id="数据备份"><a href="#数据备份" class="headerlink" title="数据备份"></a>数据备份</h3><p>mysqldump 只适用于数据备份 选择性的（加条件）数据不能使用<br>只能用 excel 进行 数据插入</p>
+<ul>
+<li><p>选择性导出 (加条件)<br>mysqldump -u root -p heitang post –where&#x3D;”id &gt; 14192” &gt; post.sql</p>
+<ul>
+<li>{heitang} 数据库名</li>
+<li>{post} table</li>
+<li>–where&#x3D;”id &gt; 14192” 条件</li>
+<li>post.sql 导出sql</li>
+</ul>
+</li>
+<li><p>excel<br>SELECT name, age, email INTO OUTFILE ‘&#x2F;path&#x2F;to&#x2F;output.csv’<br>FIELDS TERMINATED BY ‘,’<br>ENCLOSED BY ‘“‘<br>LINES TERMINATED BY ‘\n’<br>FROM users;</p>
+</li>
+<li><p>数据误update 数据没了</p>
+</li>
+</ul>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/14/natcat/">
+                Natcat
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/渗透工具/">渗透工具</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>nc是netcat的简写，有着网络界的瑞士军刀美誉。因为它短小精悍、功能实用，被设计为一个简单、可靠的网络工具。 </p>
+<ul>
+<li>端口扫描工具， </li>
+<li>安全工具， </li>
+<li>监测工具， </li>
+<li>甚至可以做为一个简单的 TCP 代理</li>
+</ul>
+<h2 id="NC"><a href="#NC" class="headerlink" title="NC"></a>NC</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h2 id="反弹shell"><a href="#反弹shell" class="headerlink" title="反弹shell"></a>反弹shell</h2><ul>
+<li>正向连接 - 机器开放端口并可以主动连接目标机器端口 远程桌面、web服务、ssh、telnet等等都是正向连接</li>
+<li>反向连接 - 攻击者指定服务端，受害者主机主动连接攻击者的服务端程序</li>
+</ul>
+<p>反弹shell的方式有很多，那具体要用哪种方式还需要根据目标主机的环境来确定，比如目标主机上如果安装有netcat，那我们就可以利用netcat反弹shell，如果具有python环境，那我们可以利用python反弹shell。如果具有php环境，那我们可以利用php反弹shell。</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/14/network-protocal/">
                 网络协议
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -297,7 +473,7 @@
 <li>A 将域名指向一个 IPv4 地址，如 106.55.75.123。 A记录归属地是埃文科技的付费接口，为了防止盗刷，每个用户有查询限制，请节省使用。</li>
 <li>AAAA 将域名指向一个 IPv6 地址，如 2402:4e00:1013:e500:0:9671:f018:4947。同一个主机名可以同时解析到 IPv4(A记录)地址 和 IPv6(AAAA 记录)地址上，当只有IPv4 地址的用户会解析到 IPv4 地址，一般情况下有 IPv6 地址的用户会优先解析到 IPv6 地址。</li>
 <li>CNAME 将域名指向另一个域名地址，与其保持相同解析，如 static.ipw.cn 别名到 static.ipw.cn.cdn.dnsv1.com</li>
-<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#116;&#x65;&#115;&#x74;&#x40;&#x69;&#112;&#x77;&#x2e;&#99;&#x6e;">test@ipw.cn</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#116;&#101;&#x73;&#116;&#64;&#x6d;&#x61;&#105;&#x6c;&#46;&#x69;&#112;&#119;&#46;&#99;&#110;">test@mail.ipw.cn</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
+<li>MX 用于邮件服务器，一般由邮件注册商提供，如 mxbiz1.qq.com。如果邮箱格式为 <a href="mailto:&#116;&#101;&#115;&#116;&#x40;&#105;&#112;&#119;&#46;&#99;&#110;">test@ipw.cn</a> 则输入 ipw.cn 查询。如果邮箱格式为 <a href="mailto:&#x74;&#x65;&#115;&#x74;&#x40;&#109;&#x61;&#x69;&#x6c;&#46;&#x69;&#x70;&#119;&#x2e;&#99;&#x6e;">test@mail.ipw.cn</a>则输入mail.ipw.cn查询。推荐2个免费的企业邮箱：腾讯企业邮、网易免费企业邮。</li>
 <li>TXT 附加文本信息，常用于域名所有权验证，如在申请 HTTPS 证书时需要增加记录、</li>
 <li>PTR IP 的反向解析记录，例如 159.75.190.197 反解析到 ipw.cn，一般用于提升自建域名邮件服务器的可信度，可提单找云服务商添加。</li>
 <li>NS 域名的 DNS 服务器地址，例如 ns3.dnsv2.com，推荐 DNSPod.</li>
@@ -491,13 +667,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/nmap/">
+            <a href="/2026/11/14/nmap/">
                 NMAP
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -534,13 +710,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/ollama/">
+            <a href="/2026/11/14/ollama/">
                 Ollama
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -690,13 +866,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/ops-basic/">
+            <a href="/2026/11/14/ops-basic/">
                 Devops
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -965,13 +1141,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/ops-interview/">
+            <a href="/2026/11/14/ops-interview/">
                 运维面试题
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -1145,13 +1321,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/pantesting-Intranet/">
+            <a href="/2026/11/14/pantesting-Intranet/">
                 内网渗透
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -1283,13 +1459,13 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/pantesting-getinfo/">
+            <a href="/2026/11/14/pantesting-getinfo/">
                 信息收集
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -1678,7 +1854,7 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 </ul>
 <h5 id="1.2.1">端口扫描</h5>
 
-<a href="/2026/11/13/nmap/" title="NMAP">NMAP</a>
+<a href="/2026/11/14/nmap/" title="NMAP">NMAP</a>
 
 
 <h3 id="2">网站信息</h3>
@@ -1773,7 +1949,7 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 </ul>
 <h4 id="2.6">Windows主机信息收集</h4>
 
-<a href="/2026/11/13/pantesting-Intranet/" title="内网渗透">内网渗透</a>
+<a href="/2026/11/14/pantesting-Intranet/" title="内网渗透">内网渗透</a>
 
 
 <h3 id="3">社会工程学-人员信息</h3>
@@ -1800,794 +1976,6 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
 <p>公司的公众号、企业号、网站，员工的网盘、百度文库等可能会存在一些敏感信息，如VPN&#x2F;堡垒机账号、TeamViewer账号、网络设备默认口令、服务器默认口令等。</p>
 <p>引用 ： <a target="_blank" rel="noopener" href="https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html">https://linuxtools-rst.readthedocs.io/zh-cn/latest/base/07_network.html</a><br><a target="_blank" rel="noopener" href="https://websec.readthedocs.io/zh/latest/info/site.html">https://websec.readthedocs.io/zh/latest/info/site.html</a></p>
 
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/13/pantesting-interview/">
-                渗透 面试题
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/面试/">面试</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li>问：<br>录了多少洞. 自研了多少工具. 擅长什么类型语言，跟挖洞逻辑。</li>
-</ul>
-<p>问：</p>
-<ol>
-<li>怎么找入口</li>
-<li>怎么拖数据</li>
-<li>怎么清日志</li>
-<li>怎么长期隐藏</li>
-</ol>
-<p>问：<br>老三套，问出身. 问证书. 问经验。然后开放题或者从某个经验着手往下挖，最后让自述一下印象最深刻的一次。基本就差不多了。</p>
-<p>问：<br>外部的，就是各种白帽子活动等<br>内部的，就是扫描工具管理和漏洞修复流程等</p>
-<p>问：<br>外部的，就是各种白帽子活动等<br>内部的，就是扫描工具管理和漏洞修复流程等</p>
-<p>问：<br>水平较低：常用工具和常用工具的命令或者工具魔改<br>水平适中：渗透流程简述，最擅长的阶段展开讲述案例和技术特点<br>水平较高：绕过. 免杀. 逃逸. 技术细节<br>水平顶尖：AI 在安全的应用并且算法细节原理</p>
-<p>问：</p>
-<ol>
-<li>介绍比较得意的渗透项目</li>
-<li>从Top10里找几个问原理和修复方法</li>
-<li>常用的工具，还有工具的bug</li>
-<li>遇到复杂漏洞的时候怎么做，举个例子</li>
-<li>如何跟踪最新的漏洞和技术</li>
-</ol>
-<p>问：<br>常规TOP10肯定问一圈了，然后问了一两个案例吧，如果案例都说的挺好，就会问个自己感兴趣的，我喜欢提问Random函数真的随机吗，真假随机数的问题。</p>
-<p>问：<br>讲讲你的渗透测试思路，你认为当前网络安全领域的最大威胁是什么？你如何保持对最新安全漏洞和攻击技术的了解？请分享你过去的一个渗透测试项目经验，包括遇到的挑战和解决方案。如何处理客户在渗透测试后对报告的反馈？</p>
-<p>A9：</p>
-<ol>
-<li>提供一个网站，请给出渗透的思路</li>
-<li>假设发现了这些漏洞，请问原理是怎么样子的，如何进一步扩大成果</li>
-<li>针对这些漏洞，请问对应的修复方案是怎么样子的</li>
-<li>列出常用的渗透测试工具，比如？</li>
-<li>根据之前的渗透观察，请给出这个网站大概的架构是怎么样子的，网络怎么走，使用了哪些第三方的依赖？</li>
-</ol>
-<p>A10：</p>
-<ol>
-<li>搭建靶机环境直接实践</li>
-<li>常见的免杀思路及免杀方法</li>
-<li>内网渗透常用的工具使用方法，以及常见的提权漏洞编号及原理</li>
-<li>常见的高交互蜜罐如何识别</li>
-<li>内网渗透，横向移动的若干方法，AD域的黄金作用和白银票据作用，如何获取并利用</li>
-</ol>
-<p>A11：</p>
-<ol>
-<li>直接上实操环境考察</li>
-<li>问一下对方全流程是什么，主要考察一些意识，比如是否获得授权等等。现在有些培训班会交一些面试的话术的，如果不是专业人员来面试，很可能糊弄过去了。</li>
-</ol>
-<p>A12：<br>问测试思路. 问漏洞原理（刨根问底的那种），看证书这类客观的证明，再拿一个自己单位渗透测试过程中遇到过的问题，问他遇到了会怎么处理，结合他岗位以后干什么级别的渗透了，问漏洞成因. 攻击原理，这样就能排除培训班. 混子了。问原理直接问到红温，知识储备+抗压表现都能考察到。</p>
-<p>A13：<br>说实话，就是不要理论要实战，不要面什么 SQL注入有几种分类. 延迟注入BULL注入有什么区别之类的。直接问有没有在其它SRC提过SQL注入，现在常用的工具，你会去什么地方找POC。渗透流程套路式回答大家都会，最好还是拿出几行漏洞代码实战解读下。</p>
-<p>A14：<br>其实我觉得场景面试更加能够判断面试者的能力，开放性场景面试招的几个兄弟都不错。有没有实战能力，通过场景就可以看出来。当然具体还是看岗位的实际要求。比如安服跟自研所需的能力就不一样。开放性场景面试可以考察面试者的功力和知识深度。很多速成的兄弟对原理和知识点和横向移动这些还是比较弱的。</p>
-<p>A15：<br>就甲方面试而言，主要提升企业安全风险管理</p>
-<ol>
-<li>如何确保渗透测试时不会对业务和系统影响</li>
-<li>如何做好漏洞生命周期管理</li>
-</ol>
-<p>A16：<br>甲方里做渗透，一方面是挖洞能力，一方面还有推动漏洞修复的沟通协调能力。</p>
-<p>A17：<br>如果面试的是甲方岗位：<br>问题1：说一下你印象最深刻的一次渗透经历；<br>问题2：你觉得甲方岗位具备的渗透能力；<br>问题3：针对无WEB界面的系统如何进行渗透；<br>问题4：说一下XXX组件漏洞的分析过程。</p>
-<p>A18：</p>
-<p>从甲方的角度，渗透的一个重要点就是需要和开发打交道，明确漏洞原理以及如何修复的。</p>
-<p>那么一是漏洞的原理（从代码层面来讲）；二是给一个符合本公司的业务场景，让对方分析下可能出现哪些逻辑漏洞，如何修复因业务处理逻辑问题产生的漏洞（这块可以考察对方的思维逻辑）；三是漏洞修复的思路（这点可以考察对代码的功能和逻辑的实现的熟悉情况）。</p>
-<p>渗透测试的思路还是需要问一下的，这个是门槛了。思路逻辑都说不清楚的，直接就pass了。</p>
-<p>渗透测试不是攻防，其实不需要太多社会工程的，要是熟练用社会工程学的，那么就是加分项。</p>
-<p>A19：</p>
-<p>鄙人拙见：如果是甲方面试安全岗位人员，一般会从理论水平和实践经验. 实操能力. 心里素质等多方面考察面试者。理论水平可以提前参考专业证书. 专业试题. 前沿技术热点等考察或测试；实践经验主要看既往的项目执行情况&#x2F;安全管理运营情况，以及从中总结出的经验和教训；实操能力可以通过威胁建模. 渗透测试. 代码审计. 应急响应等方面的技术细节来提问；心理素质则可以通过心理分析类题目. 面试中设置“向领导汇报安全问题“. “沟通协调强势部门整改”等场景化问题来考察面试者是否能从容应对。</p>
-<p>Q：面试安全管理岗位，作为面试官，你觉得提问什么问题可以比较好地考察面试者的水平？<br>A20：</p>
-<ol>
-<li>如果公司有一个project要上线，你会怎么开展风险评估并给出建议？</li>
-<li>了解安全成熟度吗？</li>
-<li>刚进入一家公司工作，是如何做安全规划的？</li>
-</ol>
-<p>之前面试被问过的，也算经典问题。</p>
-<p>A21：</p>
-<ol>
-<li>如何展示业绩达成</li>
-<li>如何申请资源和投入产出收益</li>
-<li>如何向上管理</li>
-<li>如何与业务老大激烈沟通</li>
-</ol>
-<p>A22：</p>
-<p>我遇到过的问题，如果会议上你老板说的话从你的视角来看有很大的安全认知上的错误，你会怎么做？</p>
-<p>A23：</p>
-<p>直接问怎样保住安全团队？安全建设思路. 理念等等，看他整体框架怎么样。</p>
-<p>A24：</p>
-<p>描述你如何制定和实施一个全面的信息安全管理体系（ISMS），包括风险评估. 政策制定. 技术措施. 人员培训和持续改进等方面。在这个过程中，你会面临哪些挑战，以及你将如何应对这些挑战？</p>
-<p>A25：</p>
-<p>常规的先让他介绍下熟悉哪些标准&#x2F;法律，就职的公司有哪些认证，在公司取得270001&#x2F;等时他从事哪些角色，做了哪些，另外就是安全部门如何驱动IT及业务落地安全。</p>
-<p>A26：</p>
-<p>关注一下被面试者对前面业务的理解以及这个业务最大的风险点。以前遇到的最困难的场景以及解决的方法。可以看出他的风险偏好以及沟通协调能力。</p>
-<p>A27：</p>
-<p>这个我会完全围绕上一家来问，问他上家公司的规模，他所在的团队，他进去的时候是多少人，离开的时候是多少人，为什么，中间发生了什么变化，他遇到了什么问题，解决了什么问题，听听他的思考，管理岗我是觉得没有套路，主要看脾气与队伍是否合适。</p>
-<p>A28：</p>
-<p>假设你来给公司从0开始做安全，你会怎么做， 讲述一下SDL建设流程，讲述一下SDL和DevSecOps的区别，等保和ISO27001的区别，说一下你知道的安全模型，有哪些优点和缺点，还有就是问，国内针对网络安全相关的法律有哪些？如果业务涉及国外就问国外体系，比如你对硅谷的安全公司和咨询公司有什么了解？</p>
-<p>A29：</p>
-<ol>
-<li>看看他对合规的理解，尤其是ZZ觉悟和立场</li>
-<li>看看他的理解重点，是在网络层. 数据层. 应用层. 开发层. 架构层. 业务层还是合规层</li>
-<li>看看他的重点方向是偏哪个方面：技术？管理？控制？合规？隐私保护？个人信息保护？跨境保护？</li>
-<li>看看他擅长的技术领域：开发？控制？执行？规划？设计?审计？</li>
-<li>合规方面，看他的认知：只知道等保或27001加1分，等保+27001都了解 加2分，叠加个保加3分，叠加跨境加4分，叠加其他国家法律法规认知的，每了解一个加1</li>
-<li>他对安全运营的的理解，重点考察他的认知层级（网络层. 数据层. 应用层. 开发层. 架构层）</li>
-</ol>
-<p>A30：</p>
-<p>可以从宏观和微观两个角度考虑：</p>
-<ol>
-<li>宏观看体系思维：作为甲方安全管理岗位，请面试者站在企业整体安全角度考虑，结合外部监管要求和公司业务发展情况，描述一下如何建立建立本企业的网络安全体系，包含实施简要的实施路径等。</li>
-<li>微观看技术细节：结合当前企业安全痛点，请面试者给出解决方案，比如企业最近钓鱼邮件比较多，如何做好相关防范工作；进而对其中一些技术细节，比如SPF. DKIM. DMARC. RDNS等概念和如何实施进行提问等。</li>
-</ol>
-<p>A31：<br>我面试人也不看技术，我看这个人：</p>
-<ol>
-<li>有没有学习欲望，有没有学习能力和动力</li>
-<li>懒不懒</li>
-<li>蠢不蠢</li>
-<li>闷不闷（口才沟通）</li>
-<li>能否控制情绪</li>
-<li>整体认知</li>
-</ol>
-<p>如果有2. 3. 4，直接PASS。</p>
-<p>A32：<br>我一般会问最近安全行业发生了什么事，这件事发生在你这里，如何应对，行业其他公司怎么做的。然后一部分人不知道，一部分人只知道表面，能知道其他公司咋做的，已经是佼佼者了。打一下盲区，基本技术是下面部门经理的事，我主要看认知，问加班强度的，都直接否了。闷葫芦也是致命弱点。</p>
-<p>A33：<br>对着他写的简历问，讲的都是头头是道的，问一下细节不会的基本就可以刷了。如果细节都讲出来，能说明他做过就行了，面试不大可能招完全match需求的人，成功做过1~2件事的人上手新事情成功的概率也是相对高一些的。</p>
-<p>Q：作为面试者，你遇到过哪些比较“奇葩的”面试题目？<br>A34：<br>如果你是黑客，怎么攻击我们公司。</p>
-<p>A35：<br>当你入职以后，怎么融入团队？我当时差点笑出来。</p>
-<p>A36：<br>某企业，群面要求15分钟，开放性题目10个人达成统一意见，不允许投票。</p>
-<p>A37：<br>我们这边比较闲，可以接受嘛？</p>
-<p>A38：<br>网线里面有几根双绞线，怎么排列的</p>
-<p>A39：<br>能不能接受轮班或7*24接电话</p>
-<p>A40：<br>其实心理测试还是很有必要的，防止有些人情绪比较极端，不好配合。测的就是你面对奇葩题目的时候是否冷静，我们还真有因为心理测验分数太低不予通过的。</p>
-<p>A41：<br>你写这些项目经历对我没用啊，你水平不行很垃圾，这样我这里还有一个外地驻场的名额，请问你愿意去外地驻场么？</p>
-<p>A42：<br>我有遇到过直接问我，你为什么觉得自己值这么多钱？</p>
-<p>A43：<br>当时我说可以用AI对抗WAF防护。面试官逐个厂商问哪家被绕过，面试还有录屏录音。不说详细感觉在吹牛逼，说详细又有录音录屏。你们说咋办？</p>
-<p>A44：<br>你的本地电脑，访问百度，中间涉及到的任何IT技术，全部阐述一次。这种一般是问经典的dns解析过程，但所有细节就太扯了。</p>
-<p>A45：<br>面过某安全厂商，问我如果有个组件存在某个漏洞，但是没有POC，怎么确定POC是什么?<br>答: 可以对比更新代码或者知道大概细节的话用模糊测试。</p>
-<p>面试官: 你这个不对</p>
-<p>答: 那你们是怎么确定的？</p>
-<p>面试官: 我们给服务器发送一个数据包，通过判断页面返回码判断有没有漏洞。</p>
-<p>A46：<br>还做公务员考试的题目呢，类似这样的↓</p>
-<p>A47：<br>十年前我去IBM面试的时候，遇到这种题目，还TM五张卷子，全英文！</p>
-<p>A48：<br>面试没怎么问技术，就问所有的安全类工作你能不能干，能干就进入下个环节谈工资，领导直接说他不懂技术，老板家的亲戚，来搞钱的，我其实觉得这种领导是很好搭伙的，但是在谈工资的时候让我大吃一鲸，要求全能，但是工资给8K……我说HR跟我说的不是这个数，领导说他说了算，他还暗示了可以搞项目赚钱，但是我不太信，他很直白，说是老板的小舅子，创建这个部门就是为了赚钱的，他说相信我能帮他赚钱，还可以让我喝汤，但是我不敢信。</p>
-<p>Q：作为面试者，在面试官提问“你有什么想问的”的时候，应该怎么问？<br>A49：<br>你希望我入职后，为公司做什么？</p>
-<p>A50：<br>直接问公司的人员流动性高吗，中年员工占比多少？</p>
-<p>A51：<br>有什么内部培训？考证可以报销吗？</p>
-<p>A52：<br>把面试官提出来的某些问题反问一下。</p>
-<p>A53：<br>刺探一下这个企业经营状况如何，避免试用期就裁员。</p>
-<p>A54：<br>出重大安全事件, 给咱们公司主动顶包有补偿吗?</p>
-<p>A55：<br>贵公司安全预算每年大概是多少，和业务的占比是什么样的，安全团队的人员构成是什么样的？</p>
-<p>还有网络安全公司&#x2F;集团组织架构中的位置是什么样的，网络安全团队负责任的直属上司是谁？</p>
-<p>A56：<br>安全人员有几个，如何分工，目前安全建设处于什么阶段，是否翻过车，为什么突然找人搞安全？</p>
-<p>A57：<br>我都问部门文化是偏向团体合作还是孤狼型的？有把握就问，如何看待员工的未來发展？</p>
-<p>A58：<br>多久调薪，现在的同事都是工作几年？目前贵司对信息安全认为最应该改善是哪方面？原先的信息安全建设情况如何，最大的阻力是哪一方？没有半年，就问：是什么动力支撑你们还在公司呢？</p>
-<p>A59：<br>描述一下你工作这几年来对这家公司的印象，你对你现在的工作满意吗？如果面试过程不顺利，可以问问，让对方陷入自我怀疑。</p>
-<p>A60：<br>面试官，如果你现在我这个角度，面对这个问题，你会问哪些方面？</p>
-<p>A61：<br>只要基于掌握的信息，提出与工作相关的合理问题即可，这个问题不要太过俗套，当然也不能太难，要在一个合理范围内，这个具体就需要候选人自己把控了。</p>
-<p>A62：<br>我一般会想了解面试岗位的地位. 环境等具体情况：比如安全团队在公司组织架构中的位置，有多少人. 如何分工，向谁汇报；安全预算有多少，主要项目规模有多大；面试岗位的日常工作内容. 技术要求；岗位的薪资. 福利等。我觉得上述问题可以直接问，也希望面试官直接回答。</p>
-<p>A63：<br>大领导， 就问安全理念. 安全文化和后续公司层面的安全建设方向；直属领导，就问这个岗位空出来原因，团队组成和分工，岗位绩效考核标准；谈薪资的领导，就问公司人员流动情况，最近有无裁员情况等等和个人利益相关的。</p>
-<p>A64：<br>面某互联网金融公司的时候，面试官说脉脉上说的关于我们公司加班文化都太夸张了，我就问了这周六你们上班吗，然后就没有然后了。</p>
-<p>A65：<br>人家不想要你，问题再犀利也没用，想要你，基本都私下谈好，面试走个过场的。</p>
-<p>Q：大家作为面试者或面试官的过程中，有哪些好的面试方法？<br>A66：<br>查下公司发展情况，准备倒闭的就别去面试了。查下CIO. CTO. CSO等IT管理者的背景。</p>
-<p>A67：<br>放松心态，睡个好觉；面试时注意语速；多观察下面试官的情绪波动。</p>
-<p>A68：<br>咖啡厅，朋友一般的聊聊天，然后探讨，由浅入深。</p>
-<p>A69：<br>偏技术的岗位，可以考虑在具备靶场或模拟机的环境下，实操一些技术题目；偏管理的岗位，还是传统的面对面的沟通方式。</p>
-<p>A70：<br>加候选人微信，从朋友圈获得一些信息。</p>
-<p>A71：<br>尽量不开摄像头，面试状态就会好很多。</p>
-<p>A72：<br>作为面试者，在面试前通过情报资源搜索公司的详细资料，通过岗位的详细介绍可以大概知道这个岗位今后的工作内容，最后将获得的资料整理成一个工作步骤和一个简易的报告，在面试的时候和面试官探讨这个报告。</p>
-<p>A73：<br>曾经作为面试官，问面试者为什么想来我们公司，面试的人说，你们公司工资高，我问，你怎么知道的，面试者说，他通过公积金系统查到的。面试结束。</p>
-<p>A74：<br>我觉得，就当聊天的感觉最好，毕竟各有所长，最恶心那种快问快答的。</p>
-<p>A75：<br>赞同，比如面试官让你介绍一下做过项目以及碰到的问题和解决思路。你一顿说，说完之后，面试官直接说，好，面试结束，进入下个环节，这种大家怎么看。</p>
-<p>A76：<br>我遇到过，面试官准备了一堆八股文，上去就跟我说，咱们快问快答……</p>
-<p>A77：<br>我面试别人一般是分成两部分，盘海底和自由发挥。盘海底能够快速省力地判断出对方的大致水平以及有没有触雷点，自由发挥就是让被面试者自由说一些经验较深的场景来判断对方的深度。我基本面别人都是这两个环节。</p>
-<p>也碰到过一些面试官喜欢搞一道题式问答，我很不喜欢这种——“你能回答出这个就算通过了”。都是预设了答案的问题。</p>
-<p>我记得很久以前面渗透岗时候，对面问了个蜜罐的问题，说有些蜜罐能通过JS抓到你的原始IP，挂代理也没用，这是怎么做到的。我当时白眼都要翻上天了，这什么天顶星JS，怎么不说访问下网站直接我电脑弹计算器了？跳板机CS上线一条龙？风险管理我们一般是参考27001的那一套风险脆弱性评估的。这就是一种非常特化的场景，需要非常谨慎地构建前提条件，但是在面试里很容易就是一句直接过去，无视掉所有条件，这种半桶水式的面试是我非常不喜欢的。</p>
-<p>我后面想估计是想问我什么蜜罐方面的新技术或者一些蜜罐的原理，但是这个问法就是一种非常半桶水的感觉。</p>
-<p>以前面另一个甲方岗时候感觉他们的架构有问题，当时不懂事，就反问了下，为什么不用xxxxx这种更合理的逻辑，然后把对面问愣了，明显面子挂不住开始找理由。</p>
-<p>现在这种话都会说得委婉一点了。</p>
-<p>本期话题探讨了在网络安全领域中，针对渗透测试岗位与安全管理岗位面试时的一些考察方法及问题。对于渗透测试岗位，面试官倾向于通过实践操作来检验应聘者的实战能力，例如让他们在一个模拟环境中进行渗透测试，或是提问具体的漏洞利用技术和修复方案。此外，也会考察应聘者对于漏洞原理的理解、常用工具的掌握程度以及在特定场景下的问题解决能力。</p>
-<p>而在安全管理岗位的面试中，则更多关注应聘者的理论水平、实践经验、实操能力和心理素质等方面。面试官可能会问及如何构建全面的信息安全管理体系(ISMS)，包括风险评估、政策制定等内容，并探讨应聘者在过去工作中遇到的具体挑战及其解决方案。此外，还会考察应聘者对于法律法规的认知、安全团队的建设和管理等综合能力。</p>
-<p>两者的面试都强调了应聘者不仅要具备扎实的技术基础，还需要拥有良好的沟通协调能力，以便于在实际工作中与不同部门协作，推进安全项目的实施。</p>
-<p>近期群内答疑解惑<br>Q：员工离职以后电脑数据要清理吗?<br>A1：<br>要，入库前重装系统，全盘格式化。</p>
-<p>A2：<br>需要重装吗？直接格式化就完了。</p>
-<p>A3：<br>可以不全盘，删账号也可以的，格式化非系统盘。</p>
-<p>A4：<br>看他数据后续业务是否需要使用。使用-备份到服务器，再重装系统。</p>
-<p>A5：<br>这个得看员工级别，以及在岗时间老实不老实了，要是重点观察的员工要保留一段时间。其实主要看你的领导有没有疑心病什么的。</p>
-<p>A6：<br>这信息安全工作越干越具体，直接把IT部门网管都顶替了。</p>
-<p>Q：安全产品要给IT开权限么？基础设施运维的，比方说上网行为、管理。<br>A1：<br>如果是不同部门，那就让他邮件给你领导，你领导同意就行。</p>
-<p>A2：<br>防病毒和行为管理可以给，DLP的运维可以安装客户端，其他的用户权限控制走流程申请即可，还有一个准入的安装可以给，但是ACL需要走流程。</p>
-<p>A3：<br>如果他们拿了这些权限有什么用？帮忙干活对吧。</p>
-<p>A4：<br>防病毒很烦，那些人动不动装软件就杀，你给运维能减轻你工作量。不然呢，你还靠他们来审计吗？所以涉及基础的操作的都给运维，信息安全负责审计就得了。</p>
-<p>Q：求教企业数据安全的管理方案，目前实现的管控，和老板目视化的要求差的太多了。<br>涉及数据的分类分组，业务及系统Matrix形成分析，数据库访问记录形成分析，员工行为分析。<br>1、理论方面文件已有：数据安全治理的各种方案&#x2F;框架，数据采集、数据传输、数据存储、数据处理、数据交换和数据销毁<br>2、目前已有基本的管理：终端桌管、文件透明加密、ACL、上网行为管理、https、备份<br>A1：<br>可以参考一下数据安全管理办法，编写自己的管理制度。</p>
-<p>A2：<br>个人觉得，把问题抛给供应商，根据已有条件，看能否形成一定的解决方案。</p>
-<p>A3：<br>你这个需求是要做一个数据安全咨询服务，那找厂商吧。</p>
-<p>A4：<br>预算充足就做好数据安全技术+管理+运营一体化，预算不多就买几台设备，完善数据安全管理制度（结合老板的需求）。这是数据生命周期管控的部分，再结合具体业务场景优化。</p>
-<p>Q：你们RDP怎么管的？会设置白名单嘛？还是全禁了？<br>A1：<br>RDP，SSH全禁。</p>
-<p>A2：<br>全部用堡垒机，不允许开什么SSH，RDP那些玩意。</p>
-<p>A3：<br>看业务需求，正常是可以全禁，如果有需求再走特殊申请。</p>
-<p>A4：<br>局域网RDP让它随便玩了，外网主要靠发通知。</p>
-<p>Q：站在审计监督部的角度，数据安全审计工作应该怎么做呢？<br>A1：<br>行为审计，权限审计。</p>
-<p>A2：<br>审计主要看管理制度的合理性，有没有按照制度有效执行吧。</p>
-<p>A3：<br>如果是这个角度，才不管你怎么做呢，你只要有制度、有流程、有记录、有技术平台支撑就行。</p>
-<p>A4：<br>是的，主要就是审计监督的角度就不是技术了。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/13/house-recycling/">
-                家庭-♻️废物循环利用
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="家庭生活垃圾分类0浪费"><a href="#家庭生活垃圾分类0浪费" class="headerlink" title="家庭生活垃圾分类0浪费"></a>家庭生活垃圾分类0浪费</h1><ul>
-<li>蔬菜瓜果 -&gt; 做土肥 需发酵 味道是个重点</li>
-<li>塑料袋 -&gt; 回收 1.大的垃圾桶袋子 2.小的装小垃圾</li>
-<li>香水瓶 -&gt; 做芳香瓶 </li>
-<li></li>
-</ul>
-<h1 id="3D打印机废料"><a href="#3D打印机废料" class="headerlink" title="3D打印机废料"></a>3D打印机废料</h1><p>3d打印机拉丝<br><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=TllsEMdKOmA&t=50s">https://www.youtube.com/watch?v=TllsEMdKOmA&amp;t=50s</a></p>
-<p>粉碎</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/13/house-system/">
-                家庭-中控系统
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <ul>
-<li><a href="#%E5%AE%B6%E5%BA%AD%E4%B8%AD%E6%8E%A7%E7%B3%BB%E7%BB%9F">家庭中控系统</a></li>
-<li><a href="#AI-Agent">AI Agent</a></li>
-<li><a href="#%E5%88%9D%E7%BA%A7AI%E7%AE%A1%E5%AE%B6">初级AI管家</a><ul>
-<li><a href="#%E5%8A%9F%E8%83%BD%E8%A6%81%E6%B1%82">功能要求</a></li>
-<li><a href="#%E7%A1%AC%E4%BB%B6%E9%9C%80%E6%B1%82">硬件需求</a></li>
-<li><a href="#%E6%9E%B6%E6%9E%84">架构</a></li>
-<li><a href="#%E6%AD%A5%E9%AA%A4%E6%8C%87%E5%8D%97">步骤指南</a></li>
-</ul>
-</li>
-<li><a href="#%E5%AE%B6%E5%BA%AD%E5%8A%A9%E6%89%8B">家庭助手</a><ul>
-<li><a href="#Home+Assistant">Home Assistant</a></li>
-<li><a href="#%E4%B8%AA%E4%BA%BA%E8%AF%AD%E9%9F%B3%E5%8A%A9%E6%89%8B">个人语音助手</a></li>
-<li><a href="#%E9%9F%B3%E7%AE%B1DIY">音箱DIY</a></li>
-<li><a href="#AI%E4%B8%AD%E6%8E%A7%E7%B3%BB%E7%BB%9F">AI中控系统</a></li>
-</ul>
-</li>
-<li><a href="#%E5%B7%A5%E4%BD%9C%E7%AB%99">工作站</a></li>
-<li><a href="#%E5%8D%87%E7%BA%A7%E7%89%88NAS">升级版NAS</a></li>
-</ul>
-<h1 id="家庭中控系统"><a href="#家庭中控系统" class="headerlink" title="家庭中控系统"></a>家庭中控系统</h1><p>CasaOS 偏向家庭<br><a target="_blank" rel="noopener" href="https://casaos.zimaspace.com/">文件管理器 - casaOS</a></p>
-<p>Sealos 偏向专业<br><a target="_blank" rel="noopener" href="https://github.com/labring/sealos">集群 使用文件管理器Sealos k8s</a><br><a target="_blank" rel="noopener" href="https://sealos.io/">Sealos</a></p>
-<p>Sealos -&gt; CasaOS -&gt; Home Assistant</p>
-<p>SeaOS 是一个专为家庭设计的中控系统（Home Control System &#x2F; Smart Home Hub），核心目标是把家里的各种智能设备、存储、网络服务整合在一个平台上，实现统一管理和自动化</p>
-<ul>
-<li>跨设备支持：可以控制智能灯、智能门锁、摄像头、传感器等。</li>
-<li>家庭自动化：支持条件触发、场景设置、定时任务。</li>
-<li>本地化存储：可与 NAS 或家庭服务器结合，避免云端依赖。</li>
-<li>开放接口：可以与第三方系统或自建程序对接。</li>
-</ul>
-<h5 id="所要实现的功能-AI智能管家"><a href="#所要实现的功能-AI智能管家" class="headerlink" title="所要实现的功能 AI智能管家"></a>所要实现的功能 AI智能管家</h5><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[树莓派<span class="operator">+</span><span class="type">AI解决方案</span>](https:<span class="comment">//shumeipai.nxez.com/2024/10/28/raspberry-pi-ai-hat.html)</span></span><br><span class="line">[<span class="type">AI树莓派</span>](https:<span class="comment">//pidoc.cn/docs/accessories/ai-kit)</span></span><br><span class="line"></span><br><span class="line">[语音麦克风]</span><br><span class="line">       <span class="operator">│</span></span><br><span class="line">       <span class="operator">▼</span></span><br><span class="line">[树莓派 <span class="operator">+</span> <span class="type">NPU</span>]</span><br><span class="line">       <span class="operator">│</span> 处理语音 <span class="operator">/</span> 推理</span><br><span class="line">       <span class="operator">▼</span></span><br><span class="line">[家电控制接口] <span class="operator">-----&gt;</span> 灯光<span class="regexp">/插座/</span>空调等</span><br><span class="line">       <span class="operator">│</span></span><br><span class="line">       <span class="operator">▼</span></span><br><span class="line">[可选云端 <span class="operator">/</span> <span class="type">GPU</span>] <span class="operator">&lt;--</span> 处理复杂对话 <span class="operator">/</span> <span class="type">AI</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h1 id="AI-Agent"><a href="#AI-Agent" class="headerlink" title="AI Agent"></a>AI Agent</h1><p>层次,核心组件,功能描述,对应你的 Agent OS 模块建议</p>
-<ol>
-<li>接入层 (API),REST &#x2F; WebSocket,接收自然语言指令（如：“去 GitHub 帮我点个 Star”）。,internal&#x2F;adapter&#x2F;http.go</li>
-<li>调度层 (Orchestrator),Task Manager,任务拆解：将大目标拆分为“打开链接、点击、提取、返回”等原子步骤。,internal&#x2F;core&#x2F;kernel.go</li>
-<li>执行层 (Executor),Playwright &#x2F; Chromium,物理操作：真实的浏览器内核，处理页面渲染、JS 执行、Cookie 持久化。,internal&#x2F;tools&#x2F;browser&#x2F;</li>
-<li>理解层 (Cognition),LLM (Ollama &#x2F; GPT),语义决策：将清洗后的 HTML&#x2F;DOM 结构喂给模型，让模型决定下一步的动作。,internal&#x2F;llm&#x2F;ollama.go</li>
-</ol>
-<p><em><strong>观察 (Observe) -&gt; 思考 (Think) -&gt; 决策 (Decide) -&gt; 执行 (Act) 的闭环。</strong></em></p>
-<ul>
-<li>Observe (观察)：提取当前页面的可交互元素列表（Button, Input, Link）。</li>
-<li>Think (思考)：LLM 根据当前任务目标分析这些元素。</li>
-<li>Decide (决策)：LLM 输出标准格式的操作指令（例如：{“action”: “click”, “selector”: “#submit-btn”}）。</li>
-<li>Act (执行)：调用 Playwright 执行动作并等待页面刷新，进入下一轮循环。</li>
-</ul>
-<ol>
-<li>Prompt 对你的架构<br>帮助对ai的理解</li>
-</ol>
-<h1 id="初级AI管家"><a href="#初级AI管家" class="headerlink" title="初级AI管家"></a>初级AI管家</h1><h2 id="功能要求"><a href="#功能要求" class="headerlink" title="功能要求"></a>功能要求</h2><h4 id="外出-在家场景"><a href="#外出-在家场景" class="headerlink" title="外出&#x2F;在家场景"></a>外出&#x2F;在家场景</h4><ol>
-<li>HomeAssistant 控制室内智能家电</li>
-<li>手机容量不足 可以存储图片在家里</li>
-<li>可云办公 上传下载</li>
-<li>监控植物系统</li>
-<li>(在家场景)可呼叫语音助手</li>
-</ol>
-<h2 id="硬件需求"><a href="#硬件需求" class="headerlink" title="硬件需求"></a>硬件需求</h2><h4 id="树莓派-4B"><a href="#树莓派-4B" class="headerlink" title="树莓派 4B"></a>树莓派 4B</h4><ul>
-<li><p><strong>系统：</strong> RPi OS</p>
-</li>
-<li><p><strong>核心功能：</strong></p>
-<ul>
-<li>HomeAssistant（家庭自动化核心中枢）</li>
-<li>MQTT &#x2F; Zigbee2MQTT 网关</li>
-<li>本地语音助手（控制家居 + 调用 AI）</li>
-<li>Nextcloud（轻量云盘 → 云办公 &#x2F; 文件同步）</li>
-<li>AI 前端代理：将语音&#x2F;文本请求转发到 PC 工作站 AI 模型</li>
-<li>控制全家 Zigbee &#x2F; WiFi 智能家电</li>
-<li>外出时通过 VPN 访问树莓派，统一管理家庭设备</li>
-</ul>
-</li>
-<li><p><strong>需要外壳（配件）：</strong></p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com.cn/zh/models/1607404-jvc-3100rfu-gu-zao-xing-for-macmini-m4?from=search#profileId-1758486">3D 打印外壳：JVC3100r</a></li>
-<li>显示触摸屏 + 键盘｜（AI 管家界面）</li>
-<li>pi4 respeaker（声控） + USB 音频（声控 喇叭 ）｜ 已具备：喇叭 + 麦克风（用于语音助手）</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h4 id="PC-AI-工作站"><a href="#PC-AI-工作站" class="headerlink" title="PC AI 工作站"></a>PC AI 工作站</h4><ul>
-<li><strong>系统：</strong> Linux &#x2F; Windows（推荐 Linux）</li>
-<li><strong>核心功能：</strong><ul>
-<li>GPU 推理（大模型计算核心）</li>
-<li>托管私有大模型（LLM &#x2F; Vision &#x2F; TTS &#x2F; ASR &#x2F; RVC）</li>
-<li>接收树莓派发来的 AI API 请求</li>
-<li>为 HomeAssistant 提供视觉识别、自动化推理</li>
-<li>家庭主要大文件存储区：<ul>
-<li>素材</li>
-<li>数据</li>
-<li>AI 模型</li>
-<li>多媒体文件</li>
-</ul>
-</li>
-<li>高性能 Worker：处理 AI 任务</li>
-<li>可被 HomeAssistant 调用执行识图、识物、自动化联动</li>
-</ul>
-</li>
-<li><strong>需要外壳（配件）：</strong><ul>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013711?from=search#profileId-993508">GP02A半身像1</a></li>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013735#profileId-993524">GP02A半身像2</a></li>
-<li>最好能抽拉出主机</li>
-<li>ITX主板</li>
-</ul>
-</li>
-<li><strong>硬件需求：</strong><ul>
-<li>强力 GPU（RTX 4070 &#x2F; 4080 &#x2F; 4090 或更高）</li>
-<li>至少 32GB RAM</li>
-<li>NVMe SSD（1TB–2TB，模型加载更快）</li>
-<li>良好散热系统</li>
-<li>稳定供电</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line">🌍 外网（<span class="type">Outside</span> <span class="operator">+</span> <span class="type">VPN）</span></span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line"></span><br><span class="line">          <span class="operator">┌──────────────────────────────┐</span></span><br><span class="line">          <span class="operator">│</span> 🌍 外出设备（手机<span class="operator">、</span>笔电）     <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 访问 <span class="type">Nextcloud（树莓派）</span>   <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 问 <span class="type">AI（PC</span> 工作站 经树莓派） <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 控智能家居（<span class="type">HomeAssistant）</span> <span class="operator">│</span></span><br><span class="line">          <span class="operator">│</span> <span class="operator">-</span> 上传备份照片<span class="operator">/</span>文档          <span class="operator">│</span></span><br><span class="line">          <span class="operator">└─────────────────────┬────────┘</span></span><br><span class="line">                                <span class="operator">│</span></span><br><span class="line">                    👑 <span class="type">Tailscale</span> <span class="operator">/</span> <span class="type">Zerotier</span> <span class="type">VPN</span></span><br><span class="line">                                <span class="operator">│</span></span><br><span class="line">                                <span class="operator">▼</span></span><br><span class="line">               家庭内网所有设备互通（树莓派 <span class="operator">=</span> 中控）</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line">🌍 外出设备（手机 <span class="operator">/</span> 平板 <span class="operator">/</span> 笔电）</span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">VPN</span> 回家</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 控 <span class="type">HomeAssistant</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">Nextcloud</span> 云盘访问</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 远程问 <span class="type">AI（PC</span> 计算）</span><br><span class="line"><span class="operator">▼</span></span><br><span class="line"><span class="operator">┌──────────────────────────────┐</span></span><br><span class="line"><span class="operator">│</span>  🌐 进入家庭内网 (<span class="number">192.168</span>.x.x) <span class="operator">│</span></span><br><span class="line"><span class="operator">└──────────────────────────────┘</span></span><br><span class="line">            <span class="operator">│</span></span><br><span class="line">            <span class="operator">▼</span></span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line">🍓 树莓派 4B —— 家庭中控（核心）</span><br><span class="line"><span class="operator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">HomeAssistant</span> 主控</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">Nextcloud</span> 小型云盘</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">MQTT</span> <span class="operator">/</span> <span class="type">Zigbee2MQTT</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 本地语音助手</span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">AI</span> 请求代理（转发给 <span class="type">PC）</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 智能家居的总中枢</span><br><span class="line"><span class="operator">└───────────────┬──────────────────┘</span></span><br><span class="line">                <span class="operator">│</span></span><br><span class="line">     <span class="operator">┌──────────┴───────────┐</span></span><br><span class="line">     <span class="operator">│</span>                          <span class="operator">│</span></span><br><span class="line">     <span class="operator">▼</span>                          <span class="operator">▼</span></span><br><span class="line"><span class="operator">┌──────────────────┐</span>   <span class="operator">┌───────────────────────────┐</span></span><br><span class="line"><span class="operator">│</span> 🏡 智能家居设备    <span class="operator">│</span>   <span class="operator">│</span> 🖥️ <span class="type">PC</span> <span class="type">AI</span> 工作站            <span class="operator">│</span></span><br><span class="line"><span class="operator">│──────────────────│</span>   <span class="operator">│───────────────────────────│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 灯光 <span class="operator">/</span> 空调      <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> <span class="type">GPU</span> 推理                <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 门锁 <span class="operator">/</span> 摄像头    <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> 本地大模型推理           <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 植物监控系统     <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> 接收树莓派的 <span class="type">AI</span> 请求     <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> <span class="type">Zigbee</span> <span class="operator">/</span> <span class="type">MQTT</span>    <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> <span class="type">AI</span> 计算结果返回树莓派     <span class="operator">│</span></span><br><span class="line"><span class="operator">│</span> <span class="operator">-</span> 全部由树莓派控制 <span class="operator">│</span>   <span class="operator">│</span> <span class="operator">-</span> 大文件主要存储位置        <span class="operator">│</span></span><br><span class="line"><span class="operator">└──────────────────┘</span>   <span class="operator">└───────────────────────────┘</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="步骤指南"><a href="#步骤指南" class="headerlink" title="步骤指南"></a>步骤指南</h2><h3 id="1️⃣-树莓派-4B-——-家庭中控"><a href="#1️⃣-树莓派-4B-——-家庭中控" class="headerlink" title="1️⃣ 树莓派 4B —— 家庭中控"></a>1️⃣ 树莓派 4B —— 家庭中控</h3><ol>
-<li><p><strong>硬件组装</strong></p>
-<ul>
-<li>使用 <a target="_blank" rel="noopener" href="https://makerworld.com.cn/zh/models/1607404-jvc-3100rfu-gu-zao-xing-for-macmini-m4?from=search#profileId-1758486">JVC3100r 3D 打印外壳</a></li>
-<li>安装小型显示屏（作为 AI 管家界面）</li>
-<li>接入喇叭 + 麦克风（语音助手）</li>
-<li>可选：风扇 &#x2F; 铜片散热</li>
-</ul>
-</li>
-<li><p><strong>系统安装</strong></p>
-<ul>
-<li>安装 RPi OS（64 位版本，推荐 Raspberry Pi OS Lite + GUI 可选）</li>
-<li>配置网络：静态 IP &#x2F; DHCP 保留，确保在家庭内网可访问</li>
-<li>有键盘和显示屏</li>
-</ul>
-</li>
-<li><p><strong>软件安装</strong></p>
-<ul>
-<li>Docker &amp; Docker Compose</li>
-<li>HomeAssistant 容器：<ul>
-<li>核心自动化中枢</li>
-<li>配置 Zigbee &#x2F; MQTT 网关</li>
-</ul>
-</li>
-<li>Nextcloud 容器：<ul>
-<li>轻量云盘，实现文件同步 &#x2F; 云办公</li>
-</ul>
-</li>
-<li>Rhasspy &#x2F; OpenVoiceOS：<ul>
-<li>本地语音助手 &#x3D; Home Assistant + ReSpeaker + Rhasspy + Vosk</li>
-<li>可调用 AI 服务</li>
-</ul>
-</li>
-<li>Mosquitto (MQTT broker)</li>
-<li>Zigbee2MQTT（控制 Zigbee 设备）</li>
-<li>VPN 客户端：<ul>
-<li>Tailscale &#x2F; WireGuard &#x2F; Zerotier，用于外网访问</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><strong>AI 前端代理</strong></p>
-<ul>
-<li>配置树莓派将语音&#x2F;文本请求通过 API 转发给 PC AI 工作站</li>
-<li>确保返回结果能被 HomeAssistant 或语音助手处理</li>
-</ul>
-</li>
-<li><p><strong>智能家居集成</strong></p>
-<ul>
-<li>配置所有 Zigbee &#x2F; WiFi 设备</li>
-<li>创建基础自动化规则</li>
-<li>外出时可通过手机 &#x2F; 平板 &#x2F; 笔电控制</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="2️⃣-PC-AI-工作站-——-AI-计算中心"><a href="#2️⃣-PC-AI-工作站-——-AI-计算中心" class="headerlink" title="2️⃣ PC AI 工作站 —— AI &#x2F; 计算中心"></a>2️⃣ PC AI 工作站 —— AI &#x2F; 计算中心</h3><ol>
-<li><p><strong>硬件组装</strong></p>
-<ul>
-<li>使用半身像机箱（GP02A 或可抽拉式 ITX 机箱）<ul>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013711?from=search#profileId-993508">GP02A半身像1</a></li>
-<li><a target="_blank" rel="noopener" href="https://makerworld.com/zh/models/1013735#profileId-993524">GP02A半身像2</a></li>
-</ul>
-</li>
-<li>安装强力 GPU（如 RTX 4070&#x2F;4080&#x2F;4090）</li>
-<li>配置 NVMe SSD（1–2TB）</li>
-<li>至少 32GB RAM</li>
-<li>良好散热 + 稳定电源</li>
-</ul>
-</li>
-<li><p><strong>系统安装</strong></p>
-<ul>
-<li>Linux（Ubuntu &#x2F; Pop!_OS &#x2F; Debian 推荐）</li>
-<li>安装 GPU 驱动 + CUDA &#x2F; cuDNN（支持 AI 推理）</li>
-<li>配置静态 IP（家庭内网访问）</li>
-</ul>
-</li>
-<li><p><strong>软件安装</strong></p>
-<ul>
-<li>Docker &amp; Docker Compose</li>
-<li>AI 模型部署：<ul>
-<li>LLM（如 LLaMA、MPT、本地 Whisper）</li>
-<li>Vision 模型（图像识别 &#x2F; 视频分析）</li>
-<li>TTS &#x2F; RVC &#x2F; ASR 模型</li>
-</ul>
-</li>
-<li>REST &#x2F; WebSocket API 服务：<ul>
-<li>接收树莓派发来的请求</li>
-<li>返回 AI 推理结果</li>
-</ul>
-</li>
-<li>可选：VNC &#x2F; RDP，用于远程桌面管理</li>
-</ul>
-</li>
-<li><p><strong>与树莓派集成</strong></p>
-<ul>
-<li>配置树莓派作为前端：<ul>
-<li>API 请求通过家庭内网发送</li>
-<li>结果回传到树莓派供 HomeAssistant 或语音助手使用</li>
-</ul>
-</li>
-<li>监控 AI 任务负载</li>
-<li>存储大文件、素材、模型权重</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="3️⃣-外网访问与安全"><a href="#3️⃣-外网访问与安全" class="headerlink" title="3️⃣ 外网访问与安全"></a>3️⃣ 外网访问与安全</h3><ol>
-<li><p><strong>VPN 设置</strong></p>
-<ul>
-<li>在树莓派或路由器端配置 Tailscale &#x2F; WireGuard</li>
-<li>手机 &#x2F; 笔电通过 VPN 进入家庭内网</li>
-<li>访问 HomeAssistant、Nextcloud、AI 服务</li>
-</ul>
-</li>
-<li><p><strong>文件访问</strong></p>
-<ul>
-<li>Nextcloud 提供 SFTP &#x2F; WebDAV 接口</li>
-<li>上传、下载、备份工作文件</li>
-<li>支持外出办公</li>
-</ul>
-</li>
-<li><p><strong>智能家居控制</strong></p>
-<ul>
-<li>HomeAssistant WebUI 或手机 App</li>
-<li>可控制灯光、空调、门锁、植物监控系统</li>
-<li>触发自动化场景</li>
-</ul>
-</li>
-</ol>
-<hr>
-<h3 id="4️⃣-流程概览"><a href="#4️⃣-流程概览" class="headerlink" title="4️⃣ 流程概览"></a>4️⃣ 流程概览</h3><ol>
-<li>手机 &#x2F; 笔电 → VPN → 树莓派</li>
-<li>树莓派：<ul>
-<li>处理 HomeAssistant 控制</li>
-<li>Nextcloud 文件同步</li>
-<li>AI 请求转发 → PC 工作站</li>
-</ul>
-</li>
-<li>PC 工作站：<ul>
-<li>GPU 进行 AI 推理</li>
-<li>返回结果给树莓派</li>
-</ul>
-</li>
-<li>树莓派执行智能家居或语音助手动作</li>
-<li>外出可上传 &#x2F; 下载重要文件，远程管理家居</li>
-</ol>
-<hr>
-<p>✅ 这样就形成了一个完整的家庭 AI 管家系统：</p>
-<ul>
-<li>树莓派 &#x3D; 前端中控 + 轻量云盘 + HomeAssistant</li>
-<li>PC 工作站 &#x3D; 后端 AI 核心 + 高性能存储</li>
-<li>VPN &#x3D; 安全远程访问</li>
-<li>Nextcloud &#x3D; 云办公 &#x2F; 文件同步</li>
-<li>HomeAssistant + Zigbee &#x2F; MQTT &#x3D; 智能家居控制</li>
-</ul>
-<h1 id="家庭助手"><a href="#家庭助手" class="headerlink" title="家庭助手"></a>家庭助手</h1><h1 id="Home-Assistant"><a href="#Home-Assistant" class="headerlink" title="Home Assistant"></a>Home Assistant</h1><h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><h2 id="需要硬件"><a href="#需要硬件" class="headerlink" title="需要硬件"></a>需要硬件</h2><h3 id="🧩-一、总体架构与接入方式概览"><a href="#🧩-一、总体架构与接入方式概览" class="headerlink" title="🧩 一、总体架构与接入方式概览"></a>🧩 一、总体架构与接入方式概览</h3><table>
-<thead>
-<tr>
-<th>模块</th>
-<th>推荐通信协议</th>
-<th>接入方式</th>
-<th>备注</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>电表</td>
-<td>Modbus&#x2F;Tuya&#x2F;MQTT&#x2F;LoRa</td>
-<td>智能电表或智能插座</td>
-<td>有些电表支持 RS485&#x2F;Modbus</td>
-</tr>
-<tr>
-<td>水表</td>
-<td>Modbus&#x2F;脉冲&#x2F;Tuya</td>
-<td>脉冲水表+采集器</td>
-<td>可用 ESPHome 转接</td>
-</tr>
-<tr>
-<td>太阳能蓄电池</td>
-<td>Modbus&#x2F;MQTT</td>
-<td>RS485 转 WiFi 网关</td>
-<td>比如 Pylontech&#x2F;逆变器</td>
-</tr>
-<tr>
-<td>太阳能热水</td>
-<td>温控器+阀门控制</td>
-<td>Zigbee&#x2F;WiFi</td>
-<td>可控制电加热、温度采集</td>
-</tr>
-<tr>
-<td>蓄水池</td>
-<td>液位传感器+泵控制</td>
-<td>GPIO&#x2F;ESPHome</td>
-<td>液位监控+自动抽水</td>
-</tr>
-<tr>
-<td>污水池</td>
-<td>液位+PH+泵</td>
-<td>ESP32&#x2F;Modbus</td>
-<td>工业传感器接入</td>
-</tr>
-<tr>
-<td>安保系统</td>
-<td>Zigbee&#x2F;WiFi&#x2F;RTSP</td>
-<td>摄像头&#x2F;门磁&#x2F;报警器</td>
-<td>常接 Hikvision、小米</td>
-</tr>
-</tbody></table>
-<h3 id="🧱-总体架构示意"><a href="#🧱-总体架构示意" class="headerlink" title="🧱 总体架构示意"></a>🧱 总体架构示意</h3><pre class="mermaid">graph TD
-    HA["Home Assistant<br/>(运行在树莓派/NAS)"]
-    电表["电表<br/>(Modbus)"]
-    水表["水表<br/>(脉冲)"]
-    电池["太阳能电池"]
-    热水["热水系统"]
-    安防["Zigbee网关/摄像头"]
-
-    电表接口["RS485转USB"]
-    水表接口["GPIO输入"]
-    电池接口["RS485转TCP"]
-    热水接口["温控+继电器"]
-    安防接口["Zigbee传感器<br/>(门磁/人体/烟雾等)"]
-
-    HA --> 电表 --> 电表接口
-    HA --> 水表 --> 水表接口
-    HA --> 电池 --> 电池接口
-    HA --> 热水 --> 热水接口
-    HA --> 安防 --> 安防接口</pre>
-
-
-<h2 id="个人语音助手"><a href="#个人语音助手" class="headerlink" title="个人语音助手"></a>个人语音助手</h2><h3 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h3><h6 id="1️⃣-硬件准备"><a href="#1️⃣-硬件准备" class="headerlink" title="1️⃣ 硬件准备"></a>1️⃣ 硬件准备</h6><p>树莓派 4B（推荐 4GB 以上）<br>麦克风阵列（例如 ReSpeaker 2-Mics 或 4-Mics HAT）<br>小音箱（用于 TTS 播报）</p>
-<h6 id="2️⃣-安装-Rhasspy（离线语音助手）"><a href="#2️⃣-安装-Rhasspy（离线语音助手）" class="headerlink" title="2️⃣ 安装 Rhasspy（离线语音助手）"></a>2️⃣ 安装 Rhasspy（离线语音助手）</h6><p>Rhasspy 是一个离线语音助手框架，可以识别语音并转化为意图</p>
-<h6 id="3️⃣-配置-STT（语音识别）"><a href="#3️⃣-配置-STT（语音识别）" class="headerlink" title="3️⃣ 配置 STT（语音识别）"></a>3️⃣ 配置 STT（语音识别）</h6><ol>
-<li>安装 Vosk</li>
-<li>下载中文模型</li>
-</ol>
-<h6 id="4️⃣-配置意图（Intent）"><a href="#4️⃣-配置意图（Intent）" class="headerlink" title="4️⃣ 配置意图（Intent）"></a>4️⃣ 配置意图（Intent）</h6><ol>
-<li>在 Rhasspy WebUI → Intent Handling → Sentences 添加句子：</li>
-<li>配置意图动作： 通过 MQTT</li>
-</ol>
-<h6 id="5️⃣-配置-TTS（语音反馈）"><a href="#5️⃣-配置-TTS（语音反馈）" class="headerlink" title="5️⃣ 配置 TTS（语音反馈）"></a>5️⃣ 配置 TTS（语音反馈）</h6><ol>
-<li>安装 TTS 引擎：</li>
-<li>在 Rhasspy 中设置：</li>
-<li>测试</li>
-</ol>
-<h6 id="7️⃣-测试流程"><a href="#7️⃣-测试流程" class="headerlink" title="7️⃣ 测试流程"></a>7️⃣ 测试流程</h6><ol>
-<li>启动：<br> Home Assistant<br> Rhasspy<br> ReSpeaker</li>
-<li>对麦克风说：</li>
-<li>流程：<br> 3.1 ReSpeaker 采集语音<br> 3.2 Rhasspy 调用 Vosk 识别成文本<br> 3.3 Rhasspy 匹配意图 → 发送 MQTT&#x2F;Webhook 命令给 Home Assistant<br> 3.4 Home Assistant 执行开灯动作<br> 3.5 Rhasspy TTS 播报反馈 → “客厅灯已打开”</li>
-</ol>
-<h3 id="一、语音验证（说话人识别）"><a href="#一、语音验证（说话人识别）" class="headerlink" title="一、语音验证（说话人识别）"></a>一、语音验证（说话人识别）</h3><table>
-<thead>
-<tr>
-<th>方案</th>
-<th>方法</th>
-<th>优点</th>
-<th>适用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Vosk + X-vector</strong></td>
-<td>离线语音验证</td>
-<td>轻量级，树莓派可运行</td>
-<td>本地语音助手</td>
-</tr>
-<tr>
-<td><strong>DeepSpeaker (D-vector)</strong></td>
-<td>深度学习模型</td>
-<td>高准确率</td>
-<td>复杂应用，如智能门禁</td>
-</tr>
-<tr>
-<td><strong>ECAPA-TDNN</strong></td>
-<td>SOTA 声纹识别</td>
-<td>最新算法，高精度</td>
-<td>多用户识别</td>
-</tr>
-</tbody></table>
-<h3 id="二、语音唤醒（Wake-Word-Detection）"><a href="#二、语音唤醒（Wake-Word-Detection）" class="headerlink" title="二、语音唤醒（Wake Word Detection）"></a>二、语音唤醒（Wake Word Detection）</h3><ul>
-<li>需要一个始终在监听的“唤醒词”（如 Siri 监听“Hey Siri”）。</li>
-<li>解决方案：<ul>
-<li>Porcupine（轻量级，支持离线）</li>
-<li>Snowboy（不再维护，但仍可用）</li>
-<li>Mycroft Precise（开源，可训练自定义唤醒词）</li>
-<li>Vosk + KeywordSpotter → 自定义关键词检测</li>
-</ul>
-</li>
-</ul>
-<h3 id="三、自然语言理解（Natural-Language-Understanding-NLU）"><a href="#三、自然语言理解（Natural-Language-Understanding-NLU）" class="headerlink" title="三、自然语言理解（Natural Language Understanding, NLU）"></a>三、自然语言理解（Natural Language Understanding, NLU）</h3><ul>
-<li>解析用户的意图，比如“今天天气怎么样？” → 解析出“查询天气”。</li>
-<li>方案：<ul>
-<li>Rasa NLU（开源，可离线运行）</li>
-<li>Snips NLU（轻量级，但 Snips 已被 Sonos 收购）</li>
-<li>OpenAI GPT-4（需要联网，但效果强大）</li>
-</ul>
-</li>
-</ul>
-<h3 id="四、工作流程"><a href="#四、工作流程" class="headerlink" title="四、工作流程"></a>四、工作流程</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[麦克风输入]</span><br><span class="line">      ↓</span><br><span class="line">[Ring Buffer 缓存]</span><br><span class="line">      ↓</span><br><span class="line">[唤醒词检测]（Porcupine / Precise / Vosk+KeywordSpotter）</span><br><span class="line">      ↓（匹配成功）</span><br><span class="line">[提取音频片段]（如1~2秒）</span><br><span class="line">      ↓</span><br><span class="line">[X-vector 说话人识别]</span><br><span class="line">      ↓</span><br><span class="line">[身份确认后 → 激活系统 / 否则忽略]</span><br><span class="line">      ↓</span><br><span class="line">[完整语音识别（ASR）: Vosk]</span><br><span class="line">      ↓</span><br><span class="line">[NLU → 服务层 → 响应结果]</span><br><span class="line">      ↓</span><br><span class="line">[TTS → 音箱播报]</span><br></pre></td></tr></table></figure>
-
-<h3 id="硬件需求-1"><a href="#硬件需求-1" class="headerlink" title="硬件需求"></a>硬件需求</h3><ul>
-<li>树莓派 4B &#x2F; 5<ul>
-<li>推荐至少 4GB RAM，运行 ASR + 说话人识别时比较流畅。</li>
-</ul>
-</li>
-<li>麦克风<ul>
-<li>USB 麦克风（简单易用，例如 TONOR TC-777）</li>
-<li>或 麦克风阵列（推荐 ReSpeaker 2&#x2F;4&#x2F;6-Mic Array for Raspberry Pi，带有降噪&#x2F;回声消除）</li>
-<li>如果对说话人识别准确率要求高，阵列效果更好。</li>
-</ul>
-</li>
-<li>存储<ul>
-<li>至少 32GB microSD</li>
-<li>或者外接 SSD，ASR 模型会比较大。</li>
-</ul>
-</li>
-<li>（可选）扬声器&#x2F;耳机：做语音交互时需要输出。</li>
-</ul>
-<h3 id="软件与模块对应"><a href="#软件与模块对应" class="headerlink" title="软件与模块对应"></a>软件与模块对应</h3><p>对应你流程里的各个步骤：</p>
-<ol>
-<li>麦克风输入<ul>
-<li>用 pyaudio &#x2F; sounddevice 采集音频流。</li>
-<li>设置为 16kHz 单声道 PCM。</li>
-</ul>
-</li>
-<li>Ring Buffer 缓存<ul>
-<li>可以用 collections.deque 或者 sounddevice.RawInputStream 自带的回调缓存。</li>
-<li>缓存 1~3 秒的音频，保证唤醒词检测和语音片段提取。</li>
-</ul>
-</li>
-<li>唤醒词检测<ul>
-<li>轻量：Porcupine（低资源占用，树莓派友好）</li>
-<li>可训练：Mycroft Precise</li>
-<li>自定义词：Vosk + KeywordSpotter</li>
-</ul>
-</li>
-<li>提取音频片段（1~2秒）<ul>
-<li>当检测到唤醒词，立刻把 Ring Buffer 里的最后 1~2 秒 dump 出来保存为 .wav。</li>
-</ul>
-</li>
-<li>说话人识别（X-vector）<ul>
-<li>依赖 pyannote.audio 或 SpeechBrain，输入音频片段，输出 speaker embedding → 与本地数据库比对。</li>
-<li>树莓派 4&#x2F;5 能跑，但建议用轻量模型或外接 USB TPU（Coral USB Accelerator）。</li>
-</ul>
-</li>
-<li>身份确认<ul>
-<li>如果 embedding 相似度 &gt; 阈值（如 0.75），则确认说话人。</li>
-<li>否则忽略唤醒，避免被陌生人触发。</li>
-</ul>
-</li>
-<li>完整语音识别（ASR）<ul>
-<li>用 Vosk（支持离线运行，中文&#x2F;英文等都有预训练模型）。</li>
-<li>Vosk-pi 版本可在树莓派直接跑，速度较慢，但可以用小模型（如 vosk-model-small-cn-0.3）。</li>
-</ul>
-</li>
-</ol>
-<h3 id="音箱DIY"><a href="#音箱DIY" class="headerlink" title="音箱DIY"></a>音箱DIY</h3><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1VvFrecEww/?share_source=copy_web">1.5寸便携小音箱 -3D打印DIY-</a></p>
-<p>音箱 是由喇叭决定的和箱子提及无关</p>
-<h2 id="AI中控系统"><a href="#AI中控系统" class="headerlink" title="AI中控系统"></a>AI中控系统</h2><p>树莓派为AI中控</p>
-<h3 id="搭建AI中控系统"><a href="#搭建AI中控系统" class="headerlink" title="搭建AI中控系统"></a>搭建AI中控系统</h3><ol>
-<li>准备硬件：准备树莓派&#x2F;NUC + Zigbee网关 + 插座&#x2F;传感器；</li>
-<li>树莓派安装 CasaOS</li>
-<li>CasaOS 安装 Home Assistant</li>
-<li>接入设备（Zigbee、WiFi、Modbus)</li>
-<li>创建自动化与AI场景（用 Node-RED 或 YAML）；</li>
-<li>搭建 Web&#x2F;手机控制界面；</li>
-<li>集成语音助手或AI识别模型（进阶）；</li>
-<li>设置远程访问与告警通知（Nabu Casa 或反向代理）。</li>
-</ol>
-<h3 id="中控界面示例"><a href="#中控界面示例" class="headerlink" title="中控界面示例"></a>中控界面示例</h3><ol>
-<li>你可以设计一个包含以下模块的主界面：</li>
-<li>今日用电图表（Grafana）</li>
-<li>灯光&#x2F;插座状态面板（按房间划分）</li>
-<li>空调&#x2F;风扇控制（带温湿度曲线）</li>
-<li>安防警报 + 摄像头预览</li>
-<li>语音助手入口按钮</li>
-<li>自动化场景切换（如“离家模式”、“就寝模式”）</li>
-</ol>
-<h1 id="工作站"><a href="#工作站" class="headerlink" title="工作站"></a>工作站</h1><h1 id="升级版NAS"><a href="#升级版NAS" class="headerlink" title="升级版NAS"></a>升级版NAS</h1><p>家庭nas 即插即拔</p>
-<p>TrueNAS 系统 可玩性强</p>
-<h2 id="macmini-m4"><a href="#macmini-m4" class="headerlink" title="macmini m4"></a>macmini m4</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">终极 AI Agent 架构</span><br><span class="line">User</span><br><span class="line"> ↓</span><br><span class="line">Telegram / VSCode</span><br><span class="line"> ↓</span><br><span class="line">Agent Controller</span><br><span class="line"> ↓</span><br><span class="line">Planner（任务规划）</span><br><span class="line"> ↓</span><br><span class="line">Router（模型选择）</span><br><span class="line"> ↓</span><br><span class="line">Tool Executor（执行能力 ）</span><br><span class="line"> ↓</span><br><span class="line">Memory（长期记忆）</span><br><span class="line"> ↓</span><br><span class="line">Ollama</span><br><span class="line"></span><br><span class="line"><span class="comment"># homebrew</span></span><br><span class="line">/bin/bash -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot;&#x27;</span> &gt;&gt; ~/.zprofile</span><br><span class="line"><span class="built_in">eval</span> <span class="string">&quot;<span class="subst">$(/opt/homebrew/bin/brew shellenv)</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ollama</span></span><br><span class="line">brew install ollama</span><br><span class="line"><span class="comment"># 脚本</span></span><br><span class="line">sh ollama.sh start</span><br><span class="line">ollama pull deepseek-coder</span><br><span class="line"><span class="comment"># Ollama 永久在线运行</span></span><br><span class="line">brew services start ollama</span><br><span class="line">brew services list</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># OpenClaw</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/OpenClaw/OpenClaw.git</span><br><span class="line"><span class="built_in">cd</span> OpenClaw</span><br><span class="line">pip3 install -r requirements.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># docker</span></span><br><span class="line">brew install --cask docker</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
         </div>
     
 
@@ -2635,19 +2023,19 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/2026-11-13-pasted-content-id-7a51/">&lt;pasted_content id=&#34;7a51&#34;</a>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-named-volume-%E8%BF%81%E7%A7%BB-bind-mount-%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose Named Volu</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/vue2vsvue3/">vue2 对比 vue3</a>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-ci-%E8%AF%AF%E5%88%A0-pg-%E6%95%B0%E6%8D%AE%E5%90%8E-named-volume-%E6%95%91%E6%8F%B4%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose CI 误删 PG 数</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/wireshark/">Wireshark</a>
+                <a class="footer-post" href="/2026/11/14/tree/">树 ADT</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/xss/">XSS跨站脚本攻击</a>
+                <a class="footer-post" href="/2026/11/14/vim/">VIM</a>
             </li>
             
         </ul>
@@ -2661,6 +2049,10 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
     <ul>
         
         <li>
+            <a class="footer-post" href="/categories/%E5%AE%B6%E5%BA%AD/">家庭</a>
+        </li>
+        
+        <li>
             <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
         </li>
         
@@ -2670,10 +2062,6 @@ TCP 的 KeepAlive 机制来实现在长时间无数据交互的时间段内，�
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
-        </li>
-        
-        <li>
-            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>

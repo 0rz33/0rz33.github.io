@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="**原问题**: Docker Compose CI 部署把 PostgreSQL 数据清空了怎么恢复？named volume 救援步骤？pg_dumpall 从孤立 volume 提取数据？
+
+**答案**:
+
+# Docker Compose CI 误删 PostgreSQL 数据后的 Nam">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Docker Compose CI 误删 PG 数据后 Named Volume 救援全流程"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>Docker Compose CI 误删 PG 数据后 Named Volume 救援全流程 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/14/2026-11-14-docker-compose-ci-%E8%AF%AF%E5%88%A0-pg-%E6%95%B0%E6%8D%AE%E5%90%8E-named-volume-%E6%95%91%E6%8F%B4%E5%85%A8%E6%B5%81%E7%A8%8B/">
+                Docker Compose CI 误删 PG 数据后 Named Volume 救援全流程
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+**原问题**: Docker Compose CI 部署把 PostgreSQL 数据清空了怎么恢复？named volume 救援步骤？pg_dumpall 从孤立 volume 提取数据？
+
+**答案**:
+
+# Docker Compose CI 误删 PostgreSQL 数据后的 Named Volume 救援
+
+## 背景与场景
+
+`seo-loop` 项目使用 Docker Compose 部署，PostgreSQL 数据通过 bind mount (`./data/postgres`) 挂载到宿主机。多次 `git push dev` 触发 CI 时，CI 流程未排除 `./data/` 目录，导致 `docker compose down -v` + 重建过程中 `./data/postgres` 被反复清空。用户在面板中配置的站点接口（API Token、GSC 服务账号、站点 URL）全部丢失，回到初始状态。
+
+项目此前曾使用 Docker named volume (`seo-loop_pg-data`)，该 volume 残留在 Docker Engine 中未被显式删除，成为唯一的数据恢复来源。
+
+## 核心结论
+
+1. **Docker named volume 在 `docker compose down` 不加 `-v` 时不会被删除**。即使 compose 文件已改为 bind mount，旧 named volume 仍保留在 `/var/lib/docker/volumes/`，是灾难恢复的最后防线。
+
+2. **CI 流程必须显式排除数据目录**。`.dockerignore` 和 CI 脚本需要 `exclude ./data/`，否则每次部署都可能覆盖有状态数据。
+
+3. **从孤立 named volume 提取数据无需启动原服务**。用一次性 `docker run --rm` 挂载该 volume，在容器内启动临时 PG 实例执行 `pg_dumpall`，完全不影响正在运行的服务。
+
+4. **用 `pg_dumpall` 而非 `pg_dump`**。需要恢复所有数据库 + 角色，`pg_dumpall` 是正确选择；`pg_dump` 只导单库，丢角色定义。
+
+5. **恢复后必须做数据完整性校验**。至少验证：用户表行数（`panel_users`）、关键配置（`project_context` 中的 `site_api_config`）。
+
+## 实现方案
+
+### Step 1：确认 named volume 存活
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker volume <span class="built_in">ls</span> | grep seo-loop</span><br><span class="line">docker volume inspect seo-loop_pg-data 2&gt;/dev/null | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure>
+
+### Step 2：从 named volume dump 全库
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /work/projects/seo-loop</span><br><span class="line"></span><br><span class="line">docker run --<span class="built_in">rm</span> \</span><br><span class="line">  -v seo-loop_pg-data:/var/lib/postgresql/data \</span><br><span class="line">  -v <span class="string">&quot;<span class="subst">$(pwd)</span>/data:/backup&quot;</span> \</span><br><span class="line">  postgres:17-alpine \</span><br><span class="line">  sh -c <span class="string">&#x27;PGDATA=/var/lib/postgresql/data \</span></span><br><span class="line"><span class="string">         pg_ctl start -o &quot;-c listen_addresses=&quot; -w -s &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_dumpall -U seo_loop &gt; /backup/rescue.sql &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_ctl stop -w -s&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ls</span> -lh data/rescue.sql</span><br></pre></td></tr></table></figure>
+
+关键参数：
+- `listen_addresses=`（空串）：不对外监听，避免端口冲突
+- `-w`：等待 PG 完全启动/停止
+- `--rm`：容器自动销毁
+
+### Step 3：清空当前库并导入
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  -c <span class="string">&#x27;DROP DATABASE IF EXISTS seo_loop;&#x27;</span></span><br><span class="line"></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  &lt; data/rescue.sql</span><br></pre></td></tr></table></figure>
+
+### Step 4：数据完整性校验
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker compose <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT COUNT(*) FROM panel_users;&quot;</span></span><br><span class="line"></span><br><span class="line">docker compose <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT substring(content for 200) FROM project_context WHERE key=&#x27;site_api_config&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+1. **`docker compose down -v` 会删除 named volume** — 生产/dev 永远不用 `-v`
+2. **bind mount 在项目目录内 = 隐蔽数据丢失点** — `git clean -fdx`、CI rsync --delete 都会清空；最佳实践是 PG 数据放项目树之外或用 named volume
+3. **`pg_dumpall -U` 必须是 superuser** — 非 superuser 静默跳过无权限对象，dump 不完整
+
+## 底层机制
+
+Docker named volume 生命周期独立于容器和 compose 项目，存储在 `/var/lib/docker/volumes/<name>/_data/`，只有 `docker volume rm` 或 `docker compose down -v` 才删除。`pg_ctl start -o "-c listen_addresses="` 启动隔离模式 PG：不监听 TCP，只接受 Unix socket，不与宿主机 PG 冲突。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/Docker/">#Docker</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-named-volume-%E8%BF%81%E7%A7%BB-bind-mount-%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose Named Volu</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-ci-%E8%AF%AF%E5%88%A0-pg-%E6%95%B0%E6%8D%AE%E5%90%8E-named-volume-%E6%95%91%E6%8F%B4%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose CI 误删 PG 数</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/tree/">树 ADT</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/14/vim/">VIM</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%AE%B6%E5%BA%AD/">家庭</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

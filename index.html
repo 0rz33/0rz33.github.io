@@ -184,15 +184,19 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/2026-11-13-pasted-content-id-7a51/">
-                <pasted_content id="7a51">
+            <a href="/2026/11/14/2026-11-14-docker-compose-named-volume-%E8%BF%81%E7%A7%BB-bind-mount-%E5%85%A8%E6%B5%81%E7%A8%8B/">
+                Docker Compose Named Volume 迁移 Bind Mount 全流程
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
             
         </div>
     </div>
@@ -200,87 +204,55 @@
     
         <div class="content">
             
-# Docker Compose CI 误删 PostgreSQL 数据后的 Named Volume 救援
+**原问题**: Docker Compose 项目如何从 named volume 迁移到 bind mount，保留 PostgreSQL 数据和产出文件
+
+**答案**:
+
+# Docker Compose 从 Named Volume 迁移到 Bind Mount：数据持久化改造
 
 ## 背景与场景
 
-`seo-loop` 项目使用 Docker Compose 部署，PostgreSQL 数据通过 bind mount (`./data/postgres`) 挂载到宿主机。在多次 `git push dev` 触发 CI 部署的过程中，CI 流程未排除 `./data/` 目录，导致每次部署执行 `docker compose down -v` + 重新拉取时，宿主机上的 `./data/postgres` 被反复清空（wipe）。用户配置好的站点接口（API Token、GSC 服务账号、站点 URL 等）全部丢失，面板回到初始状态。
-
-项目此前曾从 bind mount 迁移到 Docker named volume (`seo-loop_pg-data`)，该 volume 残留在 Docker Engine 中未被显式删除，成为唯一的数据恢复来源。
+seo-loop 是一套 SEO 自动化流水线（Vue SPA + Node daemon + PostgreSQL + Redis），部署在一台 worker 机器上。原始部署不是通过 `git clone` 拉取的（目录中没有 `.git`），且数据存储使用的是 Docker named volume。这导致两个问题：一是代码更新无法 `git pull`，只能手动覆盖文件；二是数据和项目目录解耦，整目录迁移或备份时 named volume 里的 PostgreSQL 数据和产出文件会被遗漏。本次改造的目标是将 named volume 替换为 bind mount（`./data/`），使数据跟着项目目录走。
 
 ## 核心结论
 
-1. **Docker named volume 在 `docker compose down` 不加 `-v` 时不会被删除**。即使 compose 文件已改为 bind mount，旧的 named volume 仍保留在 Docker Engine 中（`/var/lib/docker/volumes/`），是灾难恢复的最后一道防线。
+1. **先导出数据再拆容器**：`docker compose exec -T postgres pg_dump` 导出 SQL，`docker cp` 拷出 daemon 产出文件，然后才能安全 `docker compose down` 删除旧 named volume。
 
-2. **CI 流程必须显式排除数据目录**。`.dockerignore` 和 CI 脚本中需要 `exclude ./data/`，否则每次部署都可能覆盖或清空有状态数据。修复提交：`1ed6052`。
+2. **`docker compose ps -q` 在容器停止后返回空**：`docker cp $(docker compose ps -q daemon):/app/out/. data/seo-out/` 会报 `must specify at least one container source`，因为 `-q` 只返回运行中容器的 ID。必须用硬编码容器名 `docker cp seo-loop-daemon-1:/app/out/. ...`。
 
-3. **从孤立 named volume 中提取数据无需启动原服务**。可以用一次性 `docker run --rm` 挂载该 volume，在容器内启动临时 PostgreSQL 实例执行 `pg_dumpall`，完全不影响正在运行的服务。
+3. **Bind mount 路径统一到 `./data/` 子目录**：PostgreSQL → `./data/postgres`，daemon 产出 → `./data/seo-out`。整个 `data/` 目录可以 tar 打包迁移，不再依赖 `docker volume`。
 
-4. **`pg_dumpall` 而非 `pg_dump`**。因为需要恢复所有数据库 + 角色（`seo_loop` 用户本身也在 dump 中），`pg_dumpall` 是正确选择；`pg_dump` 只导单库，会丢角色定义。
+4. **非 git 仓库的部署环境用 `cat > file <<'EOF'` 覆盖配置**：没有 `.git` 就没法 `git pull`，直接 heredoc 写入 `docker-compose.yaml` 是最快的更新方式。
 
-5. **恢复后必须做数据完整性校验**。至少验证：用户表行数（`panel_users`）、关键配置（`project_context` 中的 `site_api_config`）是否包含预期的站点 URL。
+5. **数据恢复顺序：先起 postgres，等 healthy，再灌 dump，最后起全栈**。不能 `up -d` 一把梭——daemon 启动时会连 DB，如果数据还没灌完会导致 schema 不匹配。
 
 ## 实现方案
 
-### 前置条件
+### 1. 停服并导出数据
 
-- SSH 到部署 server
-- 确认 Docker Engine 中旧 named volume 是否存在
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停应用容器（保留 postgres 运行以便导出）</span></span><br><span class="line">docker compose stop app daemon</span><br><span class="line"></span><br><span class="line"><span class="comment"># 导出 PostgreSQL 全库</span></span><br><span class="line"><span class="built_in">mkdir</span> -p data</span><br><span class="line">docker compose <span class="built_in">exec</span> -T postgres pg_dump -U seo_loop seo_loop &gt; data/pg-dump.sql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷出 daemon 产出文件（注意：用硬编码容器名，不要用 ps -q）</span></span><br><span class="line"><span class="built_in">mkdir</span> -p data/seo-out</span><br><span class="line">docker <span class="built_in">cp</span> seo-loop-daemon-1:/app/out/. data/seo-out/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认数据完整后，销毁全部容器 + named volume</span></span><br><span class="line">docker compose down</span><br></pre></td></tr></table></figure>
 
-### Step 1：确认 named volume 存活
+### 2. 覆盖 docker-compose.yaml
 
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有 seo-loop 相关 volume</span></span><br><span class="line">docker volume <span class="built_in">ls</span> | grep seo-loop</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查目标 volume 元数据（Mountpoint 字段 = 宿主机物理路径）</span></span><br><span class="line">docker volume inspect seo-loop_pg-data 2&gt;/dev/null | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure>
+将 named volume 替换为 bind mount，关键改动：
+- `postgres` 的 volume: `./data/postgres:/var/lib/postgresql/data`
+- `app` 和 `daemon` 共享: `./data/seo-out:/app/out`
+- 底部删除 `volumes:` 声明段
 
-如果 `inspect` 返回空 / 报错，说明 volume 已被删除，需要转入 bind mount 残留扫描（见避坑指南）。
+### 3. 恢复数据并启动
 
-### Step 2：从 named volume dump 全库
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /work/projects/seo-loop</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用一次性容器挂载旧 volume，启动临时 PG 实例做 pg_dumpall</span></span><br><span class="line"><span class="comment"># -v seo-loop_pg-data:/var/lib/postgresql/data  ← 挂旧数据</span></span><br><span class="line"><span class="comment"># -v $(pwd)/data:/backup                         ← dump 输出到宿主机</span></span><br><span class="line"><span class="comment"># listen_addresses= 空串 → 不监听网络，仅 Unix socket，安全</span></span><br><span class="line">docker run --<span class="built_in">rm</span> \</span><br><span class="line">  -v seo-loop_pg-data:/var/lib/postgresql/data \</span><br><span class="line">  -v <span class="string">&quot;<span class="subst">$(pwd)</span>/data:/backup&quot;</span> \</span><br><span class="line">  postgres:17-alpine \</span><br><span class="line">  sh -c <span class="string">&#x27;PGDATA=/var/lib/postgresql/data \</span></span><br><span class="line"><span class="string">         pg_ctl start -o &quot;-c listen_addresses=&quot; -w -s &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_dumpall -U seo_loop &gt; /backup/rescue.sql &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_ctl stop -w -s&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认 dump 文件大小（正常应 &gt; 几十 KB）</span></span><br><span class="line"><span class="built_in">ls</span> -lh data/rescue.sql</span><br></pre></td></tr></table></figure>
-
-**核心行解读**：
-- `listen_addresses=`（空）：临时 PG 不对外监听，避免端口冲突
-- `-w`：等待 PG 完全启动/停止后再执行下一步，防止 dump 时 PG 未就绪
-- `-s`：静默模式，减少日志噪音
-
-### Step 3：清空当前库并导入
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 先 drop 当前空库（被 CI wipe 过的）</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  -c <span class="string">&#x27;DROP DATABASE IF EXISTS seo_loop;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 导入完整 dump（含 CREATE DATABASE + CREATE ROLE）</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  &lt; data/rescue.sql</span><br></pre></td></tr></table></figure>
-
-### Step 4：数据完整性校验
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用户表行数 —— 预期 ≥ 3（admin + 运营账号）</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT COUNT(*) FROM panel_users;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 站点配置 —— 预期能看到 91blgc05.com / luummaa.com 等 URL</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT substring(content for 200) FROM project_context WHERE key=&#x27;site_api_config&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
-
-校验通过后刷新面板即可看到恢复的站点配置。
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一步：只起 postgres，等它初始化 bind mount 目录并通过 healthcheck</span></span><br><span class="line">docker compose up -d postgres &amp;&amp; <span class="built_in">sleep</span> 8</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二步：灌入之前导出的 dump</span></span><br><span class="line"><span class="built_in">cat</span> data/pg-dump.sql | docker compose <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三步：全栈启动</span></span><br><span class="line">docker compose up -d</span><br></pre></td></tr></table></figure>
 
 ## 避坑指南
 
-### 1. `docker compose down -v` 会删除 named volume
-
-这是最常见的数据丢失根因。`-v` flag 的语义是 "remove named volumes declared in the volumes section"。CI 脚本中如果写了 `down -v` 做 clean deploy，**每次都会清空数据库**。正确做法：
-
-- 生产/dev 环境永远不用 `-v`
-- 需要 clean 时只删除无状态容器：`docker compose down`（不带 `-v`）
-- 在 CI 中用 `.dockerignore` 或 rsync `--exclude` 保护 `./data/`
-
-### 2. bind mount 被 git/CI 覆盖的隐蔽风险
-
-bind mount 路径（如 `./data/postgres`）位于项目目录内时，以下操作都会清空它：
-
-- `git clean -fdx`（清除未跟踪文件）
-- CI 做 `rm -rf` 或 `rsync --delete` 同步代码
-- Docker Desktop 的 file sharing 在 macOS 上可能有缓存延迟
-
-**最佳实践**：PG 数据目录放到项目树之外（如 `/var/lib/seo-loop/pgdata`），或始终使用 named volume。
-
-### 3. `pg_dumpall` 的 `-U` 必须是 superuser
-
-`pg_dumpall` 需要读取所有数据库和全局对象（roles、tablespaces）。如果 `-U` 指定的用户不是 superuser，会静默跳过无权限的对象，导致 dump 不完整。在容器内的默认 PG 中，`seo_loop` 通常是创建数据库时的 owner（即 superuser），但如果不是，需要用 `postgres` 用户。
+1. **`docker compose ps -q <service>` 在容器未运行时返回空字符串** — 用 `-a` 或硬编码容器名
+2. **`pg_dump` 导出时不要先 `docker compose down`** — 导出需要 postgres 在运行
+3. **Bind mount 目录权限** — PG 容器以 uid 999 运行，手动 mkdir 并设 root-only 权限会导致启动失败
+4. **非 git 仓库长期维护** — heredoc 覆盖是应急，长期应 `git init && git remote add && git reset --hard origin/main`
 
 ## 底层机制
 
-Docker named volume 的生命周期独立于容器和 compose 项目。创建后存储在 `/var/lib/docker/volumes/<name>/_data/`，只有显式 `docker volume rm` 或 `docker compose down -v` 才会删除。即使 `docker-compose.yml` 中不再引用该 volume，它依然存在于 Docker Engine 中——这是本次救援成立的前提。
-
-`pg_ctl start -o "-c listen_addresses="` 启动的是一个"隔离模式"的 PostgreSQL 实例：不监听任何 TCP 端口，只接受 Unix domain socket 连接。这意味着它不会与宿主机上正在运行的另一个 PG 实例产生端口冲突（都监听 5432 的问题），也不会被外部访问到。`pg_dumpall` 通过同一容器内的 Unix socket 连接这个临时实例，完成 dump 后 `pg_ctl stop` 干净退出，容器随 `--rm` 自动销毁，不留痕迹。
+Named volume 由 Docker 引擎管理，数据在 `/var/lib/docker/volumes/<name>/_data`，生命周期独立于 compose 项目。Bind mount 将宿主机目录直接映射进容器，数据是普通文件。对于单机部署小型项目，bind mount 到 `./data/` 几乎总是更好——数据可见、可 git-ignore、可整目录迁移，符合"项目即目录"的运维心智模型。
 
 
         </div>
@@ -293,13 +265,346 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/vue2vsvue3/">
+            <a href="/2026/11/14/2026-11-14-docker-compose-ci-%E8%AF%AF%E5%88%A0-pg-%E6%95%B0%E6%8D%AE%E5%90%8E-named-volume-%E6%95%91%E6%8F%B4%E5%85%A8%E6%B5%81%E7%A8%8B/">
+                Docker Compose CI 误删 PG 数据后 Named Volume 救援全流程
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+**原问题**: Docker Compose CI 部署把 PostgreSQL 数据清空了怎么恢复？named volume 救援步骤？pg_dumpall 从孤立 volume 提取数据？
+
+**答案**:
+
+# Docker Compose CI 误删 PostgreSQL 数据后的 Named Volume 救援
+
+## 背景与场景
+
+`seo-loop` 项目使用 Docker Compose 部署，PostgreSQL 数据通过 bind mount (`./data/postgres`) 挂载到宿主机。多次 `git push dev` 触发 CI 时，CI 流程未排除 `./data/` 目录，导致 `docker compose down -v` + 重建过程中 `./data/postgres` 被反复清空。用户在面板中配置的站点接口（API Token、GSC 服务账号、站点 URL）全部丢失，回到初始状态。
+
+项目此前曾使用 Docker named volume (`seo-loop_pg-data`)，该 volume 残留在 Docker Engine 中未被显式删除，成为唯一的数据恢复来源。
+
+## 核心结论
+
+1. **Docker named volume 在 `docker compose down` 不加 `-v` 时不会被删除**。即使 compose 文件已改为 bind mount，旧 named volume 仍保留在 `/var/lib/docker/volumes/`，是灾难恢复的最后防线。
+
+2. **CI 流程必须显式排除数据目录**。`.dockerignore` 和 CI 脚本需要 `exclude ./data/`，否则每次部署都可能覆盖有状态数据。
+
+3. **从孤立 named volume 提取数据无需启动原服务**。用一次性 `docker run --rm` 挂载该 volume，在容器内启动临时 PG 实例执行 `pg_dumpall`，完全不影响正在运行的服务。
+
+4. **用 `pg_dumpall` 而非 `pg_dump`**。需要恢复所有数据库 + 角色，`pg_dumpall` 是正确选择；`pg_dump` 只导单库，丢角色定义。
+
+5. **恢复后必须做数据完整性校验**。至少验证：用户表行数（`panel_users`）、关键配置（`project_context` 中的 `site_api_config`）。
+
+## 实现方案
+
+### Step 1：确认 named volume 存活
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker volume <span class="built_in">ls</span> | grep seo-loop</span><br><span class="line">docker volume inspect seo-loop_pg-data 2&gt;/dev/null | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure>
+
+### Step 2：从 named volume dump 全库
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /work/projects/seo-loop</span><br><span class="line"></span><br><span class="line">docker run --<span class="built_in">rm</span> \</span><br><span class="line">  -v seo-loop_pg-data:/var/lib/postgresql/data \</span><br><span class="line">  -v <span class="string">&quot;<span class="subst">$(pwd)</span>/data:/backup&quot;</span> \</span><br><span class="line">  postgres:17-alpine \</span><br><span class="line">  sh -c <span class="string">&#x27;PGDATA=/var/lib/postgresql/data \</span></span><br><span class="line"><span class="string">         pg_ctl start -o &quot;-c listen_addresses=&quot; -w -s &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_dumpall -U seo_loop &gt; /backup/rescue.sql &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_ctl stop -w -s&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ls</span> -lh data/rescue.sql</span><br></pre></td></tr></table></figure>
+
+关键参数：
+- `listen_addresses=`（空串）：不对外监听，避免端口冲突
+- `-w`：等待 PG 完全启动/停止
+- `--rm`：容器自动销毁
+
+### Step 3：清空当前库并导入
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  -c <span class="string">&#x27;DROP DATABASE IF EXISTS seo_loop;&#x27;</span></span><br><span class="line"></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  &lt; data/rescue.sql</span><br></pre></td></tr></table></figure>
+
+### Step 4：数据完整性校验
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker compose <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT COUNT(*) FROM panel_users;&quot;</span></span><br><span class="line"></span><br><span class="line">docker compose <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT substring(content for 200) FROM project_context WHERE key=&#x27;site_api_config&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+1. **`docker compose down -v` 会删除 named volume** — 生产/dev 永远不用 `-v`
+2. **bind mount 在项目目录内 = 隐蔽数据丢失点** — `git clean -fdx`、CI rsync --delete 都会清空；最佳实践是 PG 数据放项目树之外或用 named volume
+3. **`pg_dumpall -U` 必须是 superuser** — 非 superuser 静默跳过无权限对象，dump 不完整
+
+## 底层机制
+
+Docker named volume 生命周期独立于容器和 compose 项目，存储在 `/var/lib/docker/volumes/<name>/_data/`，只有 `docker volume rm` 或 `docker compose down -v` 才删除。`pg_ctl start -o "-c listen_addresses="` 启动隔离模式 PG：不监听 TCP，只接受 Unix socket，不与宿主机 PG 冲突。
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/14/tree/">
+                树 ADT
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/AI/">AI</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <pre class="mermaid">graph LR
+    A[树] --> B[二叉树]
+    B[二叉树] --> C[完全二叉树]
+    C[完全二叉树] --> D[满二叉树]
+    C[完全二叉树] --> E[堆]
+    E[堆] --> F[大顶堆]
+    E[堆] --> G[小顶堆]
+    B[二叉树] --> H[二叉查找树]
+    B[二叉树] --> I[平衡二叉树]
+    B[二叉树] --> J[平衡二叉查找树]
+    J[平衡二叉查找树] --> K[红黑树]
+    J[平衡二叉查找树] --> L[AVL]
+    A[树] --> M[N叉树]
+    M[N叉树] --> N[B树]
+    M[N叉树] --> O[B+树]</pre>
+
+<p><img src="/images/tree.png"></p>
+<h1 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h1><p>每一个节点最多两个子节点</p>
+<p><img src="/images/tree-ercha.png"></p>
+<p>前序遍历<br>遍历顺序是根节点-&gt;左子树-&gt;右子树<br>遍历的得到的序列是：<code>1 2 4 5 3 6 7</code></p>
+<p>中序遍历<br>遍历顺序是左子树-&gt;根节点-&gt;右子树<br>遍历的得到的序列是：<code>4 2 5 1 6 3 7</code></p>
+<p>后序遍历<br>遍历顺序是左子树-&gt;右子树-&gt;根节点<br>遍历的得到的序列是：<code>4 5 2 6 7 3 1</code></p>
+<p>满二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底层</span><br><span class="line">2.除了叶子节点，每个节点都有左、由两个子节点</span><br></pre></td></tr></table></figure>
+
+<p>完全二叉树</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.叶子节点都在最底下两层</span><br><span class="line">2.最后一层的子节点，都靠左排列</span><br><span class="line">3.除了最后一层，其它层的节点个数，都要达到最大</span><br></pre></td></tr></table></figure>
+
+<p>二叉查找树</p>
+<p><img src="/images/tree-erchachaozhao.png"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义：</span></span><br><span class="line">1.树中的每一个节点的值</span><br><span class="line">2.都要大于左子树中每个节点的值</span><br><span class="line">3.都要小于右子树中每个节点的值</span><br></pre></td></tr></table></figure>
+
+<p>AVL树</p>
+<p><img src="/images/tree-erchachazhao-to-avl.png"></p>
+<p>红黑树</p>
+<p><img src="/images/tree-honghei.png"></p>
+<p>B树</p>
+<p>B+树</p>
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/14/vim/">
+                VIM
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/Linux/">Linux</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>Vi编辑器是所有Unix及Linux系统下标准的编辑器，</p>
+<p>vi和vim都是Linux中的编辑器，不同的是，vim比较高级，可以视为vi的升级版本。vi使用于文本编辑，但是vim更适用于coding（写代码的）。</p>
+<p>Vim重点是光标的移动，模式切换，删除，查找，替换，复制，粘贴，撤销命令的使用。</p>
+<h2 id="三种模式"><a href="#三种模式" class="headerlink" title="三种模式"></a>三种模式</h2><p><img src="/images/vim-console.png"></p>
+<ul>
+<li>命令模式：在该模式下是不能对文件直接编辑，可以输入快捷键进行一些操作（删除行，复制行，移动光标，粘贴等等）【打开文件之后默认进入的模式】；</li>
+<li>编辑模式：在该模式下可以对文件的内容进行编辑；</li>
+<li>末行模式：可以在末行输入命令来对文件进行操作（搜索、替换、保存、退出、撤销、高亮等等）；</li>
+</ul>
+<h3 id="命令模式"><a href="#命令模式" class="headerlink" title="命令模式"></a>命令模式</h3><h4 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h4><p><img src="/images/vim-to.png"></p>
+<ul>
+<li>行首 <code>按键shift + 6 或 ^</code></li>
+<li>行尾 <code>按键shift + 4 或 $</code></li>
+<li>首行 <code>gg</code></li>
+<li>末行 <code>G</code></li>
+<li>翻屏 <ul>
+<li>向上翻屏 <code>按键ctrl + b</code> （before） 或 <code>PgUp</code></li>
+<li>向下翻屏 <code>按键ctrl + f</code> （after） 或 <code>PgDn</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="复制操作"><a href="#复制操作" class="headerlink" title="复制操作"></a>复制操作</h4><ul>
+<li>所在行 <code>yy</code> </li>
+<li>粘贴：在想要粘贴的地方按下<code>p</code>键</li>
+</ul>
+<h4 id="剪切-删除"><a href="#剪切-删除" class="headerlink" title="剪切&#x2F;删除"></a>剪切&#x2F;删除</h4><ul>
+<li>剪切&#x2F;删除光标所在行 <code>dd</code></li>
+<li>剪切&#x2F;删除光标所在的当前行之后的内容，但是删除之后下一行不上移 <code>D</code></li>
+</ul>
+<h4 id="撤销-恢复"><a href="#撤销-恢复" class="headerlink" title="撤销&#x2F;恢复"></a>撤销&#x2F;恢复</h4><ul>
+<li>撤销 <code>u</code> （undo）</li>
+<li>撤销5个改变 <code>:undo 5</code></li>
+<li>你的撤销历史 <code>:undolist</code></li>
+<li>重做最后的改动 <code>按键ctrl + r:</code></li>
+<li>取消当前行中所有的改动 <code>U:</code></li>
+<li>回到4分钟前 <code>:earlier 4m</code></li>
+<li>前进55秒 <code>:later 55s</code></li>
+</ul>
+<h4 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h4><p>r: 替换光标处的字符，同样支持汉字。<br>R: 进入替换模式，按esc回到正常模式。</p>
+<h3 id="末行模式"><a href="#末行模式" class="headerlink" title="末行模式"></a>末行模式</h3><p>进入方式：由命令模式进入，按下<code>:</code>或者<code>/（表示查找）</code>即可进入<br>退出方式：</p>
+<ol>
+<li>按下<code>按键esc</code></li>
+<li>连按2次<code>按键esc</code>键</li>
+<li>删除末行全部输入字符</li>
+</ol>
+<ul>
+<li>保存文件<code>:w</code></li>
+<li>另存为<code>:w 路径</code></li>
+<li>退出文件<code>:q</code></li>
+<li>保存并且退出<code>:wq</code></li>
+<li>表示强制退出，刚才做的修改操作不做保存<code>:q!</code></li>
+<li><code>:!外部命令</code></li>
+<li><code>/关键词</code> 搜索查找</li>
+<li>替换 -&gt; %表示整个文件 g表示全局（global）<ul>
+<li><code>:s/搜索的关键词/新的内容</code> (替换光标所在行的第一处符合条件的内容)</li>
+<li><code>:s/搜索的关键词/新的内容/g</code> (替换光标所在行的全部符合条件的内容)</li>
+<li><code>:%s/搜索的关键词/新的内容</code> (替换整个文档中每行第一个符合条件的内容)</li>
+<li><code>:%s/搜索的关键词/新的内容/g</code> (替换整个文档的符合条件的内容)</li>
+</ul>
+</li>
+<li>显示行号（临时）<ul>
+<li><code>:set nu</code>[number]</li>
+<li><code>:set nonu</code></li>
+</ul>
+</li>
+<li>文件多开<code>:files</code> <ul>
+<li>果需要指定切换文件的名称，则可以输入<code>:open 已经打开的文件名</code></li>
+<li>“:bn”切换到下一个文件（back next）<code></code></li>
+<li>“:bp”切换到上一个文件（back prev）<code></code></li>
+</ul>
+</li>
+</ul>
+<h5 id="分屏功能"><a href="#分屏功能" class="headerlink" title="分屏功能"></a>分屏功能</h5><ul>
+<li><p>分屏</p>
+<ul>
+<li>水平方向分屏打开新文件 横向切分 <code>:sp</code>文件名 <code>:split</code>文件名</li>
+<li>垂直方向分屏打开新文件 竖向切分 <code>:vsp</code>文件名 <code>:vsplit</code>文件名</li>
+<li>上下分割当前打开的文件 <code>按键Ctrl+w s</code></li>
+<li>左右分割当前打开的文件 <code>按键Ctrl+w v</code></li>
+</ul>
+</li>
+<li><p>关闭分屏 </p>
+<ul>
+<li>关闭当前窗口<code>按键Ctrl+w c</code></li>
+<li>关闭当前窗口，如果只剩最后一个了，则退出Vim<code>按键Ctrl+w q</code></li>
+</ul>
+</li>
+<li><p>移动光标</p>
+<ul>
+<li>把光标移到右边的屏 <code>按键Ctrl+w l</code></li>
+<li>把光标移到左边的屏中 <code>按键Ctrl+w h</code></li>
+<li>把光标移到上边的屏中 <code>按键Ctrl+w k</code></li>
+<li>把光标移到下边的屏中 <code>按键Ctrl+w j</code></li>
+<li>把光标移到下一个的屏中 <code>按键Ctrl+w w</code></li>
+</ul>
+</li>
+<li><p>移动分屏</p>
+<ul>
+<li>向右移动 <code>按键Ctrl+w L</code></li>
+<li>向左移动 <code>按键Ctrl+w H</code></li>
+<li>向上移动 <code>按键Ctrl+w K</code></li>
+<li>向下移动 <code>按键Ctrl+w J</code></li>
+</ul>
+</li>
+<li><p>屏幕尺寸</p>
+<ul>
+<li>让所有的屏都有一样的高度 <code>按键Ctrl+w =</code></li>
+<li>增加高度 <code>按键Ctrl+w +</code></li>
+<li>减少高度 <code>按键Ctrl+w -</code></li>
+</ul>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7201668416171655227">cc</a></p>
+<h2 id="VIM-IDE"><a href="#VIM-IDE" class="headerlink" title="VIM IDE"></a><a target="_blank" rel="noopener" href="https://github.com/0rz33/VIM-IDE">VIM IDE</a></h2>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/14/vue-big-file-upload/">
+                vue2 大文件上传component(做成组件)
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-14</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/前端/">前端</a>
+                </span>
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            <p>前端大文件批量文件上传方案 上传的是ppvod切片服务器<br>支持：秒传、断点续传、分片上传</p>
+<h2 id="vue2-大文件上传-秒传、断点续传、分片上传"><a href="#vue2-大文件上传-秒传、断点续传、分片上传" class="headerlink" title="vue2 大文件上传 秒传、断点续传、分片上传"></a>vue2 大文件上传 秒传、断点续传、分片上传</h2><h3 id="大文件上传流程图"><a href="#大文件上传流程图" class="headerlink" title="大文件上传流程图"></a>大文件上传流程图</h3><p><img src="/images/bigfile-slice-upload.png"></p>
+<h3 id="组件页面"><a href="#组件页面" class="headerlink" title="组件页面"></a>组件页面</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//大文件上传组件</span><br><span class="line">Vue.component(<span class="string">&#x27;UploadFile&#x27;</span>, &#123;</span><br><span class="line">    template:`</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;div style=<span class="string">&quot;width:100%&quot;</span>&gt;</span><br><span class="line">                &lt;el-upload action=<span class="string">&quot;#&quot;</span> </span><br><span class="line">                    :show-file-list=<span class="string">&quot;false&quot;</span> </span><br><span class="line">                    :on-change=<span class="string">&quot;handleFileSelect&quot;</span> </span><br><span class="line">                multiple&gt;</span><br><span class="line">                    &lt;el-button  <span class="built_in">type</span>=<span class="string">&quot;primary&quot;</span>&gt;点击上传&lt;/el-button&gt;</span><br><span class="line">                &lt;/el-upload&gt;</span><br><span class="line">                &lt;div v-if=<span class="string">&quot;isShowProgress&quot;</span> v-for=<span class="string">&quot;(file, index) in files&quot;</span> class=<span class="string">&quot;el-upload-progress&quot;</span>&gt;</span><br><span class="line">                        &lt;!-- 进度条上方文件名 --&gt;</span><br><span class="line">                        &lt;div class=<span class="string">&quot;upload-filename&quot;</span>&gt;</span><br><span class="line">                        &lt;div&gt;&#123;&#123; file.name &#125;&#125; - &#123;&#123; file.status &#125;&#125;&lt;i class=<span class="string">&quot;el-icon-circle-close&quot;</span> @click=<span class="string">&quot;deleteFile(index)&quot;</span>&gt;&lt;/i&gt;&lt;/div&gt;</span><br><span class="line">                        &lt;/div&gt;</span><br><span class="line">                        &lt;!-- 进度条 --&gt;</span><br><span class="line">                        &lt;el-progress</span><br><span class="line">                        style=<span class="string">&quot;width: 450px&quot;</span></span><br><span class="line">                        :percentage=<span class="string">&quot;progressPercent&quot;</span> </span><br><span class="line">                        :text-inside=<span class="string">&quot;true&quot;</span></span><br><span class="line">                        :color=<span class="string">&quot;customColor&quot;</span></span><br><span class="line">                        :stroke-width=<span class="string">&quot;4&quot;</span></span><br><span class="line">                        &gt;</span><br><span class="line">                        &lt;/el-progress&gt;</span><br><span class="line">                        &lt;!-- 进度条数字 --&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.url&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;请输入地址&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                        &lt;el-input  v-model=<span class="string">&quot;file.playtime&quot;</span> autoComplete=<span class="string">&quot;off&quot;</span> clearable  placeholder=<span class="string">&quot;视频时长&quot;</span>&gt;&lt;/el-input&gt;</span><br><span class="line">                &lt;/div&gt;</span><br><span class="line">    		&lt;/div&gt;</span><br><span class="line">        &lt;/div&gt;</span><br><span class="line">    `,</span><br></pre></td></tr></table></figure>
+
+<h3 id="批量上传文件-需要对每个切片进行文件校验-整体文件也是"><a href="#批量上传文件-需要对每个切片进行文件校验-整体文件也是" class="headerlink" title="批量上传文件  需要对每个切片进行文件校验 整体文件也是"></a>批量上传文件  需要对每个切片进行文件校验 整体文件也是</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 添加文件 -- 多文件上传</span><br><span class="line">* @param &#123;*&#125; files 文件列表</span><br><span class="line">*/</span><br><span class="line">async add(files) &#123;</span><br><span class="line">    this.log(<span class="string">&#x27;有文件进来了&#x27;</span>)</span><br><span class="line">    // 绑定一个文件添加完成事件</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddStart&#x27;</span>, files);</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">let</span> i=0; i &lt; files.length; i++ )&#123;</span><br><span class="line">    </span><br><span class="line">    const file = files[i];</span><br><span class="line">    const ext = <span class="string">&#x27;.&#x27;</span> +file.type.split(<span class="string">&#x27;/&#x27;</span>)[1];</span><br><span class="line">    // 验证文件类型</span><br><span class="line">    <span class="keyword">if</span> (this.mimeTypes.indexOf(ext) === -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件类型不支持&#x27;</span>)</span><br><span class="line">        <span class="built_in">return</span></span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    //   const fileMd5 = await this.getFileMd5(file);</span><br><span class="line">    <span class="built_in">let</span> fileMd5 = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    await this.getFileMd5(file)</span><br><span class="line">        .<span class="keyword">then</span>(md5 =&gt; &#123;</span><br><span class="line">            fileMd5 = md5;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5值:&quot;</span>, fileMd5);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;计算MD5失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    // 验证文件是否已经再上传列表中</span><br><span class="line">    <span class="keyword">if</span> (this.files.findIndex(item =&gt; item.md5 === fileMd5) !== -1) &#123;</span><br><span class="line">        this.log(<span class="string">&#x27;文件已经在上传列表中&#x27;</span>)</span><br><span class="line">        // 跳过 循环</span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 获取视频时长</span><br><span class="line">    <span class="built_in">let</span> playTime = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        await this.getVideoTime(file)</span><br><span class="line">        .<span class="keyword">then</span>(duration =&gt; &#123;</span><br><span class="line">            playTime = duration;</span><br><span class="line">            this.log(<span class="string">&quot;视频时长:&quot;</span>, duration, <span class="string">&quot;秒&quot;</span>);</span><br><span class="line">        &#125;)</span><br><span class="line">        .catch(err =&gt; &#123;</span><br><span class="line">            this.log(<span class="string">&quot;获取视频时长失败:&quot;</span>, err);</span><br><span class="line">        &#125;);</span><br><span class="line">    </span><br><span class="line">    // 获取文件封面</span><br><span class="line">    // const fileCover = await this.getFileCover(file,i);</span><br><span class="line">    // const fileCover = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    var fileblock = &#123;</span><br><span class="line">        fileChunks: this.slicer(file),</span><br><span class="line">        blockNum: Math.ceil(file.size / this.chunkSize), // 分片数量</span><br><span class="line">        upchunk: 0, // 已上传分片数量</span><br><span class="line">        uploaded: 0, // 已上传 字节</span><br><span class="line">    //   cover: fileCover,</span><br><span class="line">        status: <span class="string">&#x27;准备&#x27;</span>,// 上传状态</span><br><span class="line">        chunkprogress: &#123;byte: 0,percent:0&#125;, // 分片上传进度</span><br><span class="line">        name: file.name,</span><br><span class="line">        size: file.size,</span><br><span class="line">        <span class="built_in">type</span>: file.type,</span><br><span class="line">        lastModifiedDate: file.lastModifiedDate,</span><br><span class="line">        md5: fileMd5,</span><br><span class="line">        uniqueFileName: md5(<span class="string">&#x27;&#x27;</span> + this.uploadkey + file.name + file.type + file.lastModifiedDate + file.size),</span><br><span class="line">        cancel: null,</span><br><span class="line">        url: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">        playtime: playTime,</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&quot;切片文件&quot;</span>, fileblock);</span><br><span class="line">    this.files.push(fileblock) </span><br><span class="line">    this.log(<span class="string">&#x27;第&#x27;</span> + i + <span class="string">&#x27;个文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileChunk&#x27;</span>, &#123; file:fileblock, index: i &#125;)</span><br><span class="line">    this.oneUpload(i, fileblock)</span><br><span class="line">    &#125;</span><br><span class="line">    this.log(<span class="string">&#x27;所有文件切片成功&#x27;</span>)</span><br><span class="line">    this.out(<span class="string">&#x27;OnFileAddEnd&#x27;</span>, this.files)</span><br><span class="line">    </span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/14/vue2vsvue3/">
                 vue2 对比 vue3
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -372,13 +677,13 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/wireshark/">
+            <a href="/2026/11/14/wireshark/">
                 Wireshark
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -405,13 +710,13 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/xss/">
+            <a href="/2026/11/14/xss/">
                 XSS跨站脚本攻击
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -460,13 +765,13 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/pantesting-note/">
+            <a href="/2026/11/14/pantesting-note/">
                 渗透笔记
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -490,13 +795,13 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/13/php-interview/">
+            <a href="/2026/11/14/php-interview/">
                 PHP 面试题
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-11-13</span>
+                <span class="date">2026-11-14</span>
             
             
             
@@ -922,205 +1227,6 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/13/php-structure/">
-                PHP框架
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/后端/">后端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="thinkpkp-讨论"><a href="#thinkpkp-讨论" class="headerlink" title="thinkpkp 讨论"></a>thinkpkp 讨论</h2><h3 id="thinkphp-6以上适用命令"><a href="#thinkphp-6以上适用命令" class="headerlink" title="thinkphp 6以上适用命令"></a>thinkphp 6以上适用命令</h3><ul>
-<li>创建单例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer create-project topthink/think</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多例</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-multi-app</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建两个模型</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php think build admin</span><br><span class="line">php think build api</span><br></pre></td></tr></table></figure>
-<ul>
-<li>创建多层试图</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">composer require topthink/think-view</span><br></pre></td></tr></table></figure>
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/13/pressure-testing/">
-                压测工具集合
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/测试工具/">测试工具</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h1 id="并发请求处理"><a href="#并发请求处理" class="headerlink" title="并发请求处理"></a>并发请求处理</h1><ul>
-<li>HTTP&#x2F;HTTPS 接口：测试 Web API、RESTful 接口的吞吐量、QPS（每秒请求数）。</li>
-<li>数据库查询：高并发查询数据库，看是否会出现锁等待、死锁、超时等问题。</li>
-<li>后台任务：队列、定时任务（如 RabbitMQ、Kafka）在高负载下的稳定性。</li>
-</ul>
-<h2 id="k6"><a href="#k6" class="headerlink" title="k6"></a>k6</h2><p>k6 是一个压力测试套件，使用 golang 编写。主要特性有：</p>
-<ul>
-<li>提供了友好的 CLI 工具</li>
-<li>使用 JavaScript 代码编写测试用例</li>
-<li>可以根据性能条件设置阈值，表明成功还是失败</li>
-</ul>
-<p>k6 没有使用 nodejs 而是 golang 程序，通过包裹了一个 JavaScript 运行时来运行 JavaScript 脚本，因此不能直接使用 npm 包以及 Nodejs 提供的一些 API。</p>
-<p>同时，k6 在运行测试时，没有启动浏览器，主要用于测试页面以及 API 加载速度。k6 提供了通过网络请求（HAR）生成测试脚本的方法，实现更简便的测试脚本编写，以及 session 的维护。</p>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/13/python-interview/">
-                Golang 深浅
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/后端/">后端</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <!-- * [基础](#1)
-    * [进程、线程、Goroutine(协程)区别](#1.1)
-    * [make和new区别](#1.2)
-    * [数组和切片区别](#1.3)
-* [GMP协程调度器](#2)
-    * [调度器策略](#2.1)
-    * [调度器的生命周期](#2.2)
-* [并发 sync](#3)
-    * [通道 - channel](#3.1)
-    * [互斥锁 Mutex 与 读写锁 RWMutex 区别](#3.2)
-    * [并发Map - sync.Map](#3.3)
-    * [线程池 - sync.Pool](#3.4)
-* [内存](#4)
-    * [CG](#4.1)
-* [微服务之间通信方式 rpc Grpc http](#4) -->
-
-<h1 id="打包-pyinstalller"><a href="#打包-pyinstalller" class="headerlink" title="打包 pyinstalller"></a>打包 pyinstalller</h1><h2 id="单个文件打包"><a href="#单个文件打包" class="headerlink" title="单个文件打包"></a>单个文件打包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令</span></span><br><span class="line">pyinstaller -F xxx.py</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.去生成的dist文件夹找xxx.exe运行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.运行成功，xxx.exe则为可执行文件，删除其它文件</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="打包多文件"><a href="#打包多文件" class="headerlink" title="打包多文件"></a>打包多文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1.执行命令，xxx.py为程序入口文件</span></span><br><span class="line">pyinstall -D xxx.py </span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.删除生成的bulid和dist文件夹,仅保留xxx.spec文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3.修改xxx.spec文件,详见2.2.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4.执行命令</span></span><br><span class="line">pyinstaller -F xxx.spec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5.去dist文件夹下找xxx.exe文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 6.运行成功，删除临时文件目录build；dist目录为打包的结果，可执行文件和其它程序运行的关联文件都在这个目录</span></span><br></pre></td></tr></table></figure>
-
-
-<p>conda 和 venv 差不多</p>
-<p>1️⃣ venv（Python 自带虚拟环境）</p>
-<pre><code>作用：创建一个 隔离的 Python 环境，不影响系统 Python。
-
-仅管理 Python 包，不管底层 C 库或系统库。
-</code></pre>
-<p>2️⃣ conda（跨语言包 + 环境管理器）</p>
-<pre><code>作用：创建隔离环境 + 安装包 + 管理底层依赖
-
-不仅支持 Python，还支持 R、C/C++ 库。
-</code></pre>
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/13/raspberry-pi/">
-                Raspberry Pi 树莓派
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-13</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/单片机/">单片机</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <p>树莓派的开发探索-基本篇 环境基于(Raspberry Pi OS)</p>
-<h2 id="单片机开发与探索"><a href="#单片机开发与探索" class="headerlink" title="单片机开发与探索"></a>单片机开发与探索</h2><h3 id="无需显示器连WIFI"><a href="#无需显示器连WIFI" class="headerlink" title="无需显示器连WIFI"></a>无需显示器连WIFI</h3><blockquote>
-<p>树莓派系统连接原理</p>
-<blockquote>
-<p>用户可以在未启动树莓派的状态下单独修改 <code>/boot/wpa_supplicant.conf</code> 文件配置 WiFi 的 SSID 和密码，这样树莓派启动后会自行读取 <code>wpa_supplicant.conf</code> 配置文件连接 WiFi 设备。</p>
-</blockquote>
-</blockquote>
-<ul>
-<li><p>制作树莓派系统(Raspberry Pi OS)在sd里面不多赘述</p>
-</li>
-<li><p>在电脑中打开sd卡根目录创建名字为wpa_supplicant.conf 的文件</p>
-</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line">network=&#123;</span><br><span class="line">	ssid=<span class="string">&quot;12345678&quot;</span></span><br><span class="line">	psk=<span class="string">&quot;88888888&quot;</span></span><br><span class="line">	key_mgmt=WPA-PSK</span><br><span class="line">	priority=1  <span class="comment"># 连接优先级，数字越大优先级越高（不可以是负数）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>开机启动树莓派即可连接WIFI</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3>
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1163,19 +1269,19 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/2026-11-13-pasted-content-id-7a51/">&lt;pasted_content id=&#34;7a51&#34;</a>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-named-volume-%E8%BF%81%E7%A7%BB-bind-mount-%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose Named Volu</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/vue2vsvue3/">vue2 对比 vue3</a>
+                <a class="footer-post" href="/2026/11/14/2026-11-14-docker-compose-ci-%E8%AF%AF%E5%88%A0-pg-%E6%95%B0%E6%8D%AE%E5%90%8E-named-volume-%E6%95%91%E6%8F%B4%E5%85%A8%E6%B5%81%E7%A8%8B/">Docker Compose CI 误删 PG 数</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/wireshark/">Wireshark</a>
+                <a class="footer-post" href="/2026/11/14/tree/">树 ADT</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/13/xss/">XSS跨站脚本攻击</a>
+                <a class="footer-post" href="/2026/11/14/vim/">VIM</a>
             </li>
             
         </ul>
@@ -1189,6 +1295,10 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
     <ul>
         
         <li>
+            <a class="footer-post" href="/categories/%E5%AE%B6%E5%BA%AD/">家庭</a>
+        </li>
+        
+        <li>
             <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
         </li>
         
@@ -1198,10 +1308,6 @@ Docker named volume 的生命周期独立于容器和 compose 项目。创建后
         
         <li>
             <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
-        </li>
-        
-        <li>
-            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
         </li>
         
     </ul>
