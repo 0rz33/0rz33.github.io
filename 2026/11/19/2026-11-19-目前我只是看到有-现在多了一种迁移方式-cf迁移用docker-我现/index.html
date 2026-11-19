@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="Q: 目前我只是看到有 现在多了一种迁移方式 cf迁移用docker 我现在给mms 做双机热备 切换；
+MMS 准备做双机自动故障切换
+两台服务器：
+- 现有服务器：`139.162.39.128`
+- site4 服务器：`172.104.51.20`
+涉及四个域名：
+- mms-api.a3o">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="目前我只是看到有 现在多了一种迁移方式 cf迁移用docker 我现在给mms 做双机热备 切换；
+MMS 准备做双机自"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>目前我只是看到有 现在多了一种迁移方式 cf迁移用docker 我现在给mms 做双机热备 切换；
+MMS 准备做双机自 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/19/2026-11-19-%E7%9B%AE%E5%89%8D%E6%88%91%E5%8F%AA%E6%98%AF%E7%9C%8B%E5%88%B0%E6%9C%89-%E7%8E%B0%E5%9C%A8%E5%A4%9A%E4%BA%86%E4%B8%80%E7%A7%8D%E8%BF%81%E7%A7%BB%E6%96%B9%E5%BC%8F-cf%E8%BF%81%E7%A7%BB%E7%94%A8docker-%E6%88%91%E7%8E%B0/">
+                目前我只是看到有 现在多了一种迁移方式 cf迁移用docker 我现在给mms 做双机热备 切换；
+MMS 准备做双机自
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-19</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/运维/">运维</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+Q: 目前我只是看到有 现在多了一种迁移方式 cf迁移用docker 我现在给mms 做双机热备 切换；
+MMS 准备做双机自动故障切换
+两台服务器：
+- 现有服务器：`139.162.39.128`
+- site4 服务器：`172.104.51.20`
+涉及四个域名：
+- mms-api.a3owc.com：支付 API
+- guodong.a3owc.com：收银台及支付渠道回调
+- zqadmin.a3owc.com：管理后台、报表
+- zqpay.a3owc.com：支付演示站
+现在请你在 Cloudflare 网页做：
+1. 进入 Networking → Tunnels，创建名为 mms-ha 的 Cloudflared 隧道。
+2. 安装方式选择 Docker，把安装页面中的 Tunnel Token 私密交给开发。服务器安装由开发负责，你不用执行命令。
+3. 上述四个域名的现有 DNS 记录先保持不变，不要直接改成 site4 IP，也不要同时添加两个 IP。
+开发会把两台服务器接入同一个隧道，先用测试域名验证。正式验收通过后，再给你四个域名的具体网页配置值，由你统一调整入口。
+啊？
+我要咋搞
+林颜斌-效能-LH-KH
+我要咋搞
+现在请你在 Cloudflare 网页做：
+1. 进入 Networking → Tunnels，创建名为 mms-ha 的 Cloudflared 隧道。
+2. 安装方式选择 Docker，把安装页面中的 Tunnel Token 私密交给开发。服务器安装由开发负责，你不用执行命令。
+3. 上述四个域名的现有 DNS 记录先保持不变，不要直接改成 site4 IP，也不要同时添加两个 IP。
+开发会把两台服务器接入同一个隧道，先用测试域名验证。正式验收通过后，再给你四个域名的具体网页配置值，由你统一调整入口。
+a3owc.com
+mms-api.a3owc.com：支付 API
+guodong.a3owc.com：收银台及支付渠道回调
+zqadmin.a3owc.com：管理后台、报表
+zqpay.a3owc.com：支付演示站
+ 这个就是这种方式 学习一下
+
+A: 
+这是一个**网页操作**，我没法替你点，但我给你完整指引：
+
+---
+
+### 第一步：创建隧道
+
+1. 登录 [dash.cloudflare.com](https://dash.cloudflare.com) → 选 `a3owc.com` 账号
+2. 左侧菜单 **Zero Trust** → **Networks** → **Tunnels**
+3. 点 **Create a tunnel**
+   - Connector 选 **Cloudflared**
+   - 名称填 `mms-ha`
+4. 安装方式选 **D...已存入 shanggu KB。
+
+**要点总结**：
+
+1. **你（管理员）做**：Cloudflare 网页建 `mms-ha` 隧道，拿 Docker Token 交给开发
+2. **开发做**：两台服务器各跑一个 `docker run cloudflared --token <TOKEN>`，同一个 Token 两台同时跑
+3. **验证后你做**：Tunnel 里配 4 个 Public Hostname，DNS 自动跟着变，不用手动改 A 记录
+
+**路径**：Cloudflare Dashboard → Zero Trust → Networks → Tunnels → Create a tunnel
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/Docker/">#Docker</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/19/2026-11-19-%E7%9B%AE%E5%89%8D%E6%88%91%E5%8F%AA%E6%98%AF%E7%9C%8B%E5%88%B0%E6%9C%89-%E7%8E%B0%E5%9C%A8%E5%A4%9A%E4%BA%86%E4%B8%80%E7%A7%8D%E8%BF%81%E7%A7%BB%E6%96%B9%E5%BC%8F-cf%E8%BF%81%E7%A7%BB%E7%94%A8docker-%E6%88%91%E7%8E%B0/">目前我只是看到有 现在多了一种迁移方式 cf迁移用</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/19/2026-11-19-%E8%BF%99%E7%A7%8D%E5%B0%B1%E5%A5%BD%E4%BA%86%E6%98%AF%E5%90%A7/">这种就好了是吧</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/19/vue2vsvue3/">vue2 对比 vue3</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/19/wireshark/">Wireshark</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%AE%B6%E5%BA%AD/">家庭</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

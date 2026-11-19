@@ -184,6 +184,115 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/11/13/2026-11-13-pasted-content-id-7a51/">
+                <pasted_content id="7a51">
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-13</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+# Docker Compose CI 误删 PostgreSQL 数据后的 Named Volume 救援
+
+## 背景与场景
+
+`seo-loop` 项目使用 Docker Compose 部署，PostgreSQL 数据通过 bind mount (`./data/postgres`) 挂载到宿主机。在多次 `git push dev` 触发 CI 部署的过程中，CI 流程未排除 `./data/` 目录，导致每次部署执行 `docker compose down -v` + 重新拉取时，宿主机上的 `./data/postgres` 被反复清空（wipe）。用户配置好的站点接口（API Token、GSC 服务账号、站点 URL 等）全部丢失，面板回到初始状态。
+
+项目此前曾从 bind mount 迁移到 Docker named volume (`seo-loop_pg-data`)，该 volume 残留在 Docker Engine 中未被显式删除，成为唯一的数据恢复来源。
+
+## 核心结论
+
+1. **Docker named volume 在 `docker compose down` 不加 `-v` 时不会被删除**。即使 compose 文件已改为 bind mount，旧的 named volume 仍保留在 Docker Engine 中（`/var/lib/docker/volumes/`），是灾难恢复的最后一道防线。
+
+2. **CI 流程必须显式排除数据目录**。`.dockerignore` 和 CI 脚本中需要 `exclude ./data/`，否则每次部署都可能覆盖或清空有状态数据。修复提交：`1ed6052`。
+
+3. **从孤立 named volume 中提取数据无需启动原服务**。可以用一次性 `docker run --rm` 挂载该 volume，在容器内启动临时 PostgreSQL 实例执行 `pg_dumpall`，完全不影响正在运行的服务。
+
+4. **`pg_dumpall` 而非 `pg_dump`**。因为需要恢复所有数据库 + 角色（`seo_loop` 用户本身也在 dump 中），`pg_dumpall` 是正确选择；`pg_dump` 只导单库，会丢角色定义。
+
+5. **恢复后必须做数据完整性校验**。至少验证：用户表行数（`panel_users`）、关键配置（`project_context` 中的 `site_api_config`）是否包含预期的站点 URL。
+
+## 实现方案
+
+### 前置条件
+
+- SSH 到部署 server
+- 确认 Docker Engine 中旧 named volume 是否存在
+
+### Step 1：确认 named volume 存活
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出所有 seo-loop 相关 volume</span></span><br><span class="line">docker volume <span class="built_in">ls</span> | grep seo-loop</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查目标 volume 元数据（Mountpoint 字段 = 宿主机物理路径）</span></span><br><span class="line">docker volume inspect seo-loop_pg-data 2&gt;/dev/null | <span class="built_in">head</span> -5</span><br></pre></td></tr></table></figure>
+
+如果 `inspect` 返回空 / 报错，说明 volume 已被删除，需要转入 bind mount 残留扫描（见避坑指南）。
+
+### Step 2：从 named volume dump 全库
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /work/projects/seo-loop</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用一次性容器挂载旧 volume，启动临时 PG 实例做 pg_dumpall</span></span><br><span class="line"><span class="comment"># -v seo-loop_pg-data:/var/lib/postgresql/data  ← 挂旧数据</span></span><br><span class="line"><span class="comment"># -v $(pwd)/data:/backup                         ← dump 输出到宿主机</span></span><br><span class="line"><span class="comment"># listen_addresses= 空串 → 不监听网络，仅 Unix socket，安全</span></span><br><span class="line">docker run --<span class="built_in">rm</span> \</span><br><span class="line">  -v seo-loop_pg-data:/var/lib/postgresql/data \</span><br><span class="line">  -v <span class="string">&quot;<span class="subst">$(pwd)</span>/data:/backup&quot;</span> \</span><br><span class="line">  postgres:17-alpine \</span><br><span class="line">  sh -c <span class="string">&#x27;PGDATA=/var/lib/postgresql/data \</span></span><br><span class="line"><span class="string">         pg_ctl start -o &quot;-c listen_addresses=&quot; -w -s &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_dumpall -U seo_loop &gt; /backup/rescue.sql &amp;&amp; \</span></span><br><span class="line"><span class="string">         pg_ctl stop -w -s&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认 dump 文件大小（正常应 &gt; 几十 KB）</span></span><br><span class="line"><span class="built_in">ls</span> -lh data/rescue.sql</span><br></pre></td></tr></table></figure>
+
+**核心行解读**：
+- `listen_addresses=`（空）：临时 PG 不对外监听，避免端口冲突
+- `-w`：等待 PG 完全启动/停止后再执行下一步，防止 dump 时 PG 未就绪
+- `-s`：静默模式，减少日志噪音
+
+### Step 3：清空当前库并导入
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 先 drop 当前空库（被 CI wipe 过的）</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  -c <span class="string">&#x27;DROP DATABASE IF EXISTS seo_loop;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 导入完整 dump（含 CREATE DATABASE + CREATE ROLE）</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d postgres \</span><br><span class="line">  &lt; data/rescue.sql</span><br></pre></td></tr></table></figure>
+
+### Step 4：数据完整性校验
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用户表行数 —— 预期 ≥ 3（admin + 运营账号）</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT COUNT(*) FROM panel_users;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 站点配置 —— 预期能看到 91blgc05.com / luummaa.com 等 URL</span></span><br><span class="line">docker compose -f docker-compose.yaml -f docker-compose.dev.yaml \</span><br><span class="line">  <span class="built_in">exec</span> -T postgres psql -U seo_loop -d seo_loop \</span><br><span class="line">  -c <span class="string">&quot;SELECT substring(content for 200) FROM project_context WHERE key=&#x27;site_api_config&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
+
+校验通过后刷新面板即可看到恢复的站点配置。
+
+## 避坑指南
+
+### 1. `docker compose down -v` 会删除 named volume
+
+这是最常见的数据丢失根因。`-v` flag 的语义是 "remove named volumes declared in the volumes section"。CI 脚本中如果写了 `down -v` 做 clean deploy，**每次都会清空数据库**。正确做法：
+
+- 生产/dev 环境永远不用 `-v`
+- 需要 clean 时只删除无状态容器：`docker compose down`（不带 `-v`）
+- 在 CI 中用 `.dockerignore` 或 rsync `--exclude` 保护 `./data/`
+
+### 2. bind mount 被 git/CI 覆盖的隐蔽风险
+
+bind mount 路径（如 `./data/postgres`）位于项目目录内时，以下操作都会清空它：
+
+- `git clean -fdx`（清除未跟踪文件）
+- CI 做 `rm -rf` 或 `rsync --delete` 同步代码
+- Docker Desktop 的 file sharing 在 macOS 上可能有缓存延迟
+
+**最佳实践**：PG 数据目录放到项目树之外（如 `/var/lib/seo-loop/pgdata`），或始终使用 named volume。
+
+### 3. `pg_dumpall` 的 `-U` 必须是 superuser
+
+`pg_dumpall` 需要读取所有数据库和全局对象（roles、tablespaces）。如果 `-U` 指定的用户不是 superuser，会静默跳过无权限的对象，导致 dump 不完整。在容器内的默认 PG 中，`seo_loop` 通常是创建数据库时的 owner（即 superuser），但如果不是，需要用 `postgres` 用户。
+
+## 底层机制
+
+Docker named volume 的生命周期独立于容器和 compose 项目。创建后存储在 `/var/lib/docker/volumes/<name>/_data/`，只有显式 `docker volume rm` 或 `docker compose down -v` 才会删除。即使 `docker-compose.yml` 中不再引用该 volume，它依然存在于 Docker Engine 中——这是本次救援成立的前提。
+
+`pg_ctl start -o "-c listen_addresses="` 启动的是一个"隔离模式"的 PostgreSQL 实例：不监听任何 TCP 端口，只接受 Unix domain socket 连接。这意味着它不会与宿主机上正在运行的另一个 PG 实例产生端口冲突（都监听 5432 的问题），也不会被外部访问到。`pg_dumpall` 通过同一容器内的 Unix socket 连接这个临时实例，完成 dump 后 `pg_ctl stop` 干净退出，容器随 `--rm` 自动销毁，不留痕迹。
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/11/12/2026-11-12-%E5%BA%9F%E7%89%A9%E5%88%A9%E7%94%A8diy%E6%95%99%E7%A8%8B%E7%BD%91%E7%AB%99%E6%8E%A8%E8%8D%90%E4%B8%8E%E8%B5%84%E6%BA%90%E6%B1%87%E6%80%BB/">
                 废物利用DIY教程网站推荐与资源汇总
             </a>
@@ -600,19 +709,19 @@ source: shanggu chat auto-publish
         <ul>
             
             <li>
+                <a class="footer-post" href="/2026/11/19/2026-11-19-%E7%9B%AE%E5%89%8D%E6%88%91%E5%8F%AA%E6%98%AF%E7%9C%8B%E5%88%B0%E6%9C%89-%E7%8E%B0%E5%9C%A8%E5%A4%9A%E4%BA%86%E4%B8%80%E7%A7%8D%E8%BF%81%E7%A7%BB%E6%96%B9%E5%BC%8F-cf%E8%BF%81%E7%A7%BB%E7%94%A8docker-%E6%88%91%E7%8E%B0/">目前我只是看到有 现在多了一种迁移方式 cf迁移用</a>
+            </li>
+            
+            <li>
                 <a class="footer-post" href="/2026/11/19/2026-11-19-%E8%BF%99%E7%A7%8D%E5%B0%B1%E5%A5%BD%E4%BA%86%E6%98%AF%E5%90%A7/">这种就好了是吧</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/19/social-engineering/">社工库工具</a>
+                <a class="footer-post" href="/2026/11/19/vue2vsvue3/">vue2 对比 vue3</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/19/shell/">Shell</a>
-            </li>
-            
-            <li>
-                <a class="footer-post" href="/2026/11/19/springboot/">Springboot</a>
+                <a class="footer-post" href="/2026/11/19/wireshark/">Wireshark</a>
             </li>
             
         </ul>
