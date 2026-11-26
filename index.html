@@ -184,29 +184,95 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/13/shanggu-%E6%99%9A%E9%97%B4%E9%A5%AE%E5%93%81%E7%9A%84%E5%81%A5%E5%BA%B7%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/">
-                晚间饮品的健康选择指南
+            <a href="/2026/11/26/2026-11-26-%E9%A1%BA%E4%BE%BF%E5%85%BB%E5%8F%B7%E8%BF%99%E4%B8%AA%E8%A6%81%E6%95%B4%E7%90%86%E6%88%91%E6%80%8E%E4%B9%88%E7%AE%A1%E7%90%86tiktok%E5%92%8Cfb/">
+                顺便养号这个要整理我怎么管理tiktok和fb
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-13</span>
+                <span class="date">2026-11-26</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-09-13 (shanggu distill-docs 覆盖)</em></p>
-<p>晚间选择合适的饮品对睡眠质量和身体健康有重要影响。温白开水是晚间饮用的最佳选择，既能保持身体水分平衡，又不会对睡眠造成干扰。除此之外，温牛奶因含有色氨酸和钙质，能够促进睡眠和放松神经，是很多人的理想选择。花草茶如洋甘菊、玫瑰、茉莉花茶等也能提供温和舒缓的效果，特别是对于需要放松身心的人群。蜂蜜水和酸樱桃汁因含有天然褪黑素，也是帮助入眠的不错选择。</p>
-<p>相比之下，晚间需要避免的饮品同样重要。咖啡和浓茶含有咖啡因，会直接影响睡眠质量。虽然酒精可能在短期内帮助入睡，但会严重破坏睡眠的深度和连贯性。含糖量高的饮料会刺激神经系统，使身体保持兴奋状态。此外，大量液体摄入会导致夜间频繁起床排尿，打扰睡眠。</p>
-<p>在饮用晚间饮品时需要注意几个关键点：饮品温度应该温和舒适，不要过热或过冷；应在睡前1-2小时停止大量饮水，避免影响夜间睡眠；每个人的体质不同，应根据自身状况选择最合适的饮品。这样才能既满足身体补水需求，又能保证良好的睡眠效果。</p>
+            
+# 柬埔寨本地市场社媒矩阵从零搭建：FB + TikTok 账号策略与 Developer 配置顺序
+
+## 背景与场景
+
+在柬埔寨（KH）落地 3D 打印品牌（Apex 3D Lab）的运营初期，需要同时建立 Facebook 和 TikTok 两个平台的账号资产，并完成 TikTok Developer 的 Sandbox 配置以打通 OAuth 授权流程。核心难点是：账号从零开始（无历史数据）、TikTok 在 KH 有养号要求、Developer 配置依赖真实账号才能进入 Sandbox target user。
+
+---
+
+## 核心结论
+
+1. **FB 在柬埔寨市场占有率 >80%，Marketplace + Messenger 是主要买卖通道**，优先级高于 TikTok；Page + Marketplace 组合是柬埔寨电商标配，第一周就能上。
+
+2. **TikTok 建号必须用柬埔寨本地 SIM 卡注册**，不能用中/美 SIM；一台手机多号会被重罚，1人真实经营上限 2–3 个号。
+
+3. **TikTok Sandbox target user 需要真实 TikTok 账号**，Developer 配置（Login Kit redirect URI / scopes）可以先行，但 OAuth 走通必须等账号建完并加入 Sandbox。
+
+4. **养号冷启期前 7 天不发内容**，只刷 FYP + 点赞同类视频，让算法打好标签后再开始发布。
+
+5. **scp 签名文件 + verify URL property 不依赖账号**，可以和建号并行操作，不要串行等待。
+
+---
+
+## 实现方案
+
+### FB 侧：起步资产矩阵
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">主 Page: Apex 3D Lab &amp; Print</span><br><span class="line">  └─ 用途: 品牌门面 + Messenger CS 入口 + 后期广告投放基础</span><br><span class="line">  └─ 操作: 若已存在直接录入 nurture 系统</span><br><span class="line"></span><br><span class="line">Marketplace (Page 下挂载):</span><br><span class="line">  └─ 用途: 柬埔寨人日常买东西的通道，免费曝光</span><br><span class="line">  └─ 操作: 进 Apex Page → 店铺 → 批量上架现有商品库</span><br><span class="line">  └─ 时间: 现有商品库几小时内能上完一批</span><br><span class="line"></span><br><span class="line">Group / Personal profile: 中期再加，本周不动</span><br></pre></td></tr></table></figure>
+
+**录入 nurture 系统（一条 curl）**：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 把 Apex 3D Lab Page 录进 nurture，系统自动开始出 FB 运营任务</span></span><br><span class="line">curl -X POST https://&lt;your-mini&gt;/api/nurture/accounts \</span><br><span class="line">  -H <span class="string">&quot;Authorization: Bearer <span class="variable">$TOKEN</span>&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;platform&quot;:&quot;facebook&quot;,&quot;handle&quot;:&quot;apex3dlab&quot;,&quot;page_id&quot;:&quot;&lt;PAGE_ID&gt;&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+---
+
+### TikTok 侧：从零建号 + 养号时间线
+
+**账号矩阵规划**：
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Week 1-2:  @apex3dlab       ← 主号，品牌 Logo，和 FB Page 名称一致</span><br><span class="line">Week 4+:   @apex3d_daily    ← 辅号，纯内容 BTS/工艺流程，导流主号</span><br></pre></td></tr></table></figure>
+
+> 不要一次建 3 个号，账号关联强度高会连坐。
+
+**主号从零建号操作时间线**：
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">Day 1 (建号):</span><br><span class="line">  1. 插入柬埔寨 SIM 卡（SMART / Cellcard / metfone 均可）</span><br><span class="line">  2. 用该 SIM 注册 TikTok 账号（手机号验证）</span><br><span class="line">  3. Bio 填写: 中/英/柬 三语 + FB Page 链接</span><br><span class="line">  4. 头像: Apex 3D Lab 品牌 Logo（和 FB Page 保持一致）</span><br><span class="line">  5. 今天不 follow 任何人，不发视频</span><br><span class="line"></span><br><span class="line">Day 2–7 (冷启养号 / 标签喂养期):</span><br><span class="line">  - 每天刷 FYP 约 10 分钟</span><br><span class="line">  - 完播 3D打印 / 智能家居 / 本地制造 类内容</span><br><span class="line">  - 点赞 3–5 条同类视频</span><br><span class="line">  - 不发任何内容</span><br><span class="line"></span><br><span class="line">Day 8–14 (开始发布):</span><br><span class="line">  - 频率: 每天 1 条</span><br><span class="line">  - 时长: 优先 15–30 秒</span><br><span class="line">  - 内容: 产品细节特写 / 打印过程延时 / 使用场景</span><br><span class="line">  - 语言: 柬语为主，英语字幕</span><br><span class="line">  - 每条评论都回</span><br><span class="line"></span><br><span class="line">Day 15+ (商业化):</span><br><span class="line">  - 申请 TikTok Shop 商户认证（需要柬埔寨营业执照）</span><br><span class="line">  - 频率提升至每天 1–2 条</span><br><span class="line">  - 视频挂 Shop 商品挂件</span><br><span class="line">  - 观察起量内容类型，批量复制</span><br></pre></td></tr></table></figure>
+
+---
+
+### TikTok Developer 配置顺序（与建号并行）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">1. [今天，不依赖账号] scp 签名文件到 mac mini:</span><br><span class="line">   scp tiktok-verify.txt mac@mini:~/webroot/.well-known/</span><br><span class="line"></span><br><span class="line">2. [今天，不依赖账号] verify URL property:</span><br><span class="line">   TikTok Developer Console → Web Properties → Verify Domain</span><br><span class="line">   访问: https://apex3dlab.com/.well-known/tiktok-verify.txt</span><br><span class="line"></span><br><span class="line">3. [今天建号后] 把 TikTok handle 加入 Sandbox target user:</span><br><span class="line">   Developer Console → Sandbox → Target Users → Add → @apex3dlab</span><br><span class="line"></span><br><span class="line">4. [等 PR #41 合并] 部署到 mac mini:</span><br><span class="line">   .env 填入 TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET</span><br><span class="line"></span><br><span class="line">5. [明天] 用新号跑 Sandbox OAuth 完整流程:</span><br><span class="line">   Login Kit → redirect_uri → token exchange → 验证 scope</span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**1. TikTok SIM 卡来源决定账号地区权重**
+用中国/美国 SIM 注册的账号，FYP 推荐流量会走该国流量池，不会优先推给柬埔寨本地用户。即使后期切换语言和内容，账号地区标签已定，改不回来。建号必须在柬埔寨本地插当地 SIM。
+
+**2. 养号期发内容会重置标签学习**
+Day 2–7 如果发了视频，系统会用视频内容覆盖掉你刷 FYP 喂的行为标签，冷启效果归零。养号期严格执行"只看不发"，到 Day 8 再发第一条。
+
+**3. TikTok Sandbox OAuth 不能在没有 target user 的情况下测试**
+Sandbox 模式下，只有加入 target user 列表的账号才能完成 OAuth 授权。如果先跑 OAuth 流程，会在授权页卡住返回 `permission_denied`，报错不明显，容易误判为 redirect_uri 配置问题。正确顺序：**先建号 → 先加 target user → 再跑 OAuth**。
+
+---
+
+## 底层机制
+
+**TikTok 账号权重系统**的冷启逻辑：新账号没有历史行为数据，算法无法判断该把视频推给谁。养号期通过持续完播特定类目内容，给系统建立"这个用户喜欢 X 类内容"的信号，等第一条视频发出时，系统会优先把视频推给和该账号兴趣图谱相似的用户，冷启成功率显著高于直接发布。这也是为什么 Day 1 不能 follow 任何人——follow 行为会稀释兴趣标签的纯度。
+
+**FB Marketplace 在柬埔寨的特殊地位**：柬埔寨正规电商平台（Shopee/Lazada）渗透率偏低，大量交易发生在 FB Marketplace + Messenger 链路上。Marketplace 商品可以直接关联到 Page 的 Inbox，买家询价走 Messenger，形成完整的"曝光→询价→成交"闭环，不需要独立建站或接第三方支付（Cash on Delivery 是 KH 主流）。
+
 
         </div>
     
@@ -218,29 +284,132 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/09/13/shanggu-%E7%97%9B%E9%A3%8E%E6%82%A3%E8%80%85%E7%9A%84%E6%99%9A%E9%97%B4%E9%A5%AE%E5%93%81%E9%99%90%E5%88%B6%E4%B8%8E%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88/">
-                痛风患者的晚间饮品限制与替代方案
+            <a href="/2026/11/25/2026-11-25-%E5%AF%B9%E8%AF%9D%E5%8E%86%E5%8F%B2/">
+                ## 对话历史
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-09-13</span>
+                <span class="date">2026-11-25</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-09-13 (shanggu distill-docs 覆盖)</em></p>
-<p>痛风患者在选择晚间饮品时需要特别谨慎，因为很多常见饮品都含有高嘌呤成分，会直接诱发痛风发作或加重病情。对于痛风患者而言，温白开水仍然是最安全有效的首选，它不仅能维持水分平衡，还能帮助身体排出尿酸。低脂牛奶是另一个安全选择，其所含的钙质和蛋白质有助于降低血尿酸水平。清汤（特别是不含内脏的清鸡汤和蔬菜汤）、淡蜂蜜水和无糖苏打水也都适合痛风患者饮用。</p>
-<p>痛风患者必须严格避免的饮品包括啤酒和其他酒精饮料，因为它们的嘌呤含量极高，是诱发痛风的主要因素。浓茶中的鞣酸会影响尿酸排出，咖啡过量也会升高尿酸水平。各类肉汤、海鲜汤和高糖果汁都因嘌呤含量高或促进尿酸生成而应该避免。红酒虽然酒精含量较低，但同样含有嘌呤成分。</p>
-<p>痛风患者维护健康的关键在于建立科学的饮水习惯。每天应保证2-3升的水分摄入，这样可以充分促进尿酸的排出和代谢。选择温水而非冰冷饮品能更好地保护脾胃功能。在睡前30分钟喝一杯温白开水既能补充水分，又能在夜间帮助尿酸排出。同时，痛风患者应定期检查和监测尿酸水平，根据医生建议调整饮食和饮品选择。</p>
+            
+# truesight-seo-backend × seo-loop 架构对比与集成路径
+
+## 背景与场景
+
+在分析 `~/work/truesight-seo-backend` 的 SEO 增长引擎时，发现它包含两个名字容易混淆的模块——"蜘蛛池"和"泛目录"——它们共用同一套代码生成器但职责完全不同。同一时期存在另一个项目 `~/work/seo-loop`，是自研的闭环 SEO 运营机，两者都涉及 SEO 页面批量生成，自然产生了集成需求。核心问题是：**同一个 growth 引擎里的两种 campaign 是怎么协作的，以及两个定位迥异的项目能不能拼在一起用。**
+
+---
+
+## 核心结论
+
+**1. 蜘蛛池和泛目录没有代码直接耦合，配合靠运营流程**
+
+两者都是 `internal/growth/model.go` 里 `campaign.kind` 的枚举值（`"spider"` / `"directory"`），共用 `BuildGrowthBundle`（`output.go:80`）同一套流水线，产物都是 ZIP（`.html` + sitemap + robots-snippet + manifest + README.txt）。部署、关联、指向哪里完全由人工填写，代码层没有互相引用。
+
+**2. 两者的核心差异在"部署位置"和"每页作用"**
+
+| | 泛目录 `directory` | 蜘蛛池 `spider` |
+|---|---|---|
+| 部署域名 | 目标站自己的域名（`output.go:116`，`origin = "https://"+hostname`） | 单独的资源站（`PoolOrigin`，`output.go:96`） |
+| 输入 | 关键词行 + 模板（`{{keyword}}` 等变量替换，`output.go:219-235`） | 链接列表（URL + Anchor + Description） |
+| 每页作用 | 一个关键词一个落地页，自带正文 | 一个页面只放一条外链，锚文本=关键词（`output.go:274`） |
+| `rel` 属性 | 不适用 | 可设 `nofollow`/`sponsored`，默认 follow（`output.go:264`） |
+| 上限 | 每 campaign 1–200 页 | 同左 |
+
+**3. truesight 是"油印机"，seo-loop 是"带刹车和仪表盘的车"**
+
+truesight 只产静态 ZIP，不负责发布，`Check()`（`service.go:291`）只用 `safeweb` 验证链接存在；seo-loop 有真实 CMS adapter 契约（`publish` / `unpublish` / `setDraft` / `previewHtml`）、GSC/GA4 28/56 天反馈窗口、层次 Beta bandit 自动决策，日硬上限 5 发布 / 1 新建。
+
+**4. 集成的核心障碍：三处哲学冲突**
+
+- **规模反向**：truesight 一次可产 200 页；seo-loop 日硬上限 5 页，`MAX_*` 只从 env 读、策略引擎只读。
+- **内容合规硬底线**：seo-loop CLAUDE.md 第 19 行锁死"每页独有事实"；truesight `directory` 的 `{{keyword}}` 模板替换在 seo-loop GATE-A 里属于近重复必拒。
+- **不可撤回即不可发布**：truesight 人手部署后无 `unpublish`；seo-loop adapter 契约 `E4` 要求 `unpublish`，truesight 产物不满足。
+
+**5. 可行的最小集成：observation 单向打通，不共用发布通道和策略引擎**
+
+把 truesight 部署的 URL 拉进 seo-loop 的 GSC 查询，只写 `observations`，不喂 `outcomes`、不喂 `arms`。两边的自我约束全部保留。
+
+---
+
+## 实现方案
+
+### 现有运营配合流程（truesight 内部）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">运营填写 campaign:</span><br><span class="line">  kind=directory → 关键词列表 + 模板</span><br><span class="line">  kind=spider    → 外链列表（URL + Anchor + Description）</span><br><span class="line">        ↓</span><br><span class="line">BuildGrowthBundle(output.go:80) 按 kind 分支</span><br><span class="line">        ↓</span><br><span class="line">产出 ZIP:</span><br><span class="line">  prefix/&#123;slug&#125;/index.html   # 每个关键词/外链一个页面</span><br><span class="line">  index.html                  # 目录首页</span><br><span class="line">  sitemap.xml</span><br><span class="line">  robots-snippet.txt</span><br><span class="line">  build-manifest.json</span><br><span class="line">  README.txt</span><br><span class="line">        ↓</span><br><span class="line">运营手动部署到目标站(directory) 或 资源站(spider)</span><br><span class="line">        ↓</span><br><span class="line">Check(service.go:291) 用 safeweb 抓 SourceURLs</span><br><span class="line">  → 验证页面 HTML 里真的出现了目标链接（只验存在，不验收录）</span><br><span class="line">        ↓</span><br><span class="line">IndexNow 提交（internal/indexnow 模块）</span><br><span class="line">sitemap / robots 片段已在 ZIP 里</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">泛目录(目标站 /prefix/)              蜘蛛池(资源站 /prefix/)</span><br><span class="line">  关键词落地页 × N   ◄──────────────  每页一条外链，锚文本=关键词，指向目标站 URL</span><br><span class="line">        ▲                                      │</span><br><span class="line">        │                                 Check():验证链接真存在</span><br><span class="line">        └──── IndexNow / sitemap 提交 ────────► 搜索引擎</span><br></pre></td></tr></table></figure>
+
+**关键点**：`Links[].URL` 和泛目录的 `PathPrefix` 之间**没有代码关联**，蜘蛛池指向哪个 URL 完全靠人填写。
+
+---
+
+### 推荐集成方案：路径 A 变种（observation 单向打通）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">seo-loop（主站作品页，严闸门，带 GSC 反馈）</span><br><span class="line">        ▲</span><br><span class="line">        │ 仅 observations 层打通（读 GSC，不喂 arms）</span><br><span class="line">        │</span><br><span class="line">truesight 泛目录（资源站 /dir/，批量，无反馈）──┐</span><br><span class="line">truesight 蜘蛛池（外链站，指回主站或泛目录页）──┘</span><br></pre></td></tr></table></figure>
+
+**具体步骤：**
+
+1. **seo-loop `publications` 表加 `source_system` 列**
+
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- migrations/add_source_system.sql</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> publications <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> source_system TEXT <span class="keyword">DEFAULT</span> <span class="string">&#x27;seo_loop&#x27;</span>;</span><br><span class="line"><span class="keyword">ALTER TABLE</span> publications <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> satellite_site_id TEXT;</span><br><span class="line"><span class="comment">-- &#x27;truesight&#x27; | &#x27;seo_loop&#x27;</span></span><br></pre></td></tr></table></figure>
+
+2. **truesight ZIP 部署后导出 URL 清单**
+
+   在 `build-manifest.json` 基础上导出一份对账文件：
+
+   <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 从 truesight manifest 提取 URL 列表</span></span><br><span class="line">jq -r <span class="string">&#x27;.pages[] | &quot;https://\(.origin)/\(.prefix)/\(.slug)/&quot;&#x27;</span> \</span><br><span class="line">  out/build-manifest.json &gt; out/truesight-urls.csv</span><br></pre></td></tr></table></figure>
+
+3. **运营上传 URL 清单到 seo-loop**
+
+   <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 手工回灌 truesight URL 进 seo-loop publications（只插入，不触发发布）</span></span><br><span class="line">sqlite3 seo-loop.db &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">INSERT OR IGNORE INTO publications(url, url_key, live, verify_status, source_system, satellite_site_id)</span></span><br><span class="line"><span class="string">SELECT url, url_key, 0, &#x27;pending&#x27;, &#x27;truesight&#x27;, &#x27;satellite_dir_01&#x27;</span></span><br><span class="line"><span class="string">FROM (VALUES (...));</span></span><br><span class="line"><span class="string">EOF</span></span><br></pre></td></tr></table></figure>
+
+4. **seo-loop `9.OBSERVE` 拉 GSC 时带入 truesight URL**
+
+   只写 `observations` 表：
+
+   <figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/pipeline/observe.ts（伪代码，按现有 GSC provider 接口扩展）</span></span><br><span class="line"><span class="keyword">const</span> truesightUrls = <span class="keyword">await</span> db.<span class="title function_">all</span>(</span><br><span class="line">  <span class="string">`SELECT url FROM publications WHERE source_system=&#x27;truesight&#x27;`</span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">const</span> gscData = <span class="keyword">await</span> gscProvider.<span class="title function_">fetchImpressions</span>([...ownUrls, ...truesightUrls]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 只写 observations，明确不写 outcomes，不喂 arms</span></span><br><span class="line"><span class="keyword">await</span> db.<span class="title function_">run</span>(</span><br><span class="line">  <span class="string">`INSERT INTO observations(url_key, impressions, clicks, source)</span></span><br><span class="line"><span class="string">   VALUES (?, ?, ?, &#x27;gsc_satellite&#x27;)`</span>,</span><br><span class="line">  ...</span><br><span class="line">);</span><br><span class="line"><span class="comment">// ⚠️ 不调用 updateArmOutcome()，bandit 看不到这批数据</span></span><br></pre></td></tr></table></figure>
+
+5. **面板加只读视图**
+
+   在 seo-loop 面板（端口 8810）添加 `GET /satellites` 路由，列出 truesight URL 的 GSC 曝光/点击/索引状态，仅供人工查阅。
+
+---
+
+## 避坑指南
+
+**1. 不要把 truesight 泛目录 URL 喂进 seo-loop 的 bandit arms**
+
+seo-loop 的层次 Beta bandit 假设所有 `arms` 都经过 GATE-A 的独有事实审查。truesight 模板页是高方差低质量样本，混入会污染 bandit 置信区间，让 seo-loop 错误降低自己真正优质内容的发布预算。如果非要学，单独开 `arms(kind='satellite_template')` 完全隔离。
+
+**2. 不要接通 truesight `behavior` 模块的点击/停留计划到 seo-loop runner**
+
+truesight `service.go:331` 的 `Plan()` 生成"搜索→停留→内部点击"任务计划，但 `runner/` 未实现。seo-loop CLAUDE.md 自注："自动发布 + GSC 反馈 + bandit 没有业界先例"，`independentlyVerified:false` 是明确留的后路。在此之上叠刷点击行为直接触发 Google "manipulative behavior" 条款，会把 seo-loop 现有安全设计全部废掉。**这条路径禁止走。**
+
+**3. truesight 静态页不满足 seo-loop adapter E4 契约，不要试图注册为 CMS site**
+
+seo-loop CMS adapter 要求 `unpublish` / `setDraft` / `previewHtml` 三个方法。truesight 产物是 ZIP 文件，人手部署后没有下线机制。强行适配会让 seo-loop 以为自己能下线这些页面，实际上调用 `unpublish` 什么都不会发生，导致数据状态不一致（`publications.live=false` 但页面实际还在线）。
+
+---
+
+## 底层机制
+
+**truesight 的生成器为何不耦合两个模块**
+
+`BuildGrowthBundle`（`output.go:80`）的设计哲学是"后端只产包，不管发布"。两种 `kind` 共用同一套文件命名规则（`prefix/slug/index.html`）和 ZIP 结构，是为了让运维只需要一套部署流程（解压→上传）处理所有类型的 campaign。把"蜘蛛池指向哪些泛目录 URL"的决策放在运营侧而非代码侧，意味着同一套 truesight 实例可以服务多个不相关的业务域，不需要为每个业务定制代码逻辑。这是有意为之的"哑管道 + 人工决策"模式。
+
+**seo-loop 的 bandit 为何只降预算不升**
+
+seo-loop 设计文档里明确这是**保守偏置（conservative bias）**：内容质量信号的噪声极高（GSC 数据有 48h 延迟 + 季节性），用 bandit 自动加注意味着在噪声里放大错误。只降（惩罚明确差的）不升（不奖励不确定的好），等于在探索空间上手工加了一个非对称约束。这让系统在统计意义上更慢，但在操作意义上更安全——人工发现某个方向真的有效后，运营直接调高 `MAX_DAILY_BUDGET` 给策略引擎升天花板，而不是让 bandit 自己发现并扩大这个方向。
+
 
         </div>
     
@@ -252,18 +421,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E9%93%BE%E8%B7%AF%E7%9A%84%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%BF%9E%E9%80%9A%E6%80%A7%E9%AA%8C%E8%AF%81%E6%8C%87%E5%8D%97/">
-                知识同步链路的测试与连通性验证指南
+            <a href="/2026/11/25/2026-11-25-%E9%82%A3%E6%88%91%E6%9C%89%E4%B8%AA%E9%97%AE%E9%A2%98-worker-%E5%A6%82%E6%9E%9C%E6%88%91macbook%E5%85%B3%E6%9C%BA%E4%BA%86-%E8%B5%B0%E6%9C%AA%E5%AE%A1%E6%A0%B8%E9%82%A3%E6%80%8E%E4%B9%88%E6%90%9E/">
+                那我有个问题 worker 如果我macbook关机了 走未审核那怎么搞
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-11-25</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
+                    <a href="/categories/研发工具/">研发工具</a>
                 </span>
             
         </div>
@@ -271,26 +440,87 @@
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-测试验证的重要性"><a href="#1-测试验证的重要性" class="headerlink" title="1. 测试验证的重要性"></a>1. 测试验证的重要性</h3><p>在自动摄取（Auto-Ingest）与跨系统知识同步架构中，链路的稳定性和数据格式的兼容性是保障系统高可用性的前提。任何网络波动、API 变更或认证过期均可能导致知识流失。因此，建立一套标准化的“测试-同步”（Test-Sync）验证流程是知识管理系统维护的核心规范。</p>
-<h3 id="2-Test-Sync-标准测试流程"><a href="#2-Test-Sync-标准测试流程" class="headerlink" title="2. Test-Sync 标准测试流程"></a>2. Test-Sync 标准测试流程</h3><p>连通性测试应当遵循“极简有效、覆盖全路径”的原则，通常包括以下阶段：</p>
-<h4 id="2-1-极简报文探针测试"><a href="#2-1-极简报文探针测试" class="headerlink" title="2.1 极简报文探针测试"></a>2.1 极简报文探针测试</h4><p>探针测试使用最基础的数据载荷（Payload）发起请求，旨在用最小的开销确认系统处于正常可通状态。</p>
-<ul>
-<li><strong>测试输入</strong>：定义包含最基础数据结构的测试问答对（例如 <code>Q: 测试</code>）。</li>
-<li><strong>预期响应</strong>：系统接收端成功解析并返回匹配的响应结果（例如 <code>A: 这是测试内容</code>）。</li>
-<li><strong>验证指标</strong>：HTTP 200&#x2F;201 返回码、端到端响应延时（RTT &lt; 200ms）、解析器元数据完整性。</li>
-</ul>
-<h4 id="2-2-接口权限与鉴权校验"><a href="#2-2-接口权限与鉴权校验" class="headerlink" title="2.2 接口权限与鉴权校验"></a>2.2 接口权限与鉴权校验</h4><ul>
-<li><strong>Token 有效性检查</strong>：验证 Auto-Ingest 服务在调用写入接口时，Bearer Token 或 API Key 是否具备足够的写入权限。</li>
-<li><strong>作用域校验（Scope Check）</strong>：确认测试节点仅影响测试命名空间或暂存区，不会污染生产环境的主知识库。</li>
-</ul>
-<h4 id="2-3-异常排查与故障恢复-SOP"><a href="#2-3-异常排查与故障恢复-SOP" class="headerlink" title="2.3 异常排查与故障恢复 SOP"></a>2.3 异常排查与故障恢复 SOP</h4><p>当 <code>test-sync</code> 探针失败时，维护人员应按以下顺序进行排查：</p>
-<ol>
-<li><strong>网络层</strong>：检查 Webhook 目标地址的可达性与防火墙规则。</li>
-<li><strong>协议层</strong>：核对 Header 中的 Content-Type 是否为 <code>application/json</code> 或指定的标准格式。</li>
-<li><strong>应用层</strong>：检查接收端日志，确认是否因 Payload 缺失必填字段导致反序列化异常。</li>
-</ol>
-<h3 id="3-自动化回归测试集成"><a href="#3-自动化回归测试集成" class="headerlink" title="3. 自动化回归测试集成"></a>3. 自动化回归测试集成</h3><p>将 <code>test-sync</code> 探针脚本化并集成至 CI&#x2F;CD Pipeline 或定时 HealthCheck 任务中，能够实现系统故障的提前预警。每次知识库系统升级、数据模型变更或第三方 Bot 路由更新后，必须优先通过连通性测试方可开启全量同步服务。</p>
+            
+# Worker 节点离线时未审核线保活：mini 常开兜底架构
+
+## 背景与场景
+
+shanggu 的 security/pentest 能力依赖"未审核线"——需要跑 abliterated（去审查）模型才能回答敏感安全类问题。这类模型只能跑在本地 worker 节点上，当前主力节点是 MacBook（worker），而 MacBook 是随时会关机的设备。一旦 MacBook 下线，mini（master，常开）如果没有兜底模型，整条未审核线就等于宕机。这篇文档记录了该场景下的 failover 设计与 ops 操作要点。
+
+---
+
+## 核心结论
+
+1. **MacBook 关机 = worker 下线，未审核线能否存活 100% 取决于 mini 是否配了兜底 abliterated 模型。** 没配就诚实报错，配了就自动降级到 mini 本地小模型继续服务。
+
+2. **关键配置项是 `SECURITY_FALLBACK_MODEL`**，在 mini 的 agent_config 里指向一个本地已拉取的小 abliterated 模型（3B 档，~2-3 GB，16 GB 装得下）。
+
+3. **"好模型在会关机的节点"是反稳定架构**。正确摆法：mini（常开）放小 abliterated 保可用性，MacBook（来去）放大 abliterated 保质量，代码的 `FindModelWorker` 会自动选在线节点，质量和可用性同时得到。
+
+4. **集群路由逻辑已实现，ops 是唯一缺口。** `FindModelWorker` 返空时有 `SECURITY_FALLBACK_MODEL` 兜底分支，代码已 ready，只差给 mini 拉模型 + 写配置这两步。
+
+5. **Win+GPU 台式机（待买，常开）到位后，它接替 MacBook 成为大 abliterated 主力**，mini 继续作小 abliterated 兜底，形成双节点互备。这是中期目标，当前阶段 mini 兜底是唯一保险。
+
+---
+
+## 实现方案
+
+### 现状调用链（MacBook 关机时的失败路径）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">pentest 请求</span><br><span class="line">  → master (mini) 路由</span><br><span class="line">  → FindModelWorker(&quot;abliterated-7b&quot;)</span><br><span class="line">  → 扫集群在线节点</span><br><span class="line">  → MacBook 关了 → 返回空</span><br><span class="line">  → SECURITY_FALLBACK_MODEL 未配</span><br><span class="line">  → 报错: &quot;worker 下线 + master 常备未配&quot;  ❌ 请求失败</span><br></pre></td></tr></table></figure>
+
+### 目标调用链（配好兜底后）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">pentest 请求</span><br><span class="line">  → master (mini) 路由</span><br><span class="line">  → FindModelWorker(&quot;abliterated-7b&quot;)</span><br><span class="line">  → MacBook 关了 → 返回空</span><br><span class="line">  → fallback: SECURITY_FALLBACK_MODEL = &quot;abliterated-3b&quot;  ← 关键配置</span><br><span class="line">  → mini 本地跑小 abliterated</span><br><span class="line">  → 正常返回 ✅（质量略低，但不断线）</span><br></pre></td></tr></table></figure>
+
+### 节点职责分工（目标态）
+
+| 节点 | 状态 | 角色 | 装什么模型 |
+|---|---|---|---|
+| **mini** | 常开 | baseline 兜底 | abliterated 3B（~2-3 GB，MLX 懒加载） |
+| **MacBook** | 来去 | 质量升级 | abliterated 7B（开机自动被选） |
+| **Win+GPU**（待） | 常开 | 未来主力 | abliterated 14B+ |
+
+### Ops 步骤（给 mini 配兜底）
+
+1. **在 mini 上拉一个 3B 档 abliterated 模型**（通过 Ollama 或 MLX，16 GB 预算内）：
+
+   <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Ollama 方式（mini 上执行）</span></span><br><span class="line">ollama pull dolphin-mistral:3b   <span class="comment"># 候选之一，无审查</span></span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">ollama pull dolphin-llama3:3b</span><br></pre></td></tr></table></figure>
+
+   > 具体模型选型需 benchmark，核心要求：3B 档、无审查、能跑本地 pentest prompt。
+
+2. **在 mini 的 agent_config 里写入 `SECURITY_FALLBACK_MODEL`**（走设置页，不要 sed .env）：
+
+   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SECURITY_FALLBACK_MODEL=dolphin-mistral:3b   # 与上面拉的模型名一致</span><br></pre></td></tr></table></figure>
+
+   > 注意：agent_config 有 ~10s 注入延迟，配完重启服务生效，别用 sync.Once 快照读法验证。
+
+3. **验证路径**：关闭 MacBook 或停掉 worker，从 mini 触发一条 pentest 请求，确认走到 fallback 模型且返回非错误响应。
+
+---
+
+## 避坑指南
+
+**1. 配置写进了 .env 而非 agent_config，导致 call-time 读不到**
+
+agent_config 有约 10 秒的异步注入延迟。如果用 `sync.Once` 或启动时快照环境变量，`SECURITY_FALLBACK_MODEL` 会读到空值。正确做法是在设置页写入 agent_config，代码里 call-time 读取（参考 `GEMINI_API_KEY` / `DEEP_MODEL` 的处理方式，这两个曾中过同样的坑）。
+
+**2. mini 拉了模型但没重启服务，Ollama 能用而 shanggu 路由感知不到**
+
+模型拉取后需要确认 shanggu 的模型发现逻辑能枚举到它。如果是 `SECURITY_FALLBACK_MODEL` 直接按名字 fallback（非动态发现），这步可跳过；但如果走 `FindModelWorker` 枚举，要确认 mini 的 worker 注册了该模型。
+
+**3. 把 7B 大模型也装进 mini，导致 OOM**
+
+mini 是 M4 16 GB，MLX 预算 ≤5 GB（见 `project_mini_deploy_budget`）。abliterated 7B 的 MLX 量化版约 4-5 GB，加上 llama3.2 + 其他常驻进程，很可能顶格。**mini 只装 3B 兜底，7B 留给 MacBook / 未来的 Win+GPU。** 不要为了省事把大模型堆到 mini。
+
+---
+
+## 底层机制
+
+`FindModelWorker` 在集群里按模型名查找在线 worker，MacBook 注册时带上它持有的模型列表，master 维护这张在线节点→模型映射表。MacBook 关机时心跳超时，对应节点从映射里摘除，查询返回空。此时代码走 `SECURITY_FALLBACK_MODEL` 分支，直接在 master（mini）本地起推理，绕过集群路由。这个分支在代码里已经实现（failover PR 已合入），mini 本地推理走 Ollama 或 MLX，取决于 mini 上该模型的注册方式。
+
+未审核线还有一条 DLP 隔离闸（命中词库 → 断云不出机，`#289`），fallback 到 mini 本地模型时这条隔离闸依然生效——本地推理天然满足"不出机"要求，实际上比走 MacBook worker 更符合隔离语义。
+
 
         </div>
     
@@ -302,40 +532,116 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">
-                自动化知识同步与数据采集架构规范
+            <a href="/2026/11/24/2026-11-24-this-session-is-being-continued-from-a-previous-conversation/">
+                This session is being continued from a previous conversation…
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-11-24</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-概述与背景"><a href="#1-概述与背景" class="headerlink" title="1. 概述与背景"></a>1. 概述与背景</h3><p>在现代企业与个人知识管理（PKM&#x2F;KM）体系中，分布式沟通工具（如 IM 软件、ChatBot、协作平台）充当着知识产生的第一现场。然而，碎片化的对话内容若缺乏有效的自动采集机制，极易形成信息孤岛。<strong>Chat Auto-Ingest（聊天数据自动摄取）</strong> 机制旨在通过轻量级接口与后台同步服务，实现从聊天上下文到中央知识库的无缝沉淀。</p>
-<h3 id="2-数据采集与同步链路设计"><a href="#2-数据采集与同步链路设计" class="headerlink" title="2. 数据采集与同步链路设计"></a>2. 数据采集与同步链路设计</h3><p>知识的自动摄取链路包含数据监听、数据解析、连通性测试（Test-Sync）以及知识入库四个核心环节：</p>
-<ol>
-<li><strong>事件触发与监听（Triggering &amp; Event Listening）</strong>：<br>通过 Webhook 或长连接监听聊天系统中的指定动作（例如打上特定的 Tag、使用特定的指令或触发特定的 Bot 提问）。</li>
-<li><strong>数据清洗与报文结构化（Payload Parsing）</strong>：<br>原始对话通常包含大量无效噪声（如表情符号、打招呼口语）。同步服务需将其提取为标准的 Q&amp;A（问答对）或 Markdown 片段。</li>
-<li><strong>链路连通性验证（Test-Sync Verification）</strong>：<br>在正式执行高频同步前，系统需支持测试级别的微型数据包同步（如 <code>test-sync</code> 节点）。通过极简的问答测试（如 <code>Q: 测试 -&gt; A: 这是测试内容</code>），验证鉴权 Token、数据通道传输效率及解析器的可读取性。</li>
-<li><strong>长效入库与状态标记（Ingestion &amp; Status Tracking）</strong>：<br>清洗完毕的知识将被推送到暂存区（Staging Area），并赋予同步状态标记（如 <code>synced</code>, <code>pending</code>, <code>failed</code>），便于后续的自动聚类与重构。</li>
-</ol>
-<h3 id="3-同步机制的演进方向"><a href="#3-同步机制的演进方向" class="headerlink" title="3. 同步机制的演进方向"></a>3. 同步机制的演进方向</h3><p>自动化同步并非单纯的数据搬运，而是知识生命周期管理（TLM）的起点。未来的采集架构应重点关注：</p>
-<ul>
-<li><strong>实时性与批处理的平衡</strong>：小微量数据实时同步以确保即时反馈，大文本与历史存档采用定时批处理（Batch Processing）。</li>
-<li><strong>幂等性与去重控制</strong>：避免同一对话记录被多次触发导致知识库膨胀与版本混淆。</li>
-<li><strong>全链路追踪（Traceability）</strong>：每一条沉淀的知识文档都应保留原始对话的时间戳、参与者与上下文链接，确保知识可追溯、可验证。</li>
-</ul>
+            
+# shanggu KB 双轨架构：从对话到训练集的 $0 闭环
+
+## 背景与场景
+
+随着 shanggu 被频繁使用，KB 面临两个工程问题：**膨胀**（无限制写入导致检索噪声增大）和**同质化**（所有 pattern 堆进同一个桶，检索不区分领域）。同时存在更深的战略需求：能否让"用得越多"自动产出微调训练集，使本地 7B 越来越贴合用户行为——而不烧一个 token？
+
+本文档记录了解决这三个问题的完整架构决策和实现路径，以及随本轮一并落地的：**模型谱系版本化**、**自适应内存预算**、**本地降级诚实横幅**、**CLI 底部模型选择器**。
+
+---
+
+## 核心结论
+
+1. **KB 分两条完全不同的轨道**：`知识（hanlin_<域>）`= 人读 + RAG；`泛化（patterns_<域>）`= 机器复用 + SFT 种子。二者用途、膨胀机制、维护手段均不同，混在一起会让 nightly-expand 误用 Opus 扩写本该压缩的 pattern。
+
+2. **pattern Sink 分域存储**：Sink 入口调 `knowledge.ClassifyWithFallback(uq)`（`internal/knowledge/taxonomy.go`），BM25 关键词匹配，< 1ms 无模型，分不出 fallback 到 `patterns`。对应写入 `patterns_code / patterns_devops / …`，检索只扫相关域。
+
+3. **slug-exact 去重是第一道闸**：`crossVerify`（`internal/agent/pattern/quality.go`）对 `` slug=`...` `` 字段做精确比对，命中即 upsert 而非 insert。用 `strings` 解析，零 regexp 依赖（避免给文件加新 import）。
+
+4. **SFT 种子导出是真 $0**：`GET /admin/finetune/export?format=sft` 纯规则拼 JSONL。**当前缺口**：PatternGenSamples 源尚未把 `patterns_*` 接进导出管道，接上后「用 → 蒸 → 导出即训练集」才真正闭环。
+
+5. **模型谱系版本化实现端到端**：每个 shanggu SKU 对标具体 Claude 版本，`--model` 标志从 SKU 表穿透到 `claude CLI` 命令行，master→worker 转发路径全程携带 model 字段，不再靠 CLI 默认值猜。
+
+---
+
+## 双轨全景图
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">                   一次 chat 完成</span><br><span class="line">                        │</span><br><span class="line">     ┌──────────────────┴──────────────────┐</span><br><span class="line">知识(事实)                               泛化(套路)</span><br><span class="line">shanggu_learn                        pattern Sink</span><br><span class="line">     │                               (本地 qwen3:4b 蒸馏, $0 API 耗本地算力)</span><br><span class="line">     ▼                                        ▼</span><br><span class="line">hanlin_&lt;域&gt;                           patterns_&lt;域&gt;      ← 本轮落地</span><br><span class="line">(quant/finance/code/devops…)          (code/devops/…, fallback→patterns)</span><br><span class="line">     │                                        │</span><br><span class="line">     ▼                                        ▼</span><br><span class="line">nightly-expand                       种子化(Type+Steps+slug)</span><br><span class="line">Opus 扩写→blog 存回                    越压越小</span><br><span class="line">     │                                        │</span><br><span class="line">     ▼                                        ▼</span><br><span class="line">RAG 检索(查就有)                    SFT JSONL → QLoRA (3090 到了喂)</span><br><span class="line">                                     (export 纯规则,真 $0)</span><br></pre></td></tr></table></figure>
+
+---
+
+## 实现方案
+
+### 1. slug-exact 去重（`internal/agent/pattern/quality.go`）
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// crossVerify 函数末尾，rerank 之后追加</span></span><br><span class="line"><span class="keyword">for</span> _, e := <span class="keyword">range</span> entries &#123;</span><br><span class="line">    <span class="keyword">if</span> parsed.Slug != <span class="string">&quot;&quot;</span> &amp;&amp; extractContentSlug(e.Content) == parsed.Slug &#123;</span><br><span class="line">        <span class="keyword">return</span> crossVerifyResult&#123;</span><br><span class="line">            UpsertOldID: e.ID,</span><br><span class="line">            Reason: fmt.Sprintf(<span class="string">&quot;slug-exact upsert slug=%s old_id=%s&quot;</span>,</span><br><span class="line">                parsed.Slug, e.ID),</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析 KB 条目里的 slug=`...` 字段（用 strings，不加 regexp import）</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">extractContentSlug</span><span class="params">(content <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> marker = <span class="string">&quot;slug=`&quot;</span></span><br><span class="line">    idx := strings.Index(content, marker)</span><br><span class="line">    <span class="keyword">if</span> idx &lt; <span class="number">0</span> &#123; <span class="keyword">return</span> <span class="string">&quot;&quot;</span> &#125;</span><br><span class="line">    rest := content[idx+<span class="built_in">len</span>(marker):]</span><br><span class="line">    end := strings.Index(rest, <span class="string">&quot;`&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> end &lt; <span class="number">0</span> &#123; <span class="keyword">return</span> <span class="string">&quot;&quot;</span> &#125;</span><br><span class="line">    <span class="keyword">return</span> rest[:end]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 2. pattern 域分类（两个 Sink 调用点）
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// internal/adapter/zhukesi/http_sse.go:200（流式）</span></span><br><span class="line"><span class="comment">// internal/adapter/zhukesi/http_json.go:128（非流式）</span></span><br><span class="line"></span><br><span class="line">domain := knowledge.ClassifyWithFallback(uq) <span class="comment">// &quot;code&quot;/&quot;devops&quot;/&quot;finance&quot;/…/&quot;patterns&quot;</span></span><br><span class="line">pattern.Sink(ctx, pattern.SinkContext&#123;</span><br><span class="line">    UserQuestion:    uq,</span><br><span class="line">    AssistantAnswer: answer,</span><br><span class="line">    ModelUsed:       modelUsed,</span><br><span class="line">    RedTeamIssues:   rtIssues,</span><br><span class="line">    Project:         domain,       <span class="comment">// ← 决定写入哪个 Qdrant 集合</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+### 3. 模型谱系版本化（`internal/shared/constants.go` + SKU 表）
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// internal/shared/constants.go — 单一真相源</span></span><br><span class="line">ModelOpus   = <span class="string">&quot;claude-opus-4-7&quot;</span>   <span class="comment">// shanggu-code1.0</span></span><br><span class="line">ModelOpus48 = <span class="string">&quot;claude-opus-4-8&quot;</span>   <span class="comment">// shanggu-code1.1 / shanggu-pro-1.0</span></span><br><span class="line">ModelSonnet = <span class="string">&quot;claude-sonnet-5-5&quot;</span> <span class="comment">// 路由兜底，全局升级</span></span><br><span class="line"></span><br><span class="line">SKUCode10 = <span class="string">&quot;shanggu-code1.0&quot;</span>   <span class="comment">// ForceCloud→SmartCloud + hanlin_code KB</span></span><br><span class="line">SKUCode11 = <span class="string">&quot;shanggu-code1.1&quot;</span>   <span class="comment">// 同上，对标 Opus 4.8</span></span><br><span class="line">SKUPro10  = <span class="string">&quot;shanggu-pro-1.0&quot;</span>   <span class="comment">// 智能路由 Router+KB+本地，对标 Sonnet 5.5/Opus 4.8</span></span><br></pre></td></tr></table></figure>
+
+**master→worker 穿透路径**（此前是版本漏洞的关键点）：
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SKU 表 CloudModel</span><br><span class="line">    └→ CloudModelFromContext(ctx)</span><br><span class="line">        └→ proxyToWorker(ctx, prompt, model)      // llm_cloud.go</span><br><span class="line">            └→ POST /cluster/llm/generate &#123;model&#125; // worker handler</span><br><span class="line">                └→ cli.Generate(req&#123;Model:model&#125;)  // router_domains.go</span><br><span class="line">                    └→ claude --model &lt;model&gt; -p   // claude_cli.go</span><br></pre></td></tr></table></figure>
+
+### 4. 自适应内存预算（`internal/registry/llm/mem_budget.go`）
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 纯函数，可单测</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">canLoadDecision</span><span class="params">(avail, current, size, headroom, pct, total <span class="type">int64</span>)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> avail-size &lt; headroom &#123; <span class="keyword">return</span> <span class="literal">false</span> &#125;         <span class="comment">// 余量不够</span></span><br><span class="line">    <span class="keyword">if</span> pct &gt; <span class="number">0</span> &amp;&amp; current+size &gt; total*pct/<span class="number">100</span> &#123;      <span class="comment">// 可选硬上限</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// availableRAMBytes() 解析 vm_stat，支持 LLM_AVAIL_RAM_MB 覆盖（测试用）</span></span><br><span class="line"><span class="comment">// memHeadroomBytes() 读 LLM_MEM_HEADROOM_MB，默认 3GB</span></span><br><span class="line"><span class="comment">// getMemBudgetPct() 读 LLM_MEM_BUDGET_PCT，默认 0（不设上限）</span></span><br></pre></td></tr></table></figure>
+
+测试时注入：`t.Setenv("LLM_AVAIL_RAM_MB", "100000")` 避免真实 vm_stat 造成 flaky test。
+
+### 5. 本地降级诚实横幅（`internal/registry/llm/llm_generate.go`）
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// maybeEscalate 新增第 4 个返回值</span></span><br><span class="line">content, escErr, escalated, fellBackLocal := c.maybeEscalate(...)</span><br><span class="line"></span><br><span class="line"><span class="comment">// GenerateStream：云端想升级但全挂→本地兜底→打横幅</span></span><br><span class="line"><span class="keyword">if</span> fellBackLocal &amp;&amp; localSuccess &#123;</span><br><span class="line">    content = maybePrependDegradeBanner(ctx,</span><br><span class="line">        res.Content + <span class="string">&quot;\n\n_(⚡ &quot;</span> + localDegradeMarker + <span class="string">&quot; 本地兜底)_&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Generate/Think/Code 忽略 fellBackLocal（_, 丢弃），客服路径 shanggu-cs 不经此路径</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**1. patterns 和 hanlin 绝不能混用**
+- 混入后 nightly-expand 会误把 pattern（本该压缩）用 Opus 扩写放大，造成 KB 质量污染，且不可撤销。
+- 判断标准：有来源引用、深度分析 → `shanggu_learn` → `hanlin_*`；从对话蒸馏的套路步骤 → pattern Sink → `patterns_*`。
+
+**2. slug 去重依赖 LLM 生成 slug 字段**
+- 若本地 qwen3:4b 蒸馏时没输出 `` slug=`...` ``，`extractContentSlug` 返回空，去重退化为 rerank 软去重，同一知识点会重复写入。
+- 验证：`grep "slug-exact" /var/log/shanggu/agent.log`；无命中则检查蒸馏 prompt 是否强制要求 slug 字段。
+
+**3. 模型版本穿透的 5 个调用点都要改**
+- `proxyToWorker` 签名加 `model string` 后，有 5 处调用：`llm_cloud.go`、`anthropic.go`、`subscription_sentinel.go`、`cascade.go`、worker `router_domains.go`。漏改任意一处，对应路径版本固定为空字符串（CLI 用 default 而非指定版本）。
+- 验证命令：`claude --model claude-opus-4-8 -p "say ok"` 和 `--model claude-opus-4-7` 均应返回正常响应（模型自报版本可能幻觉，以 `--model` 被 accept 无报错为准）。
+
+---
+
+## 底层机制
+
+**为什么泛化轨要"压缩"而知识轨要"扩写"**
+
+知识轨面向人读和大模型补充上下文（RAG），越详细越好，所以 nightly-expand 用 Opus 把短条目扩写成 2000 字 blog。泛化轨面向 SFT 训练：训练数据要紧凑、格式统一、去噪，pattern Sink 把整段对话蒸成 `{Type, Steps, slug}` 三字段种子，就像教科书的例题解法——不要废话。两个方向相反，底层是对"机器消费 vs 人消费"的不同优化目标。
+
+**$0 分类怎么做到的**
+
+`knowledge.ClassifyWithFallback` 不调任何 LLM。它维护 `domainKeywords map[string][]string`，对问题做 tokenize + 关键词交集计数，取 top-1 域。速度 < 1ms，纯内存，零网络。代价是对混领域问题（"用 Go 写金融 API"）准确率有限，这就是为什么有 `patterns` fallback 桶兜底，并建议 nightly-prune 优先清理 fallback 桶里的低命中条目。
+
+---
+
+## 部署检查清单
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mini (master :8010) — 所有后端改动在此生效</span></span><br><span class="line">./ai.sh deploy   <span class="comment"># pull + build + KeepAlive restart</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证域分类</span></span><br><span class="line">curl http://localhost:6333/collections | jq <span class="string">&#x27;.result.collections[].name&#x27;</span> | grep patterns</span><br><span class="line"><span class="comment"># 应出现: patterns_code, patterns_devops, ... (发对应领域问题后)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证 slug 去重</span></span><br><span class="line">grep <span class="string">&quot;slug-exact upsert&quot;</span> /var/log/shanggu/agent.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证模型版本穿透 (worker :8020)</span></span><br><span class="line">curl -X POST http://worker:8020/cluster/llm/generate \</span><br><span class="line">  -H <span class="string">&quot;X-Cluster-Token: <span class="variable">$CLUSTER_TOKEN</span>&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;&quot;model&quot;:&quot;claude-opus-4-8&quot;,&quot;prompt&quot;:&quot;say ok&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+> **当前状态**：slug-exact 去重（a73ca1a0）和域分类（600a6344）已推 main，mini 需再跑一次 `./ai.sh deploy` 才生效。PatternGenSamples 接 patterns_* 进 SFT 导出管道是下一个明确缺口，3090 到货前不急。
+
 
         </div>
     
@@ -347,50 +653,89 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/08/25/shanggu-%E9%9D%9E%E7%BB%93%E6%9E%84%E5%8C%96%E7%9F%A5%E8%AF%86%E7%9A%84%E8%81%9A%E7%B1%BB%E6%8F%90%E7%82%BC%E4%B8%8E%E6%96%87%E6%A1%A3%E5%8C%96%E9%87%8D%E6%9E%84/">
-                非结构化知识的聚类提炼与文档化重构
+            <a href="/2026/11/22/2026-11-22-pr-370-%E9%87%8D%E6%9E%84%E9%A1%B6%E9%83%A8%E5%AF%BC%E8%88%AA%E6%A0%8F-%E7%A7%BB%E9%99%A4%E5%BC%B9%E6%A1%86%E5%B9%B6%E4%BC%98%E5%8C%96%E5%B8%83%E5%B1%80/">
+                PR #370: 重构顶部导航栏，移除弹框并优化布局。
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-08-25</span>
+                <span class="date">2026-11-22</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/shanggu-distill/">shanggu-distill</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p><em>最近更新: 2026-08-25 (shanggu distill-docs 覆盖)</em></p>
-<h3 id="1-非结构化碎片知识的挑战"><a href="#1-非结构化碎片知识的挑战" class="headerlink" title="1. 非结构化碎片知识的挑战"></a>1. 非结构化碎片知识的挑战</h3><p>通过聊天工具、便签或自动摄取渠道沉淀的原始知识，普遍存在以下痛点：</p>
-<ul>
-<li><strong>碎片化严重</strong>：大量知识以单一问答（Q&amp;A）、孤立句子或测试性记录（如 <code>test-sync</code> 条目）形式分散呈现。</li>
-<li><strong>缺乏上下文</strong>：缺少背景描述、应用场景与前后逻辑关联，导致二次阅读成本极高。</li>
-<li><strong>信息密度不均</strong>：部分内容仅包含简单的测试占位符，而部分内容包含核心技术细节，缺乏统一的质量标准。</li>
-</ul>
-<h3 id="2-知识聚类与提炼方法论"><a href="#2-知识聚类与提炼方法论" class="headerlink" title="2. 知识聚类与提炼方法论"></a>2. 知识聚类与提炼方法论</h3><p>为了将零散的“知识碎片”转化为具有高可读性与复用价值的“结构化文档”，需要采用<strong>自下而上的主题聚类与自上而下的文档重构</strong>结合的方法。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[原始碎片数据 (Auto-Ingest / Chat Raw)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[主题提取与关联判定 (Clustering &amp; Taxonomy)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[内容综合融合与扩展 (Synthesis &amp; Refinement)]</span><br><span class="line">                 │</span><br><span class="line">                 ▼</span><br><span class="line">[高质量结构化文档 (Structured Markdown Knowledge)]</span><br></pre></td></tr></table></figure>
+            
+# Flutter 嵌套导航重排:把 showDialog 弹框"扶正"成 Tab 页
 
-<h4 id="2-1-主题识别与聚类（Clustering）"><a href="#2-1-主题识别与聚类（Clustering）" class="headerlink" title="2.1 主题识别与聚类（Clustering）"></a>2.1 主题识别与聚类（Clustering）</h4><ol>
-<li><strong>语义相似度分析</strong>：评估不同条目在技术栈、业务域或操作流程上的相关性。</li>
-<li><strong>抽象归纳</strong>：将零散的测试记事、同步日志、技术问答归并到“架构规范”、“测试验证”、“运维指南”等高层级主题下。</li>
-</ol>
-<h4 id="2-2-内容综合与融合（Synthesis）"><a href="#2-2-内容综合与融合（Synthesis）" class="headerlink" title="2.2 内容综合与融合（Synthesis）"></a>2.2 内容综合与融合（Synthesis）</h4><ul>
-<li><strong>废弃无意义占位符</strong>：删除仅用于链路校验的临时数据，提取其背后的机制逻辑。</li>
-<li><strong>上下文补全</strong>：为孤立的问答补充背景背景、操作步骤、注意事项与最佳实践。</li>
-<li><strong>逻辑重构</strong>：按照“概述 -&gt; 核心原理 -&gt; 操作指南 -&gt; 总结”的标准化文档范式重新组织段落，避免简单地堆砌原始问答。</li>
-</ul>
-<h3 id="3-高质量知识文档的标准"><a href="#3-高质量知识文档的标准" class="headerlink" title="3. 高质量知识文档的标准"></a>3. 高质量知识文档的标准</h3><p>重构后的知识文档应满足以下维度规范：</p>
-<ul>
-<li><strong>完整性（Completeness）</strong>：能够独立阐述一个完整的主题或解决方案，不依赖碎片化的上下文提示。</li>
-<li><strong>规范性（Standardization）</strong>：统一采用清晰的 Markdown 层级标题、代码块与结构化列表。</li>
-<li><strong>高可读性（Readability）</strong>：语言表达流畅专业，去除了口语化和冗余字词，适合团队长期归档与查阅。</li>
-</ul>
+## 背景与场景
+
+shanggu 是一套自用移动端 AI 终端 App(Flutter)。早期「CLI 档」只有一个 SSH 终端,Claude 会话通过绿机器人按钮触发 `showDialog` 弹出。随着弹框功能越来越重(状态上色、删除确认、流式聊天、历史加载),弹框变成了一个藏在二级入口的完整页面,导航层级错乱、用户路径多跳。本次重排的目的是**纯结构性搬迁**:把弹框里的内容提升为顶层 tab,不改任何功能逻辑。
+
+## 核心结论
+
+1. **旧结构的根本问题是"功能藏在弹框里"**:`showDialog` 只是一个临时 overlay,不适合承载有状态的流式聊天和项目列表——切换/返回会丢状态,且缺乏返回导航语义。
+2. **`IndexedStack` 是 Flutter 多 tab 保活的标准做法**:三个子 tab(`CLI` / `Chat` / `Code`)全部放进 `IndexedStack`,切 tab 时 widget 不 unmount,SSH 连接不断、聊天流不中断、列表不重拉。
+3. **把 `_ClaudeSessionPicker` 的 body 抽成可嵌入 widget 是最小改动路径**:只抽 UI 层(`ClaudeSessionsPanel` / `ClaudeProjectsPanel`),删掉 `showClaudeSessionPicker` 入口函数,原来的状态逻辑、API 调用、回调全部原封不动。
+4. **`/cli/` 路径在 `.gitignore` 里,新文件必须 `git add -f`**:不加会导致文件不进 commit,PR 看起来只有删改没有新增。
+5. **Code tab 独立后凭据入口发生了变化**:旧 Code 嵌聊天时默认复用 CLI tab 的 SSH 会话;新结构中 Code 是独立 tab,首次点项目需主动弹 `promptSshCredentials` 获取凭据——这是结构性变化带来的**必要新行为**,不是 bug。
+
+## 实现方案
+
+### 1. 新增三 tab 容器 `mobile_worker_screen.dart`
+
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cli/app/app/lib/mobile/screens/mobile_worker_screen.dart</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MobileWorkerScreen</span> <span class="keyword">extends</span> <span class="title">StatefulWidget</span> </span>&#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_MobileWorkerScreenState</span> <span class="keyword">extends</span> <span class="title">State</span>&lt;<span class="title">MobileWorkerScreen</span>&gt; </span>&#123;</span><br><span class="line">  <span class="built_in">int</span> _tabIndex = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> Scaffold(</span><br><span class="line">      <span class="comment">// 底部 tab 切换</span></span><br><span class="line">      bottomNavigationBar: NavigationBar(</span><br><span class="line">        selectedIndex: _tabIndex,</span><br><span class="line">        onDestinationSelected: (i) =&gt; setState(() =&gt; _tabIndex = i),</span><br><span class="line">        destinations: <span class="keyword">const</span> [</span><br><span class="line">          NavigationDestination(icon: Icon(Icons.terminal), label: <span class="string">&#x27;CLI&#x27;</span>),</span><br><span class="line">          NavigationDestination(icon: Icon(Icons.chat),    label: <span class="string">&#x27;Chat&#x27;</span>),</span><br><span class="line">          NavigationDestination(icon: Icon(Icons.code),    label: <span class="string">&#x27;Code&#x27;</span>),</span><br><span class="line">        ],</span><br><span class="line">      ),</span><br><span class="line">      <span class="comment">// IndexedStack 保活:切 tab 时三个子树都不销毁</span></span><br><span class="line">      body: IndexedStack(</span><br><span class="line">        index: _tabIndex,</span><br><span class="line">        children: <span class="keyword">const</span> [</span><br><span class="line">          MobileCliScreen(),        <span class="comment">// 原 CLI 档终端,移除机器人按钮</span></span><br><span class="line">          ClaudeSessionsPanel(),    <span class="comment">// 原弹框 chat tab 内容</span></span><br><span class="line">          ClaudeProjectsPanel(),    <span class="comment">// 原弹框 code tab 内容</span></span><br><span class="line">        ],</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+**核心行**:`IndexedStack` 而非 `PageView` 或条件渲染——保证 SSH 终端不因切 tab 而断连。
+
+### 2. 修改顶层壳 `mobile_home_shell.dart`
+
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 改名 CLI → Worker,替换挂载的 widget</span></span><br><span class="line"><span class="comment">// 原:_isChat ? shangguChatScreen : MobileCliScreen()</span></span><br><span class="line"><span class="comment">// 改:_isChat ? shangguChatScreen : MobileWorkerScreen()</span></span><br><span class="line"></span><br><span class="line">BottomNavigationBarItem(</span><br><span class="line">  icon: Icon(Icons.computer),</span><br><span class="line">  label: <span class="string">&#x27;Worker&#x27;</span>,   <span class="comment">// 原来是 &#x27;CLI&#x27;</span></span><br><span class="line">),</span><br></pre></td></tr></table></figure>
+
+顶部 `Chat`(shanggu AI 对话)完全不动。
+
+### 3. 拆 `ai_terminals_screen.dart`:抽两个可嵌入面板
+
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原结构:</span></span><br><span class="line"><span class="comment">//   showClaudeSessionPicker() → showDialog(builder: (_ClaudeSessionPicker))</span></span><br><span class="line"><span class="comment">//     _ClaudeSessionPicker 内部 → TabBar(chat | code)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 改法:把 _ClaudeSessionPicker 的两个 tab body 各自抽成独立 widget</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">Chat tab:claude 裸会话列表 + 点进流式聊天 + 历史加载</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClaudeSessionsPanel</span> <span class="keyword">extends</span> <span class="title">StatefulWidget</span> </span>&#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// <span class="language-markdown">Code tab:claude code 项目列表 + 状态上色 + 删除确认 + 点进聊天</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClaudeProjectsPanel</span> <span class="keyword">extends</span> <span class="title">StatefulWidget</span> </span>&#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 删除:</span></span><br><span class="line"><span class="comment">// void showClaudeSessionPicker(BuildContext ctx) &#123; ... &#125;  ← 整个函数删掉</span></span><br><span class="line"><span class="comment">// class _ClaudeSessionPicker extends StatefulWidget &#123; ... &#125;  ← 整体删掉</span></span><br></pre></td></tr></table></figure>
+
+**关键约束**:只改容器边界,不碰以下逻辑:
+- 项目行的 `BorderSide` 颜色映射(状态上色)
+- `showDialog(ConfirmDelete...)` 确认弹框
+- 流式聊天的 `StreamBuilder` + `ScrollController`
+- `loadHistory()` 进入时预拉历史
+- 聊天视图的「返回列表」按钮
+
+### 4. 移除 `MobileCliScreen` 里的机器人入口
+
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 删掉:</span></span><br><span class="line"><span class="comment">// FloatingActionButton(onPressed: _openClaude, child: Icon(robot))</span></span><br><span class="line"><span class="comment">// void _openClaude() &#123; showClaudeSessionPicker(context); &#125;</span></span><br><span class="line"><span class="comment">// 终端 Widget 保留原样,只去掉这一个按钮和对应方法</span></span><br></pre></td></tr></table></figure>
+
+### 5. git add -f 处理 gitignore
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /cli/ 在 .gitignore 覆盖范围内,新文件不会自动 stage</span></span><br><span class="line">git add -f cli/app/app/lib/mobile/screens/mobile_worker_screen.dart</span><br><span class="line">git add -f cli/app/app/lib/mobile/screens/mobile_cli_screen.dart  <span class="comment"># 有改动</span></span><br><span class="line"><span class="comment"># 其余修改文件正常 add</span></span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+**1. Code tab 凭据入口变化须告知用户**
+
+旧结构下,Code 嵌聊天时 `promptSshCredentials` 从未显式弹出——因为用户总是先在 CLI tab 建立 SSH 会话,Code 弹框复用了同一 context。新结构 Code 是独立 tab,没有隐式继承的 SSH 会话,首次点击项目**会弹凭据框**。这不是回归,但如果用户实测时没心理准备会以为出了 bug。PR 描述里必须明确标注。
+
+**2. 不能用 `PageView` 替代 `IndexedStack`**
+
+`PageView` 默认懒加载——切到第三页时前两页 widget 可能被回收,SSH 连接断掉、聊天 `StreamController` 关闭。`IndexedStack` 一次性 mount 所有子树并保持存活,代价是稍高的初始内存,对三个 tab 完全可接受。
+
+**3. 整树 analyze 要注意范围**
+
+`flutter analyze` 在 `cli/app/app/` 下只分析本 package。如果在 repo 根运行会扫其他 package 的遗留告警,容易误判为本次引入。本次改动的 5 个文件单独 analyze **No issues found**;全量 analyze 剩余 10 条均在其他文件、无 error,不属于本次责任范围。顺手清掉的既有告警(`r1`/`tab`/`__`/死代码 `_SettingsPage`)属于无害清理,不影响行为。
+
+## 底层机制
+
+Flutter 的 `showDialog` 在路由栈上压一个 `DialogRoute`——它本质上是一个独立的路由页,自带自己的 `BuildContext` 和生命周期。放在 `Dialog` 里的 `StatefulWidget` 在 `Navigator.pop` 时会 unmount 并 dispose,所有本地状态(滚动位置、缓冲的流数据、SSH 会话引用)全部丢失。这就是为什么「弹框承载重状态」是反模式:每次关闭再打开等于重置一遍。
+
+把内容移进 `IndexedStack` 之后,widget 树从 overlay 层落入了主路由的 widget 树,生命周期绑定到整个 `MobileWorkerScreen` 的存活周期。只要用户没有退出 Worker 大 tab,三个子 tab 的状态永远保活。这也是为什么这次重排在功能上是**纯收益**:不仅导航路径变短,状态稳定性也同步提升。
+
 
         </div>
     
@@ -402,29 +747,88 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/03/26/AI-eye/">
-                AI 视觉
+            <a href="/2026/11/21/2026-11-21-%E6%88%91%E8%A7%A3%E6%9E%90%E5%88%B0-%E8%BF%99%E4%B8%AA%E5%9C%B0%E5%9D%80-%E7%84%B6%E5%90%8E%E5%B0%B1%E6%89%B9%E9%87%8F%E7%94%9F%E4%BA%A7%E5%B0%B1%E5%A5%BD/">
+                我解析到 这个地址 然后就批量生产就好
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-03-26</span>
+                <span class="date">2026-11-21</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <p>图片识别</p>
-<p>灰度 通过酱色 识别<br>高斯模糊<br>高通图</p>
-<p>运用到的模型<br>yolo 快速识别<br>Florence-2-base。识图</p>
-<p>LaMA 修图 调参数</p>
+            
+# Caddy On-Demand TLS：批量域名 SaaS 的自动证书架构
+
+## 背景与场景
+
+做卫星站 / 白标 SaaS 时，用户绑定自定义域名是核心功能。传统做法是 openresty + certbot：用户绑域名后，运维人员 SSH 上去手跑 `certbot -d xxx` 再 reload nginx，完全不可能批量化。当产品要支持「用户解析 CNAME → 面板点批量生成 → 自动上线 HTTPS」的零手工流程时，certbot 模型根本撑不起来，需要换成 Caddy 的 on-demand TLS 架构。
+
+## 核心结论
+
+1. **certbot 是预签发模型，无法覆盖首次握手**：TLS 握手发生在 HTTP 请求之前，certbot 要求证书事先存在磁盘上；对于批量陌生域名，每次都要人工介入 `certbot -d xxx`，无法自动化。
+
+2. **Caddy on-demand TLS 通过 `ask` 接口实现按需签发**：Caddy 在首次 TLS 握手时向你指定的 HTTP 接口询问「这个域名允许签吗」，接口返回 2xx 则立刻走 ACME 签发证书并缓存，之后复用；返回非 2xx 则拒绝握手。
+
+3. **`ask` 接口必须严格过滤，防止 ACME 配额被打爆**：Let's Encrypt 每个注册域名每周限 50 张证书；`ask` 接口若不校验，扫描器随便拿一批域名轮询就能耗尽配额，导致所有真实域名也无法签发。
+
+4. **迁移路径是「openresty 让出 443，Caddy 接管，openresty 变内部反代目标」**：openresty 从监听 `0.0.0.0:443` 改成监听 `127.0.0.1:9400`，Caddy 接管公网 443，对 admin 子域名直接反代到 `:9401`，对其他域名走 on-demand TLS 后反代到 `:9402`（sites 容器）。
+
+5. **`ask` 接口响应必须 < 100ms**，否则 TLS 握手超时（通常客户端超时 10s，但握手阶段网络 RTT + ACME 签发本身已经很长，不能再让 `ask` 拖后腿）。
+
+## 实现方案
+
+### 1. 后端加 `/api/satellites/check` 端点
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// handler_satellites_check.go</span></span><br><span class="line"><span class="comment">// GET /api/satellites/check?domain=xxx</span></span><br><span class="line"><span class="comment">// 返回 200 → Caddy 允许签发；返回 403 → 拒绝</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *Handler)</span></span> SatellitesCheck(w http.ResponseWriter, r *http.Request) &#123;</span><br><span class="line">    domain := r.URL.Query().Get(<span class="string">&quot;domain&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> domain == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">        http.Error(w, <span class="string">&quot;missing domain&quot;</span>, http.StatusBadRequest)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 核心校验：只允许已登记在 site_api_config 的域名</span></span><br><span class="line">    <span class="comment">// displayUrl 字段存的是用户绑定的自定义域名</span></span><br><span class="line">    allowed, err := h.db.IsDomainAllowed(r.Context(), domain)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        http.Error(w, <span class="string">&quot;internal error&quot;</span>, http.StatusInternalServerError)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> !allowed &#123;</span><br><span class="line">        http.Error(w, <span class="string">&quot;domain not registered&quot;</span>, http.StatusForbidden)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    w.WriteHeader(http.StatusOK)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// db_satellites.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(db *DB)</span></span> IsDomainAllowed(ctx context.Context, domain <span class="type">string</span>) (<span class="type">bool</span>, <span class="type">error</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> count <span class="type">int</span></span><br><span class="line">    err := db.QueryRowContext(ctx,</span><br><span class="line">        <span class="comment">// 只检查已启用的站点组，防止已删除/禁用域名被签发</span></span><br><span class="line">        <span class="string">`SELECT COUNT(1) FROM site_api_config</span></span><br><span class="line"><span class="string">         WHERE display_url = $1 AND site_group_enabled = true`</span>,</span><br><span class="line">        domain,</span><br><span class="line">    ).Scan(&amp;count)</span><br><span class="line">    <span class="keyword">return</span> count &gt; <span class="number">0</span>, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+**Rate limit 保护**（防止扫描器耗尽配额）：
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在路由注册时套 rate limiter</span></span><br><span class="line"><span class="comment">// 同 IP 每分钟最多 5 次未知域名探测</span></span><br><span class="line">mux.Handle(<span class="string">&quot;GET /api/satellites/check&quot;</span>,</span><br><span class="line">    rateLimitMiddleware(<span class="number">5</span>, time.Minute, h.SatellitesCheck))</span><br></pre></td></tr></table></figure>
+
+### 2. Caddyfile（约 25 行）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># /etc/caddy/Caddyfile</span><br><span class="line"></span><br><span class="line"># Admin panel：固定域名，普通 TLS</span><br><span class="line">seo.a3owc.com &#123;</span><br><span class="line">    reverse_proxy 127.0.0.1:9401</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 通配：所有其他域名走 on-demand TLS</span><br><span class="line"># 注意：不能写 *.xxx，要用空 host 匹配</span><br><span class="line">:443 &#123;</span><br><span class="line">    tls &#123;</span><br><span class="line">        on_demand  # 启用按需签发</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    # ask 接口：Caddy 握手前先来问你</span><br><span class="line">    # 必须是绝对 URL，Caddy 用 GET 请求它</span><br><span class="line">    on_demand_tls &#123;</span><br><span class="line">        ask http://127.0.0.1:9402/api/satellites/check</span><br><span class="line">        # interval 控制同一域名重新验证间隔（防缓存后域名被删）</span><br><span class="line">        interval 1m</span><br><span class="line">        burst    5</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    reverse_proxy 127.0.0.1:9402</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+> **注意**：`on_demand_tls` 是全局块，放在 `Caddyfile` 顶部（在任何站点块之外）。
+
+### 3. 迁移脚本（服务器执行一次）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># migrate-443.sh</span></span><br><span class="line"><span class="comment"># 执行前：openresty 在 :443，Caddy 未启动</span></span><br><span class="line"><span class="comment"># 执行后：Caddy 在 :443，openresty 在 127.0.0.1:9400</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 安装 Caddy（Debian/Ubuntu）</span></span><br><span class="line">apt-get install -y debian-keyring debian-archive-keyring apt-transport-https</span><br><span class="line">curl -1sLf <span class="string">&#x27;https://dl.cloudsmith.io/public/caddy/stable/gpg.key&#x27;</span> \</span><br><span class="line">    | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg</span><br><span class="line">curl -1sLf <span class="string">&#x27;https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt&#x27;</span> \</span><br><span class="line">    | <span class="built_in">tee</span> /etc/apt/sources.list.d/caddy-stable.list</span><br><span class="line">apt-get update &amp;&amp; apt-get install -y caddy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 修改 openresty 监听端口（443 → 127.0.0.1:9400）</span></span><br><span class="line"><span class="comment"># 找到 openresty 主配置里的 listen 443 ssl，改成 listen 127.0.0.1:9400</span></span><br><span class="line">sed -i <span class="string">&#x27;s/listen 443 ssl/listen 127.0.0.1:9400/&#x27;</span> /etc/openresty/nginx.conf</span><br><span class="line"><span class="comment"># 同时注释掉 ssl_certificate 相关行（Caddy 接管 TLS，openresty 不再需要）</span></span><br><span class="line"><span class="comment"># 建议手动检查一遍再 reload</span></span><br><span class="line"></span><br><span class="line">nginx -t &amp;&amp; systemctl reload openresty  <span class="comment"># 验证配置无误再 reload</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 写入 Caddyfile</span></span><br><span class="line"><span class="built_in">cp</span> /path/to/Caddyfile /etc/caddy/Caddyfile</span><br><span class="line">caddy validate --config /etc/caddy/Caddyfile  <span class="comment"># 验证语法</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 启动 Caddy（此时 443 短暂无人监听，约 1-2 秒）</span></span><br><span class="line">systemctl <span class="built_in">enable</span> caddy</span><br><span class="line">systemctl start caddy</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;迁移完成。访问 https://seo.a3owc.com 验证 admin panel，</span></span><br><span class="line"><span class="string">访问一个卫星站域名验证 on-demand TLS 签发。&quot;</span></span><br></pre></td></tr></table></figure>
+
+### 4. 用户绑域名的完整流程
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">1. 用户购买域名（例：ai-waifu-style.com）</span><br><span class="line">2. DNS 面板：添加 CNAME  ai-waifu-style.com → seobot.a3owc.com</span><br><span class="line">3. seo-loop 面板：批量生成，粘贴域名列表，写入 site_api_config</span><br><span class="line">   （display_url=&#x27;ai-waifu-style.com&#x27;, site_group_enabled=true）</span><br><span class="line">4. 用户第一次访问 https://ai-waifu-style.com/</span><br><span class="line">   → Caddy 收到 TLS ClientHello</span><br><span class="line">   → 本地无证书缓存</span><br><span class="line">   → GET http://127.0.0.1:9402/api/satellites/check?domain=ai-waifu-style.com</span><br><span class="line">   → 后端查 site_api_config，命中，返回 200</span><br><span class="line">   → Caddy 向 Let&#x27;s Encrypt 发起 ACME HTTP-01 challenge</span><br><span class="line">   → 签发完毕（3-10 秒），TLS 握手完成</span><br><span class="line">   → 后续访问直接用缓存证书，无额外延迟</span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+**1. `ask` 接口不过滤 → ACME 配额耗尽，所有域名断 HTTPS**
+
+Let's Encrypt 对同一注册域（registered domain）每周限 50 张证书。假设攻击者拿 51 个 `xxx.com` 的子域或随机域名发 TLS 握手，你的配额就满了。`ask` 接口不仅要查数据库，还要对未知 IP 做 rate limit（建议 `同 IP 60 秒内 5 次拒绝后封 1 小时`），并且返回 403 要尽量快（< 5ms，直接内存 Set 判断，别走慢查询）。
+
+**2. openresty 没有完全让出 443 → 端口冲突，Caddy 启动失败**
+
+`listen 443 ssl` 和 `listen [::]:443 ssl` 都要改掉，包括 `nginx.conf` include 的所有 `server` 块。迁移前用 `ss -tlnp | grep ':443'` 确认 openresty 已不再监听 443，再启 Caddy。两者同时监听 443 会导致 Caddy 启动报 `bind: address already in use`。
+
+**3. `on_demand_tls` 的 `ask` 用了相对路径或域名 → Caddy 启动时报错或 DNS 循环**
+
+`ask` 必须是 `http://127.0.0.1:PORT/path` 的绝对 URL，不能用 `http://localhost/...`（localhost 解析可能绕到 IPv6），也不能用 `https://`（Caddy 自己签自己会死锁）。`ask` 接口所在的服务必须在 Caddy 启动之前已经在监听，否则首个 TLS 握手就超时。
+
+## 底层机制
+
+**为什么 certbot 做不到按需签发**
+
+TLS 握手的时序决定了一切：客户端发出 `ClientHello`，服务器必须立刻用对应域名的证书完成握手，HTTP 请求还没到。certbot 的设计是「在握手发生之前，证书已经存在磁盘」，它通过 ACME HTTP-01 challenge 时需要在 `/.well-known/acme-challenge/` 下放文件，这个过程需要几秒到几十秒，完全不可能嵌入在握手响应路径里。
+
+**Caddy on-demand TLS 的实现原理**
+
+Caddy 在 TLS 握手阶段（Go 的 `crypto/tls` `GetCertificate` 回调）拦截请求：先查本地证书缓存（`autocert.Cache`，默认存在 `$XDG_DATA_HOME/caddy/certificates/`）；缓存未命中时，同步调用 `ask` HTTP 接口；`ask` 返回 2xx 后，Caddy 在同一个 goroutine 里走完完整的 ACME 流程（HTTP-01 challenge → 签发 → 写缓存），整个过程在握手的 `GetCertificate` 回调内完成。这就是为什么 `ask` 接口的响应延迟直接影响握手超时：ACME 签发本身已经需要 3-10 秒，客户端通常 10-30 秒超时，`ask` 自己再慢就会卡死。
+
 
         </div>
     
@@ -436,18 +840,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/03/26/AI-interview/">
-                AI 面试
+            <a href="/2026/11/21/2026-11-21-seo%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E5%8C%96%E6%96%B9%E6%A1%88%E6%8E%A2%E8%AE%A8/">
+                SEO证书自动化方案探讨
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-03-26</span>
+                <span class="date">2026-11-21</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/SEO/">SEO</a>
                 </span>
             
         </div>
@@ -455,71 +859,83 @@
 
     
         <div class="content">
-            <h2 id="一、-Agent-编排与多-Agent-协作"><a href="#一、-Agent-编排与多-Agent-协作" class="headerlink" title="一、 Agent 编排与多 Agent 协作"></a>一、 Agent 编排与多 Agent 协作</h2><p><strong>1. 题目：在构建企业级 Agent 时，如何保证工具调用（Tool Calling）的可靠性，特别是涉及 CRM、工单等内部系统写操作时？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>规范封装：</strong> 对内部系统封装为 Tool 时，需统一 Schema 规范，并集成鉴权、参数校验、幂等与重试机制 [cite: 10, 26]。</li>
-<li>[cite_start]<strong>链路闭环：</strong> 结合“计划-执行-校验”链路，在高风险操作前引入模拟执行（dry-run）或人工审批节点，降低生产事故风险 [cite: 10, 27]。</li>
-<li>[cite_start]<strong>安全审计：</strong> 必须具备 RBAC 权限模型、审计日志与敏感字段（PII）脱敏处理，确保 Agent 在授权范围内操作 [cite: 4, 8, 23]。</li>
-</ul>
-</li>
-</ul>
-<p><strong>2. 题目：您在项目中使用了 LangGraph 与 Dify，对于复杂的工作流，如何解决 Agent 可能出现的逻辑偏差或死循环？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>状态机管理：</strong> 利用 LangGraph 等工具将“问答、自动化、浏览器操作”统一为可编排的工作流，通过显式的状态转移控制逻辑 [cite: 8, 22]。</li>
-<li>[cite_start]<strong>异常归因：</strong> 建立失败案例归因机制（如检索偏差、切块问题或模型偏离），并形成修复闭环 [cite: 23]。</li>
-<li>[cite_start]<strong>工具沙箱：</strong> 在受控的工具沙箱中运行 Agent 逻辑，配合提示注入防护确保流程不被非法篡改 [cite: 4, 23]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="二、-RAG-工程化与检索深度"><a href="#二、-RAG-工程化与检索深度" class="headerlink" title="二、 RAG 工程化与检索深度"></a>二、 RAG 工程化与检索深度</h2><p><strong>3. 题目：简历中提到您搭建了支持“混合检索 + 重排”的 RAG 体系，请问如何优化检索的准确性与引用可信度？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>多路召回：</strong> 采用 Hybrid 检索（BM25 + 向量）结合 rerank 重排，提升文档召回的相关性 [cite: 4, 9]。</li>
-<li>[cite_start]<strong>引用校验：</strong> 实施强制引用（citation）策略与答案置信度门控，对于低置信度结果采取拒答策略，防止模型幻觉 [cite: 4, 9]。</li>
-<li>[cite_start]<strong>精细化解析：</strong> 针对 PDF&#x2F;HTML 等文档进行版面分块与去噪，支持多知识域隔离，确保检索源头数据的质量 [cite: 9]。</li>
-</ul>
-</li>
-</ul>
-<p><strong>4. 题目：对于 MCP (Model Context Protocol) 协议，您如何理解其在 Agent 工具化接入中的价值？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>标准化接入：</strong> 能够将内部系统以标准化的“工具”形态接入 Agent，实现本地与远程两种调用形态的复用 [cite: 2, 26]。</li>
-<li>[cite_start]<strong>最小权限原则：</strong> 按“最小权限 + 可观测 + 可回放”原则封装操作，提升多 Agent 复用时的安全性 [cite: 27]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="三、-工程化保障与自动化提效"><a href="#三、-工程化保障与自动化提效" class="headerlink" title="三、 工程化保障与自动化提效"></a>三、 工程化保障与自动化提效</h2><p><strong>5. 题目：如何通过可观测性（Observability）体系保障企业级 LLM 应用的 SLA？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>全链路观测：</strong> 引入可观测性工具进行链路追踪（Trace）、指标监控（Metrics）与日志审计（Logs） [cite: 4, 12]。</li>
-<li>[cite_start]<strong>成本看板：</strong> 建立按租户、模型或链路分摊的成本看板，实现 SLA 告警闭环 [cite: 12]。</li>
-<li>[cite_start]<strong>工程化部署：</strong> 利用 Docker 化部署、CI&#x2F;CD (GitHub Actions) 以及灰度发布与回滚机制确保线上稳定 [cite: 4, 12]。</li>
-</ul>
-</li>
-</ul>
-<p><strong>6. 题目：Playwright 在您的 Agent 体系中除了数据采集，还承担了哪些关键任务？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>能力增强：</strong> 为 Agent 提供登录态管理、元素定位及表单流程回放等可控的浏览器操作能力 [cite: 13, 29]。</li>
-<li>[cite_start]<strong>自动化验收：</strong> 将回归脚本接入 CI 流程，在发布前对关键路径做自动化验收，提升交付稳定性 [cite: 30]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="四、-综合能力与背景"><a href="#四、-综合能力与背景" class="headerlink" title="四、 综合能力与背景"></a>四、 综合能力与背景</h2><p><strong>7. 题目：您提到利用 AI 辅助开发（如 Cursor&#x2F;Claude Code）显著缩短了交付周期，具体的落地实践是什么？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>流程提效：</strong> 沉淀 spec 模板、测试用例生成及回归脚本脚手架，实现需求拆解到部署的全流程提效 [cite: 2, 11]。</li>
-<li>[cite_start]<strong>项目经验：</strong> 已支撑 15+ 业务应用落地，在实际场景中（如工单处理）验证了约 35% 的效率提升 [cite: 24]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h3 id="💡-面试考察建议"><a href="#💡-面试考察建议" class="headerlink" title="💡 面试考察建议"></a>💡 面试考察建议</h3><p>[cite_start]牛一拥有 <strong>8 年工程经验</strong> 且背景扎实（北邮硕士，研究方向为检索增强生成） [cite: 2, 32]。面试时应重点关注其在 <strong>“生产环境下的异常处理”</strong> 与 <strong>“复杂业务流的工程化拆解”</strong> 能力，这能体现其作为高级工程师在 AI 落地中的核心价值。</p>
+            
+# OpenResty + Certbot 多域名 SSL 自动化：三条路的选型与实现
+
+## 背景与场景
+
+在 SEO 卫星站场景下，业务要求频繁上线新域名（每批少则数个、多则数十个），每次都需要手动三步操作：改 nginx vhost 配置 → 执行 `certbot --nginx -d xxx` → `nginx -s reload`。随着站点规模增长，手工操作变成瓶颈，需要一套自动发证 + 自动配置的机制。当前环境：OpenResty 跑 443 端口按 `server_name` 分流，certbot 已在 VPS 上，`seo.a3owc.com` 和 `hub.daslgwni.top` 均已用 certbot 签发证书。
+
+## 核心结论
+
+1. **不改架构的最小方案（方案 A）**：后端暴露 `GET /api/satellites/manifest` 返回所有启用域名列表，VPS 上跑 `sync-satellites.sh` 轮询该接口、自动生成 vhost + 签证书 + reload。权限干净，容器不碰 nginx。
+
+2. **方案 A 的关键顺序约束**：ACME HTTP-01 挑战必须先有 nginx vhost 把 `/.well-known/acme-challenge/` 路由对，才能让 Let's Encrypt 回调验证。脚本必须**先写 vhost、再调 certbot**，顺序不可反。
+
+3. **Caddy on-demand TLS（方案 B）** 是长期最优：一行 `on_demand_tls { ask ... }` 配置，新域名 DNS 指向服务器后自动签发、零手动干预。代价是引入新组件，需设计 `openresty → caddy → upstream` 的双 proxy 链路。
+
+4. **DNS-01 + Cloudflare API（方案 C）** 彻底与 nginx 解耦：`certbot --dns-cloudflare` 插件不依赖 vhost 存在，支持通配符 `*.yourdomain.com`，但要求所有域名托管到 Cloudflare 且服务器持有 CF API token（权限收敛到 `Zone:DNS:Edit`）。
+
+5. **DNS A 记录是所有方案的前提**：域名注册商控制台的 A 记录指向，无论哪条路都无法绕过，除非所有域名全托管到 CF 并给后端 API token。
+
+## 实现方案
+
+### 方案 A：后端清单 + 服务器端脚本（推荐起步）
+
+**Step 1：后端加 manifest 接口**
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GET /api/satellites/manifest</span></span><br><span class="line"><span class="comment">// 返回所有 siteGroupEnabled=true 的域名列表</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *Handler)</span></span> GetSatellitesManifest(c *gin.Context) &#123;</span><br><span class="line">    <span class="keyword">var</span> sites []SiteGroup</span><br><span class="line">    <span class="comment">// 只捞启用的卫星站</span></span><br><span class="line">    h.db.Where(<span class="string">&quot;site_group_enabled = ?&quot;</span>, <span class="literal">true</span>).Find(&amp;sites)</span><br><span class="line"></span><br><span class="line">    domains := <span class="built_in">make</span>([]<span class="type">string</span>, <span class="number">0</span>, <span class="built_in">len</span>(sites))</span><br><span class="line">    <span class="keyword">for</span> _, s := <span class="keyword">range</span> sites &#123;</span><br><span class="line">        domains = <span class="built_in">append</span>(domains, s.DisplayUrl) <span class="comment">// e.g. &quot;news.example.com&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    c.JSON(<span class="number">200</span>, gin.H&#123;<span class="string">&quot;domains&quot;</span>: domains&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+**Step 2：编写 `scripts/sync-satellites.sh`**
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line">MANIFEST_URL=<span class="string">&quot;https://seo.a3owc.com/api/satellites/manifest&quot;</span></span><br><span class="line">NGINX_CONF_DIR=<span class="string">&quot;/etc/nginx/conf.d&quot;</span>           <span class="comment"># 按实际 vhost 目录调整</span></span><br><span class="line">UPSTREAM=<span class="string">&quot;127.0.0.1:9402&quot;</span>                    <span class="comment"># seo-loop 容器端口</span></span><br><span class="line">SATELLITES_CONF=<span class="string">&quot;<span class="variable">$NGINX_CONF_DIR</span>/satellites.conf&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 拉取后端域名清单</span></span><br><span class="line">DOMAINS=$(curl -sf <span class="string">&quot;<span class="variable">$MANIFEST_URL</span>&quot;</span> | jq -r <span class="string">&#x27;.domains[]&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$DOMAINS</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] No domains returned, skipping.&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">CHANGED=0</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> domain <span class="keyword">in</span> <span class="variable">$DOMAINS</span>; <span class="keyword">do</span></span><br><span class="line">    CONF_FILE=<span class="string">&quot;<span class="variable">$NGINX_CONF_DIR</span>/sat-<span class="variable">$&#123;domain&#125;</span>.conf&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 已有 vhost 则跳过（certbot 已签证后文件会存在）</span></span><br><span class="line">    <span class="keyword">if</span> [ -f <span class="string">&quot;<span class="variable">$CONF_FILE</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] New domain detected: <span class="variable">$domain</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. 先写 HTTP vhost（关键：ACME HTTP-01 挑战要先有路由）</span></span><br><span class="line">    <span class="built_in">cat</span> &gt; <span class="string">&quot;<span class="variable">$CONF_FILE</span>&quot;</span> &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">server &#123;</span></span><br><span class="line"><span class="string">    listen 80;</span></span><br><span class="line"><span class="string">    server_name $&#123;domain&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    # ACME challenge 路由必须在 certbot 签发之前存在</span></span><br><span class="line"><span class="string">    location /.well-known/acme-challenge/ &#123;</span></span><br><span class="line"><span class="string">        root /var/www/certbot;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    location / &#123;</span></span><br><span class="line"><span class="string">        return 301 https://\$host\$request_uri;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line">    nginx -s reload   <span class="comment"># reload 让 HTTP vhost 生效，才能通过 ACME 挑战</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 4. 再调 certbot 签证书（--nginx 会自动补 443 server block）</span></span><br><span class="line">    certbot --nginx -d <span class="string">&quot;<span class="variable">$domain</span>&quot;</span> --non-interactive --agree-tos \</span><br><span class="line">        -m admin@yourdomain.com --redirect</span><br><span class="line"></span><br><span class="line">    CHANGED=1</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 有新域名才最终 reload</span></span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$CHANGED</span>&quot;</span> -eq 1 ]; <span class="keyword">then</span></span><br><span class="line">    nginx -s reload</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] Reload done.&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+**Step 3：加 cron**
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 每 5 分钟同步一次</span><br><span class="line">*/5 * * * * /opt/scripts/sync-satellites.sh &gt;&gt; /var/log/sync-satellites.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+---
+
+### 方案 B：Caddy on-demand TLS（长期方案）
+
+在 `Caddyfile` 中加：
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    on_demand_tls &#123;</span><br><span class="line">        ask http://localhost:9402/api/satellites/check?domain=&#123;host&#125;</span><br><span class="line">        interval 2m</span><br><span class="line">        burst     5</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">:443 &#123;</span><br><span class="line">    tls &#123;</span><br><span class="line">        on_demand</span><br><span class="line">    &#125;</span><br><span class="line">    reverse_proxy localhost:9402</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+后端实现 `/api/satellites/check`：域名在启用列表里返回 `200`，否则 `403`，Caddy 只对 `200` 的域名自动签发。
+
+OpenResty 侧将卫星域名流量 proxy 到 Caddy（以免改动 admin panel 的现有配置）：
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># openresty: 卫星域名转发 caddy</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">server_name</span> ~^(?!seo\.a3owc\.com).*$;  <span class="comment"># 非 admin panel 的 443 流量</span></span><br><span class="line">    <span class="comment"># ... ssl 配置 ...</span></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> https://127.0.0.1:4443;</span><br><span class="line">        <span class="attribute">proxy_ssl_server_name</span> <span class="literal">on</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+---
+
+### 方案 C：DNS-01 + Cloudflare
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 CF 插件</span></span><br><span class="line">pip install certbot-dns-cloudflare</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建凭证文件（权限 600）</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /etc/letsencrypt/cloudflare.ini &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">dns_cloudflare_api_token = YOUR_CF_TOKEN_WITH_ZONE_DNS_EDIT</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="built_in">chmod</span> 600 /etc/letsencrypt/cloudflare.ini</span><br><span class="line"></span><br><span class="line"><span class="comment"># 签发（不需要 nginx vhost 存在）</span></span><br><span class="line">certbot certonly \</span><br><span class="line">    --dns-cloudflare \</span><br><span class="line">    --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \</span><br><span class="line">    -d <span class="string">&quot;*.yourdomain.com&quot;</span> \</span><br><span class="line">    --non-interactive --agree-tos -m admin@yourdomain.com</span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+**1. HTTP-01 挑战顺序陷阱（方案 A 最常踩）**
+
+错误做法：直接调 `certbot --nginx -d xxx` 而没有先写好 vhost。
+表现：`certbot` 返回 `Connection refused` 或 `404`，Let's Encrypt 无法访问 `/.well-known/acme-challenge/`，签发失败。
+正确顺序：**写 vhost → `nginx -s reload` → certbot**，三步缺一不可。
+
+**2. certbot `--expand` vs 单独签发**
+
+`--expand` 会把新域名追加到已有证书的 SAN 列表里，导致证书越来越大、续签时所有域名必须同时在线可达。卫星站场景下建议**每个域名单独签发独立证书**，避免一个域名 DNS 失效拖垮全部续签。
+
+**3. Caddy on-demand TLS 必须有 `ask` 鉴权**
+
+不加 `ask` 直接开 on-demand，任何 SNI 请求都会触发自动签发，会瞬间打爆 Let's Encrypt 频率限制（同 IP 每小时 5 个失败请求限制，每注册域名每周 50 张证书）。`ask` 接口必须严格白名单，不能返回 `200` 给未知域名。
+
+## 底层机制
+
+**ACME HTTP-01 挑战的工作流**：客户端（certbot）向 Let's Encrypt CA 请求签发 → CA 下发一个 token → 客户端把 `token:thumbprint` 写到服务器的 `/.well-known/acme-challenge/<token>` 路径 → CA 通过 HTTP 访问该 URL 验证控制权 → 签发证书。这意味着 **nginx 必须在挑战期间能响应该路径**，所以 vhost 必须先于 certbot 存在，reload 也不可省略（nginx worker 重载前新 `server_name` 不生效）。
+
+**Caddy on-demand TLS 的 TLS 握手拦截机制**：Caddy 在 TLS ClientHello 阶段拦截 SNI，调用 `ask` 接口确认该域名是否被授权，通过后异步触发 ACME 流程并缓存证书。首次握手会有 2-5 秒延迟（等证书签发），此后命中缓存毫秒级响应。这与 HTTP-01 的"先有 vhost"约束完全不同——Caddy 在 TCP 层就介入，不依赖任何预配置路由。
+
 
         </div>
     
@@ -531,59 +947,120 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/02/07/AI-agent/">
-                Agent OS
+            <a href="/2026/11/21/2026-11-21-%E8%BF%99%E4%B8%AA%E9%83%BD%E6%98%AF%E8%B5%B0%E5%8F%8D%E4%BB%A3%E7%90%86%E7%9A%84-%E6%88%91%E6%98%AF%E4%B8%8D%E6%98%AF-9402-%E4%B9%9F%E8%A6%81%E5%81%9A%E5%8F%8D%E4%BB%A3%E7%90%86%E5%93%A6-%E5%9B%A0%E4%B8%BA%E6%88%91/">
+                这个都是走反代理的 我是不是 9402 也要做反代理哦 因为我
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2026-02-07</span>
+                <span class="date">2026-11-21</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <h1 id="prompts-提示词"><a href="#prompts-提示词" class="headerlink" title="prompts 提示词"></a>prompts 提示词</h1><p>│   │   ├── engine.go      # Prompt 渲染引擎（负责拼接变量）<br>│   │   ├── system.go      # 全局系统级提示词<br>│   │   ├── trading.go     # 量化交易专用提示词<br>│   │   └── developer.go   # 代码开发专用提示词</p>
-<h1 id="RAG"><a href="#RAG" class="headerlink" title="RAG"></a>RAG</h1><p>Agent OS，理解 RAG (Retrieval-Augmented Generation，检索增强生成) 至关重要。</p>
-<p>简单来说，RAG 就是给你的 AI 大脑（Ollama）配了一个**“随时可以查阅的私人图书馆”**。</p>
-<h2 id="nomic-embed-text"><a href="#nomic-embed-text" class="headerlink" title="nomic-embed-text"></a>nomic-embed-text</h2><ul>
-<li>Llama3 (LLM)：是学生的大脑，负责思考和组织语言。</li>
-<li>RAG (知识库)：是那本参考书，记录了你的代码和量化策略。</li>
-<li>nomic-embed-text：就是书里的索引目录，它负责把复杂的问题转化成可以被检索的坐标。</li>
-</ul>
-<h1 id="如果你把-Agent-OS-比作一个自动化工厂，那么："><a href="#如果你把-Agent-OS-比作一个自动化工厂，那么：" class="headerlink" title="如果你把 Agent OS 比作一个自动化工厂，那么："></a>如果你把 Agent OS 比作一个自动化工厂，那么：</h1><p>LangChain 是工厂里的各种标准零部件和传送带（如：模型接口、提示词模板、向量库连接器）。</p>
-<p>LangGraph 是工厂的中央控制程序，它负责处理复杂的逻辑跳转、循环重试和状态持久化。</p>
-<h2 id="LangChain：线性的“链”"><a href="#LangChain：线性的“链”" class="headerlink" title="LangChain：线性的“链”"></a>LangChain：线性的“链”</h2><p>LangChain 的核心逻辑是 Chain（链）。</p>
-<p>模式：A → B → C。</p>
-<p>特点：通常是单向流动的。比如：读取 PDF -&gt; 切片 -&gt; 检索向量 -&gt; 生成回答。</p>
-<p>局限：很难处理“回头路”。如果你想让 AI 检查自己的回答，如果不满意就退回上一步重写（循环），用 LangChain 写起来会非常痛苦且乱糟妙。</p>
-<h2 id="LangGraph：循环的“图”"><a href="#LangGraph：循环的“图”" class="headerlink" title="LangGraph：循环的“图”"></a>LangGraph：循环的“图”</h2><p>LangGraph 是在 LangChain 之上构建的，它把任务看作一个 Graph（图）。</p>
-<p>模式：节点（Node）+ 边（Edge）。</p>
-<p>核心能力：</p>
-<p>循环（Cycles）：支持 AI 思考 -&gt; 动作 -&gt; 观察结果 -&gt; 不对再重新思考。</p>
-<p>状态管理（State）：它有一个全局的“黑板”，所有节点都能读写。</p>
-<p>持久化（Persistence）：执行到一半可以断电保存，下次接着跑（这正是你 Agent OS 需要的“稳”）。</p>
-<p>人机交互（Human-in-the-loop）：可以停下来等人类点击“批准”，再继续下一步。</p>
-<h1 id="workflow-的核心思想"><a href="#workflow-的核心思想" class="headerlink" title="workflow 的核心思想"></a>workflow 的核心思想</h1><p>计划、行动、观察、反思、修正<br>定义 Agent 的“意识”状态 (计划、行动、观察、反思、修正)</p>
-<h1 id="adapter-【手脚】统一的接口适配器层，负责与外部世界交互"><a href="#adapter-【手脚】统一的接口适配器层，负责与外部世界交互" class="headerlink" title="adapter&#x2F;           # 【手脚】统一的接口适配器层，负责与外部世界交互"></a>adapter&#x2F;           # 【手脚】统一的接口适配器层，负责与外部世界交互</h1><p>最好以流的形式出现 这样快捷 而且容易给到答案</p>
-<h2 id="测试点"><a href="#测试点" class="headerlink" title="测试点"></a>测试点</h2><h1 id="用不同简单词测试"><a href="#用不同简单词测试" class="headerlink" title="用不同简单词测试"></a>用不同简单词测试</h1><p>你好<br>nihao<br>hello</p>
-<p>看agent 是否回对答如流或卡壳</p>
-<h1 id="上下文对接"><a href="#上下文对接" class="headerlink" title="上下文对接"></a>上下文对接</h1><p>你好<br>如果我这样做怎样</p>
-<h1 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h1><p>礼部 语义解析很关键</p>
-<p>工部 数据存储 干活的</p>
-<h2 id="openclaw-ollama"><a href="#openclaw-ollama" class="headerlink" title="openclaw + ollama"></a>openclaw + ollama</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/navysummer/p/19686654">https://www.cnblogs.com/navysummer/p/19686654</a></p>
-<p>curl -fsSL <a target="_blank" rel="noopener" href="https://openclaw.ai/install.sh">https://openclaw.ai/install.sh</a> | bash</p>
-<p>卸载</p>
-<p>kill -9 XX<br>rm -rf ~&#x2F;.openclaw</p>
-<p>export PATH&#x3D;”$HOME&#x2F;.openclaw:$PATH”<br>source ~&#x2F;.zshrc</p>
-<p>&#x2F;&#x2F; openclaw 命令</p>
+            
+# 多域名卫星站群：OpenResty 反代分流 + Certbot 自动签证的完整方案
+
+## 背景与场景
+
+在一台 Linux 服务器上同时运行 SEO 管理面板（`9401`）和卫星站渲染服务（`9402`）时，需要让 OpenResty/Nginx 在 443 端口统一接入，按域名分流到不同后端。新买的卫星域名挂上去打 404，根因是 `9402` 没有对应的 vhost，所有请求都落进了默认兜底规则，而 `9401` 的面板是独立 vhost 早已配好。这类"多 Docker 容器 + 单 IP 多域名"的站群场景是个典型的反代分流问题。
+
+---
+
+## 核心结论
+
+1. **每个端口/后端服务都必须有对应的 `server {}` 块**，`proxy_pass` 到 `127.0.0.1:端口`；缺 vhost 的域名命中不了任何规则，Nginx 返回 404。
+
+2. **`proxy_set_header Host $host;` 是必须的**，省掉它，后端容器拿到的 Host 是 `127.0.0.1:9402`，无法按域名做内部分流，所有站都会渲染成同一个。
+
+3. **容器端口绑定要限制到 loopback**，`docker-compose.yaml` 里 `"9402:8812"` 改成 `"127.0.0.1:9402:8812"`，否则公网直连绕过 CF/Nginx，域名→站点映射全暴露。
+
+4. **新增域名用 `--expand` 追加到现有证书**，`certbot --nginx -d 新域名.com --expand`，不要为每个域名单独签，同一证书 SAN 扩展最简洁。
+
+5. **不要用 `default_server` 兜底整个 `9402`**，catch-all 会让扫描器、SSRF 请求命中站群，`server_name` 显式白名单是正确做法。
+
+---
+
+## 实现方案
+
+### 现状拓扑（问题状态）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Client → 443 OpenResty</span><br><span class="line">  ├── server_name seo.a3owc.com → proxy_pass 127.0.0.1:9401  ✅ 已有</span><br><span class="line">  └── 无匹配 → 默认 404                                        ❌ 新域名全部撞这里</span><br></pre></td></tr></table></figure>
+
+### 目标拓扑
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Client → 443 OpenResty</span><br><span class="line">  ├── server_name seo.a3owc.com        → proxy_pass 127.0.0.1:9401</span><br><span class="line">  └── server_name site1.com site2.com  → proxy_pass 127.0.0.1:9402</span><br><span class="line">                                              ↓</span><br><span class="line">                                       容器内按 Host 再做分流</span><br></pre></td></tr></table></figure>
+
+### 第一步：新增卫星站 vhost
+
+新建 `/etc/nginx/conf.d/satellites.conf`：
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl http2;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 所有卫星域名列在这里，新域名追加即可</span></span><br><span class="line">    <span class="attribute">server_name</span> site1.com www.site1.com site2.com www.site2.com;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># certbot 会自动填入证书路径，先占位</span></span><br><span class="line">    <span class="comment"># ssl_certificate     /etc/letsencrypt/live/site1.com/fullchain.pem;</span></span><br><span class="line">    <span class="comment"># ssl_certificate_key /etc/letsencrypt/live/site1.com/privkey.pem;</span></span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://127.0.0.1:9402;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">proxy_set_header</span> Host              <span class="variable">$host</span>;              <span class="comment"># 核心：容器靠这个分流</span></span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Real-IP         <span class="variable">$remote_addr</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-For   <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 可选：超时 &amp; buffer</span></span><br><span class="line">        <span class="attribute">proxy_connect_timeout</span> <span class="number">10s</span>;</span><br><span class="line">        <span class="attribute">proxy_read_timeout</span>    <span class="number">30s</span>;</span><br><span class="line">        <span class="attribute">proxy_buffering</span>       <span class="literal">off</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 第二步：签 SSL 证书
+
+首次签，把所有已知卫星域名一起加进去：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">certbot --nginx -d site1.com -d www.site1.com -d site2.com -d www.site2.com</span><br></pre></td></tr></table></figure>
+
+certbot 会自动修改 `satellites.conf`，插入 `ssl_certificate` 路径并配置 HTTP→HTTPS 重定向。
+
+以后每新增一个域名，`--expand` 追加到同一证书的 SAN 列表：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">certbot --nginx -d site3.com --<span class="built_in">expand</span></span><br></pre></td></tr></table></figure>
+
+### 第三步：锁端口
+
+修改 `docker-compose.yaml`，把 `9402` 绑到 loopback：
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">sites-render:</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;127.0.0.1:9402:8812&quot;</span>   <span class="comment"># 改前是 &quot;9402:8812&quot;，公网可达</span></span><br></pre></td></tr></table></figure>
+
+重启容器使端口绑定生效：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker compose up -d sites-render</span><br></pre></td></tr></table></figure>
+
+如果不改 compose，临时用防火墙封堵（两者都做更保险）：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ufw deny 9402</span><br><span class="line">ufw deny 9401   <span class="comment"># 管理面板也不应暴露公网</span></span><br></pre></td></tr></table></figure>
+
+### 第四步：验证并重载
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nginx -t                <span class="comment"># 语法检查，有错误会报文件行号</span></span><br><span class="line">nginx -s reload         <span class="comment"># 无中断热重载</span></span><br></pre></td></tr></table></figure>
+
+验证反代是否生效：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -H <span class="string">&quot;Host: site1.com&quot;</span> http://127.0.0.1:9402/   <span class="comment"># 直连容器，确认容器内分流正常</span></span><br><span class="line">curl -I https://site1.com/                           <span class="comment"># 走公网，确认 nginx 转发正确</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**1. 不要用 `default_server` 兜底 9402**
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 危险写法，不要用：</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span> default_server;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://127.0.0.1:9402;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+后果：扫描器用随机 `Host` 访问你的 IP，全部命中站群。攻击者可以枚举所有 `Host` 值，收集完整的「域名 → 站点内容」映射，变相暴露站群结构。
+
+**2. 忘写 `proxy_set_header Host $host` 导致所有域名渲染同一站**
+
+Nginx 默认转发给后端的 Host 头是 `proxy_pass` 目标的地址（`127.0.0.1:9402`），而不是客户端请求的域名。后端容器收到统一的 `127.0.0.1:9402` 作为 Host，无法做域名分流，所有请求都会返回默认站或报错。**只要后端需要按 Host 路由，这行必须有。**
+
+**3. `--expand` 加新域名时 certbot 需要域名已解析**
+
+certbot ACME 验证会向新域名发 HTTP 请求。如果域名 DNS 还没生效，或者域名走 CF proxy 但 origin 防火墙拦了 80 端口，验证会失败。操作顺序：先确认 `dig site3.com` 解析到本机 IP，再跑 certbot。走 CF 的域名需要临时关 proxy（橙云→灰云）让 certbot 完成 HTTP-01 验证，签完再开。
+
+---
+
+## 底层机制
+
+OpenResty/Nginx 处理请求时，第一步是按 `listen` 端口和 `server_name` 匹配 `server {}` 块。同一端口下有多个 server block 时，Nginx 拿请求的 `Host` 头做精确匹配、前缀匹配、正则匹配，全不命中才落进 `default_server`（没显式标记则用第一个 server 块）。正是这个匹配顺序，要求每个对外提供服务的域名必须有对应的 `server_name` 条目，新域名漏配就等于不存在。
+
+`proxy_set_header Host $host` 的作用是将客户端原始请求的 `Host` 头透传到后端，而不是替换成 `proxy_pass` 里写死的地址。对于一个容器内同时承载多个站点的"多租户"架构，后端服务正是依赖这个 Host 头来区分请求属于哪个站，拿掉它，整个域名分流机制就断了。
+
 
         </div>
     
@@ -595,18 +1072,18 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/12/17/stock/">
-                股市币市
+            <a href="/2026/11/20/2026-11-20-%E8%BF%9B%E7%A8%8B%E7%BA%A7-inflight-%E8%AE%A1%E6%95%B0%E6%B2%BB%E6%9C%AC%E5%9C%B0-llm-%E7%94%9F%E6%88%90%E6%85%A2/">
+                进程级 inflight 计数治本地 LLM 生成慢
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-12-17</span>
+                <span class="date">2026-11-20</span>
             
             
             
                 <span class="category">
-                    <a href="/categories/新/">新</a>
+                    <a href="/categories/AI/">AI</a>
                 </span>
             
         </div>
@@ -614,24 +1091,92 @@
 
     
         <div class="content">
-            <p>本金 </p>
-<p>三折最多</p>
-<p>三折以上就是突发状况</p>
-<p>有信心可以all in 30%</p>
-<pre><code>信心一般可以先 20%
-</code></pre>
-<p>小试牛刀 10% </p>
-<pre><code>补刀 10%
+            
+# 前台优先门：用进程级 inflight 计数治本地 LLM 生成慢
 
-    收回本金 cl 1
-    或者收回补刀的钱 cl 2
+## 背景与场景
 
-开始做空
-</code></pre>
-<p>一定要留补仓 40%</p>
-<p>本金越大 补仓率就要增高</p>
-<p>2&#x2F;24</p>
-<p>2684 200</p>
+mac-mini M4 16GB 是 shanggu 的本地推理节点，只跑单个 7B 模型（MLX/Ollama 各一路），内存预算极紧。用户反馈「发完一条消息、下一条明显卡顿」。最初怀疑夜间蒸馏/探活任务抢资源，全量排查后发现假设错误——真凶是 **Layer A pattern sink**：每条 chat 结束后起 goroutine 直连本地 HTTP 跑 `qwen3:4b` 做模式沉淀，前后台共用同一个推理入口，前台 chat 请求打到已被后台占满的 MLX/Ollama 进程上，表现为「发完卡 1-2 秒才开始回复」。
+
+此 PR（`ai-agent#314`，分支 `claude/sleepy-hofstadter-7824ee`）借鉴 linger 项目的「前台优先调度」思路，在进程层引入零锁、非饿死的前台让路门，7 文件 +317/-1 行。
+
+---
+
+## 核心结论
+
+**1. 夜间任务根本不碰本地模型，排查生成慢不要怀疑它们。**
+`nightly-reflect`/`nightly-expand`（`CloudGenerate`/claude-CLI）、brain consolidate（Haiku）、subscription sentinel（claude-CLI）、llm probe（Gemini Flash）、红队 review（Gemini→Haiku）全走云端路由；`nightly-prune` 是纯 DB 写。
+
+**2. 真正和前台 chat 抢本地 7B 的只有两路。**
+① `internal/agent/pattern/pattern.go` 的 `Sinker.Sink`——每条 chat 完成后异步调本地模型，**头号元凶**；② Gemini 配额耗尽时 `internal/adapter/zhukesi/http_background.go:301` 的 `GenerateLocal` 兜底——偶发低频。
+
+**3. 前台优先门核心数据结构：inflight 计数 + lastActive 时间戳。**
+新文件 `internal/shared/fg_gate.go`：一个 `atomic.Int32` inflight 计数 + `atomic.Int64` lastActive UnixMilli，前台生成时 `MarkForegroundBusy()`，后台入口调 `WaitForForegroundIdle()` 轮询让路，封顶 `FG_PRIORITY_MAX_WAIT_MS`（默认 120s）不饿死。
+
+**4. 挂点只有四处，前台路径零延迟零锁。**
+`mlx.go:GenerateStream`、`ollama.go:streamGenerate`（各覆盖 Generate+Stream 两路）、`pattern.Sink` 入口、crawler 本地兜底入口。`accelerator.go` 预热 ctx 打 `WithBackground` 标。云端 chat 不经本地推理路径，完全不受影响。
+
+**5. 全部 env 开关，默认开启。**
+`FG_PRIORITY`（0 关）、`FG_PRIORITY_COOLDOWN_MS`（6000）、`FG_PRIORITY_MAX_WAIT_MS`（120000）、`FG_PRIORITY_POLL_MS`（250）。
+
+---
+
+## 实现方案
+
+### 1. `internal/shared/fg_gate.go`（核心，零外部依赖）
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> shared</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;context&quot;</span></span><br><span class="line">    <span class="string">&quot;sync/atomic&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ctxKey <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    fgInflight   atomic.Int32</span><br><span class="line">    fgLastActive atomic.Int64</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// WithBackground 后台任务打标，让门识别。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WithBackground</span><span class="params">(ctx context.Context)</span></span> context.Context &#123;</span><br><span class="line">    <span class="keyword">return</span> context.WithValue(ctx, ctxKey&#123;&#125;, <span class="literal">true</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">IsBackground</span><span class="params">(ctx context.Context)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">    v, _ := ctx.Value(ctxKey&#123;&#125;).(<span class="type">bool</span>)</span><br><span class="line">    <span class="keyword">return</span> v</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// MarkForegroundBusy 前台本地生成入口调；defer MarkForegroundBusy()() 即可。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MarkForegroundBusy</span><span class="params">()</span></span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    fgInflight.Add(<span class="number">1</span>)</span><br><span class="line">    fgLastActive.Store(time.Now().UnixMilli())</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        fgInflight.Add(<span class="number">-1</span>)</span><br><span class="line">        fgLastActive.Store(time.Now().UnixMilli()) <span class="comment">// 更新 lastActive，触发 cooldown 窗口</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// WaitForForegroundIdle 后台任务在进本地推理前调；到 maxWait 强制放行，不饿死。</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">WaitForForegroundIdle</span><span class="params">(ctx context.Context)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> !fgPriorityEnabled() &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    cooldown := fgCooldown()   <span class="comment">// FG_PRIORITY_COOLDOWN_MS</span></span><br><span class="line">    maxWait  := fgMaxWait()    <span class="comment">// FG_PRIORITY_MAX_WAIT_MS</span></span><br><span class="line">    poll     := fgPoll()       <span class="comment">// FG_PRIORITY_POLL_MS</span></span><br><span class="line">    deadline := time.Now().Add(maxWait)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> time.Now().Before(deadline) &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> &lt;-ctx.Done():</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 核心判断：inflight=0 且 cooldown 过了，才算真正空闲</span></span><br><span class="line">        <span class="keyword">if</span> fgInflight.Load() == <span class="number">0</span> &#123;</span><br><span class="line">            last := time.UnixMilli(fgLastActive.Load())</span><br><span class="line">            <span class="keyword">if</span> time.Since(last) &gt;= cooldown &#123;</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        time.Sleep(poll)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 超时：强制放行，后台不饿死</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 2. 前台挂点：`internal/registry/llm/mlx.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *MLXClient)</span></span> GenerateStream(ctx context.Context, req LLMRequest) (&lt;-<span class="keyword">chan</span> <span class="type">string</span>, <span class="type">error</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> !shared.IsBackground(ctx) &#123;</span><br><span class="line">        <span class="comment">// 前台：标 busy，生成结束后 defer 自动 release</span></span><br><span class="line">        <span class="keyword">defer</span> shared.MarkForegroundBusy()()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ... 原有推理逻辑不变</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+`ollama.go:streamGenerate` 完全对称，不赘述。
+
+### 3. 后台挂点：`internal/agent/pattern/pattern.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Sinker)</span></span> Sink(ctx context.Context, msg <span class="type">string</span>) &#123;</span><br><span class="line">    <span class="comment">// 进本地推理前让路；ctx 超时/取消会提前退出</span></span><br><span class="line">    shared.WaitForForegroundIdle(ctx)</span><br><span class="line">    <span class="comment">// ... 原有 pattern 提炼逻辑</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+crawler 兜底（`http_background.go:GenerateLocal`）同理。
+
+### 4. 预热打标：`internal/registry/llm/accelerator.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 预热是系统行为，不能被当前台路径计入 busy</span></span><br><span class="line">ctx = shared.WithBackground(ctx)</span><br></pre></td></tr></table></figure>
+
+### 5. 验证命令
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">go build ./...                 <span class="comment"># 全绿</span></span><br><span class="line">go vet ./...                   <span class="comment"># 全绿</span></span><br><span class="line">go <span class="built_in">test</span> ./internal/shared/...  <span class="comment"># fg_gate 单测全绿</span></span><br><span class="line">go <span class="built_in">test</span> ./...                  <span class="comment"># 触及包全绿</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**1. 不要用互斥锁替代 inflight 计数**
+
+互斥锁会让前后台完全串行——后台拿锁后，前台必须等它跑完整个推理（可能 10-30s）才能开始。inflight 计数 + cooldown 是「让路」而非「阻塞」：前台永远不等后台，后台等前台。两者语义截然不同，误用互斥锁反而让前台体验更差。
+
+**2. `TestDispatchRemote_LocalPath` 偶发失败与此 PR 无关，不要因它卡合入**
+
+该测试查真实 Ollama `/api/ps` 判断常驻显存 vs 30% RAM 预算，在两个 session 同跑时内存紧张会失败。关掉前台门（`FG_PRIORITY=0`）照样失败——环境相关，实锤非此 PR 引入。
+
+**3. embed / placement-bench / pentest cascade 不纳入门控**
+
+embed 耗时极短（向量化，毫秒级），placement-bench 是独立进程，pentest cascade 触发极罕见。过度纳入会让门控逻辑变重，违反「初阶别过度工程」原则。只管头号元凶 pattern sink 和 crawler 兜底，够用。
+
+---
+
+## 底层机制
+
+**为什么 cooldown 比 `inflight=0` 更重要**
+
+MLX 的流式推理增量写管道，inflight 计数在 `GenerateStream` 完整 stream 结束才通过 `defer` 归零。但即便 stream 结束，MLX 进程的 GPU/ANE 权重释放有几百毫秒尾部。cooldown（默认 6000ms）确保模型权重从加速器缓存中完全腾出后，后台任务再上。如果只判断 `inflight=0`，后台可能在前台最后一个 token 刚输出的瞬间插进来，依然产生抖动。
+
+此外，agent loop 多轮推理之间存在自然间隙：前一轮 stream 结束，下一轮 prompt 还没打过来，`inflight` 瞬间为 0。cooldown 窗口覆盖了这段间隙，防止后台在两轮之间抢入再让下一轮前台请求延迟。这是 `fgLastActive` 时间戳的核心用途。
+
+**为什么后台不饿死**
+
+`maxWait`（默认 120s）是安全网：用户持续聊天时，pattern sink 不可能永远等——超时后强制放行。实践中 6s cooldown + 自然发消息停顿（通常 3-10s）的场景，后台几乎不会等超过 15s。极端情况（用户连续快速发 100 条）下，后台最多积压 120s 后批量执行，不影响前台体验，KB 质量也不会因延迟降级。
+
 
         </div>
     
@@ -643,31 +1188,34 @@
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2025/12/17/system-migration/">
-                系统迁移
+            <a href="/2026/11/20/2026-11-20-%E5%90%8E%E5%8F%B0%E8%AE%A9%E8%B7%AF%E9%97%A8%E8%A7%A3%E5%86%B3-mini-%E7%94%9F%E6%88%90%E6%85%A2%E9%97%AE%E9%A2%98/">
+                后台让路门解决 mini 生成慢问题
             </a>
         </h1>
         <div class="post-info">
             
-                <span class="date">2025-12-17</span>
+                <span class="date">2026-11-20</span>
             
             
-            
-                <span class="category">
-                    <a href="/categories/Linux/">Linux</a>
-                </span>
             
         </div>
     </div>
 
     
         <div class="content">
-            <h2 id="系统文件迁移"><a href="#系统文件迁移" class="headerlink" title="系统文件迁移"></a>系统文件迁移</h2><p>安装必需工具</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install rsync mailutils  <span class="comment"># 对于 Debian/Ubuntu</span></span><br><span class="line"><span class="built_in">sudo</span> yum install rsync mailx          <span class="comment"># 对于 CentOS</span></span><br></pre></td></tr></table></figure>
+            
+文档完成，已沉淀 shanggu KB（`id=6a789e1c`）。
 
-<p>backup_and_migrate.sh</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 主要变量</span></span><br><span class="line">SOURCE_USER=<span class="string">&quot;source_user&quot;</span></span><br><span class="line">SOURCE_HOST=<span class="string">&quot;source_host&quot;</span></span><br><span class="line">SOURCE_DIR=<span class="string">&quot;/path/to/source/directory/&quot;</span></span><br><span class="line">TARGET_USER=<span class="string">&quot;target_user&quot;</span></span><br><span class="line">TARGET_HOST=<span class="string">&quot;target_host&quot;</span></span><br><span class="line">TARGET_DIR=<span class="string">&quot;/path/to/target/directory/&quot;</span></span><br><span class="line">BACKUP_DIR=<span class="string">&quot;/path/to/backup/directory/&quot;</span></span><br><span class="line">LOG_FILE=<span class="string">&quot;migration.log&quot;</span></span><br><span class="line">EMAIL_RECIPIENT=<span class="string">&quot;admin@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建备份</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;创建备份...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$BACKUP_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查备份成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份成功，保存在 <span class="variable">$BACKUP_DIR</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Backup Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行迁移</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始迁移...&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">rsync -avz --delete --progress -e ssh <span class="variable">$SOURCE_USER</span>@<span class="variable">$SOURCE_HOST</span>:<span class="variable">$SOURCE_DIR</span> <span class="variable">$TARGET_USER</span>@<span class="variable">$TARGET_HOST</span>:<span class="variable">$TARGET_DIR</span> 2&gt;&amp;1 | <span class="built_in">tee</span> -a <span class="variable">$LOG_FILE</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查迁移成功</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移成功！从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span>&quot;</span> &gt;&gt; <span class="variable">$LOG_FILE</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;备份和迁移成功！日志详情见 <span class="variable">$LOG_FILE</span>&quot;</span> | mail -s <span class="string">&quot;Server Migration Success&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;迁移失败！请检查日志 <span class="variable">$LOG_FILE</span> 以获取详细信息&quot;</span> | mail -s <span class="string">&quot;Migration Failed&quot;</span> <span class="variable">$EMAIL_RECIPIENT</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出完成信息</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;备份和迁移完成：从 <span class="variable">$SOURCE_HOST</span> 到 <span class="variable">$TARGET_HOST</span> 和 <span class="variable">$BACKUP_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
-<h2 id="mongo-数据迁移"><a href="#mongo-数据迁移" class="headerlink" title="mongo 数据迁移"></a>mongo 数据迁移</h2><p><a target="_blank" rel="noopener" href="https://www.mongodb.com/zh-cn/docs/ops-manager/current/tutorial/migrate-member-to-new-hardware/">将副本集成员迁移到新服务器</a></p>
+---
+
+几个值得注意的点提炼出来：
+
+**排查思路修正**：这次 PR 最有价值的不是代码，是「摸清真因」的过程——夜间任务全是云端路由，根本不碰本地模型，原始假设是错的。真凶是 pattern sink 这个「chat 后异步本地调用」。以后遇到生成慢，查顺序应该是：**pattern sink 是否在跑 → MLX/Ollama 进程 CPU/内存 → 才是夜间任务**。
+
+**设计核心**：inflight 计数 + cooldown 两层缺一不可。只看 `inflight=0` 不够，MLX 的 ANE 资源释放有几百毫秒尾部；只有 cooldown 没有 inflight 计数会让前台生成中途被后台插入。
+
+要合进 main 吗？
+
 
         </div>
     
@@ -716,19 +1264,19 @@
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/09/13/shanggu-%E6%99%9A%E9%97%B4%E9%A5%AE%E5%93%81%E7%9A%84%E5%81%A5%E5%BA%B7%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/">晚间饮品的健康选择指南</a>
+                <a class="footer-post" href="/2026/11/26/2026-11-26-%E9%A1%BA%E4%BE%BF%E5%85%BB%E5%8F%B7%E8%BF%99%E4%B8%AA%E8%A6%81%E6%95%B4%E7%90%86%E6%88%91%E6%80%8E%E4%B9%88%E7%AE%A1%E7%90%86tiktok%E5%92%8Cfb/">顺便养号这个要整理我怎么管理tiktok和fb</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/09/13/shanggu-%E7%97%9B%E9%A3%8E%E6%82%A3%E8%80%85%E7%9A%84%E6%99%9A%E9%97%B4%E9%A5%AE%E5%93%81%E9%99%90%E5%88%B6%E4%B8%8E%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88/">痛风患者的晚间饮品限制与替代方案</a>
+                <a class="footer-post" href="/2026/11/25/2026-11-25-%E5%AF%B9%E8%AF%9D%E5%8E%86%E5%8F%B2/">## 对话历史</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/08/25/shanggu-%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E9%93%BE%E8%B7%AF%E7%9A%84%E6%B5%8B%E8%AF%95%E4%B8%8E%E8%BF%9E%E9%80%9A%E6%80%A7%E9%AA%8C%E8%AF%81%E6%8C%87%E5%8D%97/">知识同步链路的测试与连通性验证指南</a>
+                <a class="footer-post" href="/2026/11/25/2026-11-25-%E9%82%A3%E6%88%91%E6%9C%89%E4%B8%AA%E9%97%AE%E9%A2%98-worker-%E5%A6%82%E6%9E%9C%E6%88%91macbook%E5%85%B3%E6%9C%BA%E4%BA%86-%E8%B5%B0%E6%9C%AA%E5%AE%A1%E6%A0%B8%E9%82%A3%E6%80%8E%E4%B9%88%E6%90%9E/">那我有个问题 worker 如果我macbook关</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/08/25/shanggu-%E8%87%AA%E5%8A%A8%E5%8C%96%E7%9F%A5%E8%AF%86%E5%90%8C%E6%AD%A5%E4%B8%8E%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86%E6%9E%B6%E6%9E%84%E8%A7%84%E8%8C%83/">自动化知识同步与数据采集架构规范</a>
+                <a class="footer-post" href="/2026/11/24/2026-11-24-this-session-is-being-continued-from-a-previous-conversation/">This session is being con</a>
             </li>
             
         </ul>

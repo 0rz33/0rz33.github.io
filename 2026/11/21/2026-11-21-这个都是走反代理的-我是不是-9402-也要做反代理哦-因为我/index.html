@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="# 多域名卫星站群：OpenResty 反代分流 + Certbot 自动签证的完整方案
+
+## 背景与场景
+
+在一台 Linux 服务器上同时运行 SEO 管理面板（`9401`）和卫星站渲染服务（`9402`）时，需要让 OpenResty/Nginx 在 443 端口统一接入，按域名分流到不同">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="这个都是走反代理的 我是不是 9402 也要做反代理哦 因为我"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>这个都是走反代理的 我是不是 9402 也要做反代理哦 因为我 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/21/2026-11-21-%E8%BF%99%E4%B8%AA%E9%83%BD%E6%98%AF%E8%B5%B0%E5%8F%8D%E4%BB%A3%E7%90%86%E7%9A%84-%E6%88%91%E6%98%AF%E4%B8%8D%E6%98%AF-9402-%E4%B9%9F%E8%A6%81%E5%81%9A%E5%8F%8D%E4%BB%A3%E7%90%86%E5%93%A6-%E5%9B%A0%E4%B8%BA%E6%88%91/">
+                这个都是走反代理的 我是不是 9402 也要做反代理哦 因为我
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-21</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+# 多域名卫星站群：OpenResty 反代分流 + Certbot 自动签证的完整方案
+
+## 背景与场景
+
+在一台 Linux 服务器上同时运行 SEO 管理面板（`9401`）和卫星站渲染服务（`9402`）时，需要让 OpenResty/Nginx 在 443 端口统一接入，按域名分流到不同后端。新买的卫星域名挂上去打 404，根因是 `9402` 没有对应的 vhost，所有请求都落进了默认兜底规则，而 `9401` 的面板是独立 vhost 早已配好。这类"多 Docker 容器 + 单 IP 多域名"的站群场景是个典型的反代分流问题。
+
+---
+
+## 核心结论
+
+1. **每个端口/后端服务都必须有对应的 `server {}` 块**，`proxy_pass` 到 `127.0.0.1:端口`；缺 vhost 的域名命中不了任何规则，Nginx 返回 404。
+
+2. **`proxy_set_header Host $host;` 是必须的**，省掉它，后端容器拿到的 Host 是 `127.0.0.1:9402`，无法按域名做内部分流，所有站都会渲染成同一个。
+
+3. **容器端口绑定要限制到 loopback**，`docker-compose.yaml` 里 `"9402:8812"` 改成 `"127.0.0.1:9402:8812"`，否则公网直连绕过 CF/Nginx，域名→站点映射全暴露。
+
+4. **新增域名用 `--expand` 追加到现有证书**，`certbot --nginx -d 新域名.com --expand`，不要为每个域名单独签，同一证书 SAN 扩展最简洁。
+
+5. **不要用 `default_server` 兜底整个 `9402`**，catch-all 会让扫描器、SSRF 请求命中站群，`server_name` 显式白名单是正确做法。
+
+---
+
+## 实现方案
+
+### 现状拓扑（问题状态）
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Client → 443 OpenResty</span><br><span class="line">  ├── server_name seo.a3owc.com → proxy_pass 127.0.0.1:9401  ✅ 已有</span><br><span class="line">  └── 无匹配 → 默认 404                                        ❌ 新域名全部撞这里</span><br></pre></td></tr></table></figure>
+
+### 目标拓扑
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Client → 443 OpenResty</span><br><span class="line">  ├── server_name seo.a3owc.com        → proxy_pass 127.0.0.1:9401</span><br><span class="line">  └── server_name site1.com site2.com  → proxy_pass 127.0.0.1:9402</span><br><span class="line">                                              ↓</span><br><span class="line">                                       容器内按 Host 再做分流</span><br></pre></td></tr></table></figure>
+
+### 第一步：新增卫星站 vhost
+
+新建 `/etc/nginx/conf.d/satellites.conf`：
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl http2;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 所有卫星域名列在这里，新域名追加即可</span></span><br><span class="line">    <span class="attribute">server_name</span> site1.com www.site1.com site2.com www.site2.com;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># certbot 会自动填入证书路径，先占位</span></span><br><span class="line">    <span class="comment"># ssl_certificate     /etc/letsencrypt/live/site1.com/fullchain.pem;</span></span><br><span class="line">    <span class="comment"># ssl_certificate_key /etc/letsencrypt/live/site1.com/privkey.pem;</span></span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://127.0.0.1:9402;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">proxy_set_header</span> Host              <span class="variable">$host</span>;              <span class="comment"># 核心：容器靠这个分流</span></span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Real-IP         <span class="variable">$remote_addr</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-For   <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 可选：超时 &amp; buffer</span></span><br><span class="line">        <span class="attribute">proxy_connect_timeout</span> <span class="number">10s</span>;</span><br><span class="line">        <span class="attribute">proxy_read_timeout</span>    <span class="number">30s</span>;</span><br><span class="line">        <span class="attribute">proxy_buffering</span>       <span class="literal">off</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 第二步：签 SSL 证书
+
+首次签，把所有已知卫星域名一起加进去：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">certbot --nginx -d site1.com -d www.site1.com -d site2.com -d www.site2.com</span><br></pre></td></tr></table></figure>
+
+certbot 会自动修改 `satellites.conf`，插入 `ssl_certificate` 路径并配置 HTTP→HTTPS 重定向。
+
+以后每新增一个域名，`--expand` 追加到同一证书的 SAN 列表：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">certbot --nginx -d site3.com --<span class="built_in">expand</span></span><br></pre></td></tr></table></figure>
+
+### 第三步：锁端口
+
+修改 `docker-compose.yaml`，把 `9402` 绑到 loopback：
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">sites-render:</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;127.0.0.1:9402:8812&quot;</span>   <span class="comment"># 改前是 &quot;9402:8812&quot;，公网可达</span></span><br></pre></td></tr></table></figure>
+
+重启容器使端口绑定生效：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker compose up -d sites-render</span><br></pre></td></tr></table></figure>
+
+如果不改 compose，临时用防火墙封堵（两者都做更保险）：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ufw deny 9402</span><br><span class="line">ufw deny 9401   <span class="comment"># 管理面板也不应暴露公网</span></span><br></pre></td></tr></table></figure>
+
+### 第四步：验证并重载
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nginx -t                <span class="comment"># 语法检查，有错误会报文件行号</span></span><br><span class="line">nginx -s reload         <span class="comment"># 无中断热重载</span></span><br></pre></td></tr></table></figure>
+
+验证反代是否生效：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -H <span class="string">&quot;Host: site1.com&quot;</span> http://127.0.0.1:9402/   <span class="comment"># 直连容器，确认容器内分流正常</span></span><br><span class="line">curl -I https://site1.com/                           <span class="comment"># 走公网，确认 nginx 转发正确</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**1. 不要用 `default_server` 兜底 9402**
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 危险写法，不要用：</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span> default_server;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://127.0.0.1:9402;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+后果：扫描器用随机 `Host` 访问你的 IP，全部命中站群。攻击者可以枚举所有 `Host` 值，收集完整的「域名 → 站点内容」映射，变相暴露站群结构。
+
+**2. 忘写 `proxy_set_header Host $host` 导致所有域名渲染同一站**
+
+Nginx 默认转发给后端的 Host 头是 `proxy_pass` 目标的地址（`127.0.0.1:9402`），而不是客户端请求的域名。后端容器收到统一的 `127.0.0.1:9402` 作为 Host，无法做域名分流，所有请求都会返回默认站或报错。**只要后端需要按 Host 路由，这行必须有。**
+
+**3. `--expand` 加新域名时 certbot 需要域名已解析**
+
+certbot ACME 验证会向新域名发 HTTP 请求。如果域名 DNS 还没生效，或者域名走 CF proxy 但 origin 防火墙拦了 80 端口，验证会失败。操作顺序：先确认 `dig site3.com` 解析到本机 IP，再跑 certbot。走 CF 的域名需要临时关 proxy（橙云→灰云）让 certbot 完成 HTTP-01 验证，签完再开。
+
+---
+
+## 底层机制
+
+OpenResty/Nginx 处理请求时，第一步是按 `listen` 端口和 `server_name` 匹配 `server {}` 块。同一端口下有多个 server block 时，Nginx 拿请求的 `Host` 头做精确匹配、前缀匹配、正则匹配，全不命中才落进 `default_server`（没显式标记则用第一个 server 块）。正是这个匹配顺序，要求每个对外提供服务的域名必须有对应的 `server_name` 条目，新域名漏配就等于不存在。
+
+`proxy_set_header Host $host` 的作用是将客户端原始请求的 `Host` 头透传到后端，而不是替换成 `proxy_pass` 里写死的地址。对于一个容器内同时承载多个站点的"多租户"架构，后端服务正是依赖这个 Host 头来区分请求属于哪个站，拿掉它，整个域名分流机制就断了。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/shanggu-digest/">#shanggu-digest</a> <a href="/tags/subscription-mode/">#subscription-mode</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/26/2026-11-26-%E9%A1%BA%E4%BE%BF%E5%85%BB%E5%8F%B7%E8%BF%99%E4%B8%AA%E8%A6%81%E6%95%B4%E7%90%86%E6%88%91%E6%80%8E%E4%B9%88%E7%AE%A1%E7%90%86tiktok%E5%92%8Cfb/">顺便养号这个要整理我怎么管理tiktok和fb</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/25/2026-11-25-%E5%AF%B9%E8%AF%9D%E5%8E%86%E5%8F%B2/">## 对话历史</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/25/2026-11-25-%E9%82%A3%E6%88%91%E6%9C%89%E4%B8%AA%E9%97%AE%E9%A2%98-worker-%E5%A6%82%E6%9E%9C%E6%88%91macbook%E5%85%B3%E6%9C%BA%E4%BA%86-%E8%B5%B0%E6%9C%AA%E5%AE%A1%E6%A0%B8%E9%82%A3%E6%80%8E%E4%B9%88%E6%90%9E/">那我有个问题 worker 如果我macbook关</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/24/2026-11-24-this-session-is-being-continued-from-a-previous-conversation/">This session is being con</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

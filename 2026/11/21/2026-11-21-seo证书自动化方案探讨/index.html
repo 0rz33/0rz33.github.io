@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="# OpenResty + Certbot 多域名 SSL 自动化：三条路的选型与实现
+
+## 背景与场景
+
+在 SEO 卫星站场景下，业务要求频繁上线新域名（每批少则数个、多则数十个），每次都需要手动三步操作：改 nginx vhost 配置 → 执行 `certbot --nginx -d xx">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="SEO证书自动化方案探讨"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>SEO证书自动化方案探讨 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/21/2026-11-21-seo%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E5%8C%96%E6%96%B9%E6%A1%88%E6%8E%A2%E8%AE%A8/">
+                SEO证书自动化方案探讨
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-21</span>
+            
+            
+            
+                <span class="category">
+                    <a href="/categories/SEO/">SEO</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+# OpenResty + Certbot 多域名 SSL 自动化：三条路的选型与实现
+
+## 背景与场景
+
+在 SEO 卫星站场景下，业务要求频繁上线新域名（每批少则数个、多则数十个），每次都需要手动三步操作：改 nginx vhost 配置 → 执行 `certbot --nginx -d xxx` → `nginx -s reload`。随着站点规模增长，手工操作变成瓶颈，需要一套自动发证 + 自动配置的机制。当前环境：OpenResty 跑 443 端口按 `server_name` 分流，certbot 已在 VPS 上，`seo.a3owc.com` 和 `hub.daslgwni.top` 均已用 certbot 签发证书。
+
+## 核心结论
+
+1. **不改架构的最小方案（方案 A）**：后端暴露 `GET /api/satellites/manifest` 返回所有启用域名列表，VPS 上跑 `sync-satellites.sh` 轮询该接口、自动生成 vhost + 签证书 + reload。权限干净，容器不碰 nginx。
+
+2. **方案 A 的关键顺序约束**：ACME HTTP-01 挑战必须先有 nginx vhost 把 `/.well-known/acme-challenge/` 路由对，才能让 Let's Encrypt 回调验证。脚本必须**先写 vhost、再调 certbot**，顺序不可反。
+
+3. **Caddy on-demand TLS（方案 B）** 是长期最优：一行 `on_demand_tls { ask ... }` 配置，新域名 DNS 指向服务器后自动签发、零手动干预。代价是引入新组件，需设计 `openresty → caddy → upstream` 的双 proxy 链路。
+
+4. **DNS-01 + Cloudflare API（方案 C）** 彻底与 nginx 解耦：`certbot --dns-cloudflare` 插件不依赖 vhost 存在，支持通配符 `*.yourdomain.com`，但要求所有域名托管到 Cloudflare 且服务器持有 CF API token（权限收敛到 `Zone:DNS:Edit`）。
+
+5. **DNS A 记录是所有方案的前提**：域名注册商控制台的 A 记录指向，无论哪条路都无法绕过，除非所有域名全托管到 CF 并给后端 API token。
+
+## 实现方案
+
+### 方案 A：后端清单 + 服务器端脚本（推荐起步）
+
+**Step 1：后端加 manifest 接口**
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GET /api/satellites/manifest</span></span><br><span class="line"><span class="comment">// 返回所有 siteGroupEnabled=true 的域名列表</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *Handler)</span></span> GetSatellitesManifest(c *gin.Context) &#123;</span><br><span class="line">    <span class="keyword">var</span> sites []SiteGroup</span><br><span class="line">    <span class="comment">// 只捞启用的卫星站</span></span><br><span class="line">    h.db.Where(<span class="string">&quot;site_group_enabled = ?&quot;</span>, <span class="literal">true</span>).Find(&amp;sites)</span><br><span class="line"></span><br><span class="line">    domains := <span class="built_in">make</span>([]<span class="type">string</span>, <span class="number">0</span>, <span class="built_in">len</span>(sites))</span><br><span class="line">    <span class="keyword">for</span> _, s := <span class="keyword">range</span> sites &#123;</span><br><span class="line">        domains = <span class="built_in">append</span>(domains, s.DisplayUrl) <span class="comment">// e.g. &quot;news.example.com&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    c.JSON(<span class="number">200</span>, gin.H&#123;<span class="string">&quot;domains&quot;</span>: domains&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+**Step 2：编写 `scripts/sync-satellites.sh`**
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line">MANIFEST_URL=<span class="string">&quot;https://seo.a3owc.com/api/satellites/manifest&quot;</span></span><br><span class="line">NGINX_CONF_DIR=<span class="string">&quot;/etc/nginx/conf.d&quot;</span>           <span class="comment"># 按实际 vhost 目录调整</span></span><br><span class="line">UPSTREAM=<span class="string">&quot;127.0.0.1:9402&quot;</span>                    <span class="comment"># seo-loop 容器端口</span></span><br><span class="line">SATELLITES_CONF=<span class="string">&quot;<span class="variable">$NGINX_CONF_DIR</span>/satellites.conf&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 拉取后端域名清单</span></span><br><span class="line">DOMAINS=$(curl -sf <span class="string">&quot;<span class="variable">$MANIFEST_URL</span>&quot;</span> | jq -r <span class="string">&#x27;.domains[]&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$DOMAINS</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] No domains returned, skipping.&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">CHANGED=0</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> domain <span class="keyword">in</span> <span class="variable">$DOMAINS</span>; <span class="keyword">do</span></span><br><span class="line">    CONF_FILE=<span class="string">&quot;<span class="variable">$NGINX_CONF_DIR</span>/sat-<span class="variable">$&#123;domain&#125;</span>.conf&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 已有 vhost 则跳过（certbot 已签证后文件会存在）</span></span><br><span class="line">    <span class="keyword">if</span> [ -f <span class="string">&quot;<span class="variable">$CONF_FILE</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] New domain detected: <span class="variable">$domain</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. 先写 HTTP vhost（关键：ACME HTTP-01 挑战要先有路由）</span></span><br><span class="line">    <span class="built_in">cat</span> &gt; <span class="string">&quot;<span class="variable">$CONF_FILE</span>&quot;</span> &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">server &#123;</span></span><br><span class="line"><span class="string">    listen 80;</span></span><br><span class="line"><span class="string">    server_name $&#123;domain&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    # ACME challenge 路由必须在 certbot 签发之前存在</span></span><br><span class="line"><span class="string">    location /.well-known/acme-challenge/ &#123;</span></span><br><span class="line"><span class="string">        root /var/www/certbot;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    location / &#123;</span></span><br><span class="line"><span class="string">        return 301 https://\$host\$request_uri;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line">    nginx -s reload   <span class="comment"># reload 让 HTTP vhost 生效，才能通过 ACME 挑战</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 4. 再调 certbot 签证书（--nginx 会自动补 443 server block）</span></span><br><span class="line">    certbot --nginx -d <span class="string">&quot;<span class="variable">$domain</span>&quot;</span> --non-interactive --agree-tos \</span><br><span class="line">        -m admin@yourdomain.com --redirect</span><br><span class="line"></span><br><span class="line">    CHANGED=1</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 有新域名才最终 reload</span></span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$CHANGED</span>&quot;</span> -eq 1 ]; <span class="keyword">then</span></span><br><span class="line">    nginx -s reload</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] Reload done.&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+**Step 3：加 cron**
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 每 5 分钟同步一次</span><br><span class="line">*/5 * * * * /opt/scripts/sync-satellites.sh &gt;&gt; /var/log/sync-satellites.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+---
+
+### 方案 B：Caddy on-demand TLS（长期方案）
+
+在 `Caddyfile` 中加：
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    on_demand_tls &#123;</span><br><span class="line">        ask http://localhost:9402/api/satellites/check?domain=&#123;host&#125;</span><br><span class="line">        interval 2m</span><br><span class="line">        burst     5</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">:443 &#123;</span><br><span class="line">    tls &#123;</span><br><span class="line">        on_demand</span><br><span class="line">    &#125;</span><br><span class="line">    reverse_proxy localhost:9402</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+后端实现 `/api/satellites/check`：域名在启用列表里返回 `200`，否则 `403`，Caddy 只对 `200` 的域名自动签发。
+
+OpenResty 侧将卫星域名流量 proxy 到 Caddy（以免改动 admin panel 的现有配置）：
+
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># openresty: 卫星域名转发 caddy</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">server_name</span> ~^(?!seo\.a3owc\.com).*$;  <span class="comment"># 非 admin panel 的 443 流量</span></span><br><span class="line">    <span class="comment"># ... ssl 配置 ...</span></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> https://127.0.0.1:4443;</span><br><span class="line">        <span class="attribute">proxy_ssl_server_name</span> <span class="literal">on</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+---
+
+### 方案 C：DNS-01 + Cloudflare
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 CF 插件</span></span><br><span class="line">pip install certbot-dns-cloudflare</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建凭证文件（权限 600）</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /etc/letsencrypt/cloudflare.ini &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">dns_cloudflare_api_token = YOUR_CF_TOKEN_WITH_ZONE_DNS_EDIT</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="built_in">chmod</span> 600 /etc/letsencrypt/cloudflare.ini</span><br><span class="line"></span><br><span class="line"><span class="comment"># 签发（不需要 nginx vhost 存在）</span></span><br><span class="line">certbot certonly \</span><br><span class="line">    --dns-cloudflare \</span><br><span class="line">    --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \</span><br><span class="line">    -d <span class="string">&quot;*.yourdomain.com&quot;</span> \</span><br><span class="line">    --non-interactive --agree-tos -m admin@yourdomain.com</span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+**1. HTTP-01 挑战顺序陷阱（方案 A 最常踩）**
+
+错误做法：直接调 `certbot --nginx -d xxx` 而没有先写好 vhost。
+表现：`certbot` 返回 `Connection refused` 或 `404`，Let's Encrypt 无法访问 `/.well-known/acme-challenge/`，签发失败。
+正确顺序：**写 vhost → `nginx -s reload` → certbot**，三步缺一不可。
+
+**2. certbot `--expand` vs 单独签发**
+
+`--expand` 会把新域名追加到已有证书的 SAN 列表里，导致证书越来越大、续签时所有域名必须同时在线可达。卫星站场景下建议**每个域名单独签发独立证书**，避免一个域名 DNS 失效拖垮全部续签。
+
+**3. Caddy on-demand TLS 必须有 `ask` 鉴权**
+
+不加 `ask` 直接开 on-demand，任何 SNI 请求都会触发自动签发，会瞬间打爆 Let's Encrypt 频率限制（同 IP 每小时 5 个失败请求限制，每注册域名每周 50 张证书）。`ask` 接口必须严格白名单，不能返回 `200` 给未知域名。
+
+## 底层机制
+
+**ACME HTTP-01 挑战的工作流**：客户端（certbot）向 Let's Encrypt CA 请求签发 → CA 下发一个 token → 客户端把 `token:thumbprint` 写到服务器的 `/.well-known/acme-challenge/<token>` 路径 → CA 通过 HTTP 访问该 URL 验证控制权 → 签发证书。这意味着 **nginx 必须在挑战期间能响应该路径**，所以 vhost 必须先于 certbot 存在，reload 也不可省略（nginx worker 重载前新 `server_name` 不生效）。
+
+**Caddy on-demand TLS 的 TLS 握手拦截机制**：Caddy 在 TLS ClientHello 阶段拦截 SNI，调用 `ask` 接口确认该域名是否被授权，通过后异步触发 ACME 流程并缓存证书。首次握手会有 2-5 秒延迟（等证书签发），此后命中缓存毫秒级响应。这与 HTTP-01 的"先有 vhost"约束完全不同——Caddy 在 TCP 层就介入，不依赖任何预配置路由。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/shanggu-digest/">#shanggu-digest</a> <a href="/tags/subscription-mode/">#subscription-mode</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/26/2026-11-26-%E9%A1%BA%E4%BE%BF%E5%85%BB%E5%8F%B7%E8%BF%99%E4%B8%AA%E8%A6%81%E6%95%B4%E7%90%86%E6%88%91%E6%80%8E%E4%B9%88%E7%AE%A1%E7%90%86tiktok%E5%92%8Cfb/">顺便养号这个要整理我怎么管理tiktok和fb</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/25/2026-11-25-%E5%AF%B9%E8%AF%9D%E5%8E%86%E5%8F%B2/">## 对话历史</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/25/2026-11-25-%E9%82%A3%E6%88%91%E6%9C%89%E4%B8%AA%E9%97%AE%E9%A2%98-worker-%E5%A6%82%E6%9E%9C%E6%88%91macbook%E5%85%B3%E6%9C%BA%E4%BA%86-%E8%B5%B0%E6%9C%AA%E5%AE%A1%E6%A0%B8%E9%82%A3%E6%80%8E%E4%B9%88%E6%90%9E/">那我有个问题 worker 如果我macbook关</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/24/2026-11-24-this-session-is-being-continued-from-a-previous-conversation/">This session is being con</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
