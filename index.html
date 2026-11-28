@@ -184,6 +184,597 @@
 
     <div class="post-header index">
         <h1 class="title">
+            <a href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">
+                You are a precise execution engine. Output structured JSON f…
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-28</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+# P99 延迟飙升诊断：CPU/内存/QPS 均正常时的系统化根因推演
+
+## 背景与场景
+
+线上服务 P99 延迟从 50ms 突然飙到 2s，但监控大盘上 CPU、内存、QPS 三项核心指标全部正常。这是一个极具迷惑性的场景——传统的"扩容/重启"本能反应在这里往往无效。核心线索恰恰藏在"三项正常"本身：**不是整体过载，是少数请求被卡住了**。这类问题在微服务架构、数据库密集型后端和 Go/JVM 服务中高频出现，定位不当容易浪费数小时。
+
+---
+
+## 核心结论
+
+**结论 1：P99 恶化而 P50 正常，锁竞争是第一嫌疑**
+
+锁（DB 行锁、Go `sync.Mutex`、Redis 单线程脚本）的特征就是"少数持锁请求影响大量排队请求"。QPS 越高，尾部排队越长，P99 越烂。先查 `information_schema.innodb_lock_waits`（MySQL）或 `pg_locks`（PG），以及 Go 的 `db.Stats().WaitCount/WaitDuration`。
+
+**结论 2：P99 值恰好等于某个超时配置，大概率是外部依赖问题**
+
+P99 ≈ 1s 或 P99 ≈ 2s 且呈"阶梯分布"（不是随机散点），说明是某个 timeout 配置在兜底。常见来源：下游服务偶发慢响应、容器内 DNS `ndots=5` 导致每次域名解析多跑 5 次无效查询。先看 `cat /etc/resolv.conf`，再用 `tcpdump -i any port 53` 抓 DNS 包确认。
+
+**结论 3：GC 暂停在 CPU 指标上是隐形的**
+
+Go GC 和 JVM GC 的 Stop-the-World 阶段不计入请求线程的 CPU 时间，但会冻结所有 goroutine/线程。用 `GODEBUG=gctrace=1` 输出 GC 日志，对比 wall time 列与 P99 spike 的时间点是否吻合。Go GC 暂停 >50ms 即需关注。
+
+**结论 4：重启短暂恢复后再度劣化，定性为资源泄漏**
+
+goroutine 泄漏或 FD 泄漏的特征是单调增长然后耗尽。访问 `/debug/pprof/goroutine?debug=2`，大量处于 `semacquire` 或 `chan receive` 状态的 goroutine 堆积 = 泄漏确认。goroutine 总数趋势图单调增长也是铁证。
+
+**结论 5：Tracing 瀑布图是最快定位工具，30 秒内缩圈**
+
+在 Jaeger/Tempo 里直接捞 P99 请求的 span 瀑布图。如果某个 span 有大段"空白"（span 存在但没有子 span 覆盖），说明是在等连接池或等锁，而不是真正在执行。这一步通常 30 秒内能把根因从六类缩到两类。
+
+---
+
+## 实现方案
+
+### Step 1：用 Tracing 快速缩圈（首选）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Jaeger UI 操作路径：</span></span><br><span class="line"><span class="comment"># Services → your-service → Find Traces → 按 duration DESC 排序</span></span><br><span class="line"><span class="comment"># 点开 P99 请求，看 span 瀑布图</span></span><br><span class="line"><span class="comment"># 重点关注：</span></span><br><span class="line"><span class="comment">#   - 哪个 span 最长？</span></span><br><span class="line"><span class="comment">#   - 长 span 内有没有大段空白（等待期）？</span></span><br><span class="line"><span class="comment">#   - 是自身代码段慢，还是外部调用慢？</span></span><br></pre></td></tr></table></figure>
+
+### Step 2：DB 锁等待排查
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- MySQL 查锁等待</span></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  r.trx_id waiting_trx_id,</span><br><span class="line">  r.trx_mysql_thread_id waiting_thread,</span><br><span class="line">  r.trx_query waiting_query,</span><br><span class="line">  b.trx_id blocking_trx_id,</span><br><span class="line">  b.trx_mysql_thread_id blocking_thread,</span><br><span class="line">  b.trx_query blocking_query</span><br><span class="line"><span class="keyword">FROM</span> information_schema.innodb_lock_waits w</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> information_schema.innodb_trx b <span class="keyword">ON</span> b.trx_id <span class="operator">=</span> w.blocking_trx_id</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> information_schema.innodb_trx r <span class="keyword">ON</span> r.trx_id <span class="operator">=</span> w.requesting_trx_id;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- PostgreSQL 查锁</span></span><br><span class="line"><span class="keyword">SELECT</span> pid, now() <span class="operator">-</span> pg_stat_activity.query_start <span class="keyword">AS</span> duration, query, state</span><br><span class="line"><span class="keyword">FROM</span> pg_stat_activity</span><br><span class="line"><span class="keyword">WHERE</span> state <span class="operator">!=</span> <span class="string">&#x27;idle&#x27;</span> <span class="keyword">AND</span> now() <span class="operator">-</span> pg_stat_activity.query_start <span class="operator">&gt;</span> <span class="type">interval</span> <span class="string">&#x27;1 second&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go 连接池指标：在 metrics handler 里暴露</span></span><br><span class="line">stats := db.Stats()</span><br><span class="line"><span class="comment">// 关键字段：</span></span><br><span class="line"><span class="comment">// stats.WaitCount    - 累计等待连接次数</span></span><br><span class="line"><span class="comment">// stats.WaitDuration - 累计等待时长</span></span><br><span class="line"><span class="comment">// stats.MaxIdleClosed / MaxLifetimeClosed - 连接被关闭原因</span></span><br></pre></td></tr></table></figure>
+
+### Step 3：GC 暂停排查
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Go：实时打印 GC 日志</span></span><br><span class="line">GODEBUG=gctrace=1 ./your-service 2&gt;&amp;1 | grep <span class="string">&quot;^gc&quot;</span> | awk <span class="string">&#x27;&#123;print $1, $4, $NF&#125;&#x27;</span></span><br><span class="line"><span class="comment"># 格式：gc N @Xs N%: Nms+Nms+Nms clock, ...</span></span><br><span class="line"><span class="comment"># 第三列 clock 中最后一个数 = wall time，&gt;50ms 需关注</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 对齐时间点：</span></span><br><span class="line"><span class="comment"># gc 日志里的 @Xs 是服务启动后的相对时间</span></span><br><span class="line"><span class="comment"># 换算成 Unix 时间对比 P99 spike</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># JVM G1GC：</span></span><br><span class="line">-Xlog:gc*:file=/var/log/gc.log:<span class="keyword">time</span>,<span class="built_in">uptime</span>,level,tags:filecount=5,filesize=20m</span><br><span class="line"><span class="comment"># 看 GC pause time，Full GC 通常 &gt;500ms</span></span><br></pre></td></tr></table></figure>
+
+### Step 4：Goroutine 泄漏排查
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 实时 goroutine dump</span></span><br><span class="line">curl -s http://localhost:6060/debug/pprof/goroutine?debug=2 | <span class="built_in">head</span> -300</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重点看：</span></span><br><span class="line"><span class="comment"># 1. 总 goroutine 数（第一行 goroutine N [...]）</span></span><br><span class="line"><span class="comment"># 2. 大量 goroutine 处于相同阻塞状态：</span></span><br><span class="line"><span class="comment">#    - &quot;semacquire&quot; = 在等 Mutex</span></span><br><span class="line"><span class="comment">#    - &quot;chan receive&quot; = 在等 channel</span></span><br><span class="line"><span class="comment">#    - &quot;IO wait&quot; = 在等网络/文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># pprof block profile（需提前开启）</span></span><br><span class="line"><span class="comment"># 在 main() 里：runtime.SetBlockProfileRate(1)</span></span><br><span class="line">go tool pprof http://localhost:6060/debug/pprof/block</span><br><span class="line"><span class="comment"># (pprof) top 10</span></span><br><span class="line"><span class="comment"># (pprof) web   # 生成调用图</span></span><br></pre></td></tr></table></figure>
+
+### Step 5：DNS 超时排查（容器内高发）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 ndots 配置</span></span><br><span class="line"><span class="built_in">cat</span> /etc/resolv.conf</span><br><span class="line"><span class="comment"># 如果 ndots=5，访问 &quot;redis&quot; 会依次查询：</span></span><br><span class="line"><span class="comment">#   redis.namespace.svc.cluster.local.</span></span><br><span class="line"><span class="comment">#   redis.svc.cluster.local.</span></span><br><span class="line"><span class="comment">#   redis.cluster.local.</span></span><br><span class="line"><span class="comment">#   redis.ec2.internal.    (或其他 search domain)</span></span><br><span class="line"><span class="comment">#   redis.                 ← 最终成功</span></span><br><span class="line"><span class="comment"># 5 次查询，每次超时就叠加</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 抓 DNS 包确认</span></span><br><span class="line">tcpdump -i any -n port 53 2&gt;&amp;1 | <span class="built_in">head</span> -50</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修复方案：在 Pod spec 里</span></span><br><span class="line">dnsConfig:</span><br><span class="line">  options:</span><br><span class="line">    - name: ndots</span><br><span class="line">      value: <span class="string">&quot;2&quot;</span>   <span class="comment"># 降低到 2，大幅减少无效查询</span></span><br></pre></td></tr></table></figure>
+
+### Step 6：网络层排查
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># TCP 重传率</span></span><br><span class="line">netstat -s | grep -i retransmit</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line"><span class="built_in">cat</span> /proc/net/snmp | grep Tcp | awk <span class="string">&#x27;NR==2&#123;print &quot;RetransSegs:&quot;, $13&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 磁盘 IO（日志写入阻塞也会影响延迟）</span></span><br><span class="line">iostat -x 1 5 | grep -v <span class="string">&quot;^$&quot;</span></span><br><span class="line"><span class="comment"># 看 await（平均 IO 等待时间）和 %util（磁盘繁忙度）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># FD 耗尽</span></span><br><span class="line"><span class="built_in">ls</span> /proc/$(pgrep your-service)/fd | <span class="built_in">wc</span> -l</span><br><span class="line"><span class="comment"># 对比 ulimit -n（系统限制）</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**坑 1：不要在 P99 spike 时才开始收集数据**
+
+pprof block profile 和 goroutine dump 要在问题发生期间采集，之后 goroutine 可能已经退出、锁已经释放，dump 出来是正常状态。正确做法：在 service 里提前埋好 `/debug/pprof` 端点，问题复现时立刻采集，或者配置持续 profiling（如 Pyroscope）。
+
+**坑 2：Go pprof block profile 默认关闭，不提前开启则无法采集**
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 必须在 main() 启动时设置，否则 block profile 永远为空</span></span><br><span class="line">runtime.SetBlockProfileRate(<span class="number">1</span>)    <span class="comment">// 记录所有阻塞事件（生产可设 100 降低开销）</span></span><br><span class="line">runtime.SetMutexProfileFraction(<span class="number">5</span>) <span class="comment">// 记录 mutex 竞争</span></span><br></pre></td></tr></table></figure>
+
+**坑 3：P99 恰好等于超时配置值时，不要只看"下游服务是否挂了"**
+
+下游没挂不代表没超时。超时可能是偶发的（1% 请求慢了 1.9s，刚好没超 2s 超时，但 P99 就是这 1%）。正确的排查是：在 Tracing 里把下游调用的 latency 分位数单独拉出来看，不要只看 P50。DNS 超时尤其容易被忽视，因为它不出现在应用层 Tracing 里（DNS 在 `net.Dial` 里面，Go 标准库默认没有 span）。
+
+---
+
+## 底层机制
+
+**为什么 CPU/内存/QPS 正常，P99 还能烂？**
+
+P99 衡量的是"最慢的 1% 请求"，CPU/内存/QPS 衡量的是"整体均值/总量"。锁竞争的本质是串行化：持锁的请求在 CPU 上正常执行，等锁的请求在内核 futex 上休眠（不占 CPU），但它的 wall time 在增长。99 个请求中有 1 个等了 1.95s，整体 QPS 和 CPU 丝毫不受影响，但 P99 就被这 1 个拉到 1.95s。这就是为什么"三项正常"不代表服务健康，P99/P999 才是用户体验的真实镜像。
+
+GC 暂停的机制类似：Go 的三色标记 GC 大部分工作与应用并发执行，CPU 利用率看起来只是略微升高。但 mark termination 阶段必须 STW（全部 goroutine 暂停），这个暂停时间不会体现在请求线程的 CPU 时间里，却直接叠加到所有正在处理中的请求的 latency 上。一次 200ms 的 STW = 当时所有在途请求各自增加 200ms 延迟，全部打进 P99。
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">
+                验证下然后给 alphaquant来接
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-28</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+# shanggu-quant API 对接指南：端点验证 + AlphaQuant 接入全流程
+
+## 背景与场景
+
+shanggu 实盘分析模块（`shanggu-quant`）部署在 mini 节点（`:8010`），对外暴露分析接口和 KB 直查接口，供 AlphaQuant 量化平台消费。在正式交接前需验证路由是否挂载、鉴权是否生效，避免 AlphaQuant 侧集成时踩到"接了但没数据"或"路由 404"的坑。本文记录验证过程和完整对接合约。
+
+---
+
+## 核心结论
+
+1. **用"不带 token 探一遍"验证路由**：合法挂载的端点返回 `401/403`，未挂载返回 `404`。全 auth 挡说明路由正确、中间件生效，带 token 即通。
+2. **`REQUIRE_CHAT_AUTH` 开启时 API Key 不能填 `not-needed`**：mini 节点开了聊天鉴权，`Authorization: Bearer not-needed` 会被拒，必须填真实 `ADMIN_TOKEN`。
+3. **KB grounding 依赖爬虫有料**：`hanlin_quant`（审核）/ `hanlin_quant_unaudited`（未审核）两张表为空时，`shanggu-quant` 仍能用 Opus 常识回答，但 `sources_cited` 字段为空列表——这是正常降级，不是 bug。
+4. **KB 直查走 `/admin/kb/*` 路径，非 `/v1/`**：三条端点（list/doc/search）的鉴权头和 chat 一样用 `Bearer <ADMIN_TOKEN>`，但 base path 不同，不能混用。
+5. **分析出参顶层有 `sources_cited`**：每条引用带 `trust: verified|unverified`，消费方（AlphaQuant）应按此字段区分信源可信度，不要把 unverified 来源的结论当作实盘依据。
+
+---
+
+## 实现方案
+
+### 0. 前置验证（不带 token 探路）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 预期: 403（路由存在 + authAdmin 生效）</span></span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> http://&lt;mini-ip&gt;:8010/admin/kb/quant-list</span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> http://&lt;mini-ip&gt;:8010/admin/kb/quant-doc</span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> -X POST http://&lt;mini-ip&gt;:8010/admin/kb/quant-search</span><br><span class="line"></span><br><span class="line"><span class="comment"># 预期: 401（chat 鉴权，body: &quot;chat auth required&quot;）</span></span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> -X POST http://&lt;mini-ip&gt;:8010/v1/chat/completions</span><br></pre></td></tr></table></figure>
+
+| 结果 | 含义 |
+|---|---|
+| `401 / 403` | ✅ 路由在线，鉴权正常 |
+| `404` | ❌ 路由未注册，检查 handler 挂载 |
+| `200`（无 token） | ❌ 鉴权中间件漏挂 |
+
+---
+
+### 1. AlphaQuant `/settings` 配置
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SHANGGU_BASE_URL = http://&lt;mini-ip&gt;:8010/v1</span><br><span class="line">SHANGGU_API_KEY  = &lt;ADMIN_TOKEN&gt;          # 注意：不是 &quot;not-needed&quot;</span><br></pre></td></tr></table></figure>
+
+---
+
+### 2. ① 分析接口（`policy_analyzer` 实盘用）
+
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">POST &#123;SHANGGU_BASE_URL&#125;/chat/completions</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;model&quot;: &quot;shanggu-quant&quot;,</span><br><span class="line">  &quot;stream&quot;: false,</span><br><span class="line">  &quot;messages&quot;: [</span><br><span class="line">    &#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;分析当前 A 股科技板块风险&quot;&#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+**响应结构**（顶层额外字段）：
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;choices&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>...<span class="punctuation">]</span><span class="punctuation">,</span>           <span class="comment">// 标准 OpenAI 格式，content 为中文 JSON 分析</span></span><br><span class="line">  <span class="attr">&quot;sources_cited&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>          <span class="comment">// KB grounding 引用，KB 有料时非空</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;doc_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;abc123&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;trust&quot;</span><span class="punctuation">:</span> <span class="string">&quot;verified&quot;</span><span class="punctuation">,</span>    <span class="comment">// verified = hanlin_quant；unverified = hanlin_quant_unaudited</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;国家队增持公告 2026-11-28&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+---
+
+### 3. ② KB 直查（`kb_reader` 用）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出指定时间段已审核文档</span></span><br><span class="line">GET http://&lt;mini-ip&gt;:8010/admin/kb/quant-list</span><br><span class="line">  ?start=2026-11-01</span><br><span class="line">  &amp;end=2026-11-28</span><br><span class="line">  &amp;trust=verified          <span class="comment"># verified | unverified | any</span></span><br><span class="line">  &amp;<span class="built_in">limit</span>=100</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按 doc_id 拉全文</span></span><br><span class="line">GET http://&lt;mini-ip&gt;:8010/admin/kb/quant-doc?<span class="built_in">id</span>=&lt;doc_id&gt;&amp;trust=any</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 语义搜索</span></span><br><span class="line">POST http://&lt;mini-ip&gt;:8010/admin/kb/quant-search</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line">Content-Type: application/json</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&quot;query&quot;</span>: <span class="string">&quot;央行降准&quot;</span>, <span class="string">&quot;limit&quot;</span>: 10, <span class="string">&quot;trust&quot;</span>: <span class="string">&quot;any&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+**通用响应格式**：
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;docs&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;doc_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;ts&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2026-11-28T08:00:00Z&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;source&quot;</span><span class="punctuation">:</span> <span class="string">&quot;xinhua&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;department&quot;</span><span class="punctuation">:</span> <span class="string">&quot;finance&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;url&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;body&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;trust&quot;</span><span class="punctuation">:</span> <span class="string">&quot;verified&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;ttl_until&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">null</span></span>        <span class="comment">// unverified 文档有 TTL（30天），verified 为 null</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;count&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+---
+
+### 4. ③ Health Badge
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 走 MCP RPC，同样需要 ADMIN_TOKEN</span></span><br><span class="line">POST http://&lt;mini-ip&gt;:8010/mcp/rpc</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&quot;method&quot;</span>: <span class="string">&quot;shanggu_health&quot;</span>, <span class="string">&quot;params&quot;</span>: &#123;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+---
+
+### 5. 爬虫源配置（让 KB 有料）
+
+KB 为空时 grounding 不生效，建议在 shanggu 侧配置：
+
+| 信源类型 | 落表 | 建议源 |
+|---|---|---|
+| A股 / 国家新闻 | `hanlin_quant`（审核） | 新华财经、国家发改委、Wind |
+| BTC / 外媒 | `hanlin_quant_unaudited`（未审核·TTL 30天） | X/Twitter、CoinDesk、Bloomberg |
+
+---
+
+## 避坑指南
+
+**1. `ADMIN_TOKEN` 和普通 Bearer Token 不能混用**
+
+`/admin/kb/*` 端点只认 `authAdmin` 中间件（校验 `ADMIN_TOKEN`），用普通用户 token 会得到 `403`。AlphaQuant 侧统一用 `ADMIN_TOKEN` 即可，两套接口复用同一 key。
+
+**2. KB 无料 ≠ 接口故障**
+
+新环境或爬虫停跑时，`quant-list` 返回 `{"docs":[],"count":0}`，`sources_cited` 为 `[]`——这是正常降级，模型会用 Opus 通识回答。接入方不要把"空 sources_cited"当做报警条件，应该监控爬虫是否持续入库。
+
+**3. `stream=true` 时 `sources_cited` 位置不同**
+
+流式响应中 `sources_cited` 在最后一个 SSE chunk 的 `delta` 里，非流式时在顶层。AlphaQuant 若用流式消费，需要在 `[DONE]` 前的最后一帧里提取，不要在首帧找。
+
+---
+
+## 底层机制
+
+**两张信任等级表的设计意图**
+
+`hanlin_quant`（审核表）存经人工或规则校验的可信源，查询时默认优先；`hanlin_quant_unaudited`（未审核表）存爬虫原始落库、TTL 30 天自动过期，适合时效性强但未核实的信源（如 X/外媒）。`trust` 字段在 grounding 时透传给消费方，让 AlphaQuant 侧自己决定是否展示未审核引用——分析引擎不替消费方做信源判断，只做透传标记。
+
+**鉴权分层**
+
+`:8010` 节点有两条鉴权中间件：`authAdmin`（校验 `ADMIN_TOKEN`，管 `/admin/*` 和 `/mcp/*`）和 `chatAuth`（校验 `REQUIRE_CHAT_AUTH`，管 `/v1/chat/*`）。`ADMIN_TOKEN` 同时满足两者，所以 AlphaQuant 只需配一个 key 就能打通全部端点。
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">
+                You are a precise execution engine. Output structured JSON f…
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-27</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+# JumpServer 统一入口：所有机器 22 端口只对跳板机开放
+
+## 背景与场景
+
+原有运维环境中，多台 Linode/AWS 机器对外开放了 22 端口，依赖 PAM OTP（`libpam-google-authenticator`）做双因子认证。这套方案的隐患在于：OTP 验证在每台目标机上各自配置，自动化脚本无法应答验证码弹窗，且多人共用 root 时 OTP 密钥同一把无法区分操作者。需要一套集中入口：用户只通过 JumpServer 进来，目标机 22 端口不对外暴露，审计日志统一管理。
+
+## 核心结论
+
+1. **OTP 移到 JumpServer，目标机不再挂 PAM OTP**：JumpServer 自动化登录无法应答目标机的验证码弹窗，双因子在 JumpServer 层（系统设置 → 安全设置 → MFA 全局强制）一次解决。
+
+2. **目标机 sshd 改为纯公钥认证**：`AuthenticationMethods publickey`，同时 `PasswordAuthentication no`、`KbdInteractiveAuthentication no`、`PermitRootLogin no`，写进 `/etc/ssh/sshd_config.d/99-jms.conf`。
+
+3. **三层防火墙同时收紧**：云防火墙（AWS 安全组 / Linode Cloud Firewall）是主要手段，主机 `ufw` 是兜底，两者都把 22 端口来源限制为 `JMS_IP/32`，只靠其中一层不够。
+
+4. **Docker 端口绕过 ufw**：JumpServer 用 Docker 部署，80/443/2222 要靠云防火墙限源，ufw 对这些端口无效。
+
+5. **JumpServer 是新单点，是最高价值目标**：私钥和 `config.txt`（含 `SECRET_KEY`）加密备份，数据库定期备份；`SECRET_KEY` 丢失则托管的凭据无法解密。
+
+## 实现方案
+
+### 0. 动手前
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认带外控制台可用（Linode → LISH Console；AWS → EC2 Serial Console）</span></span><br><span class="line"><span class="comment"># 记录 JumpServer 固定公网 IP，后文记为 JMS_IP</span></span><br><span class="line"><span class="comment"># 保留所有现有 SSH 会话，不要断开</span></span><br></pre></td></tr></table></figure>
+
+### 1. 安装 JumpServer
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 先下载审阅脚本再执行</span></span><br><span class="line">curl -sSL https://github.com/jumpserver/jumpserver/releases/latest/download/quick_start.sh -o quick_start.sh</span><br><span class="line">less quick_start.sh</span><br><span class="line">bash quick_start.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 管理命令</span></span><br><span class="line"><span class="built_in">cd</span> /opt/jumpserver-installer-*</span><br><span class="line">./jmsctl.sh status</span><br><span class="line">./jmsctl.sh restart</span><br></pre></td></tr></table></figure>
+
+首次登录后立即执行：
+1. 改管理员密码
+2. 系统设置 → 安全设置 → **MFA 全局强制**
+3. 配置 HTTPS，证书放 `/opt/jumpserver/config/nginx/cert/`
+4. 备份 `/opt/jumpserver/config/config.txt`（含 `SECRET_KEY`）
+
+### 2. 准备 JumpServer 访问目标机的密钥
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 JumpServer 机器上生成专用密钥</span></span><br><span class="line">ssh-keygen -t ed25519 -f ~/jms_ops_key -C <span class="string">&quot;jumpserver-ops&quot;</span> -N <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">cat</span> ~/jms_ops_key.pub   <span class="comment"># 记下公钥，下一步分发到所有目标机</span></span><br></pre></td></tr></table></figure>
+
+在 JumpServer 控制台：**账号管理 → 账号模板 → 新建**，用户名 `jmsops`，类型 SSH 密钥，粘贴私钥内容。
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 私钥导入控制台后从磁盘删除</span></span><br><span class="line"><span class="built_in">shred</span> -u ~/jms_ops_key</span><br></pre></td></tr></table></figure>
+
+### 3. 在每台目标机上创建账号并放入公钥
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每台目标机依次执行（跳板机1/2、AIOps、AWS业务机）</span></span><br><span class="line">useradd -m -s /bin/bash jmsops</span><br><span class="line"><span class="built_in">mkdir</span> -p /home/jmsops/.ssh</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&lt;粘贴 jms_ops_key.pub 内容&gt;&quot;</span> &gt; /home/jmsops/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">chmod</span> 700 /home/jmsops/.ssh</span><br><span class="line"><span class="built_in">chmod</span> 600 /home/jmsops/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">chown</span> -R jmsops:jmsops /home/jmsops/.ssh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 需要 sudo 权限时</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;jmsops ALL=(ALL) NOPASSWD:ALL&#x27;</span> &gt; /etc/sudoers.d/jmsops</span><br><span class="line"><span class="built_in">chmod</span> 440 /etc/sudoers.d/jmsops</span><br><span class="line">visudo -c   <span class="comment"># 语法验证</span></span><br></pre></td></tr></table></figure>
+
+### 4. JumpServer 录入资产与授权
+
+1. **资产管理 → 资产列表 → 创建 Linux 主机**：填 IP、端口 22、账号选 `jmsops` 模板
+2. **用户管理**：每人独立账号（解决原手册"共用 root OTP 密钥"问题），强制绑定 MFA
+3. **权限管理 → 资产授权**：用户组 → 节点/资产 → 账号 `jmsops`
+4. 开启**会话录像**和**命令记录**
+
+### 5. 验证连通（此时 22 端口还未关）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Web 终端：JumpServer → Luna → 点开资产，确认能进入</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># SSH 方式</span></span><br><span class="line">ssh -p 2222 你的用户名@JMS_IP</span><br><span class="line"></span><br><span class="line"><span class="comment"># 从 JumpServer 直连测试（确保密钥和账号配置正确）</span></span><br><span class="line">ssh -i ~/jms_ops_key jmsops@目标机IP <span class="string">&quot;hostname&quot;</span></span><br></pre></td></tr></table></figure>
+
+**所有目标机验证通过后，才继续下一步。**
+
+### 6. 收紧三层防火墙
+
+#### 第 1 层：云防火墙（主要手段）
+
+**AWS 安全组**：入站 22，源改为 `JMS_IP/32`，删除 `0.0.0.0/0`。
+
+**Linode Cloud Firewall 入站规则**：
+- 允许 TCP 22，来源 `JMS_IP/32`
+- 入站默认策略：Drop
+
+#### 第 2 层：主机防火墙 ufw（兜底）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每台目标机执行，顺序不能颠倒</span></span><br><span class="line">ufw allow from JMS_IP to any port 22 proto tcp</span><br><span class="line">ufw status numbered                   <span class="comment"># 查看现有规则编号</span></span><br><span class="line">ufw delete allow 22/tcp               <span class="comment"># 删除全开放的 22 规则（如存在）</span></span><br><span class="line">ufw default deny incoming</span><br><span class="line">ufw default allow outgoing</span><br><span class="line">ufw <span class="built_in">enable</span></span><br><span class="line">ufw status verbose</span><br></pre></td></tr></table></figure>
+
+#### 第 3 层：sshd 加固（目标机）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 若之前按原手册启用过 PAM OTP，先回滚</span></span><br><span class="line"><span class="built_in">cp</span> /root/sshd.pam.bak.YYYYMMDD /etc/pam.d/sshd</span><br><span class="line"><span class="built_in">rm</span> -f /etc/ssh/sshd_config.d/otp.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份原始配置（破坏性操作前必做）</span></span><br><span class="line"><span class="built_in">cp</span> /etc/ssh/sshd_config /etc/ssh/sshd_config.bak.$(<span class="built_in">date</span> +%s)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 写 drop-in（比直接改主配置文件更安全，易回滚）</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /etc/ssh/sshd_config.d/99-jms.conf &lt;&lt;<span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">PasswordAuthentication no</span><br><span class="line">KbdInteractiveAuthentication no</span><br><span class="line">PermitRootLogin no</span><br><span class="line">PubkeyAuthentication <span class="built_in">yes</span></span><br><span class="line">AuthenticationMethods publickey</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">sshd -t &amp;&amp; systemctl reload ssh   <span class="comment"># reload 保留现有连接，reload 失败则不生效</span></span><br></pre></td></tr></table></figure>
+
+验证实际生效值（`sshd -T` 展示的才是运行时值，不是文件里写的）：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sshd -T | grep -iE <span class="string">&quot;permitrootlogin|kbdinteractive|authenticationmethods|passwordauthentication&quot;</span></span><br></pre></td></tr></table></figure>
+
+### 7. 最终验证
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ① 外部扫描，期望 filtered</span></span><br><span class="line">nmap -Pn -p 22 目标机IP</span><br><span class="line"></span><br><span class="line"><span class="comment"># ② 外部直连，期望 Connection timed out</span></span><br><span class="line">ssh jmsops@目标机IP</span><br><span class="line"></span><br><span class="line"><span class="comment"># ③ 从 JumpServer 直连，期望成功</span></span><br><span class="line">ssh -i ~/jms_ops_key jmsops@目标机IP <span class="string">&quot;hostname&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ④ 通过 JumpServer Web / 2222 登录，应正常通过 MFA</span></span><br><span class="line">ssh -p 2222 用户名@JMS_IP</span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+**1. ufw 对 Docker 端口无效，JumpServer 的 Web/SSH 端口必须在云防火墙收紧**
+
+JumpServer 通过 Docker 发布端口（`-p 443:443`），Docker 直接修改 iptables，绕过了 ufw 的 `INPUT` 链。如果只在目标机上加 ufw 规则而没有配云防火墙，80/443/2222 实际对全网开放。正确做法：云防火墙只放行运维固定 IP 访问这三个端口。
+
+**2. 改 sshd 配置后不要 `systemctl restart`，要 `reload`**
+
+`restart` 会关闭所有现有 SSH 连接，包括你正在操作的会话。`reload` 让 sshd 重读配置、只对新连接生效，不影响已建立的会话。在改配置未验证时断开会话会有锁出门的风险。操作顺序：`sshd -t`（语法检查）→ `systemctl reload ssh` → 另开新会话验证 → 验证通过后才断旧会话。
+
+**3. JumpServer IP 变化会导致所有目标机全部失联**
+
+所有云防火墙和 ufw 规则都基于 `JMS_IP/32`。如果 JumpServer 机器重启、浮动 IP 漂移或迁移，22 端口白名单失效，只能靠带外控制台救援。部署前务必绑定固定 IP（Linode 的 Static IP、AWS 的 EIP），并在密码管理器里记录带外控制台入口。
+
+## 底层机制
+
+**为什么原 PAM OTP 和 JumpServer 不兼容**：JumpServer 的 SSH 组件（koko）以自动化方式登录目标机，它持有私钥，登录时走 `publickey` 认证通道，整个流程没有人工交互。而 PAM `pam_google_authenticator.so` 要求在 `keyboard-interactive` 通道里弹出验证码提示并等待用户输入。两者相遇的结果是：koko 收到验证码提示但不知道如何应答，直接返回 `Permission denied`，表现为原手册的坑点 1/2。解决方式是把 OTP 层上移到 JumpServer 本身——用户登录 JumpServer 时完成 MFA，之后 JumpServer 对内部目标机的连接走纯公钥，完全自动化。
+
+**三层防火墙的分工**：云防火墙（安全组/Cloud Firewall）在数据包到达虚拟机网卡之前就丢弃，是主要隔离手段，完全不依赖目标机的操作系统状态；ufw 在操作系统 iptables 层过滤，是系统被入侵后的最后一道防线；sshd 配置（禁密码、仅公钥）是认证层面的加固，三者功能互补，不可互相替代。
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">
+                你是技术编辑, 只输出简洁清爽 markdown, 无任何客套
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-27</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+# Redis `max number of clients reached` 排查与连接池收敛
+
+## 背景与场景
+
+生产环境 Redis 实例报 `max number of clients reached`，服务新建连接被拒绝。根因不是 `maxclients` 配置太小，而是项目内多处独立创建 `redis.NewClient` 且未调优池参数，叠加 mini / worker 多实例后连接总数超限。需要先确认泄漏源，再把分散的 client 收敛成共享单例并显式管控池参数。
+
+---
+
+## 核心结论
+
+1. **先诊断再止血**：用 `redis-cli CLIENT LIST` 聚合 IP 和 idle 时长，确认泄漏来自哪个服务，`CONFIG SET maxclients` 只是临时手段。
+2. **go-redis 默认池 = 10×CPU 核数**：未显式设 `PoolSize` 时，每个 `redis.NewClient` 都会开出 `10×GOMAXPROCS` 个连接，多进程叠加容易打满。
+3. **共享单例 + SSOT 构造函数**：项目内所有 client 应合并为一个，走 `shared/` 下的统一入口，显式设 `PoolSize`、`MinIdleConns`、`ConnMaxIdleTime`。
+4. **`ClientName` 是唯一可观测点**：设置 `ClientName` 后，`CLIENT LIST` 能直接定位来源服务，不设则 IP 聚合也看不清。
+5. **服务端两个必设参数**：`timeout 300`（服务端主动断空闲连接）+ `tcp-keepalive 60`（探活），这两个参数不设，客户端泄漏的连接会一直挂着。
+
+---
+
+## 实现方案
+
+### 第一步：诊断连接状态
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 总览：connected_clients / maxclients / blocked_clients</span></span><br><span class="line">redis-cli INFO clients</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认当前上限，默认 10000，受 ulimit -n 约束</span></span><br><span class="line">redis-cli CONFIG GET maxclients</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按来源 IP 聚合，找哪个服务在疯狂建连</span></span><br><span class="line">redis-cli CLIENT LIST \</span><br><span class="line">  | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span> \</span><br><span class="line">  | <span class="built_in">cut</span> -d= -f2 \</span><br><span class="line">  | <span class="built_in">cut</span> -d: -f1 \</span><br><span class="line">  | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn | <span class="built_in">head</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 找大量 idle 连接（idle 高 = 连接没复用/没关 = 泄漏典型）</span></span><br><span class="line">redis-cli CLIENT LIST \</span><br><span class="line">  | grep -o <span class="string">&#x27;idle=[0-9]*&#x27;</span> \</span><br><span class="line">  | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn | <span class="built_in">head</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 看应用是否设了 CLIENT SETNAME（没设的话聚合也看不清来源）</span></span><br><span class="line">redis-cli CLIENT LIST | grep -o <span class="string">&#x27;name=[^ ]*&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c</span><br></pre></td></tr></table></figure>
+
+### 第二步：临时止血
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 提高上限（需先确认 ulimit -n 足够，否则无效）</span></span><br><span class="line">redis-cli CONFIG SET maxclients 20000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 服务端超时断开空闲连接，防止已泄漏的连接继续占位</span></span><br><span class="line">redis-cli CONFIG SET <span class="built_in">timeout</span> 300</span><br><span class="line"></span><br><span class="line"><span class="comment"># 强杀指定连接（慎用，会中断正在使用的连接）</span></span><br><span class="line">redis-cli CLIENT KILL ADDR &lt;ip:port&gt;</span><br><span class="line"><span class="comment"># 或批量杀 normal 类型（跳过自身）</span></span><br><span class="line">redis-cli CLIENT KILL TYPE normal SKIPME <span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
+
+### 第三步：代码层修复（以 shanggu 仓库为例）
+
+**当前泄漏点**：
+
+| 文件 | 问题 |
+|---|---|
+| `internal/memory/hubu.go:38` | 独立 client，PoolSize 20 |
+| `internal/adapter/zhukesi/chat_cache.go:51` | 独立 client，默认池（10×CPU核数） |
+| `internal/registry/llm/semantic_cache.go:70` | 独立 client，无池参数 |
+| `internal/registry/llm/gemini_usage.go:36` | 独立 client，无池参数 |
+
+**修复：收敛为共享单例**
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// shared/redis.go — SSOT 构造函数</span></span><br><span class="line"><span class="keyword">package</span> shared</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;sync&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/redis/go-redis/v9&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    redisOnce   sync.Once</span><br><span class="line">    redisClient *redis.Client</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RedisClient</span><span class="params">()</span></span> *redis.Client &#123;</span><br><span class="line">    redisOnce.Do(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        redisClient = redis.NewClient(&amp;redis.Options&#123;</span><br><span class="line">            Addr:            cfg.RedisAddr,      <span class="comment">// 从 agent_config 读，call-time 读取</span></span><br><span class="line">            PoolSize:        <span class="number">20</span>,                 <span class="comment">// 显式设定，不走默认 10×CPU</span></span><br><span class="line">            MinIdleConns:    <span class="number">5</span>,                  <span class="comment">// 保持最小空闲数，避免冷启动延迟</span></span><br><span class="line">            ConnMaxIdleTime: <span class="number">5</span> * time.Minute,    <span class="comment">// 超时回收空闲连接</span></span><br><span class="line">            ClientName:      <span class="string">&quot;shanggu-master&quot;</span>,   <span class="comment">// CLIENT LIST 可见，便于定位</span></span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> redisClient</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+其余各处改为：
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原来各自 redis.NewClient(...)</span></span><br><span class="line"><span class="comment">// 改为：</span></span><br><span class="line">rdb := shared.RedisClient()</span><br></pre></td></tr></table></figure>
+
+### 第四步：服务端 redis.conf 补全
+
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">timeout 300          <span class="comment"># 空闲超过 300s 服务端主动断</span></span><br><span class="line">tcp-keepalive 60     <span class="comment"># 60s 探活，防 NAT/防火墙静默断连</span></span><br></pre></td></tr></table></figure>
+
+系统层：
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认 ulimit -n 足够（建议 ≥ maxclients + 1000）</span></span><br><span class="line"><span class="built_in">ulimit</span> -n 65535</span><br><span class="line"><span class="comment"># 持久化写入 /etc/security/limits.conf 或 launchd plist</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**1. `CONFIG SET maxclients` 受 `ulimit -n` 上限约束，调大无效**
+
+Redis 建连时调用 `accept()`，受操作系统 fd 数限制。如果 `ulimit -n` 是 4096，`CONFIG SET maxclients 20000` 不会生效，Redis 启动日志会有 `You requested maxclients of X requiring at least Y max file descriptors` 警告。先调 `ulimit`，再调 `maxclients`。
+
+**2. 不要在请求路径或循环里 `redis.NewClient()`**
+
+每次调用都会创建新的连接池，函数返回后 client 若不显式 `Close()`，连接池不会回收。高 QPS 下几轮请求就能打满连接数。正确做法是进程启动时一次性初始化，全局复用。
+
+**3. Pub/Sub 和 `BLPOP` 是独占连接，不走池**
+
+go-redis 的 Pub/Sub 和阻塞命令（`BLPop`、`BRPop`）各自持有一个独占连接，不归连接池管理。如果有 goroutine 泄漏或 context 未取消，这类连接不会被 `ConnMaxIdleTime` 回收，只能靠服务端 `timeout` 或重启清理。审查代码时需单独排查这两类模式。
+
+---
+
+## 底层机制
+
+go-redis 的连接池实现是惰性建连：`redis.NewClient` 本身不建连，第一次执行命令时才从池里取或新建连接。`PoolSize` 是每个 client 实例的上限，而非全局上限——这是多 client 实例共存时容易踩的坑：4 个 client 各自默认池（假设 10×4核=40），就是 160 个潜在连接，再叠上 mini/worker 两个进程，总数直接 320+，远超预期。
+
+Redis 服务端的 `maxclients` 是全局值，所有来源的连接共享这个上限。连接到达上限后，新的 `accept()` 直接返回错误，客户端收到 `ERR max number of clients reached`，表现为请求立即失败而非超时排队。因此这类故障来得突然，需要在监控层提前对 `connected_clients / maxclients` 比值设告警（建议 > 80% 告警）。
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
+            <a href="/2026/11/26/2026-11-26-deploy-f56304ad-finished-confirm-version-live-then-re-run/">
+                Deploy f56304ad finished — confirm version live then re-run …
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-26</span>
+            
+            
+            
+        </div>
+    </div>
+
+    
+        <div class="content">
+            
+已蒸馏完成，KB 已存入（`d9eaf213`）。
+
+---
+
+# 网关视觉透传：OpenAI Vision API 兼容层的两阶段路由实现
+
+## 背景与场景
+
+shanggu 作为统一 LLM 网关，对外暴露 OpenAI 兼容接口。在此之前，客户端发来带图的 `content` 数组消息（标准 OpenAI vision 格式）时，网关无法解析图片字段，视觉能力形同虚设。业务上 Gemini / Sonnet 两个主力模型都支持视觉，网关却是瓶颈——需要一次性打通消息解析、图聚合、provider 路由三段，同时保证纯文本路径零行为变更。
+
+---
+
+## 核心结论
+
+1. **OpenAI vision content 数组必须在消息层反序列化，不能在路由层猜**：`content` 可能是 `string`（纯文本）或 `[]ContentPart`（含图），用自定义 `UnmarshalJSON` 在 `chat.Message` 层做分叉，快车道/慢车道各自处理，上层不感知。
+
+2. **图聚合必须幂等**：`Normalize` 阶段将所有消息的 `Images` 聚合进 `req.Images`（复用已有 vision 通道）时，要防止中间件多次调用导致图片二次累加。
+
+3. **provider 路由分两阶（Path 1 → Path 2 fallback）**：Path 1 尝试 OpenAI 兼容网关（GPTProto）的原生 `image_url` 透传；Path 2 是 provider 级联（Anthropic image block / 本地），把原始问题 + 图直接投给 vision 模型。两阶独立，本机无 GPTProto 时不 bail，直接走 Path 2。
+
+4. **`ModelSupportsVision` 注册表加族前缀回落**：精确 model ID 未命中时，按 `gemini-*` / `sonnet` / `opus` 前缀判断，避免动态别名（如 `gemini-flash-latest`）漏判。
+
+5. **vision 调用不能带 agent/SKU prompt**：把完整 ~7KB 系统提示词喂给 vision 调用，模型会进入 agent 模式，返回空响应或「没收到图」。vision 路径只给最小引导语（「看图直答」），问题 + 图本身就是完整输入。
+
+---
+
+## 实现方案
+
+### 1. 消息反序列化 — `internal/service/chat/model.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Message)</span></span> UnmarshalJSON(data []<span class="type">byte</span>) <span class="type">error</span> &#123;</span><br><span class="line">    <span class="keyword">type</span> Alias Message</span><br><span class="line">    <span class="keyword">var</span> raw <span class="keyword">struct</span> &#123;</span><br><span class="line">        Alias</span><br><span class="line">        Content json.RawMessage <span class="string">`json:&quot;content&quot;`</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> err := json.Unmarshal(data, &amp;raw); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> err</span><br><span class="line">    &#125;</span><br><span class="line">    *m = Message(raw.Alias)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 快车道：content 是纯字符串，零行为变更</span></span><br><span class="line">    <span class="keyword">var</span> s <span class="type">string</span></span><br><span class="line">    <span class="keyword">if</span> json.Unmarshal(raw.Content, &amp;s) == <span class="literal">nil</span> &#123;</span><br><span class="line">        m.Content = s</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 慢车道：OpenAI content part 数组</span></span><br><span class="line">    <span class="keyword">var</span> parts []ContentPart</span><br><span class="line">    <span class="keyword">if</span> err := json.Unmarshal(raw.Content, &amp;parts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        m.Content = <span class="type">string</span>(raw.Content) <span class="comment">// 认不出不 400，退化文本</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> _, p := <span class="keyword">range</span> parts &#123;</span><br><span class="line">        <span class="keyword">switch</span> p.Type &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;text&quot;</span>:</span><br><span class="line">            m.Content += p.Text</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;image_url&quot;</span>:</span><br><span class="line">            m.Images = <span class="built_in">append</span>(m.Images, p.ImageURL.URL) <span class="comment">// data URI 或裸 URL 均收</span></span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;image&quot;</span>:</span><br><span class="line">            <span class="comment">// Anthropic 风格：source.media_type + source.data</span></span><br><span class="line">            m.Images = <span class="built_in">append</span>(m.Images, <span class="string">&quot;data:&quot;</span>+p.Source.MediaType+<span class="string">&quot;;base64,&quot;</span>+p.Source.Data)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 2. 图聚合 — `internal/service/chat/messages.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Normalize 幂等聚合各消息的图到 req.Images，防二次累加</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Normalize</span><span class="params">(req *ChatRequest)</span></span> &#123;</span><br><span class="line">    seen := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">    <span class="keyword">for</span> _, img := <span class="keyword">range</span> req.Images &#123;</span><br><span class="line">        seen[img] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> i := <span class="keyword">range</span> req.Messages &#123;</span><br><span class="line">        <span class="keyword">for</span> _, img := <span class="keyword">range</span> req.Messages[i].Images &#123;</span><br><span class="line">            <span class="keyword">if</span> _, ok := seen[img]; !ok &#123;</span><br><span class="line">                req.Images = <span class="built_in">append</span>(req.Images, img)</span><br><span class="line">                seen[img] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        req.Messages[i].Images = <span class="literal">nil</span> <span class="comment">// 清空消息级图，统一走 req.Images</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 3. 两阶 vision 路由 — `internal/adapter/zhukesi/chat_vision_native.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">nativeVisionStream</span><span class="params">(ctx context.Context, req *ChatRequest, out <span class="keyword">chan</span>&lt;- <span class="type">string</span>)</span></span> <span class="type">error</span> &#123;</span><br><span class="line">    <span class="comment">// Path 1: OpenAI 兼容网关原生透传（GPTProto）</span></span><br><span class="line">    <span class="keyword">if</span> gw := getGPTProtoGateway(); gw != <span class="literal">nil</span> &#123;</span><br><span class="line">        err := gw.ChatStreamWithImages(ctx, req, out)</span><br><span class="line">        <span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">            log.Info(<span class="string">&quot;👁️ 原生 vision 成功 (GPTProto)&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">        &#125;</span><br><span class="line">        log.Warn(<span class="string">&quot;Path 1 失败，回落 Path 2&quot;</span>, <span class="string">&quot;err&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// gw == nil 时直接跳过，不 bail，不返 nil（那是成功）</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Path 2: provider 级联（Anthropic image block / 本地）</span></span><br><span class="line">    <span class="comment">// 关键：只给最小引导，绝对不带 agent/SKU prompt</span></span><br><span class="line">    minimalSystem := <span class="string">&quot;请直接描述图片内容并回答问题。&quot;</span></span><br><span class="line">    <span class="keyword">return</span> cascadeVisionFallback(ctx, req.Images, req.UserQuestion, minimalSystem, out)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 4. 能力注册表族前缀回落 — `internal/shared/capabilities.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ModelSupportsVision</span><span class="params">(model <span class="type">string</span>)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> v, ok := visionModels[model]; ok &#123; <span class="comment">// 精确 ID 优先</span></span><br><span class="line">        <span class="keyword">return</span> v</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 动态别名（gemini-flash-latest 等）按族前缀判断</span></span><br><span class="line">    <span class="keyword">for</span> _, prefix := <span class="keyword">range</span> []<span class="type">string</span>&#123;<span class="string">&quot;gemini-&quot;</span>, <span class="string">&quot;claude-sonnet&quot;</span>, <span class="string">&quot;claude-opus&quot;</span>&#125; &#123;</span><br><span class="line">        <span class="keyword">if</span> strings.HasPrefix(model, prefix) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 5. Body 上限 — `internal/adapter/zhukesi/chat.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> maxBodySize = <span class="number">16</span> &lt;&lt; <span class="number">20</span> <span class="comment">// 16 MiB，原 2 MiB，图 base64 内联单张可达 4MB</span></span><br></pre></td></tr></table></figure>
+
+### 6. 验证探针
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://mac-mini:8010/v1/chat/completions \</span><br><span class="line">  -H <span class="string">&quot;Content-Type: application/json&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    &quot;model&quot;: &quot;shanggu-sonnet&quot;,</span></span><br><span class="line"><span class="string">    &quot;messages&quot;: [&#123;</span></span><br><span class="line"><span class="string">      &quot;role&quot;: &quot;user&quot;,</span></span><br><span class="line"><span class="string">      &quot;content&quot;: [</span></span><br><span class="line"><span class="string">        &#123;&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;图里有几条竖纹，分别什么颜色？&quot;&#125;,</span></span><br><span class="line"><span class="string">        &#123;&quot;type&quot;: &quot;image_url&quot;, &quot;image_url&quot;: &#123;&quot;url&quot;: &quot;data:image/png;base64,&lt;BASE64&gt;&quot;&#125;&#125;</span></span><br><span class="line"><span class="string">      ]</span></span><br><span class="line"><span class="string">    &#125;]</span></span><br><span class="line"><span class="string">  &#125;&#x27;</span></span><br><span class="line"><span class="comment"># 预期响应：4 条，红绿蓝黄（测试图顺序猜不到，防模型编造）</span></span><br></pre></td></tr></table></figure>
+
+实测结果（`f56304ad` 部署，mac-mini `:8010`）：
+- `shanggu-gemini` → ✅ 「共 4 条：红、绿、蓝、黄」
+- `shanggu-sonnet` → ✅ 同上
+- `shanggu-gemini` 纯文本 `1+1=?` → ✅ `2`（纯文本路径不受影响）
+
+---
+
+## 避坑指南
+
+**1. vision 路径绝对不能注入 agent/SKU 系统提示词**
+
+表现：模型收到 `~7KB` agent prompt 后进入 agent 模式，把图当作「不存在的附件」，返回「我没有收到图片」或空流。修法：vision 调用的 `system` 只放最小引导语，user 消息只含原始问题 + 图，不带任何工具描述 / SKU 路由上下文。
+
+**2. Path 1 不可用时不能静默成功**
+
+原始实现 `getGPTProtoGateway() == nil` 时 `return nil`，函数签名的 `nil` 在调用方被判为成功，图片无声丢弃，客户端收到空流。区分三种状态：`gw == nil`（跳过）、`err != nil`（降级）、`err == nil`（真正成功），任何一种都不能混淆。
+
+**3. 功能分支合 PR 后必须手动切回 main**
+
+`./ai.sh deploy` 执行 `git pull`，分支感知由当前 HEAD 决定。若 mini 停在 `claude/vision-passthrough-4764ad`，后续所有合进 main 的变更对该机器不可见。合 PR 后立即执行：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout main &amp;&amp; git pull origin main</span><br></pre></td></tr></table></figure>
+
+---
+
+## 底层机制
+
+**OpenAI vision content 的两种形态与解析责任归属**
+
+OpenAI Chat Completions API 规范允许 `messages[].content` 是 `string` 或 `ContentPart[]`，大多数代理网关只处理字符串形态。shanggu 在 `chat.Message` 层（`UnmarshalJSON`）完成分叉，纯文本快车道不改任何字段，数组慢车道提取文本段合并进 `Content`、图段收入 `Images`。上层路由、缓存、日志全部不感知格式差异。图聚合（`Normalize`）复用已有 `req.Images` vision 通道，无需修改路由核心。
+
+**两阶 fallback 的设计取舍**
+
+Path 1（GPTProto 原生透传）model 路由精确，用户钉定的 model 就是实际跑的 model；代价是对网关可用性强依赖，网关挂则整个 vision 断。Path 2（provider 级联）model 精确性退化——`shanggu-gemini` 的图在无 GPTProto 的部署上实际由 Anthropic Sonnet 执行——换来的是任何有 vision 能力的 provider 都能兜底。日志明确标记走的是哪条路径（`👁️ 原生 vision 成功 (provider 级联直接看图答)`），运维排查时可立即区分真实 provider 与路由 model 名的差异。
+
+
+        </div>
+    
+
+</div>
+            
+                
+<div class="post">
+
+    <div class="post-header index">
+        <h1 class="title">
             <a href="/2026/11/22/2026-11-22-pr-370-%E9%87%8D%E6%9E%84%E9%A1%B6%E9%83%A8%E5%AF%BC%E8%88%AA%E6%A0%8F-%E7%A7%BB%E9%99%A4%E5%BC%B9%E6%A1%86%E5%B9%B6%E4%BC%98%E5%8C%96%E5%B8%83%E5%B1%80/">
                 PR #370: 重构顶部导航栏，移除弹框并优化布局。
             </a>
@@ -266,113 +857,6 @@ shanggu 是一套自用移动端 AI 终端 App(Flutter)。早期「CLI 档」只
 Flutter 的 `showDialog` 在路由栈上压一个 `DialogRoute`——它本质上是一个独立的路由页,自带自己的 `BuildContext` 和生命周期。放在 `Dialog` 里的 `StatefulWidget` 在 `Navigator.pop` 时会 unmount 并 dispose,所有本地状态(滚动位置、缓冲的流数据、SSH 会话引用)全部丢失。这就是为什么「弹框承载重状态」是反模式:每次关闭再打开等于重置一遍。
 
 把内容移进 `IndexedStack` 之后,widget 树从 overlay 层落入了主路由的 widget 树,生命周期绑定到整个 `MobileWorkerScreen` 的存活周期。只要用户没有退出 Worker 大 tab,三个子 tab 的状态永远保活。这也是为什么这次重排在功能上是**纯收益**:不仅导航路径变短,状态稳定性也同步提升。
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/21/2026-11-21-seo%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E5%8C%96%E6%96%B9%E6%A1%88%E6%8E%A2%E8%AE%A8/">
-                SEO证书自动化方案探讨
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-21</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/SEO/">SEO</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-# OpenResty + Certbot 多域名 SSL 自动化：三条路的选型与实现
-
-## 背景与场景
-
-在 SEO 卫星站场景下，业务要求频繁上线新域名（每批少则数个、多则数十个），每次都需要手动三步操作：改 nginx vhost 配置 → 执行 `certbot --nginx -d xxx` → `nginx -s reload`。随着站点规模增长，手工操作变成瓶颈，需要一套自动发证 + 自动配置的机制。当前环境：OpenResty 跑 443 端口按 `server_name` 分流，certbot 已在 VPS 上，`seo.a3owc.com` 和 `hub.daslgwni.top` 均已用 certbot 签发证书。
-
-## 核心结论
-
-1. **不改架构的最小方案（方案 A）**：后端暴露 `GET /api/satellites/manifest` 返回所有启用域名列表，VPS 上跑 `sync-satellites.sh` 轮询该接口、自动生成 vhost + 签证书 + reload。权限干净，容器不碰 nginx。
-
-2. **方案 A 的关键顺序约束**：ACME HTTP-01 挑战必须先有 nginx vhost 把 `/.well-known/acme-challenge/` 路由对，才能让 Let's Encrypt 回调验证。脚本必须**先写 vhost、再调 certbot**，顺序不可反。
-
-3. **Caddy on-demand TLS（方案 B）** 是长期最优：一行 `on_demand_tls { ask ... }` 配置，新域名 DNS 指向服务器后自动签发、零手动干预。代价是引入新组件，需设计 `openresty → caddy → upstream` 的双 proxy 链路。
-
-4. **DNS-01 + Cloudflare API（方案 C）** 彻底与 nginx 解耦：`certbot --dns-cloudflare` 插件不依赖 vhost 存在，支持通配符 `*.yourdomain.com`，但要求所有域名托管到 Cloudflare 且服务器持有 CF API token（权限收敛到 `Zone:DNS:Edit`）。
-
-5. **DNS A 记录是所有方案的前提**：域名注册商控制台的 A 记录指向，无论哪条路都无法绕过，除非所有域名全托管到 CF 并给后端 API token。
-
-## 实现方案
-
-### 方案 A：后端清单 + 服务器端脚本（推荐起步）
-
-**Step 1：后端加 manifest 接口**
-
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GET /api/satellites/manifest</span></span><br><span class="line"><span class="comment">// 返回所有 siteGroupEnabled=true 的域名列表</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(h *Handler)</span></span> GetSatellitesManifest(c *gin.Context) &#123;</span><br><span class="line">    <span class="keyword">var</span> sites []SiteGroup</span><br><span class="line">    <span class="comment">// 只捞启用的卫星站</span></span><br><span class="line">    h.db.Where(<span class="string">&quot;site_group_enabled = ?&quot;</span>, <span class="literal">true</span>).Find(&amp;sites)</span><br><span class="line"></span><br><span class="line">    domains := <span class="built_in">make</span>([]<span class="type">string</span>, <span class="number">0</span>, <span class="built_in">len</span>(sites))</span><br><span class="line">    <span class="keyword">for</span> _, s := <span class="keyword">range</span> sites &#123;</span><br><span class="line">        domains = <span class="built_in">append</span>(domains, s.DisplayUrl) <span class="comment">// e.g. &quot;news.example.com&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    c.JSON(<span class="number">200</span>, gin.H&#123;<span class="string">&quot;domains&quot;</span>: domains&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-**Step 2：编写 `scripts/sync-satellites.sh`**
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line">MANIFEST_URL=<span class="string">&quot;https://seo.a3owc.com/api/satellites/manifest&quot;</span></span><br><span class="line">NGINX_CONF_DIR=<span class="string">&quot;/etc/nginx/conf.d&quot;</span>           <span class="comment"># 按实际 vhost 目录调整</span></span><br><span class="line">UPSTREAM=<span class="string">&quot;127.0.0.1:9402&quot;</span>                    <span class="comment"># seo-loop 容器端口</span></span><br><span class="line">SATELLITES_CONF=<span class="string">&quot;<span class="variable">$NGINX_CONF_DIR</span>/satellites.conf&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 拉取后端域名清单</span></span><br><span class="line">DOMAINS=$(curl -sf <span class="string">&quot;<span class="variable">$MANIFEST_URL</span>&quot;</span> | jq -r <span class="string">&#x27;.domains[]&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$DOMAINS</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] No domains returned, skipping.&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">CHANGED=0</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> domain <span class="keyword">in</span> <span class="variable">$DOMAINS</span>; <span class="keyword">do</span></span><br><span class="line">    CONF_FILE=<span class="string">&quot;<span class="variable">$NGINX_CONF_DIR</span>/sat-<span class="variable">$&#123;domain&#125;</span>.conf&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 已有 vhost 则跳过（certbot 已签证后文件会存在）</span></span><br><span class="line">    <span class="keyword">if</span> [ -f <span class="string">&quot;<span class="variable">$CONF_FILE</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">continue</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] New domain detected: <span class="variable">$domain</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. 先写 HTTP vhost（关键：ACME HTTP-01 挑战要先有路由）</span></span><br><span class="line">    <span class="built_in">cat</span> &gt; <span class="string">&quot;<span class="variable">$CONF_FILE</span>&quot;</span> &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">server &#123;</span></span><br><span class="line"><span class="string">    listen 80;</span></span><br><span class="line"><span class="string">    server_name $&#123;domain&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    # ACME challenge 路由必须在 certbot 签发之前存在</span></span><br><span class="line"><span class="string">    location /.well-known/acme-challenge/ &#123;</span></span><br><span class="line"><span class="string">        root /var/www/certbot;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    location / &#123;</span></span><br><span class="line"><span class="string">        return 301 https://\$host\$request_uri;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line">    nginx -s reload   <span class="comment"># reload 让 HTTP vhost 生效，才能通过 ACME 挑战</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 4. 再调 certbot 签证书（--nginx 会自动补 443 server block）</span></span><br><span class="line">    certbot --nginx -d <span class="string">&quot;<span class="variable">$domain</span>&quot;</span> --non-interactive --agree-tos \</span><br><span class="line">        -m admin@yourdomain.com --redirect</span><br><span class="line"></span><br><span class="line">    CHANGED=1</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 有新域名才最终 reload</span></span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$CHANGED</span>&quot;</span> -eq 1 ]; <span class="keyword">then</span></span><br><span class="line">    nginx -s reload</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;[sync] Reload done.&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
-
-**Step 3：加 cron**
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 每 5 分钟同步一次</span><br><span class="line">*/5 * * * * /opt/scripts/sync-satellites.sh &gt;&gt; /var/log/sync-satellites.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
-
----
-
-### 方案 B：Caddy on-demand TLS（长期方案）
-
-在 `Caddyfile` 中加：
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    on_demand_tls &#123;</span><br><span class="line">        ask http://localhost:9402/api/satellites/check?domain=&#123;host&#125;</span><br><span class="line">        interval 2m</span><br><span class="line">        burst     5</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">:443 &#123;</span><br><span class="line">    tls &#123;</span><br><span class="line">        on_demand</span><br><span class="line">    &#125;</span><br><span class="line">    reverse_proxy localhost:9402</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-后端实现 `/api/satellites/check`：域名在启用列表里返回 `200`，否则 `403`，Caddy 只对 `200` 的域名自动签发。
-
-OpenResty 侧将卫星域名流量 proxy 到 Caddy（以免改动 admin panel 的现有配置）：
-
-<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># openresty: 卫星域名转发 caddy</span></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">server_name</span> ~^(?!seo\.a3owc\.com).*$;  <span class="comment"># 非 admin panel 的 443 流量</span></span><br><span class="line">    <span class="comment"># ... ssl 配置 ...</span></span><br><span class="line">    <span class="section">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> https://127.0.0.1:4443;</span><br><span class="line">        <span class="attribute">proxy_ssl_server_name</span> <span class="literal">on</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
----
-
-### 方案 C：DNS-01 + Cloudflare
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 CF 插件</span></span><br><span class="line">pip install certbot-dns-cloudflare</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建凭证文件（权限 600）</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /etc/letsencrypt/cloudflare.ini &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">dns_cloudflare_api_token = YOUR_CF_TOKEN_WITH_ZONE_DNS_EDIT</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="built_in">chmod</span> 600 /etc/letsencrypt/cloudflare.ini</span><br><span class="line"></span><br><span class="line"><span class="comment"># 签发（不需要 nginx vhost 存在）</span></span><br><span class="line">certbot certonly \</span><br><span class="line">    --dns-cloudflare \</span><br><span class="line">    --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \</span><br><span class="line">    -d <span class="string">&quot;*.yourdomain.com&quot;</span> \</span><br><span class="line">    --non-interactive --agree-tos -m admin@yourdomain.com</span><br></pre></td></tr></table></figure>
-
-## 避坑指南
-
-**1. HTTP-01 挑战顺序陷阱（方案 A 最常踩）**
-
-错误做法：直接调 `certbot --nginx -d xxx` 而没有先写好 vhost。
-表现：`certbot` 返回 `Connection refused` 或 `404`，Let's Encrypt 无法访问 `/.well-known/acme-challenge/`，签发失败。
-正确顺序：**写 vhost → `nginx -s reload` → certbot**，三步缺一不可。
-
-**2. certbot `--expand` vs 单独签发**
-
-`--expand` 会把新域名追加到已有证书的 SAN 列表里，导致证书越来越大、续签时所有域名必须同时在线可达。卫星站场景下建议**每个域名单独签发独立证书**，避免一个域名 DNS 失效拖垮全部续签。
-
-**3. Caddy on-demand TLS 必须有 `ask` 鉴权**
-
-不加 `ask` 直接开 on-demand，任何 SNI 请求都会触发自动签发，会瞬间打爆 Let's Encrypt 频率限制（同 IP 每小时 5 个失败请求限制，每注册域名每周 50 张证书）。`ask` 接口必须严格白名单，不能返回 `200` 给未知域名。
-
-## 底层机制
-
-**ACME HTTP-01 挑战的工作流**：客户端（certbot）向 Let's Encrypt CA 请求签发 → CA 下发一个 token → 客户端把 `token:thumbprint` 写到服务器的 `/.well-known/acme-challenge/<token>` 路径 → CA 通过 HTTP 访问该 URL 验证控制权 → 签发证书。这意味着 **nginx 必须在挑战期间能响应该路径**，所以 vhost 必须先于 certbot 存在，reload 也不可省略（nginx worker 重载前新 `server_name` 不生效）。
-
-**Caddy on-demand TLS 的 TLS 握手拦截机制**：Caddy 在 TLS ClientHello 阶段拦截 SNI，调用 `ask` 接口确认该域名是否被授权，通过后异步触发 ACME 流程并缓存证书。首次握手会有 2-5 秒延迟（等证书签发），此后命中缓存毫秒级响应。这与 HTTP-01 的"先有 vhost"约束完全不同——Caddy 在 TCP 层就介入，不依赖任何预配置路由。
 
 
         </div>
@@ -540,273 +1024,6 @@ MLX 的流式推理增量写管道，inflight 计数在 `GenerateStream` 完整 
 
     <div class="post-header index">
         <h1 class="title">
-            <a href="/2026/11/19/2026-11-19-cloudflare-tunnel-%E5%AE%9E%E7%8E%B0-mms-%E6%94%AF%E4%BB%98%E7%B3%BB%E7%BB%9F%E5%8F%8C%E6%9C%BA%E7%83%AD%E5%A4%87/">
-                Cloudflare Tunnel 实现 MMS 支付系统双机热备
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-19</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-# Cloudflare Tunnel 替代 DNS 切换实现 MMS 支付系统双机热备
-
-## 背景与场景
-
-MMS 支付系统单点部署在 `139.162.39.128`，新增 site4（`172.104.51.20`）作备机，需要对支付 API、收银台、管理后台、演示站四个生产域名实现自动故障切换。传统做法是改 DNS A 记录或双 A round-robin，但两种方案都有硬伤：TTL 等待（最快 60s）、故障时客户端仍有概率命中故障节点、真实 IP 对外暴露。本文记录用 Cloudflare Tunnel 替代传统 DNS 切换的完整实施路径，实现毫秒级故障转移且服务器不暴露公网 IP。
-
----
-
-## 核心结论
-
-1. **同一 Tunnel Token 可在多台服务器同时运行**：两台服务器都跑同一个 Token 的 cloudflared，Cloudflare 视为同一 Tunnel 的两个 connector，自动做健康检测和故障转移，这是实现双机热备的关键机制。
-
-2. **DNS 切换由 Cloudflare 控制面完成，不依赖 TTL**：域名绑定 Tunnel 后，DNS 记录变成 CNAME 指向 `<tunnel-id>.cfargotunnel.com`，故障时 Cloudflare 毫秒级感知 connector 断开，立即停止路由，客户端无感知。
-
-3. **服务器零入站端口**：cloudflared 主动向 Cloudflare 边缘建立出站长连接（QUIC/HTTP2），服务器不开任何入站端口，真实 IP 完全不可见。
-
-4. **迁移分四阶段，生产 DNS 变更是最后一步**：建 Tunnel → 两台接入 → 测试域名验证 → 验收后统一切换 Public Hostname，全程不影响生产流量。
-
-5. **Docker 部署加 `--network=host` 才能访问宿主机端口**：cloudflared 容器内的 `localhost` 是容器自身网络，服务跑在宿主机时必须加 `--network=host` 或改用宿主机网关 IP `172.17.0.1`。
-
----
-
-## 实现方案
-
-### 阶段一：Cloudflare 控制台创建 Tunnel（运维操作）
-
-1. 登录 `dash.cloudflare.com` → 选 `a3owc.com` 账号
-2. **Zero Trust** → **Networks** → **Tunnels** → **Create a tunnel**
-   - Connector 类型：**Cloudflared**
-   - Tunnel 名称：`mms-ha`
-3. 安装方式选 **Docker**，页面生成命令含 Tunnel Token：
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run \</span><br><span class="line">  --token eyJhIjoiXXXXXXXX...（<span class="built_in">base64</span> 长串）</span><br></pre></td></tr></table></figure>
-
-**将 Token 通过密码管理工具私下交给开发，不要在公开频道传输。**
-
----
-
-### 阶段二：两台服务器接入同一 Tunnel（开发操作）
-
-在 `139.162.39.128` 和 `172.104.51.20` **各执行同一条命令**：
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  --name cloudflared-mms-ha \</span><br><span class="line">  --restart=always \</span><br><span class="line">  --network=host \                     <span class="comment"># 关键：共享宿主机网络，localhost 才能打到应用端口</span></span><br><span class="line">  cloudflare/cloudflared:latest \</span><br><span class="line">  tunnel --no-autoupdate run --token &lt;TOKEN&gt;   <span class="comment"># 两台用同一个 TOKEN</span></span><br></pre></td></tr></table></figure>
-
-两台服务器跑同一 Token → 同一 Tunnel → Cloudflare 自动轮询两个 connector，任意一台下线流量自动切到另一台。
-
----
-
-### 阶段三：测试域名验证（不动生产 DNS）
-
-在 Tunnel 的 **Public Hostname** 标签页添加临时测试域名：
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Domain:  mms-test.a3owc.com</span><br><span class="line">Service: http://localhost:8080        # 端口由开发提供</span><br></pre></td></tr></table></figure>
-
-验证两台服务器均能通过该测试域名正常响应后，进入下一阶段。
-
----
-
-### 阶段四：验收通过后统一切换四个生产域名（运维操作）
-
-在 Tunnel **Public Hostname** 标签页添加四条记录：
-
-| Domain | Service |
-|--------|---------|
-| `mms-api.a3owc.com` | `http://localhost:支付API端口` |
-| `guodong.a3owc.com` | `http://localhost:收银台端口` |
-| `zqadmin.a3owc.com` | `http://localhost:管理后台端口` |
-| `zqpay.a3owc.com` | `http://localhost:演示站端口` |
-
-Cloudflare 自动将 DNS 改为：
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mms-api.a3owc.com  CNAME  &lt;tunnel-id&gt;.cfargotunnel.com</span><br></pre></td></tr></table></figure>
-
-原 A 记录（`139.162.39.128`）由 Cloudflare 自动替换，无需手动删除。
-
----
-
-## 避坑指南
-
-**1. 不要在验收前改生产 DNS，也不要同时挂两个 A 记录**
-
-双 A round-robin 不等于热备。DNS 层面没有健康检查，故障时客户端仍有概率（取决于本地 TTL 缓存）命中故障节点，且切换最快也要等 TTL 过期（60s 起）。Cloudflare Tunnel 的切换在控制面主动探测，与 TTL 完全无关。
-
-**2. Token 泄露即失控，必须走私密渠道传递**
-
-Token 是这个 Tunnel 的唯一凭证，泄露后任何人都能接入该 Tunnel 并暴露服务。泄露后立即在 Cloudflare 控制台 **Rotate Token**（旧 Token 立即失效，需在两台服务器重新部署新 Token）。不能出现在 Slack 公开频道、Git 仓库、工单系统。
-
-**3. 忘加 `--network=host` 导致服务 502**
-
-cloudflared 容器内 `localhost` 是容器自身的回环地址，不是宿主机的。应用跑在宿主机时，`http://localhost:8080` 在容器内打不到任何东西，表现为 Tunnel 建连成功但访问域名返回 502。
-
-- **解法 A**（推荐）：加 `--network=host`，容器共享宿主机网络命名空间
-- **解法 B**：Service 改为 `http://172.17.0.1:8080`（Docker bridge 网关 IP，实际以 `ip route` 输出为准）
-
----
-
-## 底层机制
-
-Cloudflare Tunnel 的核心是**反向代理建连**：cloudflared 进程启动后主动向 Cloudflare 边缘节点建立若干条持久化 QUIC/HTTP2 长连接（默认 4 条）。外部请求到达 Cloudflare 边缘时，通过这些已建立的连接将流量推送到 cloudflared，再由 cloudflared 转发给本地服务——整个方向是从外到内通过已建好的出站连接传输，服务器从不监听公网端口。
-
-当同一 Tunnel 存在多个 connector 时，Cloudflare 控制面持续检测每个 connector 的长连接健康状态。某台服务器宕机或网络断开时，对应的所有长连接在秒级内断开，Cloudflare 立即将新请求只路由到存活的 connector。整个切换过程完全在 Cloudflare 内部完成，不涉及任何 DNS 变更，客户端侧无感知。这是 Tunnel 切换速度（毫秒级）相较传统 DNS 切换（TTL 至少 60s）存在数量级差异的根本原因。
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/11/19/2026-11-19-cloudflare-tunnel-%E5%8F%8C%E6%9C%BA%E7%83%AD%E5%A4%87-%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4/">
-                Cloudflare Tunnel 双机热备 操作步骤
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-11-19</span>
-            
-            
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
-KB 里已有这条记录（score=0.74，今天刚存），内容和对话原文一致，无需重复存。直接输出蒸馏文档：
-
----
-
-# Cloudflare Tunnel 替代 DNS 切换实现双机热备：MMS 支付系统 HA 迁移实践
-
-## 背景与场景
-
-MMS 支付系统部署在单台服务器（`139.162.39.128`），新增 site4（`172.104.51.20`）作为备机，需要实现双机自动故障切换。涉及四个生产域名：支付 API（`mms-api.a3owc.com`）、收银台（`guodong.a3owc.com`）、管理后台（`zqadmin.a3owc.com`）、演示站（`zqpay.a3owc.com`）。传统方案是改 DNS A 记录指向备机 IP，但 TTL 等待 + 真实 IP 暴露 + 手动切换是三个硬伤。本文记录用 Cloudflare Tunnel 替代传统 DNS 切换的完整实施路径。
-
----
-
-## 核心结论
-
-1. **同一个 Tunnel Token 可以同时在多台服务器运行**，Cloudflare 自动对多个 connector 做负载均衡和故障转移，这是实现双机热备的关键机制。
-
-2. **DNS 不需要手动切换**：域名绑定到 Tunnel 后，DNS 记录变成 CNAME 指向 `<tunnel-id>.cfargotunnel.com`，故障切换由 Cloudflare 控制面完成，TTL 等待问题消失。
-
-3. **服务器不需要开放任何入站端口**：cloudflared 进程主动向 Cloudflare 建立出站连接，真实 IP 对公网不可见，消除了传统 HA 方案的 IP 暴露风险。
-
-4. **迁移分两阶段，DNS 变更是最后一步**：先建 Tunnel → 两台服务器接入 → 测试域名验证 → 验收通过后统一切换 Public Hostname，全程生产流量不受影响。
-
-5. **Docker 部署是最简安装方式**：一行 `docker run --restart=always` 命令，含自动重启，无需管理 systemd service 或 binary 路径。
-
----
-
-## 实现方案
-
-### 阶段一：在 Cloudflare 控制台创建 Tunnel（运维/非开发操作）
-
-1. 登录 `dash.cloudflare.com` → 选择 `a3owc.com` 账号
-2. 左侧菜单：**Zero Trust** → **Networks** → **Tunnels**
-3. 点击 **Create a tunnel**
-   - Connector 类型选 **Cloudflared**
-   - Tunnel 名称填 `mms-ha`
-4. 安装方式选 **Docker**，页面生成的命令中含 Tunnel Token：
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run \</span><br><span class="line">  --token eyJhIjoiXXXXXXXX...（<span class="built_in">base64</span> 长串）</span><br></pre></td></tr></table></figure>
-
-**将这个 Token 私下交给开发，不要在公开频道传输。**
-
----
-
-### 阶段二：两台服务器接入同一 Tunnel（开发操作）
-
-在 **现有服务器**（`139.162.39.128`）和 **site4**（`172.104.51.20`）各执行：
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 两台服务器用同一个 TOKEN</span></span><br><span class="line">docker run -d \</span><br><span class="line">  --name cloudflared-mms-ha \</span><br><span class="line">  --restart=always \</span><br><span class="line">  cloudflare/cloudflared:latest \</span><br><span class="line">  tunnel --no-autoupdate run --token &lt;TOKEN&gt;</span><br></pre></td></tr></table></figure>
-
-关键点：
-- `--restart=always`：服务器重启后容器自动拉起
-- 两台服务器跑同一个 Token → 同一个 Tunnel → Cloudflare 视为两个 connector
-- Cloudflare 会自动轮询两个 connector，任意一台下线，流量自动切到另一台
-
----
-
-### 阶段三：用测试域名验证（开发操作，不动生产 DNS）
-
-在 Cloudflare Tunnel 的 **Public Hostname** 标签页，先添加一个临时测试域名（如 `mms-test.a3owc.com`），指向某台服务器的本地端口：
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Domain:  mms-test.a3owc.com</span><br><span class="line">Service: http://localhost:8080</span><br></pre></td></tr></table></figure>
-
-验证两台服务器均能通过该测试域名正常响应后，进入下一阶段。
-
----
-
-### 阶段四：验收通过后统一切换四个生产域名（运维操作）
-
-在 Tunnel 的 **Public Hostname** 标签页，添加四条记录（端口号由开发提供）：
-
-| Domain | Service |
-|--------|---------|
-| `mms-api.a3owc.com` | `http://localhost:支付API端口` |
-| `guodong.a3owc.com` | `http://localhost:收银台端口` |
-| `zqadmin.a3owc.com` | `http://localhost:管理后台端口` |
-| `zqpay.a3owc.com` | `http://localhost:演示站端口` |
-
-Cloudflare 会自动将上述域名的 DNS 记录改为：
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mms-api.a3owc.com  CNAME  &lt;tunnel-id&gt;.cfargotunnel.com</span><br></pre></td></tr></table></figure>
-
-**原 A 记录（`139.162.39.128`）由 Cloudflare 自动替换，无需手动删除。**
-
----
-
-## 避坑指南
-
-**1. 不要在验收前修改生产 DNS，也不要同时添加两个 A 记录**
-
-传统 round-robin 双 A 记录不等于热备。DNS 层面的多 A 记录在某台服务器故障时，客户端仍会有概率命中故障节点（取决于客户端 TTL 缓存），且没有健康检查。Cloudflare Tunnel 的故障切换是控制面主动探测，不依赖客户端 TTL。
-
-**2. Token 是隧道唯一凭证，泄露即失控**
-
-Token 相当于这个 Tunnel 的 root 权限，任何人拿到 Token 都能接入该 Tunnel 并暴露服务。应通过私信或密码管理工具传递，不要出现在 Slack 公开频道、git 仓库、工单系统。泄露后立刻在 Cloudflare 控制台 Rotate Token。
-
-**3. `localhost` 指的是容器内的 localhost，不是宿主机**
-
-cloudflared 在 Docker 容器内运行时，`http://localhost:8080` 指向**容器内部**的端口，不是宿主机。如果应用跑在宿主机，需要用宿主机网关 IP（通常是 `172.17.0.1`）或使用 `--network=host` 模式：
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  --name cloudflared-mms-ha \</span><br><span class="line">  --restart=always \</span><br><span class="line">  --network=host \           <span class="comment"># 加这一行，让容器共享宿主机网络</span></span><br><span class="line">  cloudflare/cloudflared:latest \</span><br><span class="line">  tunnel --no-autoupdate run --token &lt;TOKEN&gt;</span><br></pre></td></tr></table></figure>
-
-加了 `--network=host` 后，`http://localhost:8080` 才等同于宿主机的 8080 端口。
-
----
-
-## 底层机制
-
-Cloudflare Tunnel（原 Argo Tunnel）的核心是**反向代理建连**：cloudflared 进程启动后，主动向 Cloudflare 的边缘节点建立若干条持久化 QUIC/HTTP2 长连接（默认 4 条）。Cloudflare 收到外部请求后，通过这些已建立的连接将流量推送到 cloudflared，再由 cloudflared 转发给本地服务。
-
-当同一个 Tunnel 有多个 connector（即多台服务器都跑了同 Token 的 cloudflared）时，Cloudflare 控制面持续检测每个 connector 的连接健康状态。某台服务器断开时，Cloudflare 在毫秒级内检测到连接中断，自动将新请求只路由到存活的 connector，整个切换过程不经过 DNS，客户端无感知。这是它相较传统 DNS 切换在切换速度上存在数量级差异的根本原因（DNS TTL 最快也是 60 秒，Tunnel 切换是毫秒级）。
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
             <a href="/2026/11/18/2026-11-18-claude-%E4%BD%86%E6%98%AF%E4%BC%9A%E8%A2%AB%E6%8B%92%E6%80%8E%E4%B9%88%E5%8A%9E/">
                 Claude 但是会被拒怎么办
             </a>
@@ -961,175 +1178,6 @@ Claude 的拒绝判断不是关键词过滤,而是对**意图 + 上下文**的�
 
 </div>
             
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/10/29/2026-10-29-docker-compose%E5%A4%9A%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%8F%A0%E5%8A%A0%E5%90%AF%E5%8A%A8%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE/">
-                Docker Compose多配置文件叠加启动与自定义网络配置
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-10-29</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/运维/">运维</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            
----
-title: "Docker Compose多配置文件叠加启动与自定义网络配置"
-date: 2026-10-29
-tags: [architecture, auto]
-source: shanggu chat auto-publish
----
-
-# Docker Compose 自定义网络启动
-
-这段命令创建自定义网络、生成配置覆盖文件，然后用多个配置文件叠加启动服务。核心目的是强制 compose 使用指定的外部网络而非默认项目网络。
-
-## 命令拆解
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 创建自定义网络</span></span><br><span class="line">docker network create --subnet 10.99.0.0/24 test_web_default 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 生成网络配置覆盖文件</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /tmp/net-override.yml &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">networks:</span><br><span class="line">  default:</span><br><span class="line">    external: <span class="literal">true</span></span><br><span class="line">    name: test_web_default</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 启动服务（三层配置叠加）</span></span><br><span class="line"><span class="built_in">cd</span> /work/projects/luma-web &amp;&amp; docker compose \</span><br><span class="line">  -f docker-compose.yml \</span><br><span class="line">  -f docker-compose.prod.yml \</span><br><span class="line">  -f /tmp/net-override.yml \</span><br><span class="line">  up -d</span><br></pre></td></tr></table></figure>
-
-| 步骤 | 作用 |
-|------|------|
-| 创建网络 | 10.99.0.0/24 子网，名为 test_web_default（已存在则跳过） |
-| 覆盖配置 | 强制 compose 使用外部网络而非默认的 luma-web_default |
-| 启动服务 | 基础配置 + 生产配置 + 网络配置依次合并 |
-
-## 改进版本
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 确保自定义网络存在</span></span><br><span class="line">docker network create --subnet 10.99.0.0/24 test_web_default 2&gt;/dev/null || <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成网络配置覆盖文件</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /tmp/net-override.yml &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">networks:</span><br><span class="line">  default:</span><br><span class="line">    external: <span class="literal">true</span></span><br><span class="line">    name: test_web_default</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动服务</span></span><br><span class="line"><span class="built_in">cd</span> /work/projects/luma-web</span><br><span class="line">docker compose \</span><br><span class="line">  -f docker-compose.yml \</span><br><span class="line">  -f docker-compose.prod.yml \</span><br><span class="line">  -f /tmp/net-override.yml \</span><br><span class="line">  up -d</span><br></pre></td></tr></table></figure>
-
-**改进点**：
-- `|| true` 替代 `2>/dev/null`，显式表达"失败不中断"
-- 多行格式便于维护和阅读
-- 清晰的分段注释
-
-## 注意事项
-
-⚠️ **临时文件问题**  
-`/tmp/net-override.yml` 重启后丢失。建议移到项目目录：
-
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt; docker-compose.network.yml &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">networks:</span><br><span class="line">  default:</span><br><span class="line">    external: <span class="literal">true</span></span><br><span class="line">    name: test_web_default</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-
-⚠️ **IP 冲突风险**  
-硬编码 `10.99.0.0/24` 若与现有网络冲突会失败。可用 `docker network ls` 检查。
-
-⚠️ **使用场景**  
-这种配置通常用于跨项目容器互通（如多个服务共享同一网络进行通信）。
-
-
-        </div>
-    
-
-</div>
-            
-                
-<div class="post">
-
-    <div class="post-header index">
-        <h1 class="title">
-            <a href="/2026/09/19/AI-interview/">
-                AI 面试
-            </a>
-        </h1>
-        <div class="post-info">
-            
-                <span class="date">2026-09-19</span>
-            
-            
-            
-                <span class="category">
-                    <a href="/categories/新/">新</a>
-                </span>
-            
-        </div>
-    </div>
-
-    
-        <div class="content">
-            <h2 id="一、-Agent-编排与多-Agent-协作"><a href="#一、-Agent-编排与多-Agent-协作" class="headerlink" title="一、 Agent 编排与多 Agent 协作"></a>一、 Agent 编排与多 Agent 协作</h2><p><strong>1. 题目：在构建企业级 Agent 时，如何保证工具调用（Tool Calling）的可靠性，特别是涉及 CRM、工单等内部系统写操作时？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>规范封装：</strong> 对内部系统封装为 Tool 时，需统一 Schema 规范，并集成鉴权、参数校验、幂等与重试机制 [cite: 10, 26]。</li>
-<li>[cite_start]<strong>链路闭环：</strong> 结合“计划-执行-校验”链路，在高风险操作前引入模拟执行（dry-run）或人工审批节点，降低生产事故风险 [cite: 10, 27]。</li>
-<li>[cite_start]<strong>安全审计：</strong> 必须具备 RBAC 权限模型、审计日志与敏感字段（PII）脱敏处理，确保 Agent 在授权范围内操作 [cite: 4, 8, 23]。</li>
-</ul>
-</li>
-</ul>
-<p><strong>2. 题目：您在项目中使用了 LangGraph 与 Dify，对于复杂的工作流，如何解决 Agent 可能出现的逻辑偏差或死循环？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>状态机管理：</strong> 利用 LangGraph 等工具将“问答、自动化、浏览器操作”统一为可编排的工作流，通过显式的状态转移控制逻辑 [cite: 8, 22]。</li>
-<li>[cite_start]<strong>异常归因：</strong> 建立失败案例归因机制（如检索偏差、切块问题或模型偏离），并形成修复闭环 [cite: 23]。</li>
-<li>[cite_start]<strong>工具沙箱：</strong> 在受控的工具沙箱中运行 Agent 逻辑，配合提示注入防护确保流程不被非法篡改 [cite: 4, 23]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="二、-RAG-工程化与检索深度"><a href="#二、-RAG-工程化与检索深度" class="headerlink" title="二、 RAG 工程化与检索深度"></a>二、 RAG 工程化与检索深度</h2><p><strong>3. 题目：简历中提到您搭建了支持“混合检索 + 重排”的 RAG 体系，请问如何优化检索的准确性与引用可信度？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>多路召回：</strong> 采用 Hybrid 检索（BM25 + 向量）结合 rerank 重排，提升文档召回的相关性 [cite: 4, 9]。</li>
-<li>[cite_start]<strong>引用校验：</strong> 实施强制引用（citation）策略与答案置信度门控，对于低置信度结果采取拒答策略，防止模型幻觉 [cite: 4, 9]。</li>
-<li>[cite_start]<strong>精细化解析：</strong> 针对 PDF&#x2F;HTML 等文档进行版面分块与去噪，支持多知识域隔离，确保检索源头数据的质量 [cite: 9]。</li>
-</ul>
-</li>
-</ul>
-<p><strong>4. 题目：对于 MCP (Model Context Protocol) 协议，您如何理解其在 Agent 工具化接入中的价值？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>标准化接入：</strong> 能够将内部系统以标准化的“工具”形态接入 Agent，实现本地与远程两种调用形态的复用 [cite: 2, 26]。</li>
-<li>[cite_start]<strong>最小权限原则：</strong> 按“最小权限 + 可观测 + 可回放”原则封装操作，提升多 Agent 复用时的安全性 [cite: 27]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="三、-工程化保障与自动化提效"><a href="#三、-工程化保障与自动化提效" class="headerlink" title="三、 工程化保障与自动化提效"></a>三、 工程化保障与自动化提效</h2><p><strong>5. 题目：如何通过可观测性（Observability）体系保障企业级 LLM 应用的 SLA？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>全链路观测：</strong> 引入可观测性工具进行链路追踪（Trace）、指标监控（Metrics）与日志审计（Logs） [cite: 4, 12]。</li>
-<li>[cite_start]<strong>成本看板：</strong> 建立按租户、模型或链路分摊的成本看板，实现 SLA 告警闭环 [cite: 12]。</li>
-<li>[cite_start]<strong>工程化部署：</strong> 利用 Docker 化部署、CI&#x2F;CD (GitHub Actions) 以及灰度发布与回滚机制确保线上稳定 [cite: 4, 12]。</li>
-</ul>
-</li>
-</ul>
-<p><strong>6. 题目：Playwright 在您的 Agent 体系中除了数据采集，还承担了哪些关键任务？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>能力增强：</strong> 为 Agent 提供登录态管理、元素定位及表单流程回放等可控的浏览器操作能力 [cite: 13, 29]。</li>
-<li>[cite_start]<strong>自动化验收：</strong> 将回归脚本接入 CI 流程，在发布前对关键路径做自动化验收，提升交付稳定性 [cite: 30]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="四、-综合能力与背景"><a href="#四、-综合能力与背景" class="headerlink" title="四、 综合能力与背景"></a>四、 综合能力与背景</h2><p><strong>7. 题目：您提到利用 AI 辅助开发（如 Cursor&#x2F;Claude Code）显著缩短了交付周期，具体的落地实践是什么？</strong></p>
-<ul>
-<li><strong>参考答案要点：</strong><ul>
-<li>[cite_start]<strong>流程提效：</strong> 沉淀 spec 模板、测试用例生成及回归脚本脚手架，实现需求拆解到部署的全流程提效 [cite: 2, 11]。</li>
-<li>[cite_start]<strong>项目经验：</strong> 已支撑 15+ 业务应用落地，在实际场景中（如工单处理）验证了约 35% 的效率提升 [cite: 24]。</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h3 id="💡-面试考察建议"><a href="#💡-面试考察建议" class="headerlink" title="💡 面试考察建议"></a>💡 面试考察建议</h3><p>[cite_start]牛一拥有 <strong>8 年工程经验</strong> 且背景扎实（北邮硕士，研究方向为检索增强生成） [cite: 2, 32]。面试时应重点关注其在 <strong>“生产环境下的异常处理”</strong> 与 <strong>“复杂业务流的工程化拆解”</strong> 能力，这能体现其作为高级工程师在 AI 落地中的核心价值。</p>
-
-        </div>
-    
-
-</div>
-            
         </section>
     </div>
 </div>
@@ -1172,19 +1220,19 @@ source: shanggu chat auto-publish
         <ul>
             
             <li>
-                <a class="footer-post" href="/2026/11/22/2026-11-22-pr-370-%E9%87%8D%E6%9E%84%E9%A1%B6%E9%83%A8%E5%AF%BC%E8%88%AA%E6%A0%8F-%E7%A7%BB%E9%99%A4%E5%BC%B9%E6%A1%86%E5%B9%B6%E4%BC%98%E5%8C%96%E5%B8%83%E5%B1%80/">PR #370: 重构顶部导航栏，移除弹框并优化布</a>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/21/2026-11-21-seo%E8%AF%81%E4%B9%A6%E8%87%AA%E5%8A%A8%E5%8C%96%E6%96%B9%E6%A1%88%E6%8E%A2%E8%AE%A8/">SEO证书自动化方案探讨</a>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">验证下然后给 alphaquant来接</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/20/2026-11-20-%E8%BF%9B%E7%A8%8B%E7%BA%A7-inflight-%E8%AE%A1%E6%95%B0%E6%B2%BB%E6%9C%AC%E5%9C%B0-llm-%E7%94%9F%E6%88%90%E6%85%A2/">进程级 inflight 计数治本地 LLM 生成</a>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
             </li>
             
             <li>
-                <a class="footer-post" href="/2026/11/20/2026-11-20-%E5%90%8E%E5%8F%B0%E8%AE%A9%E8%B7%AF%E9%97%A8%E8%A7%A3%E5%86%B3-mini-%E7%94%9F%E6%88%90%E6%85%A2%E9%97%AE%E9%A2%98/">后台让路门解决 mini 生成慢问题</a>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">你是技术编辑, 只输出简洁清爽 markdown,</a>
             </li>
             
         </ul>

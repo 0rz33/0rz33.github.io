@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="# Redis `max number of clients reached` 排查与连接池收敛
+
+## 背景与场景
+
+生产环境 Redis 实例报 `max number of clients reached`，服务新建连接被拒绝。根因不是 `maxclients` 配置太小，而是项目内多处独立创">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="你是技术编辑, 只输出简洁清爽 markdown, 无任何客套"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>你是技术编辑, 只输出简洁清爽 markdown, 无任何客套 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">
+                你是技术编辑, 只输出简洁清爽 markdown, 无任何客套
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-27</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+# Redis `max number of clients reached` 排查与连接池收敛
+
+## 背景与场景
+
+生产环境 Redis 实例报 `max number of clients reached`，服务新建连接被拒绝。根因不是 `maxclients` 配置太小，而是项目内多处独立创建 `redis.NewClient` 且未调优池参数，叠加 mini / worker 多实例后连接总数超限。需要先确认泄漏源，再把分散的 client 收敛成共享单例并显式管控池参数。
+
+---
+
+## 核心结论
+
+1. **先诊断再止血**：用 `redis-cli CLIENT LIST` 聚合 IP 和 idle 时长，确认泄漏来自哪个服务，`CONFIG SET maxclients` 只是临时手段。
+2. **go-redis 默认池 = 10×CPU 核数**：未显式设 `PoolSize` 时，每个 `redis.NewClient` 都会开出 `10×GOMAXPROCS` 个连接，多进程叠加容易打满。
+3. **共享单例 + SSOT 构造函数**：项目内所有 client 应合并为一个，走 `shared/` 下的统一入口，显式设 `PoolSize`、`MinIdleConns`、`ConnMaxIdleTime`。
+4. **`ClientName` 是唯一可观测点**：设置 `ClientName` 后，`CLIENT LIST` 能直接定位来源服务，不设则 IP 聚合也看不清。
+5. **服务端两个必设参数**：`timeout 300`（服务端主动断空闲连接）+ `tcp-keepalive 60`（探活），这两个参数不设，客户端泄漏的连接会一直挂着。
+
+---
+
+## 实现方案
+
+### 第一步：诊断连接状态
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 总览：connected_clients / maxclients / blocked_clients</span></span><br><span class="line">redis-cli INFO clients</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认当前上限，默认 10000，受 ulimit -n 约束</span></span><br><span class="line">redis-cli CONFIG GET maxclients</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按来源 IP 聚合，找哪个服务在疯狂建连</span></span><br><span class="line">redis-cli CLIENT LIST \</span><br><span class="line">  | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span> \</span><br><span class="line">  | <span class="built_in">cut</span> -d= -f2 \</span><br><span class="line">  | <span class="built_in">cut</span> -d: -f1 \</span><br><span class="line">  | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn | <span class="built_in">head</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 找大量 idle 连接（idle 高 = 连接没复用/没关 = 泄漏典型）</span></span><br><span class="line">redis-cli CLIENT LIST \</span><br><span class="line">  | grep -o <span class="string">&#x27;idle=[0-9]*&#x27;</span> \</span><br><span class="line">  | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c | <span class="built_in">sort</span> -rn | <span class="built_in">head</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 看应用是否设了 CLIENT SETNAME（没设的话聚合也看不清来源）</span></span><br><span class="line">redis-cli CLIENT LIST | grep -o <span class="string">&#x27;name=[^ ]*&#x27;</span> | <span class="built_in">sort</span> | <span class="built_in">uniq</span> -c</span><br></pre></td></tr></table></figure>
+
+### 第二步：临时止血
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 提高上限（需先确认 ulimit -n 足够，否则无效）</span></span><br><span class="line">redis-cli CONFIG SET maxclients 20000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 服务端超时断开空闲连接，防止已泄漏的连接继续占位</span></span><br><span class="line">redis-cli CONFIG SET <span class="built_in">timeout</span> 300</span><br><span class="line"></span><br><span class="line"><span class="comment"># 强杀指定连接（慎用，会中断正在使用的连接）</span></span><br><span class="line">redis-cli CLIENT KILL ADDR &lt;ip:port&gt;</span><br><span class="line"><span class="comment"># 或批量杀 normal 类型（跳过自身）</span></span><br><span class="line">redis-cli CLIENT KILL TYPE normal SKIPME <span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
+
+### 第三步：代码层修复（以 shanggu 仓库为例）
+
+**当前泄漏点**：
+
+| 文件 | 问题 |
+|---|---|
+| `internal/memory/hubu.go:38` | 独立 client，PoolSize 20 |
+| `internal/adapter/zhukesi/chat_cache.go:51` | 独立 client，默认池（10×CPU核数） |
+| `internal/registry/llm/semantic_cache.go:70` | 独立 client，无池参数 |
+| `internal/registry/llm/gemini_usage.go:36` | 独立 client，无池参数 |
+
+**修复：收敛为共享单例**
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// shared/redis.go — SSOT 构造函数</span></span><br><span class="line"><span class="keyword">package</span> shared</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">    <span class="string">&quot;sync&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/redis/go-redis/v9&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    redisOnce   sync.Once</span><br><span class="line">    redisClient *redis.Client</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RedisClient</span><span class="params">()</span></span> *redis.Client &#123;</span><br><span class="line">    redisOnce.Do(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        redisClient = redis.NewClient(&amp;redis.Options&#123;</span><br><span class="line">            Addr:            cfg.RedisAddr,      <span class="comment">// 从 agent_config 读，call-time 读取</span></span><br><span class="line">            PoolSize:        <span class="number">20</span>,                 <span class="comment">// 显式设定，不走默认 10×CPU</span></span><br><span class="line">            MinIdleConns:    <span class="number">5</span>,                  <span class="comment">// 保持最小空闲数，避免冷启动延迟</span></span><br><span class="line">            ConnMaxIdleTime: <span class="number">5</span> * time.Minute,    <span class="comment">// 超时回收空闲连接</span></span><br><span class="line">            ClientName:      <span class="string">&quot;shanggu-master&quot;</span>,   <span class="comment">// CLIENT LIST 可见，便于定位</span></span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> redisClient</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+其余各处改为：
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原来各自 redis.NewClient(...)</span></span><br><span class="line"><span class="comment">// 改为：</span></span><br><span class="line">rdb := shared.RedisClient()</span><br></pre></td></tr></table></figure>
+
+### 第四步：服务端 redis.conf 补全
+
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">timeout 300          <span class="comment"># 空闲超过 300s 服务端主动断</span></span><br><span class="line">tcp-keepalive 60     <span class="comment"># 60s 探活，防 NAT/防火墙静默断连</span></span><br></pre></td></tr></table></figure>
+
+系统层：
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认 ulimit -n 足够（建议 ≥ maxclients + 1000）</span></span><br><span class="line"><span class="built_in">ulimit</span> -n 65535</span><br><span class="line"><span class="comment"># 持久化写入 /etc/security/limits.conf 或 launchd plist</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**1. `CONFIG SET maxclients` 受 `ulimit -n` 上限约束，调大无效**
+
+Redis 建连时调用 `accept()`，受操作系统 fd 数限制。如果 `ulimit -n` 是 4096，`CONFIG SET maxclients 20000` 不会生效，Redis 启动日志会有 `You requested maxclients of X requiring at least Y max file descriptors` 警告。先调 `ulimit`，再调 `maxclients`。
+
+**2. 不要在请求路径或循环里 `redis.NewClient()`**
+
+每次调用都会创建新的连接池，函数返回后 client 若不显式 `Close()`，连接池不会回收。高 QPS 下几轮请求就能打满连接数。正确做法是进程启动时一次性初始化，全局复用。
+
+**3. Pub/Sub 和 `BLPOP` 是独占连接，不走池**
+
+go-redis 的 Pub/Sub 和阻塞命令（`BLPop`、`BRPop`）各自持有一个独占连接，不归连接池管理。如果有 goroutine 泄漏或 context 未取消，这类连接不会被 `ConnMaxIdleTime` 回收，只能靠服务端 `timeout` 或重启清理。审查代码时需单独排查这两类模式。
+
+---
+
+## 底层机制
+
+go-redis 的连接池实现是惰性建连：`redis.NewClient` 本身不建连，第一次执行命令时才从池里取或新建连接。`PoolSize` 是每个 client 实例的上限，而非全局上限——这是多 client 实例共存时容易踩的坑：4 个 client 各自默认池（假设 10×4核=40），就是 160 个潜在连接，再叠上 mini/worker 两个进程，总数直接 320+，远超预期。
+
+Redis 服务端的 `maxclients` 是全局值，所有来源的连接共享这个上限。连接到达上限后，新的 `accept()` 直接返回错误，客户端收到 `ERR max number of clients reached`，表现为请求立即失败而非超时排队。因此这类故障来得突然，需要在监控层提前对 `connected_clients / maxclients` 比值设告警（建议 > 80% 告警）。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/shanggu-digest/">#shanggu-digest</a> <a href="/tags/subscription-mode/">#subscription-mode</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">验证下然后给 alphaquant来接</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">你是技术编辑, 只输出简洁清爽 markdown,</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

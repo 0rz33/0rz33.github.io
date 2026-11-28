@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="# P99 延迟飙升诊断：CPU/内存/QPS 均正常时的系统化根因推演
+
+## 背景与场景
+
+线上服务 P99 延迟从 50ms 突然飙到 2s，但监控大盘上 CPU、内存、QPS 三项核心指标全部正常。这是一个极具迷惑性的场景——传统的&#34;扩容/重启&#34;本能反应在这里往往无效。核心线索恰恰藏在&#34;三项">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="You are a precise execution engine. Output structured JSON f…"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>You are a precise execution engine. Output structured JSON f… - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">
+                You are a precise execution engine. Output structured JSON f…
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-28</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+# P99 延迟飙升诊断：CPU/内存/QPS 均正常时的系统化根因推演
+
+## 背景与场景
+
+线上服务 P99 延迟从 50ms 突然飙到 2s，但监控大盘上 CPU、内存、QPS 三项核心指标全部正常。这是一个极具迷惑性的场景——传统的"扩容/重启"本能反应在这里往往无效。核心线索恰恰藏在"三项正常"本身：**不是整体过载，是少数请求被卡住了**。这类问题在微服务架构、数据库密集型后端和 Go/JVM 服务中高频出现，定位不当容易浪费数小时。
+
+---
+
+## 核心结论
+
+**结论 1：P99 恶化而 P50 正常，锁竞争是第一嫌疑**
+
+锁（DB 行锁、Go `sync.Mutex`、Redis 单线程脚本）的特征就是"少数持锁请求影响大量排队请求"。QPS 越高，尾部排队越长，P99 越烂。先查 `information_schema.innodb_lock_waits`（MySQL）或 `pg_locks`（PG），以及 Go 的 `db.Stats().WaitCount/WaitDuration`。
+
+**结论 2：P99 值恰好等于某个超时配置，大概率是外部依赖问题**
+
+P99 ≈ 1s 或 P99 ≈ 2s 且呈"阶梯分布"（不是随机散点），说明是某个 timeout 配置在兜底。常见来源：下游服务偶发慢响应、容器内 DNS `ndots=5` 导致每次域名解析多跑 5 次无效查询。先看 `cat /etc/resolv.conf`，再用 `tcpdump -i any port 53` 抓 DNS 包确认。
+
+**结论 3：GC 暂停在 CPU 指标上是隐形的**
+
+Go GC 和 JVM GC 的 Stop-the-World 阶段不计入请求线程的 CPU 时间，但会冻结所有 goroutine/线程。用 `GODEBUG=gctrace=1` 输出 GC 日志，对比 wall time 列与 P99 spike 的时间点是否吻合。Go GC 暂停 >50ms 即需关注。
+
+**结论 4：重启短暂恢复后再度劣化，定性为资源泄漏**
+
+goroutine 泄漏或 FD 泄漏的特征是单调增长然后耗尽。访问 `/debug/pprof/goroutine?debug=2`，大量处于 `semacquire` 或 `chan receive` 状态的 goroutine 堆积 = 泄漏确认。goroutine 总数趋势图单调增长也是铁证。
+
+**结论 5：Tracing 瀑布图是最快定位工具，30 秒内缩圈**
+
+在 Jaeger/Tempo 里直接捞 P99 请求的 span 瀑布图。如果某个 span 有大段"空白"（span 存在但没有子 span 覆盖），说明是在等连接池或等锁，而不是真正在执行。这一步通常 30 秒内能把根因从六类缩到两类。
+
+---
+
+## 实现方案
+
+### Step 1：用 Tracing 快速缩圈（首选）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Jaeger UI 操作路径：</span></span><br><span class="line"><span class="comment"># Services → your-service → Find Traces → 按 duration DESC 排序</span></span><br><span class="line"><span class="comment"># 点开 P99 请求，看 span 瀑布图</span></span><br><span class="line"><span class="comment"># 重点关注：</span></span><br><span class="line"><span class="comment">#   - 哪个 span 最长？</span></span><br><span class="line"><span class="comment">#   - 长 span 内有没有大段空白（等待期）？</span></span><br><span class="line"><span class="comment">#   - 是自身代码段慢，还是外部调用慢？</span></span><br></pre></td></tr></table></figure>
+
+### Step 2：DB 锁等待排查
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- MySQL 查锁等待</span></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  r.trx_id waiting_trx_id,</span><br><span class="line">  r.trx_mysql_thread_id waiting_thread,</span><br><span class="line">  r.trx_query waiting_query,</span><br><span class="line">  b.trx_id blocking_trx_id,</span><br><span class="line">  b.trx_mysql_thread_id blocking_thread,</span><br><span class="line">  b.trx_query blocking_query</span><br><span class="line"><span class="keyword">FROM</span> information_schema.innodb_lock_waits w</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> information_schema.innodb_trx b <span class="keyword">ON</span> b.trx_id <span class="operator">=</span> w.blocking_trx_id</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> information_schema.innodb_trx r <span class="keyword">ON</span> r.trx_id <span class="operator">=</span> w.requesting_trx_id;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- PostgreSQL 查锁</span></span><br><span class="line"><span class="keyword">SELECT</span> pid, now() <span class="operator">-</span> pg_stat_activity.query_start <span class="keyword">AS</span> duration, query, state</span><br><span class="line"><span class="keyword">FROM</span> pg_stat_activity</span><br><span class="line"><span class="keyword">WHERE</span> state <span class="operator">!=</span> <span class="string">&#x27;idle&#x27;</span> <span class="keyword">AND</span> now() <span class="operator">-</span> pg_stat_activity.query_start <span class="operator">&gt;</span> <span class="type">interval</span> <span class="string">&#x27;1 second&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go 连接池指标：在 metrics handler 里暴露</span></span><br><span class="line">stats := db.Stats()</span><br><span class="line"><span class="comment">// 关键字段：</span></span><br><span class="line"><span class="comment">// stats.WaitCount    - 累计等待连接次数</span></span><br><span class="line"><span class="comment">// stats.WaitDuration - 累计等待时长</span></span><br><span class="line"><span class="comment">// stats.MaxIdleClosed / MaxLifetimeClosed - 连接被关闭原因</span></span><br></pre></td></tr></table></figure>
+
+### Step 3：GC 暂停排查
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Go：实时打印 GC 日志</span></span><br><span class="line">GODEBUG=gctrace=1 ./your-service 2&gt;&amp;1 | grep <span class="string">&quot;^gc&quot;</span> | awk <span class="string">&#x27;&#123;print $1, $4, $NF&#125;&#x27;</span></span><br><span class="line"><span class="comment"># 格式：gc N @Xs N%: Nms+Nms+Nms clock, ...</span></span><br><span class="line"><span class="comment"># 第三列 clock 中最后一个数 = wall time，&gt;50ms 需关注</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 对齐时间点：</span></span><br><span class="line"><span class="comment"># gc 日志里的 @Xs 是服务启动后的相对时间</span></span><br><span class="line"><span class="comment"># 换算成 Unix 时间对比 P99 spike</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># JVM G1GC：</span></span><br><span class="line">-Xlog:gc*:file=/var/log/gc.log:<span class="keyword">time</span>,<span class="built_in">uptime</span>,level,tags:filecount=5,filesize=20m</span><br><span class="line"><span class="comment"># 看 GC pause time，Full GC 通常 &gt;500ms</span></span><br></pre></td></tr></table></figure>
+
+### Step 4：Goroutine 泄漏排查
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 实时 goroutine dump</span></span><br><span class="line">curl -s http://localhost:6060/debug/pprof/goroutine?debug=2 | <span class="built_in">head</span> -300</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重点看：</span></span><br><span class="line"><span class="comment"># 1. 总 goroutine 数（第一行 goroutine N [...]）</span></span><br><span class="line"><span class="comment"># 2. 大量 goroutine 处于相同阻塞状态：</span></span><br><span class="line"><span class="comment">#    - &quot;semacquire&quot; = 在等 Mutex</span></span><br><span class="line"><span class="comment">#    - &quot;chan receive&quot; = 在等 channel</span></span><br><span class="line"><span class="comment">#    - &quot;IO wait&quot; = 在等网络/文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># pprof block profile（需提前开启）</span></span><br><span class="line"><span class="comment"># 在 main() 里：runtime.SetBlockProfileRate(1)</span></span><br><span class="line">go tool pprof http://localhost:6060/debug/pprof/block</span><br><span class="line"><span class="comment"># (pprof) top 10</span></span><br><span class="line"><span class="comment"># (pprof) web   # 生成调用图</span></span><br></pre></td></tr></table></figure>
+
+### Step 5：DNS 超时排查（容器内高发）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 ndots 配置</span></span><br><span class="line"><span class="built_in">cat</span> /etc/resolv.conf</span><br><span class="line"><span class="comment"># 如果 ndots=5，访问 &quot;redis&quot; 会依次查询：</span></span><br><span class="line"><span class="comment">#   redis.namespace.svc.cluster.local.</span></span><br><span class="line"><span class="comment">#   redis.svc.cluster.local.</span></span><br><span class="line"><span class="comment">#   redis.cluster.local.</span></span><br><span class="line"><span class="comment">#   redis.ec2.internal.    (或其他 search domain)</span></span><br><span class="line"><span class="comment">#   redis.                 ← 最终成功</span></span><br><span class="line"><span class="comment"># 5 次查询，每次超时就叠加</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 抓 DNS 包确认</span></span><br><span class="line">tcpdump -i any -n port 53 2&gt;&amp;1 | <span class="built_in">head</span> -50</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修复方案：在 Pod spec 里</span></span><br><span class="line">dnsConfig:</span><br><span class="line">  options:</span><br><span class="line">    - name: ndots</span><br><span class="line">      value: <span class="string">&quot;2&quot;</span>   <span class="comment"># 降低到 2，大幅减少无效查询</span></span><br></pre></td></tr></table></figure>
+
+### Step 6：网络层排查
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># TCP 重传率</span></span><br><span class="line">netstat -s | grep -i retransmit</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line"><span class="built_in">cat</span> /proc/net/snmp | grep Tcp | awk <span class="string">&#x27;NR==2&#123;print &quot;RetransSegs:&quot;, $13&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 磁盘 IO（日志写入阻塞也会影响延迟）</span></span><br><span class="line">iostat -x 1 5 | grep -v <span class="string">&quot;^$&quot;</span></span><br><span class="line"><span class="comment"># 看 await（平均 IO 等待时间）和 %util（磁盘繁忙度）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># FD 耗尽</span></span><br><span class="line"><span class="built_in">ls</span> /proc/$(pgrep your-service)/fd | <span class="built_in">wc</span> -l</span><br><span class="line"><span class="comment"># 对比 ulimit -n（系统限制）</span></span><br></pre></td></tr></table></figure>
+
+---
+
+## 避坑指南
+
+**坑 1：不要在 P99 spike 时才开始收集数据**
+
+pprof block profile 和 goroutine dump 要在问题发生期间采集，之后 goroutine 可能已经退出、锁已经释放，dump 出来是正常状态。正确做法：在 service 里提前埋好 `/debug/pprof` 端点，问题复现时立刻采集，或者配置持续 profiling（如 Pyroscope）。
+
+**坑 2：Go pprof block profile 默认关闭，不提前开启则无法采集**
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 必须在 main() 启动时设置，否则 block profile 永远为空</span></span><br><span class="line">runtime.SetBlockProfileRate(<span class="number">1</span>)    <span class="comment">// 记录所有阻塞事件（生产可设 100 降低开销）</span></span><br><span class="line">runtime.SetMutexProfileFraction(<span class="number">5</span>) <span class="comment">// 记录 mutex 竞争</span></span><br></pre></td></tr></table></figure>
+
+**坑 3：P99 恰好等于超时配置值时，不要只看"下游服务是否挂了"**
+
+下游没挂不代表没超时。超时可能是偶发的（1% 请求慢了 1.9s，刚好没超 2s 超时，但 P99 就是这 1%）。正确的排查是：在 Tracing 里把下游调用的 latency 分位数单独拉出来看，不要只看 P50。DNS 超时尤其容易被忽视，因为它不出现在应用层 Tracing 里（DNS 在 `net.Dial` 里面，Go 标准库默认没有 span）。
+
+---
+
+## 底层机制
+
+**为什么 CPU/内存/QPS 正常，P99 还能烂？**
+
+P99 衡量的是"最慢的 1% 请求"，CPU/内存/QPS 衡量的是"整体均值/总量"。锁竞争的本质是串行化：持锁的请求在 CPU 上正常执行，等锁的请求在内核 futex 上休眠（不占 CPU），但它的 wall time 在增长。99 个请求中有 1 个等了 1.95s，整体 QPS 和 CPU 丝毫不受影响，但 P99 就被这 1 个拉到 1.95s。这就是为什么"三项正常"不代表服务健康，P99/P999 才是用户体验的真实镜像。
+
+GC 暂停的机制类似：Go 的三色标记 GC 大部分工作与应用并发执行，CPU 利用率看起来只是略微升高。但 mark termination 阶段必须 STW（全部 goroutine 暂停），这个暂停时间不会体现在请求线程的 CPU 时间里，却直接叠加到所有正在处理中的请求的 latency 上。一次 200ms 的 STW = 当时所有在途请求各自增加 200ms 延迟，全部打进 P99。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/shanggu-digest/">#shanggu-digest</a> <a href="/tags/subscription-mode/">#subscription-mode</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">验证下然后给 alphaquant来接</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">你是技术编辑, 只输出简洁清爽 markdown,</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

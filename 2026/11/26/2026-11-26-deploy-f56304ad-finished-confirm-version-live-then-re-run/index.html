@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="已蒸馏完成，KB 已存入（`d9eaf213`）。
+
+---
+
+# 网关视觉透传：OpenAI Vision API 兼容层的两阶段路由实现
+
+## 背景与场景
+
+shanggu 作为统一 LLM 网关，对外暴露 OpenAI 兼容接口。在此之前，客户端发来带图的 `content` 数组消息（标准">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Deploy f56304ad finished — confirm version live then re-run …"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>Deploy f56304ad finished — confirm version live then re-run … - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/26/2026-11-26-deploy-f56304ad-finished-confirm-version-live-then-re-run/">
+                Deploy f56304ad finished — confirm version live then re-run …
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-26</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+已蒸馏完成，KB 已存入（`d9eaf213`）。
+
+---
+
+# 网关视觉透传：OpenAI Vision API 兼容层的两阶段路由实现
+
+## 背景与场景
+
+shanggu 作为统一 LLM 网关，对外暴露 OpenAI 兼容接口。在此之前，客户端发来带图的 `content` 数组消息（标准 OpenAI vision 格式）时，网关无法解析图片字段，视觉能力形同虚设。业务上 Gemini / Sonnet 两个主力模型都支持视觉，网关却是瓶颈——需要一次性打通消息解析、图聚合、provider 路由三段，同时保证纯文本路径零行为变更。
+
+---
+
+## 核心结论
+
+1. **OpenAI vision content 数组必须在消息层反序列化，不能在路由层猜**：`content` 可能是 `string`（纯文本）或 `[]ContentPart`（含图），用自定义 `UnmarshalJSON` 在 `chat.Message` 层做分叉，快车道/慢车道各自处理，上层不感知。
+
+2. **图聚合必须幂等**：`Normalize` 阶段将所有消息的 `Images` 聚合进 `req.Images`（复用已有 vision 通道）时，要防止中间件多次调用导致图片二次累加。
+
+3. **provider 路由分两阶（Path 1 → Path 2 fallback）**：Path 1 尝试 OpenAI 兼容网关（GPTProto）的原生 `image_url` 透传；Path 2 是 provider 级联（Anthropic image block / 本地），把原始问题 + 图直接投给 vision 模型。两阶独立，本机无 GPTProto 时不 bail，直接走 Path 2。
+
+4. **`ModelSupportsVision` 注册表加族前缀回落**：精确 model ID 未命中时，按 `gemini-*` / `sonnet` / `opus` 前缀判断，避免动态别名（如 `gemini-flash-latest`）漏判。
+
+5. **vision 调用不能带 agent/SKU prompt**：把完整 ~7KB 系统提示词喂给 vision 调用，模型会进入 agent 模式，返回空响应或「没收到图」。vision 路径只给最小引导语（「看图直答」），问题 + 图本身就是完整输入。
+
+---
+
+## 实现方案
+
+### 1. 消息反序列化 — `internal/service/chat/model.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(m *Message)</span></span> UnmarshalJSON(data []<span class="type">byte</span>) <span class="type">error</span> &#123;</span><br><span class="line">    <span class="keyword">type</span> Alias Message</span><br><span class="line">    <span class="keyword">var</span> raw <span class="keyword">struct</span> &#123;</span><br><span class="line">        Alias</span><br><span class="line">        Content json.RawMessage <span class="string">`json:&quot;content&quot;`</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> err := json.Unmarshal(data, &amp;raw); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> err</span><br><span class="line">    &#125;</span><br><span class="line">    *m = Message(raw.Alias)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 快车道：content 是纯字符串，零行为变更</span></span><br><span class="line">    <span class="keyword">var</span> s <span class="type">string</span></span><br><span class="line">    <span class="keyword">if</span> json.Unmarshal(raw.Content, &amp;s) == <span class="literal">nil</span> &#123;</span><br><span class="line">        m.Content = s</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 慢车道：OpenAI content part 数组</span></span><br><span class="line">    <span class="keyword">var</span> parts []ContentPart</span><br><span class="line">    <span class="keyword">if</span> err := json.Unmarshal(raw.Content, &amp;parts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        m.Content = <span class="type">string</span>(raw.Content) <span class="comment">// 认不出不 400，退化文本</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> _, p := <span class="keyword">range</span> parts &#123;</span><br><span class="line">        <span class="keyword">switch</span> p.Type &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;text&quot;</span>:</span><br><span class="line">            m.Content += p.Text</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;image_url&quot;</span>:</span><br><span class="line">            m.Images = <span class="built_in">append</span>(m.Images, p.ImageURL.URL) <span class="comment">// data URI 或裸 URL 均收</span></span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;image&quot;</span>:</span><br><span class="line">            <span class="comment">// Anthropic 风格：source.media_type + source.data</span></span><br><span class="line">            m.Images = <span class="built_in">append</span>(m.Images, <span class="string">&quot;data:&quot;</span>+p.Source.MediaType+<span class="string">&quot;;base64,&quot;</span>+p.Source.Data)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 2. 图聚合 — `internal/service/chat/messages.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Normalize 幂等聚合各消息的图到 req.Images，防二次累加</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Normalize</span><span class="params">(req *ChatRequest)</span></span> &#123;</span><br><span class="line">    seen := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">    <span class="keyword">for</span> _, img := <span class="keyword">range</span> req.Images &#123;</span><br><span class="line">        seen[img] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> i := <span class="keyword">range</span> req.Messages &#123;</span><br><span class="line">        <span class="keyword">for</span> _, img := <span class="keyword">range</span> req.Messages[i].Images &#123;</span><br><span class="line">            <span class="keyword">if</span> _, ok := seen[img]; !ok &#123;</span><br><span class="line">                req.Images = <span class="built_in">append</span>(req.Images, img)</span><br><span class="line">                seen[img] = <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        req.Messages[i].Images = <span class="literal">nil</span> <span class="comment">// 清空消息级图，统一走 req.Images</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 3. 两阶 vision 路由 — `internal/adapter/zhukesi/chat_vision_native.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">nativeVisionStream</span><span class="params">(ctx context.Context, req *ChatRequest, out <span class="keyword">chan</span>&lt;- <span class="type">string</span>)</span></span> <span class="type">error</span> &#123;</span><br><span class="line">    <span class="comment">// Path 1: OpenAI 兼容网关原生透传（GPTProto）</span></span><br><span class="line">    <span class="keyword">if</span> gw := getGPTProtoGateway(); gw != <span class="literal">nil</span> &#123;</span><br><span class="line">        err := gw.ChatStreamWithImages(ctx, req, out)</span><br><span class="line">        <span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">            log.Info(<span class="string">&quot;👁️ 原生 vision 成功 (GPTProto)&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">        &#125;</span><br><span class="line">        log.Warn(<span class="string">&quot;Path 1 失败，回落 Path 2&quot;</span>, <span class="string">&quot;err&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// gw == nil 时直接跳过，不 bail，不返 nil（那是成功）</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Path 2: provider 级联（Anthropic image block / 本地）</span></span><br><span class="line">    <span class="comment">// 关键：只给最小引导，绝对不带 agent/SKU prompt</span></span><br><span class="line">    minimalSystem := <span class="string">&quot;请直接描述图片内容并回答问题。&quot;</span></span><br><span class="line">    <span class="keyword">return</span> cascadeVisionFallback(ctx, req.Images, req.UserQuestion, minimalSystem, out)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 4. 能力注册表族前缀回落 — `internal/shared/capabilities.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ModelSupportsVision</span><span class="params">(model <span class="type">string</span>)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> v, ok := visionModels[model]; ok &#123; <span class="comment">// 精确 ID 优先</span></span><br><span class="line">        <span class="keyword">return</span> v</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 动态别名（gemini-flash-latest 等）按族前缀判断</span></span><br><span class="line">    <span class="keyword">for</span> _, prefix := <span class="keyword">range</span> []<span class="type">string</span>&#123;<span class="string">&quot;gemini-&quot;</span>, <span class="string">&quot;claude-sonnet&quot;</span>, <span class="string">&quot;claude-opus&quot;</span>&#125; &#123;</span><br><span class="line">        <span class="keyword">if</span> strings.HasPrefix(model, prefix) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+### 5. Body 上限 — `internal/adapter/zhukesi/chat.go`
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> maxBodySize = <span class="number">16</span> &lt;&lt; <span class="number">20</span> <span class="comment">// 16 MiB，原 2 MiB，图 base64 内联单张可达 4MB</span></span><br></pre></td></tr></table></figure>
+
+### 6. 验证探针
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">curl -s http://mac-mini:8010/v1/chat/completions \</span><br><span class="line">  -H <span class="string">&quot;Content-Type: application/json&quot;</span> \</span><br><span class="line">  -d <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    &quot;model&quot;: &quot;shanggu-sonnet&quot;,</span></span><br><span class="line"><span class="string">    &quot;messages&quot;: [&#123;</span></span><br><span class="line"><span class="string">      &quot;role&quot;: &quot;user&quot;,</span></span><br><span class="line"><span class="string">      &quot;content&quot;: [</span></span><br><span class="line"><span class="string">        &#123;&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;图里有几条竖纹，分别什么颜色？&quot;&#125;,</span></span><br><span class="line"><span class="string">        &#123;&quot;type&quot;: &quot;image_url&quot;, &quot;image_url&quot;: &#123;&quot;url&quot;: &quot;data:image/png;base64,&lt;BASE64&gt;&quot;&#125;&#125;</span></span><br><span class="line"><span class="string">      ]</span></span><br><span class="line"><span class="string">    &#125;]</span></span><br><span class="line"><span class="string">  &#125;&#x27;</span></span><br><span class="line"><span class="comment"># 预期响应：4 条，红绿蓝黄（测试图顺序猜不到，防模型编造）</span></span><br></pre></td></tr></table></figure>
+
+实测结果（`f56304ad` 部署，mac-mini `:8010`）：
+- `shanggu-gemini` → ✅ 「共 4 条：红、绿、蓝、黄」
+- `shanggu-sonnet` → ✅ 同上
+- `shanggu-gemini` 纯文本 `1+1=?` → ✅ `2`（纯文本路径不受影响）
+
+---
+
+## 避坑指南
+
+**1. vision 路径绝对不能注入 agent/SKU 系统提示词**
+
+表现：模型收到 `~7KB` agent prompt 后进入 agent 模式，把图当作「不存在的附件」，返回「我没有收到图片」或空流。修法：vision 调用的 `system` 只放最小引导语，user 消息只含原始问题 + 图，不带任何工具描述 / SKU 路由上下文。
+
+**2. Path 1 不可用时不能静默成功**
+
+原始实现 `getGPTProtoGateway() == nil` 时 `return nil`，函数签名的 `nil` 在调用方被判为成功，图片无声丢弃，客户端收到空流。区分三种状态：`gw == nil`（跳过）、`err != nil`（降级）、`err == nil`（真正成功），任何一种都不能混淆。
+
+**3. 功能分支合 PR 后必须手动切回 main**
+
+`./ai.sh deploy` 执行 `git pull`，分支感知由当前 HEAD 决定。若 mini 停在 `claude/vision-passthrough-4764ad`，后续所有合进 main 的变更对该机器不可见。合 PR 后立即执行：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout main &amp;&amp; git pull origin main</span><br></pre></td></tr></table></figure>
+
+---
+
+## 底层机制
+
+**OpenAI vision content 的两种形态与解析责任归属**
+
+OpenAI Chat Completions API 规范允许 `messages[].content` 是 `string` 或 `ContentPart[]`，大多数代理网关只处理字符串形态。shanggu 在 `chat.Message` 层（`UnmarshalJSON`）完成分叉，纯文本快车道不改任何字段，数组慢车道提取文本段合并进 `Content`、图段收入 `Images`。上层路由、缓存、日志全部不感知格式差异。图聚合（`Normalize`）复用已有 `req.Images` vision 通道，无需修改路由核心。
+
+**两阶 fallback 的设计取舍**
+
+Path 1（GPTProto 原生透传）model 路由精确，用户钉定的 model 就是实际跑的 model；代价是对网关可用性强依赖，网关挂则整个 vision 断。Path 2（provider 级联）model 精确性退化——`shanggu-gemini` 的图在无 GPTProto 的部署上实际由 Anthropic Sonnet 执行——换来的是任何有 vision 能力的 provider 都能兜底。日志明确标记走的是哪条路径（`👁️ 原生 vision 成功 (provider 级联直接看图答)`），运维排查时可立即区分真实 provider 与路由 model 名的差异。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/shanggu-digest/">#shanggu-digest</a> <a href="/tags/subscription-mode/">#subscription-mode</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">验证下然后给 alphaquant来接</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">你是技术编辑, 只输出简洁清爽 markdown,</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

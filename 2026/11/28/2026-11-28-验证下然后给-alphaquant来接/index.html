@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="# shanggu-quant API 对接指南：端点验证 + AlphaQuant 接入全流程
+
+## 背景与场景
+
+shanggu 实盘分析模块（`shanggu-quant`）部署在 mini 节点（`:8010`），对外暴露分析接口和 KB 直查接口，供 AlphaQuant 量化平台消费。">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="验证下然后给 alphaquant来接"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>验证下然后给 alphaquant来接 - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">
+                验证下然后给 alphaquant来接
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-28</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+# shanggu-quant API 对接指南：端点验证 + AlphaQuant 接入全流程
+
+## 背景与场景
+
+shanggu 实盘分析模块（`shanggu-quant`）部署在 mini 节点（`:8010`），对外暴露分析接口和 KB 直查接口，供 AlphaQuant 量化平台消费。在正式交接前需验证路由是否挂载、鉴权是否生效，避免 AlphaQuant 侧集成时踩到"接了但没数据"或"路由 404"的坑。本文记录验证过程和完整对接合约。
+
+---
+
+## 核心结论
+
+1. **用"不带 token 探一遍"验证路由**：合法挂载的端点返回 `401/403`，未挂载返回 `404`。全 auth 挡说明路由正确、中间件生效，带 token 即通。
+2. **`REQUIRE_CHAT_AUTH` 开启时 API Key 不能填 `not-needed`**：mini 节点开了聊天鉴权，`Authorization: Bearer not-needed` 会被拒，必须填真实 `ADMIN_TOKEN`。
+3. **KB grounding 依赖爬虫有料**：`hanlin_quant`（审核）/ `hanlin_quant_unaudited`（未审核）两张表为空时，`shanggu-quant` 仍能用 Opus 常识回答，但 `sources_cited` 字段为空列表——这是正常降级，不是 bug。
+4. **KB 直查走 `/admin/kb/*` 路径，非 `/v1/`**：三条端点（list/doc/search）的鉴权头和 chat 一样用 `Bearer <ADMIN_TOKEN>`，但 base path 不同，不能混用。
+5. **分析出参顶层有 `sources_cited`**：每条引用带 `trust: verified|unverified`，消费方（AlphaQuant）应按此字段区分信源可信度，不要把 unverified 来源的结论当作实盘依据。
+
+---
+
+## 实现方案
+
+### 0. 前置验证（不带 token 探路）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 预期: 403（路由存在 + authAdmin 生效）</span></span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> http://&lt;mini-ip&gt;:8010/admin/kb/quant-list</span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> http://&lt;mini-ip&gt;:8010/admin/kb/quant-doc</span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> -X POST http://&lt;mini-ip&gt;:8010/admin/kb/quant-search</span><br><span class="line"></span><br><span class="line"><span class="comment"># 预期: 401（chat 鉴权，body: &quot;chat auth required&quot;）</span></span><br><span class="line">curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> -X POST http://&lt;mini-ip&gt;:8010/v1/chat/completions</span><br></pre></td></tr></table></figure>
+
+| 结果 | 含义 |
+|---|---|
+| `401 / 403` | ✅ 路由在线，鉴权正常 |
+| `404` | ❌ 路由未注册，检查 handler 挂载 |
+| `200`（无 token） | ❌ 鉴权中间件漏挂 |
+
+---
+
+### 1. AlphaQuant `/settings` 配置
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SHANGGU_BASE_URL = http://&lt;mini-ip&gt;:8010/v1</span><br><span class="line">SHANGGU_API_KEY  = &lt;ADMIN_TOKEN&gt;          # 注意：不是 &quot;not-needed&quot;</span><br></pre></td></tr></table></figure>
+
+---
+
+### 2. ① 分析接口（`policy_analyzer` 实盘用）
+
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">POST &#123;SHANGGU_BASE_URL&#125;/chat/completions</span><br><span class="line"><span class="attribute">Authorization</span><span class="punctuation">: </span>Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;model&quot;: &quot;shanggu-quant&quot;,</span><br><span class="line">  &quot;stream&quot;: false,</span><br><span class="line">  &quot;messages&quot;: [</span><br><span class="line">    &#123;&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;分析当前 A 股科技板块风险&quot;&#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+**响应结构**（顶层额外字段）：
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;choices&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>...<span class="punctuation">]</span><span class="punctuation">,</span>           <span class="comment">// 标准 OpenAI 格式，content 为中文 JSON 分析</span></span><br><span class="line">  <span class="attr">&quot;sources_cited&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>          <span class="comment">// KB grounding 引用，KB 有料时非空</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;doc_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;abc123&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;trust&quot;</span><span class="punctuation">:</span> <span class="string">&quot;verified&quot;</span><span class="punctuation">,</span>    <span class="comment">// verified = hanlin_quant；unverified = hanlin_quant_unaudited</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;国家队增持公告 2026-11-28&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+---
+
+### 3. ② KB 直查（`kb_reader` 用）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 列出指定时间段已审核文档</span></span><br><span class="line">GET http://&lt;mini-ip&gt;:8010/admin/kb/quant-list</span><br><span class="line">  ?start=2026-11-01</span><br><span class="line">  &amp;end=2026-11-28</span><br><span class="line">  &amp;trust=verified          <span class="comment"># verified | unverified | any</span></span><br><span class="line">  &amp;<span class="built_in">limit</span>=100</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按 doc_id 拉全文</span></span><br><span class="line">GET http://&lt;mini-ip&gt;:8010/admin/kb/quant-doc?<span class="built_in">id</span>=&lt;doc_id&gt;&amp;trust=any</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 语义搜索</span></span><br><span class="line">POST http://&lt;mini-ip&gt;:8010/admin/kb/quant-search</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line">Content-Type: application/json</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&quot;query&quot;</span>: <span class="string">&quot;央行降准&quot;</span>, <span class="string">&quot;limit&quot;</span>: 10, <span class="string">&quot;trust&quot;</span>: <span class="string">&quot;any&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+**通用响应格式**：
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;docs&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;doc_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;ts&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2026-11-28T08:00:00Z&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;source&quot;</span><span class="punctuation">:</span> <span class="string">&quot;xinhua&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;department&quot;</span><span class="punctuation">:</span> <span class="string">&quot;finance&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;url&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;body&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;trust&quot;</span><span class="punctuation">:</span> <span class="string">&quot;verified&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;ttl_until&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">null</span></span>        <span class="comment">// unverified 文档有 TTL（30天），verified 为 null</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;count&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+---
+
+### 4. ③ Health Badge
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 走 MCP RPC，同样需要 ADMIN_TOKEN</span></span><br><span class="line">POST http://&lt;mini-ip&gt;:8010/mcp/rpc</span><br><span class="line">Authorization: Bearer &lt;ADMIN_TOKEN&gt;</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&quot;method&quot;</span>: <span class="string">&quot;shanggu_health&quot;</span>, <span class="string">&quot;params&quot;</span>: &#123;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+---
+
+### 5. 爬虫源配置（让 KB 有料）
+
+KB 为空时 grounding 不生效，建议在 shanggu 侧配置：
+
+| 信源类型 | 落表 | 建议源 |
+|---|---|---|
+| A股 / 国家新闻 | `hanlin_quant`（审核） | 新华财经、国家发改委、Wind |
+| BTC / 外媒 | `hanlin_quant_unaudited`（未审核·TTL 30天） | X/Twitter、CoinDesk、Bloomberg |
+
+---
+
+## 避坑指南
+
+**1. `ADMIN_TOKEN` 和普通 Bearer Token 不能混用**
+
+`/admin/kb/*` 端点只认 `authAdmin` 中间件（校验 `ADMIN_TOKEN`），用普通用户 token 会得到 `403`。AlphaQuant 侧统一用 `ADMIN_TOKEN` 即可，两套接口复用同一 key。
+
+**2. KB 无料 ≠ 接口故障**
+
+新环境或爬虫停跑时，`quant-list` 返回 `{"docs":[],"count":0}`，`sources_cited` 为 `[]`——这是正常降级，模型会用 Opus 通识回答。接入方不要把"空 sources_cited"当做报警条件，应该监控爬虫是否持续入库。
+
+**3. `stream=true` 时 `sources_cited` 位置不同**
+
+流式响应中 `sources_cited` 在最后一个 SSE chunk 的 `delta` 里，非流式时在顶层。AlphaQuant 若用流式消费，需要在 `[DONE]` 前的最后一帧里提取，不要在首帧找。
+
+---
+
+## 底层机制
+
+**两张信任等级表的设计意图**
+
+`hanlin_quant`（审核表）存经人工或规则校验的可信源，查询时默认优先；`hanlin_quant_unaudited`（未审核表）存爬虫原始落库、TTL 30 天自动过期，适合时效性强但未核实的信源（如 X/外媒）。`trust` 字段在 grounding 时透传给消费方，让 AlphaQuant 侧自己决定是否展示未审核引用——分析引擎不替消费方做信源判断，只做透传标记。
+
+**鉴权分层**
+
+`:8010` 节点有两条鉴权中间件：`authAdmin`（校验 `ADMIN_TOKEN`，管 `/admin/*` 和 `/mcp/*`）和 `chatAuth`（校验 `REQUIRE_CHAT_AUTH`，管 `/v1/chat/*`）。`ADMIN_TOKEN` 同时满足两者，所以 AlphaQuant 只需配一个 key 就能打通全部端点。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/shanggu-digest/">#shanggu-digest</a> <a href="/tags/subscription-mode/">#subscription-mode</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">验证下然后给 alphaquant来接</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">你是技术编辑, 只输出简洁清爽 markdown,</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

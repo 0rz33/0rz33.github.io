@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="# JumpServer 统一入口：所有机器 22 端口只对跳板机开放
+
+## 背景与场景
+
+原有运维环境中，多台 Linode/AWS 机器对外开放了 22 端口，依赖 PAM OTP（`libpam-google-authenticator`）做双因子认证。这套方案的隐患在于：OTP 验证在每台">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="4ckU">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="You are a precise execution engine. Output structured JSON f…"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="0rz33"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    
+        <meta name="twitter:card" content="summary" />
+    
+    
+    
+
+    <!-- Title -->
+    
+    <title>You are a precise execution engine. Output structured JSON f… - 0rz33</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    <!-- Google Analytics -->
+    
+
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/tags">
+                    Tags
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/categories">
+                    Categories
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Searching-->
+<div class="search-bg">
+    <div class="search-container">
+            <div class="alpha-search">
+                <form class="site-search-form">
+                    <input type="text" id="local-search-input" class="st-search-input" />
+                </form>
+                <div id="local-search-result">
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!--Hamburger Icon-->
+<search>
+    <a href="#search"></a>
+</search>
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<!-- 执行本地搜索脚本 -->
+<script>
+    var inputArea = document.querySelector("#local-search-input");
+    var getSearchFile = function(){
+        var path = "/search.xml";
+        searchFunc(path, 'local-search-input', 'local-search-result');
+    }
+    inputArea.onfocus = function(){ getSearchFile() }
+    inputArea.onkeydown = function(){ if(event.keyCode==13) return false}
+</script>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-cube" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">
+                You are a precise execution engine. Output structured JSON f…
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2026-11-27</span>
+            
+            
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        
+# JumpServer 统一入口：所有机器 22 端口只对跳板机开放
+
+## 背景与场景
+
+原有运维环境中，多台 Linode/AWS 机器对外开放了 22 端口，依赖 PAM OTP（`libpam-google-authenticator`）做双因子认证。这套方案的隐患在于：OTP 验证在每台目标机上各自配置，自动化脚本无法应答验证码弹窗，且多人共用 root 时 OTP 密钥同一把无法区分操作者。需要一套集中入口：用户只通过 JumpServer 进来，目标机 22 端口不对外暴露，审计日志统一管理。
+
+## 核心结论
+
+1. **OTP 移到 JumpServer，目标机不再挂 PAM OTP**：JumpServer 自动化登录无法应答目标机的验证码弹窗，双因子在 JumpServer 层（系统设置 → 安全设置 → MFA 全局强制）一次解决。
+
+2. **目标机 sshd 改为纯公钥认证**：`AuthenticationMethods publickey`，同时 `PasswordAuthentication no`、`KbdInteractiveAuthentication no`、`PermitRootLogin no`，写进 `/etc/ssh/sshd_config.d/99-jms.conf`。
+
+3. **三层防火墙同时收紧**：云防火墙（AWS 安全组 / Linode Cloud Firewall）是主要手段，主机 `ufw` 是兜底，两者都把 22 端口来源限制为 `JMS_IP/32`，只靠其中一层不够。
+
+4. **Docker 端口绕过 ufw**：JumpServer 用 Docker 部署，80/443/2222 要靠云防火墙限源，ufw 对这些端口无效。
+
+5. **JumpServer 是新单点，是最高价值目标**：私钥和 `config.txt`（含 `SECRET_KEY`）加密备份，数据库定期备份；`SECRET_KEY` 丢失则托管的凭据无法解密。
+
+## 实现方案
+
+### 0. 动手前
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认带外控制台可用（Linode → LISH Console；AWS → EC2 Serial Console）</span></span><br><span class="line"><span class="comment"># 记录 JumpServer 固定公网 IP，后文记为 JMS_IP</span></span><br><span class="line"><span class="comment"># 保留所有现有 SSH 会话，不要断开</span></span><br></pre></td></tr></table></figure>
+
+### 1. 安装 JumpServer
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 先下载审阅脚本再执行</span></span><br><span class="line">curl -sSL https://github.com/jumpserver/jumpserver/releases/latest/download/quick_start.sh -o quick_start.sh</span><br><span class="line">less quick_start.sh</span><br><span class="line">bash quick_start.sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 管理命令</span></span><br><span class="line"><span class="built_in">cd</span> /opt/jumpserver-installer-*</span><br><span class="line">./jmsctl.sh status</span><br><span class="line">./jmsctl.sh restart</span><br></pre></td></tr></table></figure>
+
+首次登录后立即执行：
+1. 改管理员密码
+2. 系统设置 → 安全设置 → **MFA 全局强制**
+3. 配置 HTTPS，证书放 `/opt/jumpserver/config/nginx/cert/`
+4. 备份 `/opt/jumpserver/config/config.txt`（含 `SECRET_KEY`）
+
+### 2. 准备 JumpServer 访问目标机的密钥
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 JumpServer 机器上生成专用密钥</span></span><br><span class="line">ssh-keygen -t ed25519 -f ~/jms_ops_key -C <span class="string">&quot;jumpserver-ops&quot;</span> -N <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">cat</span> ~/jms_ops_key.pub   <span class="comment"># 记下公钥，下一步分发到所有目标机</span></span><br></pre></td></tr></table></figure>
+
+在 JumpServer 控制台：**账号管理 → 账号模板 → 新建**，用户名 `jmsops`，类型 SSH 密钥，粘贴私钥内容。
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 私钥导入控制台后从磁盘删除</span></span><br><span class="line"><span class="built_in">shred</span> -u ~/jms_ops_key</span><br></pre></td></tr></table></figure>
+
+### 3. 在每台目标机上创建账号并放入公钥
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每台目标机依次执行（跳板机1/2、AIOps、AWS业务机）</span></span><br><span class="line">useradd -m -s /bin/bash jmsops</span><br><span class="line"><span class="built_in">mkdir</span> -p /home/jmsops/.ssh</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&lt;粘贴 jms_ops_key.pub 内容&gt;&quot;</span> &gt; /home/jmsops/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">chmod</span> 700 /home/jmsops/.ssh</span><br><span class="line"><span class="built_in">chmod</span> 600 /home/jmsops/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">chown</span> -R jmsops:jmsops /home/jmsops/.ssh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 需要 sudo 权限时</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;jmsops ALL=(ALL) NOPASSWD:ALL&#x27;</span> &gt; /etc/sudoers.d/jmsops</span><br><span class="line"><span class="built_in">chmod</span> 440 /etc/sudoers.d/jmsops</span><br><span class="line">visudo -c   <span class="comment"># 语法验证</span></span><br></pre></td></tr></table></figure>
+
+### 4. JumpServer 录入资产与授权
+
+1. **资产管理 → 资产列表 → 创建 Linux 主机**：填 IP、端口 22、账号选 `jmsops` 模板
+2. **用户管理**：每人独立账号（解决原手册"共用 root OTP 密钥"问题），强制绑定 MFA
+3. **权限管理 → 资产授权**：用户组 → 节点/资产 → 账号 `jmsops`
+4. 开启**会话录像**和**命令记录**
+
+### 5. 验证连通（此时 22 端口还未关）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Web 终端：JumpServer → Luna → 点开资产，确认能进入</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># SSH 方式</span></span><br><span class="line">ssh -p 2222 你的用户名@JMS_IP</span><br><span class="line"></span><br><span class="line"><span class="comment"># 从 JumpServer 直连测试（确保密钥和账号配置正确）</span></span><br><span class="line">ssh -i ~/jms_ops_key jmsops@目标机IP <span class="string">&quot;hostname&quot;</span></span><br></pre></td></tr></table></figure>
+
+**所有目标机验证通过后，才继续下一步。**
+
+### 6. 收紧三层防火墙
+
+#### 第 1 层：云防火墙（主要手段）
+
+**AWS 安全组**：入站 22，源改为 `JMS_IP/32`，删除 `0.0.0.0/0`。
+
+**Linode Cloud Firewall 入站规则**：
+- 允许 TCP 22，来源 `JMS_IP/32`
+- 入站默认策略：Drop
+
+#### 第 2 层：主机防火墙 ufw（兜底）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 每台目标机执行，顺序不能颠倒</span></span><br><span class="line">ufw allow from JMS_IP to any port 22 proto tcp</span><br><span class="line">ufw status numbered                   <span class="comment"># 查看现有规则编号</span></span><br><span class="line">ufw delete allow 22/tcp               <span class="comment"># 删除全开放的 22 规则（如存在）</span></span><br><span class="line">ufw default deny incoming</span><br><span class="line">ufw default allow outgoing</span><br><span class="line">ufw <span class="built_in">enable</span></span><br><span class="line">ufw status verbose</span><br></pre></td></tr></table></figure>
+
+#### 第 3 层：sshd 加固（目标机）
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 若之前按原手册启用过 PAM OTP，先回滚</span></span><br><span class="line"><span class="built_in">cp</span> /root/sshd.pam.bak.YYYYMMDD /etc/pam.d/sshd</span><br><span class="line"><span class="built_in">rm</span> -f /etc/ssh/sshd_config.d/otp.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份原始配置（破坏性操作前必做）</span></span><br><span class="line"><span class="built_in">cp</span> /etc/ssh/sshd_config /etc/ssh/sshd_config.bak.$(<span class="built_in">date</span> +%s)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 写 drop-in（比直接改主配置文件更安全，易回滚）</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /etc/ssh/sshd_config.d/99-jms.conf &lt;&lt;<span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">PasswordAuthentication no</span><br><span class="line">KbdInteractiveAuthentication no</span><br><span class="line">PermitRootLogin no</span><br><span class="line">PubkeyAuthentication <span class="built_in">yes</span></span><br><span class="line">AuthenticationMethods publickey</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">sshd -t &amp;&amp; systemctl reload ssh   <span class="comment"># reload 保留现有连接，reload 失败则不生效</span></span><br></pre></td></tr></table></figure>
+
+验证实际生效值（`sshd -T` 展示的才是运行时值，不是文件里写的）：
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sshd -T | grep -iE <span class="string">&quot;permitrootlogin|kbdinteractive|authenticationmethods|passwordauthentication&quot;</span></span><br></pre></td></tr></table></figure>
+
+### 7. 最终验证
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ① 外部扫描，期望 filtered</span></span><br><span class="line">nmap -Pn -p 22 目标机IP</span><br><span class="line"></span><br><span class="line"><span class="comment"># ② 外部直连，期望 Connection timed out</span></span><br><span class="line">ssh jmsops@目标机IP</span><br><span class="line"></span><br><span class="line"><span class="comment"># ③ 从 JumpServer 直连，期望成功</span></span><br><span class="line">ssh -i ~/jms_ops_key jmsops@目标机IP <span class="string">&quot;hostname&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ④ 通过 JumpServer Web / 2222 登录，应正常通过 MFA</span></span><br><span class="line">ssh -p 2222 用户名@JMS_IP</span><br></pre></td></tr></table></figure>
+
+## 避坑指南
+
+**1. ufw 对 Docker 端口无效，JumpServer 的 Web/SSH 端口必须在云防火墙收紧**
+
+JumpServer 通过 Docker 发布端口（`-p 443:443`），Docker 直接修改 iptables，绕过了 ufw 的 `INPUT` 链。如果只在目标机上加 ufw 规则而没有配云防火墙，80/443/2222 实际对全网开放。正确做法：云防火墙只放行运维固定 IP 访问这三个端口。
+
+**2. 改 sshd 配置后不要 `systemctl restart`，要 `reload`**
+
+`restart` 会关闭所有现有 SSH 连接，包括你正在操作的会话。`reload` 让 sshd 重读配置、只对新连接生效，不影响已建立的会话。在改配置未验证时断开会话会有锁出门的风险。操作顺序：`sshd -t`（语法检查）→ `systemctl reload ssh` → 另开新会话验证 → 验证通过后才断旧会话。
+
+**3. JumpServer IP 变化会导致所有目标机全部失联**
+
+所有云防火墙和 ufw 规则都基于 `JMS_IP/32`。如果 JumpServer 机器重启、浮动 IP 漂移或迁移，22 端口白名单失效，只能靠带外控制台救援。部署前务必绑定固定 IP（Linode 的 Static IP、AWS 的 EIP），并在密码管理器里记录带外控制台入口。
+
+## 底层机制
+
+**为什么原 PAM OTP 和 JumpServer 不兼容**：JumpServer 的 SSH 组件（koko）以自动化方式登录目标机，它持有私钥，登录时走 `publickey` 认证通道，整个流程没有人工交互。而 PAM `pam_google_authenticator.so` 要求在 `keyboard-interactive` 通道里弹出验证码提示并等待用户输入。两者相遇的结果是：koko 收到验证码提示但不知道如何应答，直接返回 `Permission denied`，表现为原手册的坑点 1/2。解决方式是把 OTP 层上移到 JumpServer 本身——用户登录 JumpServer 时完成 MFA，之后 JumpServer 对内部目标机的连接走纯公钥，完全自动化。
+
+**三层防火墙的分工**：云防火墙（安全组/Cloud Firewall）在数据包到达虚拟机网卡之前就丢弃，是主要隔离手段，完全不依赖目标机的操作系统状态；ufw 在操作系统 iptables 层过滤，是系统被入侵后的最后一道防线；sshd 配置（禁密码、仅公钥）是认证层面的加固，三者功能互补，不可互相替代。
+
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/shanggu-digest/">#shanggu-digest</a> <a href="/tags/subscription-mode/">#subscription-mode</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    Respect All Fear None. 
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/28/2026-11-28-%E9%AA%8C%E8%AF%81%E4%B8%8B%E7%84%B6%E5%90%8E%E7%BB%99-alphaquant%E6%9D%A5%E6%8E%A5/">验证下然后给 alphaquant来接</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-you-are-a-precise-execution-engine-output-structured-json-f/">You are a precise executi</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2026/11/27/2026-11-27-%E4%BD%A0%E6%98%AF%E6%8A%80%E6%9C%AF%E7%BC%96%E8%BE%91-%E5%8F%AA%E8%BE%93%E5%87%BA%E7%AE%80%E6%B4%81%E6%B8%85%E7%88%BD-markdown-%E6%97%A0%E4%BB%BB%E4%BD%95%E5%AE%A2%E5%A5%97/">你是技术编辑, 只输出简洁清爽 markdown,</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E5%88%9B%E4%B8%9A/">创业</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Blog/">Blog</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E7%9F%A5/">知</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/%E8%AF%AD%E8%A8%80/">语言</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://github.com/klugjo/hexo-theme-alpha-dust">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://telegram.org/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-telegram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a target="_blank" rel="noopener" href="https://500px.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @4ck. All right reserved | Design & Hexo 0rz33
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+
+<script src="/js/main.js"></script>
+
+
+<!-- Searching -->
+<!-- <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script> -->
+
+<script src="/js/search.js"></script>
+
+
+<!-- Mermaid -->
+<script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({theme: 'dark'});
+  }
+</script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
